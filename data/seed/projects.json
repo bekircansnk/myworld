@@ -1,0 +1,30 @@
+[
+  {
+    "name": "My World",
+    "color": "#3B82F6",
+    "icon": "globe",
+    "description": "Kişisel Yaşam Yönetimi ve SaaS Projesi",
+    "sort_order": 1
+  },
+  {
+    "name": "Venüs Ayakkabıları",
+    "color": "#EC4899",
+    "icon": "shopping-bag",
+    "description": "E-Ticaret ve Müşteri İlişkileri",
+    "sort_order": 2
+  },
+  {
+    "name": "Kazador",
+    "color": "#F59E0B",
+    "icon": "briefcase",
+    "description": "Kamp Örtüsü ERP ve Üretim",
+    "sort_order": 3
+  },
+  {
+    "name": "Genel / Kişisel",
+    "color": "#10B981",
+    "icon": "user",
+    "description": "Gündelik işler ve özel hayat",
+    "sort_order": 4
+  }
+]

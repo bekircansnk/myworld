@@ -66,7 +66,7 @@
 | **ORM** | SQLAlchemy + Alembic | 2+ | Tip güvenli veritabanı, migration yönetimi |
 | **Veritabanı** | PostgreSQL | 16+ | Güçlü JSON desteği, full-text arama |
 | **Önbellek** | Redis | 7+ | Oturum, anlık veriler, rate limiting |
-| **AI Motoru** | Google Gemini 2.0 Flash | - | Hızlı, düşük maliyet, yüksek kalite |
+| **AI Motoru** | Google Gemini 3.1 Flash | - | Hızlı, düşük maliyet, yüksek kalite |
 | **Otomasyon** | n8n | Mevcut | Zamanlanmış görevler, webhook tetikleyiciler |
 | **Bot** | python-telegram-bot | 21+ | Telegram entegrasyonu |
 | **Kimlik Doğrulama** | JWT + API Key | - | Basit, yerel ortam için yeterli |
