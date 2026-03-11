@@ -1,15 +1,58 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from typing import List, Optional
 from datetime import datetime, timezone
+from pydantic import BaseModel
 
-from app.database import get_db
+class AIPrioritizeRequest(BaseModel):
+    message: str
+
+from app.database import get_db, AsyncSessionLocal
 from app.models.task import Task
 from app.models.project import Project
 from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse, TaskReorder, TaskBulkUpdate
 from app.services.gemini import categorize_task, _get_gemini_client
+
+async def background_categorize_task(task_id: int, task_text: str, project_context: str, tasks_context: str):
+    try:
+        ai_data = categorize_task(task_text, project_context, tasks_context)
+        if not ai_data: return
+        
+        async with AsyncSessionLocal() as db:
+            query = select(Task).where(Task.id == task_id)
+            result = await db.execute(query)
+            db_task = result.scalars().first()
+            if not db_task: return
+            
+            modified = False
+            if "project_id" in ai_data and ai_data["project_id"] is not None and not db_task.project_id:
+                db_task.project_id = ai_data["project_id"]
+                modified = True
+            
+            if "priority" in ai_data and db_task.priority == "normal":
+                ai_prio = ai_data["priority"]
+                db_task.priority = "normal" if ai_prio == "medium" else ai_prio
+                modified = True
+
+            if "estimated_minutes" in ai_data and isinstance(ai_data["estimated_minutes"], int) and not db_task.estimated_minutes:
+                db_task.estimated_minutes = ai_data["estimated_minutes"]
+                modified = True
+                
+            if "suggested_due_date" in ai_data and ai_data["suggested_due_date"] and not db_task.due_date:
+                from dateutil import parser
+                try:
+                    db_task.due_date = parser.isoparse(ai_data["suggested_due_date"])
+                    modified = True
+                except Exception as e:
+                    print(f"Due date parsing error: {e}")
+                    
+            if modified:
+                await db.commit()
+    except Exception as e:
+        print(f"Background Task Categorization error: {e}")
+
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -45,9 +88,16 @@ async def read_tasks(
 @router.post("/", response_model=TaskResponse)
 async def create_task(
     task: TaskCreate,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db)
 ):
-    # AI Kategorizasyon ve Süre/Proje Tahmini
+    # 1. Önce görevi veritabanına ekle
+    db_task = Task(**task.model_dump(), user_id=MOCK_USER_ID)
+    db.add(db_task)
+    await db.commit()
+    await db.refresh(db_task)
+
+    # 2. AI Kategorizasyon ve Süre/Proje Tahminini Arka Plana At
     try:
         proj_result = await db.execute(select(Project).filter(Project.user_id == MOCK_USER_ID, Project.is_active == True))
         projects = proj_result.scalars().all()
@@ -58,32 +108,18 @@ async def create_task(
         tasks_context = "\\n".join([f"- {t.title} (Öncelik: {t.priority}, Bitiş: {t.due_date})" for t in active_tasks])
 
         task_text = f"{task.title} {task.description or ''}"
-        ai_data = categorize_task(task_text, project_context, tasks_context)
-
-        if ai_data:
-            if "project_id" in ai_data and ai_data["project_id"] is not None and not task.project_id:
-                task.project_id = ai_data["project_id"]
-            
-            if "priority" in ai_data and task.priority == "normal":
-                ai_prio = ai_data["priority"]
-                task.priority = "normal" if ai_prio == "medium" else ai_prio
-
-            if "estimated_minutes" in ai_data and isinstance(ai_data["estimated_minutes"], int) and not task.estimated_minutes:
-                task.estimated_minutes = ai_data["estimated_minutes"]
-                
-            if "suggested_due_date" in ai_data and ai_data["suggested_due_date"] and not task.due_date:
-                from dateutil import parser
-                try:
-                    task.due_date = parser.isoparse(ai_data["suggested_due_date"])
-                except Exception as e:
-                    print(f"Due date parsing error: {e}")
-                
+        
+        # Asenkron arka plan görevine gönder
+        background_tasks.add_task(
+            background_categorize_task,
+            task_id=db_task.id,
+            task_text=task_text,
+            project_context=project_context,
+            tasks_context=tasks_context
+        )
     except Exception as e:
-        print(f"AI Task Categorization error: {e}")
+        print(f"Background task dispatch error: {e}")
 
-    db_task = Task(**task.model_dump(), user_id=MOCK_USER_ID)
-    db.add(db_task)
-    await db.commit()
     # selectinload project again to return nested object instead of none
     query = select(Task).options(selectinload(Task.project)).where(Task.id == db_task.id)
     result = await db.execute(query)
@@ -103,6 +139,55 @@ async def reorder_tasks(
             task.sort_order = item.sort_order
     await db.commit()
     return {"status": "ok", "message": "Tasks reordered"}
+
+@router.post("/ai-prioritize", response_model=dict)
+async def ai_prioritize_tasks(
+    req: AIPrioritizeRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    # 1. Bekleyen ana görevleri al
+    query = select(Task).where(Task.user_id == MOCK_USER_ID, Task.status != 'done', Task.parent_task_id == None)
+    result = await db.execute(query)
+    active_tasks = result.scalars().all()
+    
+    if not active_tasks:
+         return {"status": "ok", "message": "No tasks to prioritize"}
+         
+    # 2. Gemini'ye mesaj ve görevleri gönderip yeni sıralamayı json list of IDs formatında iste
+    tasks_context = "\\n".join([f"ID: {t.id} | Başlık: {t.title} | Öncelik: {t.priority}" for t in active_tasks])
+    
+    prompt = f"""
+Kullanıcı mesajı: "{req.message}"
+Mevcut görevler:
+{tasks_context}
+
+Kullanıcının mesajına göre bu görevleri yeniden önceliklendir. En acil olanı en başa al, sırasıyla diz. Eğer kullanıcı spesifik bir şeye odaklanmak istediğini söylüyorsa, o konudaki görevleri en başa taşı.
+Lütfen sadece JSON formatında, yeni sıralamaya göre task ID'lerini içeren bir liste dön. 
+Örnek çıktı formatı: [5, 2, 8, 1]
+ÖNEMLİ: SADECE JSON ÇIKTISI VER. BAŞKA HİÇBİR YAZI, MESAJ VEYA MARKDOWN FORMATI (```json vs) YAZMA. SADECE ARRAY.
+"""
+    client = _get_gemini_client()
+    try:
+        response = await client.aio.models.generate_content(
+            model='gemini-3.1-flash-lite-preview',
+            contents=prompt,
+        )
+        text = response.text.replace("```json", "").replace("```", "").strip()
+        import json
+        ordered_ids = json.loads(text)
+        
+        # update sort_order in db
+        for idx, task_id in enumerate(ordered_ids):
+            task = next((t for t in active_tasks if t.id == task_id), None)
+            if task:
+                task.sort_order = idx
+                
+        await db.commit()
+    except Exception as e:
+        print(f"AI Prioritize error: {e}")
+        return {"status": "error", "message": str(e)}
+
+    return {"status": "ok"}
 
 @router.post("/bulk", response_model=dict)
 async def bulk_update_tasks(

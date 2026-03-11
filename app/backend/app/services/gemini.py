@@ -19,7 +19,7 @@ MODEL_PRO = "gemini-3.1-pro-preview"
 MODEL_IMAGE = "gemini-3.1-flash-image-preview"
 
 class IntentClassification(BaseModel):
-    intent: str = Field(description="The user's intent. Must be exactly one of: 'STANDARD_CHAT', 'DEEP_ANALYSIS', or 'IMAGE_GENERATION'")
+    intent: str = Field(description="The user's intent. Must be exactly one of: 'STANDARD_CHAT' or 'DEEP_ANALYSIS'")
 
 def classify_intent(message: str) -> str:
     """
@@ -28,10 +28,10 @@ def classify_intent(message: str) -> str:
     try:
         system_instruction = (
             "Sen bir niyet analizatörüsün. Kullanıcının mesajını okuyup ne istediğine karar vereceksin. "
-            "Sadece 3 niyet türü olabilir:\\n"
+            "Sadece 2 niyet türü olabilir:\\n"
             "1. 'STANDARD_CHAT': Normal sohbet, günlük işler, kısa sorular, özetlemeler, hatırlatmalar, şakalar, sistem durmunu sorma.\\n"
             "2. 'DEEP_ANALYSIS': Çok karmaşık projeler, uzun vadeli ve detaylı stratejik planlamalar, yazılım mimarisi çizimleri, derin hukuki veya bilimsel analiz istekleri.\\n"
-            "3. 'IMAGE_GENERATION': Resim, fotoğraf, logo veya görsel üretilmesi talebi.\\n"
+            "Kullanıcı resim, fotoğraf veya görsel üretilmesini istese BİLE, bunu STANDARD_CHAT veya DEEP_ANALYSIS olarak algıla. ASLA görsel üretme.\\n"
         )
         
         response = client.models.generate_content(
@@ -49,7 +49,7 @@ def classify_intent(message: str) -> str:
         intent = result.get("intent", "STANDARD_CHAT")
         
         # Validasyon
-        if intent not in ["STANDARD_CHAT", "DEEP_ANALYSIS", "IMAGE_GENERATION"]:
+        if intent not in ["STANDARD_CHAT", "DEEP_ANALYSIS"]:
             return "STANDARD_CHAT"
             
         return intent
@@ -71,72 +71,35 @@ def generate_chat_response(messages: list, context: str = "") -> str:
         print(f"🧠 AI Router: Tespit Edilen Niyet -> {intent}")
 
         # 2. İşleme (Routing)
-        if intent == "IMAGE_GENERATION":
-            # Görüntü üretimi
-            # Not: google-genai kütüphanesinde image generation işlemi genellikle generate_images metodu ile yapılır
-            try:
-                # Promptu birleştir
-                prompt = last_user_message
-                
-                print("🎨 Görsel üretiliyor (gemini-3.1-flash-image-preview)...")
-                # Warning: 3.1 image model might have specific requirements or might fallback to imagen
-                # Using the standard genai.models.generate_images function if available, otherwise fallback
-                result = client.models.generate_images(
-                    model='imagen-3.0-generate-002', # Current recommended image generation endpoint in Vertex/AI Studio until 3.1 is unified seamlessly
-                    prompt=prompt,
-                    config=types.GenerateImagesConfig(
-                        number_of_images= 1,
-                        output_mime_type= "image/jpeg",
-                        aspect_ratio="1:1"
-                    )
-                )
-                
-                # Resim başarılı üretilirse, Frontend tarafına şimdilik base64 stringini embedleyerek veya açıklamalı verebiliriz.
-                # En basiti markdown image etiketi ile data url dönmek
-                if result and result.generated_images:
-                    img = result.generated_images[0]
-                    # Convert bytes to base64
-                    import base64
-                    b64_image = base64.b64encode(img.image.image_bytes).decode('utf-8')
-                    return f"İşte istediğiniz görsel:\\n\\n![Üretilen Görsel](data:image/jpeg;base64,{b64_image})"
-                else:
-                   return "Görsel üretilemedi."
+        selected_model = MODEL_PRO if intent == "DEEP_ANALYSIS" else MODEL_LITE
+        print(f"🤖 Metin Motoru Seçildi: {selected_model}")
+        
+        persona_base = get_personality_instruction()
+        system_instruction = (
+            f"{persona_base}\\n\\n"
+            f"SİSTEM/MÜŞTERİ VERİLERİ (BAĞLAM):\\n{context}"
+        )
 
-            except Exception as img_e:
-                print(f"Image Gen Error: {img_e}")
-                return "Resim üretilirken bir hata oluştu veya bu bölgede henüz desteklenmiyor olabilir. Lütfen normal sohbet ile devam edelim."
-
-        # 3. Metinsel Modeller (Lite veya Pro)
-        else:
-            selected_model = MODEL_PRO if intent == "DEEP_ANALYSIS" else MODEL_LITE
-            print(f"🤖 Metin Motoru Seçildi: {selected_model}")
+        config = types.GenerateContentConfig(
+            system_instruction=system_instruction,
+            temperature=0.7,
+        )
+        
+        # Formulate the prompt history
+        prompt = ""
+        for msg in messages:
+            role = "Kullanıcı" if msg.get("role") == "user" else "AI"
+            prompt += f"{role}: {msg.get('content')}\\n"
             
-            persona_base = get_personality_instruction()
-            system_instruction = (
-                f"{persona_base}\\n\\n"
-                f"SİSTEM/MÜŞTERİ VERİLERİ (BAĞLAM):\\n{context}"
-            )
+        prompt += "AI: "
 
-            config = types.GenerateContentConfig(
-                system_instruction=system_instruction,
-                temperature=0.7,
-            )
-            
-            # Formulate the prompt history
-            prompt = ""
-            for msg in messages:
-                role = "Kullanıcı" if msg.get("role") == "user" else "AI"
-                prompt += f"{role}: {msg.get('content')}\\n"
-                
-            prompt += "AI: "
-
-            response = client.models.generate_content(
-                model=selected_model,
-                contents=prompt,
-                config=config,
-            )
-            
-            return response.text
+        response = client.models.generate_content(
+            model=selected_model,
+            contents=prompt,
+            config=config,
+        )
+        
+        return response.text
             
     except Exception as e:
         print(f"Gemini API Error: {str(e)}")
