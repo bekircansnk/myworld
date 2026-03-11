@@ -140,10 +140,18 @@ def generate_chat_response(messages: list, context: str = "") -> str:
         return "Üzgünüm, AI servisine erişirken bölgesel bir limit veya API sorunuyla karşılaştım: " + str(e)
 
 
-def categorize_task(task_text: str, projects_context: str) -> dict:
-    """Yeni eklenen görevi AI ile analiz ederek öncelik, süre ve projeyi tahmin eder."""
+from datetime import datetime
+
+def categorize_task(task_text: str, projects_context: str, tasks_context: str = "") -> dict:
+    """Yeni eklenen görevi AI ile analiz ederek öncelik, süre, proje ve hedef tarihi tahmin eder."""
     try:
-        prompt = CATEGORIZE_TASK_PROMPT.format(projects_context=projects_context, task_text=task_text)
+        current_date = datetime.now().isoformat()
+        prompt = CATEGORIZE_TASK_PROMPT.format(
+            projects_context=projects_context, 
+            task_text=task_text,
+            tasks_context=tasks_context,
+            current_date=current_date
+        )
         
         response = client.models.generate_content(
             model=MODEL_LITE, # Hızlı analiz

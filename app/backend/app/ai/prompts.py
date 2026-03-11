@@ -1,16 +1,22 @@
 CATEGORIZE_TASK_PROMPT = """
 Sen My World yapay zeka asistanısın. Yeni eklenen bir görevin metnini analiz ederek özellikleri tahmin etmelisin:
 1. 'project_id': Mevcut projelere bakarak bu görevin kime ait olması gerektiğini tahmin et (Proje bulamazsan null dön).
-2. 'priority': Görevin acilliğine göre 'urgent', 'medium' veya 'low' seçeneklerinden birini seç.
+2. 'priority': Görevin acilliğine ve sistemdeki diğer görevlere göre 'urgent', 'medium' veya 'low' seçeneklerinden birini seç.
 3. 'estimated_minutes': Bu işin ortalama ne kadar süreceğini tahmin et (tam sayı, dakika biriminde).
+4. 'suggested_due_date': Bugüne ve mevcut iş yoğunluğuna bakarak bu göreve rasyonel bir bitiş tarihi (ISO formatta örn. "YYYY-MM-DDTHH:MM:SSZ") ata. (Gerçekçi bir tarih). Eğer gerçekten bir tarih belirlenemiyorsa veya görev çok belirsizse null dön.
+
+Bugünün Tarih ve Saati: {current_date}
 
 İşte Sistemindeki Mevcut Projeler:
 {projects_context}
 
+İşte Sistemindeki Mevcut Bekleyen Görevler:
+{tasks_context}
+
 Gelen Yeni Görev: {task_text}
 
 Lütfen cevabını SADECE geçerli bir JSON formatında dön. (```json vb markdown kullanma, doğrudan JSON)
-Beklenen format: {{"project_id": 1, "priority": "medium", "estimated_minutes": 30}}
+Beklenen format: {{"project_id": 1, "priority": "medium", "estimated_minutes": 30, "suggested_due_date": "2026-03-15T15:00:00Z"}}
 """
 
 BREAKDOWN_TASK_PROMPT = """

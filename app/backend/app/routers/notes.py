@@ -4,12 +4,14 @@ from sqlalchemy import select
 from typing import List, Optional
 from pydantic import BaseModel
 
+from datetime import datetime, timezone
+
 from app.database import get_db
 from app.models.note import Note
 from app.schemas.note import NoteCreate, NoteUpdate, NoteResponse
-from app.services.gemini import generate_chat_response
+from app.services.gemini import generate_chat_response, _get_gemini_client
 
-router = APIRouter()
+router = APIRouter(prefix="/notes", tags=["notes"])
 
 MOCK_USER_ID = 1
 
@@ -57,6 +59,56 @@ async def delete_note(note_id: int, db: AsyncSession = Depends(get_db)):
     await db.delete(db_note)
     await db.commit()
     return {"status": "ok"}
+
+@router.post("/{note_id}/ai-analysis", response_model=NoteResponse)
+async def generate_note_ai_analysis(
+    note_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    query = select(Note).where(Note.id == note_id, Note.user_id == MOCK_USER_ID)
+    result = await db.execute(query)
+    db_note = result.scalars().first()
+    
+    if not db_note:
+        raise HTTPException(status_code=404, detail="Note not found")
+
+    client = _get_gemini_client()
+    if not client:
+        raise HTTPException(status_code=500, detail="Gemini API not configured")
+
+    prompt = f"""Şu not hakkında kısa bir özet, analiz veya içgörü üret (3-4 satır, motivasyonel veya analitik):
+Not Başlığı: "{db_note.title or 'İsimsiz Not'}"
+İçerik: "{db_note.content}"
+Kategori: {db_note.ai_category or 'Belirsiz'}
+⚠️ Sadece analiz yaz."""
+
+    try:
+        response = await client.aio.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+        )
+        new_analysis = response.text
+
+        history = list(db_note.ai_analysis_history) if db_note.ai_analysis_history else []
+        if db_note.ai_analysis:
+            history.append({
+                "text": db_note.ai_analysis,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+            
+        db_note.ai_analysis = new_analysis
+        db_note.ai_analysis_history = history
+        
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(db_note, "ai_analysis_history")
+        
+        await db.commit()
+        await db.refresh(db_note)
+        
+        return db_note
+    except Exception as e:
+        print(f"Note Analysis error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to run AI analysis for note")
 
 
 # ====== AI NOT ZENGİNLEŞTİRME ======

@@ -9,7 +9,7 @@ from app.database import get_db
 from app.models.task import Task
 from app.models.project import Project
 from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse, TaskReorder, TaskBulkUpdate
-from app.services.gemini import categorize_task
+from app.services.gemini import categorize_task, _get_gemini_client
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -53,8 +53,12 @@ async def create_task(
         projects = proj_result.scalars().all()
         project_context = "\\n".join([f"- ID: {p.id}, İsim: {p.name}" for p in projects])
 
+        tasks_result = await db.execute(select(Task).filter(Task.user_id == MOCK_USER_ID, Task.status != "done"))
+        active_tasks = tasks_result.scalars().all()
+        tasks_context = "\\n".join([f"- {t.title} (Öncelik: {t.priority}, Bitiş: {t.due_date})" for t in active_tasks])
+
         task_text = f"{task.title} {task.description or ''}"
-        ai_data = categorize_task(task_text, project_context)
+        ai_data = categorize_task(task_text, project_context, tasks_context)
 
         if ai_data:
             if "project_id" in ai_data and ai_data["project_id"] is not None and not task.project_id:
@@ -66,6 +70,13 @@ async def create_task(
 
             if "estimated_minutes" in ai_data and isinstance(ai_data["estimated_minutes"], int) and not task.estimated_minutes:
                 task.estimated_minutes = ai_data["estimated_minutes"]
+                
+            if "suggested_due_date" in ai_data and ai_data["suggested_due_date"] and not task.due_date:
+                from dateutil import parser
+                try:
+                    task.due_date = parser.isoparse(ai_data["suggested_due_date"])
+                except Exception as e:
+                    print(f"Due date parsing error: {e}")
                 
     except Exception as e:
         print(f"AI Task Categorization error: {e}")
@@ -185,6 +196,69 @@ async def create_subtask(
     query = select(Task).options(selectinload(Task.project)).where(Task.id == db_task.id)
     result = await db.execute(query)
     return result.scalars().first()
+
+@router.post("/{task_id}/ai-analysis", response_model=TaskResponse)
+async def generate_task_ai_analysis(
+    task_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    # 1. Görevi ve alt görevlerini al
+    query = select(Task).options(selectinload(Task.project)).where(Task.id == task_id, Task.user_id == MOCK_USER_ID)
+    result = await db.execute(query)
+    db_task = result.scalars().first()
+    
+    if not db_task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    subtasks_query = select(Task).where(Task.parent_task_id == task_id)
+    subtasks_result = await db.execute(subtasks_query)
+    subtasks = subtasks_result.scalars().all()
+    
+    done_count = sum(1 for st in subtasks if st.status == 'done')
+    
+    # 2. Gemini asenkron çağrısı
+    client = _get_gemini_client()
+    if not client:
+        raise HTTPException(status_code=500, detail="Gemini API not configured")
+
+    prompt = f"""Şu görev hakkında kısa bir analiz ve yönlendirme yaz (3-4 satır, motivasyonel):
+Görev: "{db_task.title}"
+Açıklama: "{db_task.description or 'Yok'}"
+Durum: {db_task.status}
+Öncelik: {db_task.priority}
+Alt görev sayısı: {len(subtasks)}, Tamamlanan: {done_count}
+⚠️ Sadece analiz yaz, PLAN_START veya herhangi bir komut kodu EKLEME."""
+
+    try:
+        response = await client.aio.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+        )
+        new_analysis = response.text
+
+        # 3. Geçmişi güncelle
+        history = list(db_task.ai_analysis_history) if db_task.ai_analysis_history else []
+        if db_task.ai_analysis:
+            history.append({
+                "text": db_task.ai_analysis,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+            
+        db_task.ai_analysis = new_analysis
+        db_task.ai_analysis_history = history
+        
+        # SQL update için mutate attribute assign logic
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(db_task, "ai_analysis_history")
+        
+        await db.commit()
+        await db.refresh(db_task)
+        
+        # Refresh via select to ensure project loads correctly if needed
+        return db_task
+    except Exception as e:
+        print(f"Detail Analysis error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to run AI analysis")
 
 @router.delete("/{task_id}")
 async def delete_task(

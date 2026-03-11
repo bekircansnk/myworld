@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 from app.schemas.project import ProjectResponse
 
@@ -47,6 +47,8 @@ class TaskResponse(TaskBase):
     actual_minutes: int
     ai_category: Optional[str] = None
     ai_suggested_priority: Optional[str] = None
+    ai_analysis: Optional[str] = None
+    ai_analysis_history: Optional[List[Dict[str, Any]]] = None
     sort_order: int
     created_at: datetime
     completed_at: Optional[datetime] = None

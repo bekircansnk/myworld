@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, JSON
 from sqlalchemy.orm import relationship
 from app.models.base import Base
 
@@ -17,6 +17,8 @@ class Task(Base):
     actual_minutes = Column(Integer, default=0)
     ai_category = Column(String, nullable=True)
     ai_suggested_priority = Column(String, nullable=True)
+    ai_analysis = Column(String, nullable=True)
+    ai_analysis_history = Column(JSON, default=list)
     parent_task_id = Column(Integer, ForeignKey("tasks.id"), nullable=True)
     sort_order = Column(Integer, default=0)
     completed_at = Column(DateTime(timezone=True), nullable=True)
