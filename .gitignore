@@ -1,0 +1,25 @@
+# Mac OS
+.DS_Store
+
+# Node / Frontend
+node_modules
+.next
+out
+build
+.env
+.env.local
+
+# Python / Backend
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.pytest_cache/
+coverage/
+
+# IDE
+.vscode/
+.idea/
+
+# Custom
+.silinecekler_cop_kutusu/
