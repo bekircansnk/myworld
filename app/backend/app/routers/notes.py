@@ -15,13 +15,13 @@ router = APIRouter(prefix="/notes", tags=["notes"])
 
 MOCK_USER_ID = 1
 
-@router.get("/", response_model=List[NoteResponse])
+@router.get("", response_model=List[NoteResponse])
 async def get_notes(db: AsyncSession = Depends(get_db)):
     query = select(Note).where(Note.user_id == MOCK_USER_ID).order_by(Note.created_at.desc())
     result = await db.execute(query)
     return result.scalars().all()
 
-@router.post("/", response_model=NoteResponse)
+@router.post("", response_model=NoteResponse)
 async def create_note(note: NoteCreate, db: AsyncSession = Depends(get_db)):
     note_data = note.model_dump()
     db_note = Note(**note_data, user_id=MOCK_USER_ID)
@@ -84,7 +84,7 @@ Kategori: {db_note.ai_category or 'Belirsiz'}
 
     try:
         response = await client.aio.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-3.1-flash-lite-preview',
             contents=prompt,
         )
         new_analysis = response.text
@@ -163,11 +163,12 @@ KURALLAR:
         json_match = re.search(r'\{[\s\S]*\}', raw_reply)
         if json_match:
             data = json.loads(json_match.group(0))
-            return EnhanceResponse(
-                enhanced_content=data.get("enhanced_content", request.content),
-                tasks_found=data.get("tasks_found", []),
-                ideas=data.get("ideas", [])
-            )
+            # Pydantic v2 model_validate check or dict unpack
+            return EnhanceResponse.model_validate({
+                "enhanced_content": data.get("enhanced_content", request.content),
+                "tasks_found": data.get("tasks_found", []),
+                "ideas": data.get("ideas", [])
+            })
     except (json.JSONDecodeError, AttributeError):
         pass
     

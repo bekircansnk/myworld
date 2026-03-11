@@ -9,6 +9,10 @@ from app.ai.prompts import CATEGORIZE_TASK_PROMPT, BREAKDOWN_TASK_PROMPT, MOTIVA
 # Initialize Gemini client
 client = genai.Client(api_key=settings.gemini_api_key)
 
+def _get_gemini_client():
+    """Returns the initialized Gemini client."""
+    return client
+
 # Model Definitions
 MODEL_LITE = "gemini-3.1-flash-lite-preview"
 MODEL_PRO = "gemini-3.1-pro-preview"

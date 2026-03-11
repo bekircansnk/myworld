@@ -231,7 +231,7 @@ Alt görev sayısı: {len(subtasks)}, Tamamlanan: {done_count}
 
     try:
         response = await client.aio.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-3.1-flash-lite-preview',
             contents=prompt,
         )
         new_analysis = response.text
