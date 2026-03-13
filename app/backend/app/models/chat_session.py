@@ -19,5 +19,5 @@ class ChatSession(Base):
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
                         onupdate=lambda: datetime.now(timezone.utc))
 
-    user = relationship("User", backref="chat_sessions")
+    user = relationship("User", back_populates="chat_sessions")
     messages = relationship("ChatMessage", back_populates="session", order_by="ChatMessage.created_at")

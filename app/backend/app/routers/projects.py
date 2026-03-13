@@ -9,25 +9,27 @@ from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectResponse
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
-# Mock User ID for local dev until real auth is implemented
-MOCK_USER_ID = 1
+from app.dependencies.auth import get_current_user
+from app.models.user import User
 
 @router.get("/", response_model=List[ProjectResponse])
 async def read_projects(
-    db: AsyncSession = Depends(get_db), 
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
     skip: int = 0, 
     limit: int = 100
 ):
-    query = select(Project).where(Project.user_id == MOCK_USER_ID).order_by(Project.sort_order.asc(), Project.id.desc()).offset(skip).limit(limit)
+    query = select(Project).where(Project.user_id == current_user.id).order_by(Project.sort_order.asc(), Project.id.desc()).offset(skip).limit(limit)
     result = await db.execute(query)
     return result.scalars().all()
 
 @router.post("/", response_model=ProjectResponse)
 async def create_project(
     project: ProjectCreate, 
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    db_project = Project(**project.model_dump(), user_id=MOCK_USER_ID)
+    db_project = Project(**project.model_dump(), user_id=current_user.id)
     db.add(db_project)
     await db.commit()
     await db.refresh(db_project)
@@ -37,9 +39,10 @@ async def create_project(
 async def update_project(
     project_id: int, 
     project_update: ProjectUpdate, 
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    query = select(Project).where(Project.id == project_id, Project.user_id == MOCK_USER_ID)
+    query = select(Project).where(Project.id == project_id, Project.user_id == current_user.id)
     result = await db.execute(query)
     db_project = result.scalars().first()
     
@@ -57,9 +60,10 @@ async def update_project(
 @router.delete("/{project_id}")
 async def delete_project(
     project_id: int, 
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    query = select(Project).where(Project.id == project_id, Project.user_id == MOCK_USER_ID)
+    query = select(Project).where(Project.id == project_id, Project.user_id == current_user.id)
     result = await db.execute(query)
     db_project = result.scalars().first()
     

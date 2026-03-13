@@ -6,7 +6,8 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
+    username = Column(String(50), unique=True, index=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
     name = Column(String, nullable=False)
     avatar_url = Column(String, nullable=True)
     settings = Column(JSON, default={})
@@ -14,3 +15,6 @@ class User(Base):
     projects = relationship("Project", back_populates="user")
     tasks = relationship("Task", back_populates="user")
     notes = relationship("Note", back_populates="user")
+    calendar_events = relationship("CalendarEvent")
+    chat_sessions = relationship("ChatSession", back_populates="user")
+    chat_messages = relationship("ChatMessage", back_populates="user")

@@ -31,13 +31,14 @@ class TimerSessionResponse(BaseModel):
     
     model_config = ConfigDict(from_attributes=True)
 
-MOCK_USER_ID = 1
+from app.dependencies.auth import get_current_user
+from app.models.user import User
 
 @router.post("/start", response_model=TimerSessionResponse)
-async def start_timer(request: TimerStartRequest, db: AsyncSession = Depends(get_db)):
+async def start_timer(request: TimerStartRequest, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Yeni bir çalışma veya mola oturumu başlatır."""
     new_session = TimerSession(
-        user_id=MOCK_USER_ID,
+        user_id=current_user.id,
         task_id=request.task_id,
         start_time=datetime.now(timezone.utc),
         break_type=request.break_type,
@@ -48,9 +49,9 @@ async def start_timer(request: TimerStartRequest, db: AsyncSession = Depends(get
     return new_session
 
 @router.post("/stop", response_model=TimerSessionResponse)
-async def stop_timer(request: TimerStopRequest, db: AsyncSession = Depends(get_db)):
+async def stop_timer(request: TimerStopRequest, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Açık olan oturumu kapatır ve geçen süreyi hesaplar."""
-    query = select(TimerSession).where(TimerSession.id == request.session_id, TimerSession.user_id == MOCK_USER_ID)
+    query = select(TimerSession).where(TimerSession.id == request.session_id, TimerSession.user_id == current_user.id)
     result = await db.execute(query)
     session = result.scalars().first()
     
@@ -74,8 +75,8 @@ async def stop_timer(request: TimerStopRequest, db: AsyncSession = Depends(get_d
     return session
 
 @router.get("/history", response_model=List[TimerSessionResponse])
-async def get_timer_history(db: AsyncSession = Depends(get_db), limit: int = 50):
+async def get_timer_history(db: AsyncSession = Depends(get_db), limit: int = 50, current_user: User = Depends(get_current_user)):
     """Kullanıcının geçmiş timer oturumlarını getirir."""
-    query = select(TimerSession).where(TimerSession.user_id == MOCK_USER_ID).order_by(TimerSession.start_time.desc()).limit(limit)
+    query = select(TimerSession).where(TimerSession.user_id == current_user.id).order_by(TimerSession.start_time.desc()).limit(limit)
     result = await db.execute(query)
     return result.scalars().all()

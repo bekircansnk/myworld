@@ -23,3 +23,11 @@ coverage/
 
 # Custom
 .silinecekler_cop_kutusu/
+
+# Uploads (avatarlar vb.)
+app/backend/uploads/*
+!app/backend/uploads/.gitkeep
+
+# Database
+*.db
+*.sqlite3

@@ -16,5 +16,5 @@ class ChatMessage(Base):
     token_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
-    user = relationship("User", backref="chat_messages")
+    user = relationship("User", back_populates="chat_messages")
     session = relationship("ChatSession", back_populates="messages")

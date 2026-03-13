@@ -56,8 +56,8 @@ async def background_categorize_task(task_id: int, task_text: str, project_conte
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
-# Mock User ID for local dev
-MOCK_USER_ID = 1
+from app.dependencies.auth import get_current_user
+from app.models.user import User
 
 @router.get("/", response_model=List[TaskResponse])
 async def read_tasks(
@@ -66,9 +66,10 @@ async def read_tasks(
     status: Optional[str] = None,
     priority: Optional[str] = None,
     skip: int = 0,
-    limit: int = 100
+    limit: int = 100,
+    current_user: User = Depends(get_current_user)
 ):
-    query = select(Task).options(selectinload(Task.project)).where(Task.user_id == MOCK_USER_ID)
+    query = select(Task).options(selectinload(Task.project)).where(Task.user_id == current_user.id)
     
     # Filtreleme
     if project_id is not None:
@@ -89,21 +90,22 @@ async def read_tasks(
 async def create_task(
     task: TaskCreate,
     background_tasks: BackgroundTasks,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     # 1. Önce görevi veritabanına ekle
-    db_task = Task(**task.model_dump(), user_id=MOCK_USER_ID)
+    db_task = Task(**task.model_dump(), user_id=current_user.id)
     db.add(db_task)
     await db.commit()
     await db.refresh(db_task)
 
     # 2. AI Kategorizasyon ve Süre/Proje Tahminini Arka Plana At
     try:
-        proj_result = await db.execute(select(Project).filter(Project.user_id == MOCK_USER_ID, Project.is_active == True))
+        proj_result = await db.execute(select(Project).filter(Project.user_id == current_user.id, Project.is_active == True))
         projects = proj_result.scalars().all()
         project_context = "\\n".join([f"- ID: {p.id}, İsim: {p.name}" for p in projects])
 
-        tasks_result = await db.execute(select(Task).filter(Task.user_id == MOCK_USER_ID, Task.status != "done"))
+        tasks_result = await db.execute(select(Task).filter(Task.user_id == current_user.id, Task.status != "done"))
         active_tasks = tasks_result.scalars().all()
         tasks_context = "\\n".join([f"- {t.title} (Öncelik: {t.priority}, Bitiş: {t.due_date})" for t in active_tasks])
 
@@ -129,10 +131,11 @@ async def create_task(
 @router.put("/reorder", response_model=dict)
 async def reorder_tasks(
     reorder_data: TaskReorder,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     for item in reorder_data.items:
-        query = select(Task).where(Task.id == item.id, Task.user_id == MOCK_USER_ID)
+        query = select(Task).where(Task.id == item.id, Task.user_id == current_user.id)
         result = await db.execute(query)
         task = result.scalars().first()
         if task:
@@ -143,10 +146,11 @@ async def reorder_tasks(
 @router.post("/ai-prioritize", response_model=dict)
 async def ai_prioritize_tasks(
     req: AIPrioritizeRequest,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     # 1. Bekleyen ana görevleri al
-    query = select(Task).where(Task.user_id == MOCK_USER_ID, Task.status != 'done', Task.parent_task_id == None)
+    query = select(Task).where(Task.user_id == current_user.id, Task.status != 'done', Task.parent_task_id == None)
     result = await db.execute(query)
     active_tasks = result.scalars().all()
     
@@ -193,9 +197,10 @@ Lütfen sadece JSON formatında, yeni sıralamaya göre task ID'lerini içeren b
 @router.post("/bulk", response_model=dict)
 async def bulk_update_tasks(
     bulk_data: TaskBulkUpdate,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    query = select(Task).where(Task.id.in_(bulk_data.task_ids), Task.user_id == MOCK_USER_ID)
+    query = select(Task).where(Task.id.in_(bulk_data.task_ids), Task.user_id == current_user.id)
     result = await db.execute(query)
     tasks = result.scalars().all()
     for task in tasks:
@@ -218,9 +223,10 @@ async def bulk_update_tasks(
 async def update_task(
     task_id: int,
     task_update: TaskUpdate,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    query = select(Task).options(selectinload(Task.project)).where(Task.id == task_id, Task.user_id == MOCK_USER_ID)
+    query = select(Task).options(selectinload(Task.project)).where(Task.id == task_id, Task.user_id == current_user.id)
     result = await db.execute(query)
     db_task = result.scalars().first()
     
@@ -249,9 +255,10 @@ async def update_task(
 async def update_task_status(
     task_id: int,
     status: str = Query(..., description="todo, in_progress, done"),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    query = select(Task).options(selectinload(Task.project)).where(Task.id == task_id, Task.user_id == MOCK_USER_ID)
+    query = select(Task).options(selectinload(Task.project)).where(Task.id == task_id, Task.user_id == current_user.id)
     result = await db.execute(query)
     db_task = result.scalars().first()
     
@@ -272,10 +279,11 @@ async def update_task_status(
 async def create_subtask(
     task_id: int,
     subtask: TaskCreate,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     subtask.parent_task_id = task_id
-    db_task = Task(**subtask.model_dump(), user_id=MOCK_USER_ID)
+    db_task = Task(**subtask.model_dump(), user_id=current_user.id)
     db.add(db_task)
     await db.commit()
     
@@ -286,10 +294,11 @@ async def create_subtask(
 @router.post("/{task_id}/ai-analysis", response_model=TaskResponse)
 async def generate_task_ai_analysis(
     task_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     # 1. Görevi ve alt görevlerini al
-    query = select(Task).options(selectinload(Task.project)).where(Task.id == task_id, Task.user_id == MOCK_USER_ID)
+    query = select(Task).options(selectinload(Task.project)).where(Task.id == task_id, Task.user_id == current_user.id)
     result = await db.execute(query)
     db_task = result.scalars().first()
     
@@ -350,15 +359,37 @@ Alt görev sayısı: {len(subtasks)}, Tamamlanan: {done_count}
 @router.delete("/{task_id}")
 async def delete_task(
     task_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    query = select(Task).where(Task.id == task_id, Task.user_id == MOCK_USER_ID)
+    query = select(Task).where(Task.id == task_id, Task.user_id == current_user.id)
     result = await db.execute(query)
     db_task = result.scalars().first()
     
     if db_task is None:
         raise HTTPException(status_code=404, detail="Task not found")
-        
+
+    from sqlalchemy import update
+    from app.models.calendar_event import CalendarEvent
+    from app.models.timer_session import TimerSession
+    from app.models.note import Note
+    
+    # 1. Clear FKs in related tables
+    await db.execute(update(CalendarEvent).where(CalendarEvent.task_id == task_id).values(task_id=None))
+    await db.execute(update(TimerSession).where(TimerSession.task_id == task_id).values(task_id=None))
+    await db.execute(update(Note).where(Note.task_id == task_id).values(task_id=None))
+    
+    # 2. Delete subtasks
+    sub_query = select(Task).where(Task.parent_task_id == task_id)
+    sub_result = await db.execute(sub_query)
+    subtasks = sub_result.scalars().all()
+    for st in subtasks:
+        await db.execute(update(CalendarEvent).where(CalendarEvent.task_id == st.id).values(task_id=None))
+        await db.execute(update(TimerSession).where(TimerSession.task_id == st.id).values(task_id=None))
+        await db.execute(update(Note).where(Note.task_id == st.id).values(task_id=None))
+        await db.delete(st)
+
+    # 3. Finally delete the task
     await db.delete(db_task)
     await db.commit()
     return {"status": "ok", "message": "Task deleted successfully"}

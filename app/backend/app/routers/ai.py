@@ -26,6 +26,9 @@ logger = logging.getLogger("myworld.ai")
 
 router = APIRouter()
 
+from app.dependencies.auth import get_current_user
+from app.models.user import User
+
 class ChatRequest(BaseModel):
     messages: List[Dict[str, str]]
     session_id: Optional[int] = None
@@ -84,8 +87,8 @@ async def _resolve_project_id(db: AsyncSession, project_name: str, user_id: int,
 
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db)):
-    MOCK_USER_ID = 1
+async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    MOCK_USER_ID = current_user.id
     actions_executed: List[ActionLog] = []
     debug_info: Dict[str, Any] = {}
     # Cross-reference tracker: aynı sohbette oluşturulan öğeleri bağlamak için
@@ -531,8 +534,8 @@ class ChatHistoryResponse(BaseModel):
     created_at: datetime
 
 @router.get("/chat/history", response_model=List[ChatHistoryResponse])
-async def get_chat_history(limit: int = 50, db: AsyncSession = Depends(get_db)):
-    MOCK_USER_ID = 1
+async def get_chat_history(limit: int = 50, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    MOCK_USER_ID = current_user.id
     query = select(ChatMessage).where(ChatMessage.user_id == MOCK_USER_ID).order_by(ChatMessage.created_at.desc()).limit(limit)
     result = await db.execute(query)
     messages = result.scalars().all()
@@ -550,8 +553,8 @@ async def get_chat_history(limit: int = 50, db: AsyncSession = Depends(get_db)):
     ]
 
 @router.delete("/chat/history")
-async def clear_chat_history(db: AsyncSession = Depends(get_db)):
-    MOCK_USER_ID = 1
+async def clear_chat_history(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    MOCK_USER_ID = current_user.id
     from sqlalchemy import delete
     await db.execute(delete(ChatMessage).where(ChatMessage.user_id == MOCK_USER_ID))
     await db.commit()
@@ -562,8 +565,8 @@ class BreakdownResponse(BaseModel):
     subtasks: List[TaskResponse]
 
 @router.post("/breakdown/{task_id}", response_model=BreakdownResponse)
-async def ai_breakdown_task(task_id: int, db: AsyncSession = Depends(get_db)):
-    MOCK_USER_ID = 1
+async def ai_breakdown_task(task_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    MOCK_USER_ID = current_user.id
     query = select(Task).where(Task.id == task_id, Task.user_id == MOCK_USER_ID)
     result = await db.execute(query)
     parent_task = result.scalars().first()
@@ -601,8 +604,8 @@ class MotivationResponse(BaseModel):
     message: str
 
 @router.get("/motivation", response_model=MotivationResponse)
-async def get_ai_motivation(db: AsyncSession = Depends(get_db)):
-    MOCK_USER_ID = 1
+async def get_ai_motivation(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    MOCK_USER_ID = current_user.id
     
     done_result = await db.execute(select(func.count(Task.id)).where(Task.user_id == MOCK_USER_ID, Task.status == "done"))
     pending_result = await db.execute(select(func.count(Task.id)).where(Task.user_id == MOCK_USER_ID, Task.status != "done"))
@@ -629,8 +632,8 @@ class CostResponse(BaseModel):
     total_usd: float
 
 @router.get("/cost", response_model=CostResponse)
-async def get_ai_cost(db: AsyncSession = Depends(get_db)):
-    MOCK_USER_ID = 1
+async def get_ai_cost(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    MOCK_USER_ID = current_user.id
     query = select(User).where(User.id == MOCK_USER_ID)
     result = await db.execute(query)
     user = result.scalars().first()
@@ -650,10 +653,11 @@ async def get_ai_cost(db: AsyncSession = Depends(get_db)):
 @router.post("/chat/sessions", response_model=ChatSessionResponse)
 async def create_chat_session(
     request: ChatSessionCreate = None,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """Create a new chat session."""
-    MOCK_USER_ID = 1
+    MOCK_USER_ID = current_user.id
     session = ChatSession(
         user_id=MOCK_USER_ID,
         title=request.title if request else None,
@@ -671,10 +675,11 @@ async def list_chat_sessions(
     search: Optional[str] = None,
     limit: int = 50,
     offset: int = 0,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """List chat sessions with optional category filter."""
-    MOCK_USER_ID = 1
+    MOCK_USER_ID = current_user.id
     query = select(ChatSession).where(
         ChatSession.user_id == MOCK_USER_ID,
         ChatSession.is_active == True
@@ -706,10 +711,11 @@ async def list_chat_sessions(
 @router.get("/chat/sessions/{session_id}/messages", response_model=List[ChatHistoryResponse])
 async def get_session_messages(
     session_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """Get all messages for a specific session."""
-    MOCK_USER_ID = 1
+    MOCK_USER_ID = current_user.id
     query = select(ChatMessage).where(
         ChatMessage.user_id == MOCK_USER_ID,
         ChatMessage.session_id == session_id
@@ -728,3 +734,42 @@ async def get_session_messages(
         )
         for m in messages
     ]
+
+@router.delete("/chat/sessions/{session_id}")
+async def delete_chat_session(
+    session_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Soft delete a specific chat session."""
+    MOCK_USER_ID = current_user.id
+    query = select(ChatSession).where(
+        ChatSession.id == session_id,
+        ChatSession.user_id == MOCK_USER_ID
+    )
+    result = await db.execute(query)
+    session = result.scalars().first()
+    
+    if not session:
+        raise HTTPException(status_code=404, detail="Sohbet oturumu bulunamadı")
+        
+    session.is_active = False
+    await db.commit()
+    return {"status": "success", "message": "Oturum silindi."}
+
+@router.delete("/chat/sessions")
+async def delete_all_chat_sessions(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Soft delete all chat sessions for the user."""
+    MOCK_USER_ID = current_user.id
+    from sqlalchemy import update
+    
+    await db.execute(
+        update(ChatSession)
+        .where(ChatSession.user_id == MOCK_USER_ID)
+        .values(is_active=False)
+    )
+    await db.commit()
+    return {"status": "success", "message": "Tüm sohbet oturumları silindi."}

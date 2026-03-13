@@ -42,39 +42,47 @@ def _generate_proactive_text(context: str, instruction: str) -> str:
         return "Günaydın Bekir! Bugün harika işler başaracağız."
 
 async def morning_greeting():
-    """Sabah 12:00'de çalışır, günün özetini ve ilk planı sunar."""
+    """Sabah 09:00'da çalışır (başlangıç saati), günün özetini sunar."""
     async with AsyncSessionLocal() as db:
         try:
-            MOCK_USER_ID = 1
-            # Bekleyen görevleri getir
-            result = await db.execute(select(Task).filter(Task.user_id == MOCK_USER_ID, Task.status != "done"))
-            tasks = result.scalars().all()
-            task_list = "\n".join([f"- {t.title} ({t.priority})" for t in tasks[:5]]) or "Bekleyen görev yok."
+            # Tüm aktif kullanıcıları al
+            result = await db.execute(select(User))
+            users = result.scalars().all()
             
-            instruction = "Şu an sabah saati. Kullanıcı güne yeni başlıyor. Bekleyen görevlerine bakarak onu güne enerjik başlat. 1-2 cümle."
-            msg = _generate_proactive_text(f"Bekleyen Görevler:\n{task_list}", instruction)
-            
-            await _send_proactive_message(msg, "MORNING_GREETING")
+            for user in users:
+                # Bekleyen görevleri getir
+                task_res = await db.execute(select(Task).filter(Task.user_id == user.id, Task.status != "done"))
+                tasks = task_res.scalars().all()
+                task_list = "\n".join([f"- {t.title} ({t.priority})" for t in tasks[:5]]) or "Bekleyen görev yok."
+                
+                instruction = f"Şu an sabah saati. {user.name} güne yeni başlıyor. Bekleyen görevlerine bakarak onu güne enerjik başlat. 1-2 cümle."
+                msg = _generate_proactive_text(f"Bekleyen Görevler:\n{task_list}", instruction)
+                
+                # Sadece WebSocket bağlantısı varsa (manager içinde client varsa) broadcast yapılır ama burada user_id bazlı filtreleme yok manager'da şu an.
+                # Şimdilik global broadcast yapıyoruz ama mesaj içeriği kişisel. (İleride manager.send_to_user yapılır)
+                await _send_proactive_message(msg, "MORNING_GREETING")
         except Exception as e:
             logger.error(f"morning_greeting hatası: {e}")
 
 async def task_staleness_check():
-    """Öğleden sonraları çalışır, çok uzun süredir bekleyen görevleri hatırlatır."""
+    """Öğleden sonraları çalışır, bekleyen görevleri hatırlatır."""
     async with AsyncSessionLocal() as db:
         try:
-            MOCK_USER_ID = 1
-            # Basitlik için tüm todo görevlerini alıyoruz, gerçekte created_at'e göre filtre konulabilir
-            result = await db.execute(select(Task).filter(Task.user_id == MOCK_USER_ID, Task.status == "todo"))
-            tasks = result.scalars().all()
-            if not tasks:
-                return
-                
-            stale_task = tasks[0] # İlkini seçelim örnek olarak
-            context = f"Eski Görev: {stale_task.title}"
-            instruction = "Bu görev uzun süredir bekliyor. Kullanıcıya bunu küçük, başarılabilir bir ilk adımla hatırlat. Yargılama, motive et."
+            result = await db.execute(select(User))
+            users = result.scalars().all()
             
-            msg = _generate_proactive_text(context, instruction)
-            await _send_proactive_message(msg, "STALENESS_WARNING")
+            for user in users:
+                task_res = await db.execute(select(Task).filter(Task.user_id == user.id, Task.status == "todo"))
+                tasks = task_res.scalars().all()
+                if not tasks:
+                    continue
+                    
+                stale_task = tasks[0]
+                context = f"Kullanıcı: {user.name}, Eski Görev: {stale_task.title}"
+                instruction = f"{user.name} bu görevi uzun süredir bekletiyor. Onu motive ederek hatırlat."
+                
+                msg = _generate_proactive_text(context, instruction)
+                await _send_proactive_message(msg, "STALENESS_WARNING")
         except Exception as e:
             logger.error(f"task_staleness_check hatası: {e}")
 
@@ -82,13 +90,14 @@ async def evening_summary():
     """Akşam saatlerinde çalışır, günü özetler."""
     async with AsyncSessionLocal() as db:
         try:
-            MOCK_USER_ID = 1
-            # Bugün bitenleri bulmak için normalde completion_time'a bakılır
-            # Şimdilik örnek context
-            context = "Bugün biten görevler ve kalan enerjiyi toparlama zamanı."
-            instruction = "Kullanıcıya günün yorgunluğunu atması için dinlenmesini tavsiye et. Kısa ve samimi bir kapanış yap."
+            result = await db.execute(select(User))
+            users = result.scalars().all()
             
-            msg = _generate_proactive_text(context, instruction)
-            await _send_proactive_message(msg, "EVENING_SUMMARY")
+            for user in users:
+                context = f"Kullanıcı: {user.name}. Gün bitti, toparlanma zamanı."
+                instruction = f"{user.name}'a günün yorgunluğunu atması için dinlenmesini tavsiye et. Kısa ve samimi."
+                
+                msg = _generate_proactive_text(context, instruction)
+                await _send_proactive_message(msg, "EVENING_SUMMARY")
         except Exception as e:
             logger.error(f"evening_summary hatası: {e}")

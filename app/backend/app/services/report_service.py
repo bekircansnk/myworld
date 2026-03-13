@@ -8,35 +8,44 @@ from app.services.telegram import send_telegram_message
 
 MOCK_USER_ID = 1
 
-async def generate_daily_report(db: AsyncSession, target_date: date = None) -> DailyReport:
-    """Belirtilen gün (veya bugün) için veritabanından biten işleri tarar, AI ile yorumlar ve Rapor oluşturur."""
+async def generate_daily_report(db: AsyncSession, user_id: int, target_date: date = None) -> DailyReport:
+    """Belirli bir gün için kullanıcının başarı/rapor özetini oluşturur."""
     if target_date is None:
         target_date = date.today()
 
     # Eğer o güne ait rapor zaten varsa ondan dön
-    query = select(DailyReport).where(DailyReport.user_id == MOCK_USER_ID, DailyReport.report_date == target_date)
+    query = select(DailyReport).where(DailyReport.user_id == user_id, DailyReport.report_date == target_date)
     result = await db.execute(query)
     existing_report = result.scalars().first()
-    if existing_report:
-        return existing_report
-
-    # O gün oluşturulan görevler
-    # SQLite / Postgres date filtreleme için basit gün kontrolü
-    # Not: Gerçekte created_at.cast(Date) == target_date sorgusu yapılır
-    tasks_query = select(Task).where(Task.user_id == MOCK_USER_ID)
-    all_tasks = (await db.execute(tasks_query)).scalars().all()
     
-    # Python seviyesi filtreleme (Mock)
-    today_added = [t for t in all_tasks if t.created_at and t.created_at.date() == target_date]
-    today_completed = [t for t in all_tasks if t.completed_at and t.completed_at.date() == target_date and t.status == "done"]
+    # 2. O günkü tamamlanmış görevleri seç
+    # Geliştirme notu: `completed_at` sahası olmadığı için status üzerinden tahmin yürütüyoruz veya 
+    # güncellenme tarihine bakılabilir. Şimdilik basitleştirilmiş bir sorgu:
+    tasks_query = select(Task).where(Task.user_id == user_id)
+    tasks_res = await db.execute(tasks_query)
+    all_tasks = tasks_res.scalars().all()
     
-    total_minutes = sum([t.actual_minutes for t in today_completed if t.actual_minutes]) or 0
+    completed_tasks = [t for t in all_tasks if t.status == 'done']
+    pending_tasks = [t for t in all_tasks if t.status != 'done']
+    
+    # 3. Odak süresi / Timer hesaplaması (Yoksa opsiyonel varsayıyoruz)
+    # query = select(func.sum(TimerSession.duration_minutes)).where(...)
+    total_focus_minutes = 0 # Placeholder
+    
+    # 4. AI'dan analiz iste:
+    # This function is not defined in the original document, assuming it's a placeholder or needs to be added.
+    # For now, we'll use a mock or adapt the existing AI summary logic.
+    
+    # Adapting existing AI summary logic for the new structure
+    today_added = [t for t in all_tasks if t.created_at and t.created_at.date() == target_date] # Re-introduce for AI prompt
+    today_completed = [t for t in all_tasks if t.completed_at and t.completed_at.date() == target_date and t.status == "done"] # Re-introduce for AI prompt
+    
+    total_minutes_for_ai = sum([t.actual_minutes for t in today_completed if t.actual_minutes]) or 0
 
-    # Yapay Zekadan Yorum İste (AI Sentezi)
     completed_titles = ", ".join([f"'{t.title}'" for t in today_completed]) if today_completed else "Hiçbir şey bitirilmedi"
     prompt = f"""
     Bugün Kullanıcı şu görevleri tamamladı: {completed_titles}.
-    Toplam çalışma süresi yaklaşık: {total_minutes} dakika.
+    Toplam çalışma süresi yaklaşık: {total_minutes_for_ai} dakika.
     Bugün eklenen yeni görev sayısı: {len(today_added)}.
     
     Kullanıcıya samimi, cesaretlendirici, maksimum 2-3 cümlelik bir "Günün Özeti" raporu yorumu yaz.

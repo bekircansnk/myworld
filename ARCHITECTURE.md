@@ -1,5 +1,5 @@
 # 🌍 MY WORLD — MİMARİ VE SİSTEM KURALLARI (ARCHITECTURE.md)
-# Son Güncelleme: 2026-03-12T05:10+03:00
+# Son Güncelleme: 2026-03-13T16:00+03:00
 
 > **KRİTİK:** Bu dosya tüm sistemin TEK KAYNAĞI (Single Source of Truth) olarak tasarlanmıştır.
 > Herhangi bir AI ajanı bu projeye ilk kez girdiğinde **sadece bu dosyayı** okumalıdır.
@@ -12,16 +12,16 @@
 | Bilgi              | Değer                                                     |
 |---------------------|-----------------------------------------------------------|
 | **Proje Adı**       | My World — Kişisel AI Destekli Yaşam ve İş Yönetim Sistemi |
-| **Sahibi**          | Bekircan Simsek (user_id: 1, MOCK_USER_ID olarak hardcoded) |
+| **Sahibi**          | Çoklu Kullanıcı (SaaS) — Herkesin verisi izole.            |
 | **Proje Kökü**      | `/Users/bekir/Uygulamalarım/2-My-World/`                   |
-| **Durum**           | Development (Local) — Üretime çıkılmadı                   |
+| **Durum**           | SaaS Integrated (Local) — Auth & İzolasyon Tamamlandı      |
 | **Dil**             | Kullanıcıyla Türkçe, kod ve değişken isimleri İngilizce    |
 
 ---
 
 ## 2. TEKNOLOJİ STACK'İ
 
-### Backend
+### Backend 
 | Bileşen       | Teknoloji                | Versiyon/Detay              |
 |---------------|--------------------------|------------------------------|
 | Framework     | **FastAPI**              | Async, Python 3.14          |
@@ -31,6 +31,7 @@
 | Yapay Zeka    | **Google Gemini API**    | `google-genai` SDK          |
 | Doğrulama     | **Pydantic v2**          | BaseModel, ConfigDict       |
 | Ayarlar       | **pydantic-settings**    | .env otomatik yükleme       |
+| Güvenlik      | **Passlib / Jose**       | Şifre Hashing / JWT Auth    |
 | Çalıştırma    | `uvicorn app.main:app`   | Port 8000                   |
 
 ### Frontend
@@ -109,6 +110,9 @@
 │   │   │   │   ├── context.py        # DB'den proje/görev/not çekerek bağlam oluştur
 │   │   │   │   ├── memory.py         # Token optimize (şimdilik truncate)
 │   │   │   │   └── prompts.py        # LLM prompt şablonları
+│   │   │   │
+│   │   │   ├── dependencies/     # Enjeksiyonlar
+│   │   │   │   └── auth.py           # JWT doğrulama ve current_user
 │   │   │   │
 │   │   │   └── utils/
 │   │   │       └── logger.py     # structlog tabanlı logger
@@ -256,6 +260,15 @@ TaskDetailPanel her zaman render edilir (global overlay — isDetailPanelOpen il
 | GET     | `/api/reports/daily`             | Günlük rapor geçmişi                | reports.py           |
 | POST    | `/api/reports/generate/daily`    | Günlük rapor oluştur                | reports.py           |
 | GET     | `/api/reports/weekly`            | Haftalık rapor geçmişi              | reports.py           |
+| GET     | `/api/calendar/events`           | Takvim etkinliklerini listele       | calendar.py          |
+| POST    | `/api/calendar/events`           | Yeni takvim etkinliği               | calendar.py          |
+| PUT     | `/api/calendar/events/{id}`      | Etkinlik güncelle                   | calendar.py          |
+| DELETE  | `/api/calendar/events/{id}`      | Etkinlik sil                        | calendar.py          |
+| POST    | `/api/auth/register`             | Yeni kullanıcı kaydı                | auth.py              |
+| POST    | `/api/auth/login`                | Giriş ve JWT Token al               | auth.py              |
+| GET     | `/api/auth/me`                   | Mevcut kullanıcı bilgisi            | auth.py              |
+| PUT     | `/api/auth/profile`              | Profil güncelle (username/şifre)    | auth.py              |
+| POST    | `/api/auth/avatar`               | Avatar yükle (multipart/form-data)  | auth.py              |
 | WS      | `/ws/`                           | WebSocket (ping/pong, broadcast)    | websocket.py         |
 
 ---
@@ -263,14 +276,15 @@ TaskDetailPanel her zaman render edilir (global overlay — isDetailPanelOpen il
 ## 6. VERİTABANI ŞEMASI
 
 ### users
-| Kolon      | Tip           | Not                     |
-|------------|---------------|-------------------------|
-| id         | INT PK        | Auto-increment          |
-| email      | VARCHAR       | UNIQUE                  |
-| name       | VARCHAR       |                         |
-| avatar_url | VARCHAR       | nullable                |
-| settings   | JSON          | default {}              |
-| created_at | TIMESTAMP(tz) | Base'den gelir          |
+| Kolon           | Tip           | Not                        |
+|-----------------|---------------|----------------------------|
+| id              | INT PK        | Auto-increment             |
+| username        | VARCHAR       | UNIQUE, Giriş için kullanılır|
+| password_hash   | VARCHAR       | Argon2/Bcrypt hashli şifre  |
+| name            | VARCHAR       | Görünen ad                 |
+| avatar_url      | VARCHAR       | Profil resmi yolu          |
+| settings        | JSON          | default {}                 |
+| created_at      | TIMESTAMP(tz) | Base'den gelir             |
 
 ### projects
 | Kolon       | Tip           | Not                   |
@@ -357,6 +371,27 @@ TaskDetailPanel her zaman render edilir (global overlay — isDetailPanelOpen il
 - type: "urgent_task" / "break_time" / "motivation" / "morning_greeting"
 - title, message, is_read, action_url, scheduled_at, sent_at
 
+### calendar_events
+| Kolon           | Tip           | Not                               |
+|-----------------|---------------|-----------------------------------|
+| id              | INT PK        |                                   |
+| user_id         | INT FK        | Veri izolasyonu için              |
+| title           | VARCHAR       | Etkinlik başlığı                  |
+| description     | TEXT          | Detaylar                          |
+| start_time      | TIMESTAMP(tz) | Başlangıç                         |
+| end_time        | TIMESTAMP(tz) | Bitiş                             |
+| is_all_day      | BOOL          | Tüm gün mü?                       |
+| event_type      | VARCHAR       | "task", "routine", "meeting" vb.  |
+| task_id         | INT FK        | İlişkili görev (varsa)            |
+| note_id         | INT FK        | İlişkili not (varsa)              |
+| is_completed    | BOOL          | Tamamlandı mı?                    |
+| created_at      | TIMESTAMP(tz) |                                   |
+
+### chat_sessions / chat_messages
+- Her mesaj `user_id` ve `session_id` ile bağlıdır.
+- Mesajlar AI'nın geçmişi hatırlaması için `(user_id, session_id)` bazlı sorgulanır.
+- `actions` kolonu AI'nın o mesajda yaptığı görev ekleme vb. detayları saklar.
+
 ---
 
 ## 7. AI SİSTEMİ MİMARİSİ
@@ -373,12 +408,11 @@ classify_intent() → MODEL_LITE ile niyet tespiti
 ```
 
 ### AI Chat Akışı (POST /api/chat)
-```
-1. build_system_context(db) → DB'den aktif projeler, görevler, tamamlananlar, not özetleri çekilir
-2. optimize_context_tokens() → 15000 karaktere kırpılır
-3. get_personality_instruction() → Kişilik + PLAN_START kuralları + kişisel analiz raporu yüklenir
-4. classify_intent() → Model seçilir
-5. generate_chat_response() → Mesaj + context + system_instruction ile Gemini'ye gönderilir
+1. build_system_context(db, user_id) → Kullanıcıya özel aktif projeler, görevler ve notlar çekilir.
+2. optimize_context_tokens() → Token sınırına göre kırpma yapılır.
+3. get_personality_instruction(user_name) → Kullanıcının adıyla özelleştirilmiş sistem promptu üretilir.
+4. classify_intent() → Model seçilir (Lite/Pro).
+5. generate_chat_response() → Mesaj + kişiselleştirilmiş context + system_instruction ile Gemini'ye gönderilir.
 6. Oto-Komut Ayrıştırma:
    a) [PLAN_START]...[PLAN_END] → TEK ana görev + N alt görev oluşturur (tercih edilen)
    b) [ACTION:ADD_TASK|Proje|Başlık|Öncelik] → Geriye dönük uyumluluk
@@ -426,9 +460,28 @@ Her sohbet mesajıyla AI'ya şu bağlam iletilir:
 - Son 5 not özeti
 
 ### AI'ın Kişilik Kaynağı
-1. `data/seed/ai_personality.json` → İsim, ton, kurallar
-2. `docs/07-nihai-kisisel-analiz-raporu.md` → Bekircan'ın tam kişilik analizi (ADHD, dopamin, motivasyon)
-3. `personality.py` → ADHD uyumlu PLAN üretim kuralları, tahmini süre zorunluluğu
+1. `data/seed/ai_personality.json` → Temel isim, ton ve kurallar.
+2. `personality.py` → Dinamik prompt üretici; `user_name` parametresiyle kullanıcıya özel hitap sağlar.
+3. Sistem, kullanıcıyı bir "Dijital Kurucu Ortak" veya "Ürün Yöneticisi" gibi destekler; pasif dinlemez, proaktif aksiyon alır.
+
+### 🤖 Proaktif AI Mesaj Sistemi (Background Tasks)
+Sistem, `scheduler.py` üzerinden belirli zamanlarda (`09:00`, `14:00`, `21:00` vb.) otomatik tetiklenir:
+1. **Sabah Selamlaması**: Günün ilk ışıklarında kullanıcıya bekleyen acil işlerini hatırlatır.
+2. **Durum Kontrolü**: Gün içinde takılan veya uzun süredir bekleyen görevleri motive ederek hatırlatır.
+3. **Akşam Özeti**: Günün performansını değerlendirir ve dinlenme tavsiyesi verir.
+Metinler Gemini (`MODEL_LITE`) tarafından o anki DB bağlamına göre üretilir ve **WebSocket** (`PROACTIVE_AI_MESSAGE`) üzerinden anlık olarak UI'a basılır. UI'da bu mesajlar AI botun konuşma baloncuğunda belirir.
+
+### 🧠 Yapay Zeka Ne Biliyor? (Context Scope)
+Her mesajda veya proaktif işlemde AI aşağıdaki verilere (sadece ilgili kullanıcıya ait) erişebilir:
+1. **Profil Bilgisi**: Kullanıcının adı, bio'su ve özel ayarları.
+2. **Aktif Görevler**: Tüm "todo" ve "in_progress" görevlerin başlıkları, öncelikleri ve varsa deadline'ları.
+3. **Projeler**: Mevcut projelerin listesi ve hangi görevlerin hangi projeye ait olduğu.
+4. **Notlar**: Son eklenen 5-10 notun içeriği ve kategorileri.
+5. **Takvim**: Yaklaşan 24-48 saat içindeki etkinlikler.
+6. **AI Belleği**: Chat geçmişindeki son 10-15 mesaj (veya token limitine göre).
+7. **Zaman**: Şu anki tarih ve saat (görev gecikmelerini hesaplamak için).
+
+AI bu verileri ham JSON olarak değil, `context.py` tarafından üretilen anlamlı bir metin özeti olarak alır. Bu sayede "Benim geciken işim var mı?" dediğinde veritabanındaki `due_date < now` olanları süzüp size söyleyebilir.
 
 ---
 
@@ -590,12 +643,15 @@ npm run dev   # localhost:3000
 - Chat mesaj geçmişi DB'ye kaydedilmeli
 
 ### 🟢 Tamamlanan
+- ✅ **SaaS Dönüşümü**: Çoklu kullanıcı desteği ve veri izolasyonu.
+- ✅ **JWT Kimlik Doğrulama**: Kayıt ol/Giriş yap ve güvenli oturum yönetimi.
+- ✅ **Profil & Avatar**: Kullanıcı profil düzenleme ve sunucuya avatar yükleme.
+- ✅ **Takvim DB Senkronizasyonu**: Takvimin localStorage'dan PostgreSQL'e taşınması.
 - ✅ Görev CRUD + AI auto-categorize + AI breakdown
 - ✅ Proje CRUD + yatay navbar navigasyon
 - ✅ Not CRUD + AI başlık/kategori otomatik atama + AI zenginleştirme
 - ✅ Detaylı not ekleme modalı (kategori seçimi ile)
 - ✅ Notlarda kod bloğu algılama ve syntax-highlighted gösterim
-- ✅ Notlar kategori sıralaması (Tüm/Genel/Yaratıcı/Yazılım)
 - ✅ Pomodoro Timer (API bağlantılı)
 - ✅ Morning Screen (günde 1 kez)
 - ✅ AI Chat + PLAN_START/END komutu
@@ -610,11 +666,7 @@ npm run dev   # localhost:3000
 - ✅ Takvim Sayfası (aylık/haftalık/günlük + etkinlik yönetimi)
 - ✅ Takvim sürükle-bırak (görev↔gün, takvim içi taşıma)
 - ✅ Takvim sağ tık bağlam menüsü (kaldır/düzenle)
-- ✅ Bekleyen görevler akıllı filtreleme (tarihsiz öncelikli)
-- ✅ Etkinliklerim paneli (kronolojik liste)
-- ✅ Takvim içi AI sohbet
-- ✅ CalendarStore localStorage persist
-- ✅ WebSocket altyapısı
+- ✅ WebSocket altyapısı & Proaktif AI Mesajları
 - ✅ Rapor modeli
 - ✅ Kanban board AI aksiyon sonrası otomatik refresh
 
