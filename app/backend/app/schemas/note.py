@@ -6,6 +6,7 @@ class NoteBase(BaseModel):
     content: str
     title: Optional[str] = None
     project_id: Optional[int] = None
+    task_id: Optional[int] = None
     ai_category: Optional[str] = None
     ai_tags: Optional[List[str]] = []
     source: Optional[str] = "web"

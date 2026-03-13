@@ -208,6 +208,9 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db))
                 await db.commit()
                 await db.refresh(main_task)
                 
+                # Cross-reference tracker'a ekle!
+                created_items["tasks"].append(main_task)
+                
                 main_task_id = main_task.id
                 logger.info(f"✅ Ana görev oluşturuldu: '{main_title}' (ID: {main_task_id})")
                 
