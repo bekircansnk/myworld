@@ -1,0 +1,254 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: var(--font-inter);
+}
+
+:root {
+  /* LIGHT MODE — Stitch Premium Warm Cream */
+  --background: #f4f1e6; /* Warm cream base — gradient body'de uygulanır */
+  --foreground: #333333; /* Deep charcoal */
+  
+  --card: oklch(1 0 0); /* Bembeyaz kartlar */
+  --card-foreground: oklch(0.2 0.02 250);
+  
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0.02 250);
+  
+  --primary: oklch(0.6 0.15 260); /* Soft Indigo */
+  --primary-foreground: oklch(0.98 0 0);
+  
+  --secondary: oklch(0.96 0.02 260); /* Çok açık mavi/lila zemin */
+  --secondary-foreground: oklch(0.4 0.1 260);
+  
+  --muted: oklch(0.96 0.01 250); /* Yumuşak sekonder gri */
+  --muted-foreground: oklch(0.55 0.03 250);
+  
+  --accent: oklch(0.96 0.02 270);
+  --accent-foreground: oklch(0.35 0.15 270);
+  
+  --destructive: oklch(0.65 0.15 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  
+  --border: oklch(0.94 0.01 250); /* İnce, çok düşük kontrastlı kenarlık */
+  --input: oklch(0.95 0.01 250);
+  --ring: oklch(0.6 0.15 260);
+  
+  /* Modern Premium UI için büyük radius */
+  --radius: 1.5rem; 
+}
+
+.dark {
+  /* DARK MODE — Deep Navy Premium */
+  --background: #12151f; /* Dark navy base — gradient body'de uygulanır */
+  --foreground: #f0f0f0;
+  
+  --card: oklch(0.19 0.03 260);
+  --card-foreground: oklch(0.95 0.01 260);
+  
+  --popover: oklch(0.19 0.03 260);
+  --popover-foreground: oklch(0.95 0.01 260);
+  
+  --primary: oklch(0.65 0.2 260);
+  --primary-foreground: oklch(0.1 0.05 260);
+  
+  --secondary: oklch(0.22 0.04 260);
+  --secondary-foreground: oklch(0.9 0.02 260);
+  
+  --muted: oklch(0.22 0.02 260);
+  --muted-foreground: oklch(0.7 0.03 260);
+  
+  --accent: oklch(0.25 0.05 270);
+  --accent-foreground: oklch(0.9 0.05 270);
+  
+  --destructive: oklch(0.6 0.2 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  
+  --border: oklch(1 0 0 / 0.06);
+  --input: oklch(1 0 0 / 0.08);
+  --ring: oklch(0.65 0.2 260);
+}
+
+@theme inline {
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  
+  /* Özel Pastel Vurgu Renkleri */
+  --color-pastel-blue: oklch(0.92 0.06 240);
+  --color-pastel-mint: oklch(0.92 0.06 160);
+  --color-pastel-lavender: oklch(0.92 0.08 290);
+  --color-pastel-yellow: oklch(0.95 0.06 90);
+  --color-dark-action: oklch(0.25 0.02 260);
+  
+  /* HR Dashboard Brand Colors */
+  --color-brand-bg: #f8f4e6;
+  --color-brand-card: #ffffff;
+  --color-brand-dark: #333333;
+  --color-brand-gray: #666666;
+  --color-brand-lightGray: #e5e5e5;
+  --color-brand-yellow: #ffcc5c;
+  --color-brand-yellowLight: #ffe6a0;
+  --color-brand-accent: #3e3e3e;
+
+  --radius-sm: calc(var(--radius) * 0.3);
+  --radius-md: calc(var(--radius) * 0.6);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.5);
+  --radius-2xl: calc(var(--radius) * 2);
+  --radius-3xl: calc(var(--radius) * 2.5);
+
+  /* Ultra Soft Gölgeler - Hover'da Derinlik Kazanan Kart Yapısı */
+  --shadow-ultra-soft: 0 4px 20px rgba(0,0,0,0.02);
+  --shadow-soft: 0 8px 30px rgba(0,0,0,0.04);
+  --shadow-medium-emphasis: 0 12px 40px rgba(0,0,0,0.06), 0 2px 10px rgba(0,0,0,0.03);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply text-foreground tracking-tight;
+    background: linear-gradient(135deg, #f0ede1 0%, #fdfbf7 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  .dark body,
+  body:is(.dark *) {
+    background: linear-gradient(135deg, #0f1117 0%, #151926 100%);
+  }
+}
+
+@layer utilities {
+
+  /* ===== FLOATING CARD — 3D Havada Duruyor Efekti ===== */
+  .floating-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.06),
+      0 2px 8px rgba(0, 0, 0, 0.03);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .floating-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 16px 48px rgba(0, 0, 0, 0.08),
+      0 4px 16px rgba(0, 0, 0, 0.04);
+  }
+  .dark .floating-card {
+    background: rgba(26, 30, 46, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+  .dark .floating-card:hover {
+    box-shadow: 
+      0 16px 48px rgba(0, 0, 0, 0.4),
+      0 4px 16px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Daha opak, solid ve yumuşak kartlar */
+  .glass-card {
+    @apply bg-white/90 dark:bg-[#1a1e2e]/92 rounded-3xl border border-white/60 dark:border-white/8 transition-all duration-300 ease-out;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.03);
+  }
+  .glass-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+  }
+  
+  .glass-panel {
+    @apply bg-white/95 dark:bg-[#151926]/95 backdrop-blur-3xl rounded-3xl border border-slate-100 dark:border-white/5 shadow-soft supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-[#151926]/80;
+  }
+
+  .glass-sidebar {
+    @apply bg-[#f8fafc]/80 dark:bg-[#111421]/90 backdrop-blur-xl border-r border-slate-200/40 dark:border-white/5 supports-[backdrop-filter]:bg-[#f8fafc]/50 dark:supports-[backdrop-filter]:bg-[#111421]/60 transition-colors duration-500;
+  }
+
+  /* Soft ve sevimli CTA butonlar */
+  .btn-soft {
+    @apply inline-flex items-center justify-center font-semibold rounded-2xl transition-all duration-300 active:scale-95;
+  }
+
+
+  .btn-3d {
+    @apply inline-flex items-center justify-center font-semibold rounded-2xl transition-all duration-300 active:scale-95
+           hover:-translate-y-0.5 hover:shadow-md 
+           border border-transparent dark:border-white/5;
+  }
+
+  /* İç Gömük (Neumorphic tarzı) hafif alanlar */
+  .inner-shadow-box {
+    @apply bg-slate-50 dark:bg-black/20 shadow-[0_2px_4px_rgba(0,0,0,0.01)_inset] dark:shadow-[0_2px_4px_rgba(0,0,0,0.1)_inset] rounded-2xl border border-slate-100 dark:border-white/5;
+  }
+
+  /* Modern Gradient Metin */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-violet-500 dark:from-indigo-400 dark:to-fuchsia-400;
+  }
+
+  .text-gradient-success {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-teal-500 dark:from-emerald-400 dark:to-teal-300;
+  }
+}
+/* Custom scrollbars for Kanban */
+.kanban-scroll-area::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+.kanban-scroll-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+.kanban-scroll-area::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+.kanban-scroll-area::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+.dark .kanban-scroll-area::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+.dark .kanban-scroll-area::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Dropdown animation */
+@keyframes fadeSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
