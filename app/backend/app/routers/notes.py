@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from app.database import get_db
 from app.models.note import Note
 from app.schemas.note import NoteCreate, NoteUpdate, NoteResponse
-from app.services.gemini import generate_chat_response, _get_gemini_client
+from app.services.gemini import generate_chat_response, _get_gemini_client, log_cost_awaitable
 
 router = APIRouter(prefix="/notes", tags=["notes"])
 
@@ -24,6 +24,44 @@ async def get_notes(db: AsyncSession = Depends(get_db)):
 @router.post("", response_model=NoteResponse)
 async def create_note(note: NoteCreate, db: AsyncSession = Depends(get_db)):
     note_data = note.model_dump()
+    
+    # AI Auto Title & Category Generation Feature
+    if not note_data.get('title') or not note_data.get('ai_category'):
+        client = _get_gemini_client()
+        if client:
+            try:
+                prompt = f"""Şu nota bir başlık ver (maksimum 4 kelime) ve kategorisini belirle.
+Kategoriler şunlardan biri olmalı: "Yaratıcı Fikirler", "Genel Notlar", "Yazılım"
+
+SADECE JSON döndür:
+{{
+    "title": "Bulduğun Başlık",
+    "category": "Kategori"
+}}
+
+İçerik: "{note_data.get('content')}"
+"""
+                response = await client.aio.models.generate_content(
+                    model='gemini-3.1-flash-lite-preview',
+                    contents=prompt,
+                )
+                await log_cost_awaitable(response, 'gemini-3.1-flash-lite-preview')
+                import json
+                import re
+                raw_reply = response.text
+                json_match = re.search(r'\{[\s\S]*\}', raw_reply)
+                if json_match:
+                    data = json.loads(json_match.group(0))
+                    if not note_data.get('title'):
+                        note_data['title'] = data.get('title', 'İsimsiz Not')
+                    if not note_data.get('ai_category'):
+                        note_data['ai_category'] = data.get('category', 'Genel Notlar')
+            except Exception as e:
+                print(f"Bilinmeyen hata (AI başlık): {e}")
+
+    if not note_data.get('title'):
+        note_data['title'] = "İsimsiz Not"
+
     db_note = Note(**note_data, user_id=MOCK_USER_ID)
     db.add(db_note)
     await db.commit()
@@ -87,15 +125,34 @@ Kategori: {db_note.ai_category or 'Belirsiz'}
             model='gemini-3.1-flash-lite-preview',
             contents=prompt,
         )
+        await log_cost_awaitable(response, 'gemini-3.1-flash-lite-preview')
         new_analysis = response.text
 
         history = list(db_note.ai_analysis_history) if db_note.ai_analysis_history else []
         if db_note.ai_analysis:
             history.append({
                 "text": db_note.ai_analysis,
+                "title": db_note.title, # preserve previous title
                 "created_at": datetime.now(timezone.utc).isoformat()
             })
             
+        # Parse potential new title from the response if we asked for it, or just make it an analysis.
+        # It's better to update the title during analysis too if asked.
+        prompt2 = f"""Şu notun başlığını içeriğe uygun şekilde güncelle (maks 4 kelime). SADECE başlık metnini yaz:
+İçerik: "{db_note.content}"
+"""
+        try:
+            res_title = await client.aio.models.generate_content(
+                model='gemini-3.1-flash-lite-preview',
+                contents=prompt2,
+            )
+            await log_cost_awaitable(res_title, 'gemini-3.1-flash-lite-preview')
+            new_title = res_title.text.strip()
+            if new_title and len(new_title) < 50:
+                db_note.title = new_title
+        except:
+            pass
+
         db_note.ai_analysis = new_analysis
         db_note.ai_analysis_history = history
         

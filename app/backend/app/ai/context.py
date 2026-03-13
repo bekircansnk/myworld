@@ -1,10 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from typing import List
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from app.models.task import Task
 from app.models.project import Project
 from app.models.note import Note
+from app.models.calendar_event import CalendarEvent
 
 async def build_system_context(db: AsyncSession, user_id: int) -> str:
     """
@@ -45,6 +46,31 @@ async def build_system_context(db: AsyncSession, user_id: int) -> str:
     context = "=== SİSTEM DURUMU ===\n"
     context += f"Tarih: {datetime.now().strftime('%d %B %Y %A, %H:%M')}\n"
     context += f"Toplam Aktif Görev: {total_active} | Tamamlanmış: {total_done} | Alt Görev: {total_subtasks}\n\n"
+    
+    # Takvim Etkinlikleri
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0)
+    period_start = today_start - timedelta(days=7)
+    period_end = today_start + timedelta(days=2)
+    
+    event_result = await db.execute(
+        select(CalendarEvent)
+        .filter(CalendarEvent.user_id == user_id,
+                CalendarEvent.start_time >= period_start,
+                CalendarEvent.start_time <= period_end)
+        .order_by(CalendarEvent.start_time)
+    )
+    events = event_result.scalars().all()
+    
+    context += "=== TAKVİM ETKİNLİKLERİ (SON 7 GÜN + BUGÜN + YARIN) ===\n"
+    context += "⚠️ AŞAĞIDAKİ ETKİNLİKLER ZATEN TAKVİMDE VAR. Benzer veya aynı etkinlik OLUŞTURMA!\n"
+    if not events:
+        context += "- Yakın zamanda etkinlik yok.\n"
+    for e in events:
+        time_str = e.start_time.strftime('%d/%m %H:%M')
+        end_str = e.end_time.strftime('%H:%M') if e.end_time else "?"
+        task_ref = f" (Görev ID:{e.task_id})" if e.task_id else ""
+        context += f"- [{time_str}-{end_str}] {e.title}{task_ref}\n"
+    context += "\n"
     
     # Projeler
     context += "=== PROJELER / FİRMALAR ===\n"

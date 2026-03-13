@@ -13,7 +13,7 @@ from app.database import get_db, AsyncSessionLocal
 from app.models.task import Task
 from app.models.project import Project
 from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse, TaskReorder, TaskBulkUpdate
-from app.services.gemini import categorize_task, _get_gemini_client
+from app.services.gemini import categorize_task, _get_gemini_client, log_cost_sync, log_cost_awaitable
 
 async def background_categorize_task(task_id: int, task_text: str, project_context: str, tasks_context: str):
     try:
@@ -172,6 +172,7 @@ Lütfen sadece JSON formatında, yeni sıralamaya göre task ID'lerini içeren b
             model='gemini-3.1-flash-lite-preview',
             contents=prompt,
         )
+        await log_cost_awaitable(response, 'gemini-3.1-flash-lite-preview')
         text = response.text.replace("```json", "").replace("```", "").strip()
         import json
         ordered_ids = json.loads(text)
@@ -319,6 +320,7 @@ Alt görev sayısı: {len(subtasks)}, Tamamlanan: {done_count}
             model='gemini-3.1-flash-lite-preview',
             contents=prompt,
         )
+        await log_cost_awaitable(response, 'gemini-3.1-flash-lite-preview')
         new_analysis = response.text
 
         # 3. Geçmişi güncelle

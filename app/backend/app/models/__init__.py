@@ -7,3 +7,6 @@ from app.models.timer_session import TimerSession
 from app.models.notification import Notification
 from app.models.report import DailyReport, WeeklyReport
 from app.models.ai_memory import AIMemory
+from app.models.calendar_event import CalendarEvent
+from app.models.chat_message import ChatMessage
+from app.models.chat_session import ChatSession

@@ -15,18 +15,6 @@ Bu rapor aynı zamanda, geliştirilecek olan **"My World" uygulamasının yapay 
 
 ---
 
-## 🤖 PROMPT — Bu Raporu Derinleştirmek İçin
-
-```
-Sen bir nöropsikolog, davranış bilimci ve kişisel gelişim koçusun. Sana bir bireyin 6 farklı yapay zeka aracından alınmış karşılaştırmalı analizlerden oluşturulan nihai kişisel analiz raporu verilmiştir.
-
-Görevin: Bu rapordaki tüm bulguları doğrula, çelişkileri tespit et, eksik kalan alanları belirle ve ek stratejiler öner. Özellikle ADHD spektrum değerlendirmesi, dopamin yönetimi ve girişimci psikolojisi konularında derinleştirilmiş analiz yap.
-
---- İŞTE NİHAİ RAPOR ---
-[Bu dokümanın tamamını yapıştır]
-```
-
----
 
 # BÖLÜM 1: KİM BU İNSAN?
 
@@ -41,8 +29,8 @@ Bekircan Sağanak, İstanbul'da yaşayan, 2 yıllık kurumsal iş deneyiminin ar
 | Bilgi | Detay |
 |-------|-------|
 | **Meslek** | Bireysel dijital ajans kurucu (yeni) |
-| **Uzmanlık** | Yapay zeka, otomasyon (n8n), web geliştirme, dijital pazarlama |
-| **Müşteriler** | Venüs Ayakkabıları, Kazador ve diğerleri (tanıdık referansları ile) |
+| **Uzmanlık** | Yapay zeka, otomasyon (n8n), web geliştirme, dijital pazarlama,Devoloper,IT,Yazılım,Fotoğrafçı,Grafik Tasarımcı|
+| **Müşteriler** | Venüs Ayakkabıları, ve diğerleri (tanıdık referansları ile) |
 | **Çalışma ortamı** | Evden (çift monitör), kafeler, mobil |
 | **Teknik altyapı** | n8n sunucusu (aktif), Python, yapay zeka araçları, Telegram botları |
 | **Yaşam durumu** | Aile evinde yaşıyor — sabit gideri düşük |

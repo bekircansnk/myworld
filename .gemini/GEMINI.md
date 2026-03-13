@@ -19,9 +19,11 @@ dosyasını okumaktır. Bu dosya:
 - API endpoint haritasını
 - Veritabanı şemasını
 - AI sistemi mimarisini
-- State yönetimini
+- State yönetimini (6 Zustand store)
+- Frontend bileşen detayları ve dosya boyutları
 - Bilinen sorunları ve TODO'ları
 - Kodlama kurallarını
+- Oto-güncelleme kurallarını
 
 **tek bir dokümanda** barındırır.
 
@@ -29,10 +31,37 @@ dosyasını okumaktır. Bu dosya:
 
 ---
 
+## 📋 OTO-GÜNCELLEME KURALI (SABİT & KRİTİK)
+
+> **Bu kural her geliştirme oturumunda geçerlidir. İstisna yoktur.**
+
+Her büyük geliştirme oturumu sonrasında (yeni özellik, sayfa, store, API, bileşen değişikliği vb.) aşağıdaki dosyalar mutlaka güncellenmelidir:
+
+### 1. ARCHITECTURE.md Güncelleme
+- İlgili bölüm (dosya yapısı, API haritası, store tablosu, bileşen detayları, tamamlanan/TODO listesi) güncelle
+- Yeni dosya eklendiyse dosya ağacına ekle
+- Yeni store/state eklendiyse State tablosuna ekle
+- API değişikliği varsa endpoint haritasını güncelle
+- Tamamlanan özellik varsa "Tamamlanan" listesine ekle
+- En üstteki "Son Güncelleme" tarihini güncelle
+
+### 2. Ne Zaman Güncelle
+- Yeni bir bileşen dosyası oluşturulduğunda
+- Mevcut bir store'a yeni field/metod eklendiğinde
+- Yeni bir API endpoint eklendiğinde veya değiştirildiğinde
+- Yeni bir veritabanı kolonu veya model eklendiğinde
+- Navigasyon yapısı değiştiğinde
+- Büyük UI değişiklikleri yapıldığında
+
+### 3. Neden
+AI ajanlarının her seferinde tüm dosyaları analiz etmek zorunda kalmaması için. Bu doküman okunarak sistemin tam görüntüsü alınabilir. **Token tasarrufu ve hız kazanımı kritiktir.**
+
+---
+
 ## Teknoloji Listesi (Kısa)
-- Backend: FastAPI + SQLAlchemy + asyncpg + PostgreSQL + Google Gemini
-- Frontend: Next.js 15 + TypeScript + Zustand + shadcn/ui + Tailwind CSS
-- Altyapı: Docker Compose (PG+Redis), WebSocket, Telegram Bot
+- Backend: FastAPI + SQLAlchemy 2.0 + asyncpg + PostgreSQL + Google Gemini
+- Frontend: Next.js 15 + TypeScript + Zustand (6 store) + shadcn/ui + Tailwind CSS
+- Altyapı: Docker Compose (PG+Redis), WebSocket, Telegram Bot (planlı)
 
 ## Çalıştırma
 ```bash

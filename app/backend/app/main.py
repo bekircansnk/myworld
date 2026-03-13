@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from app.config import settings
 from app.routers.projects import router as projects_router
 from app.routers.tasks import router as tasks_router
@@ -10,13 +11,25 @@ from app.routers.telegram import router as telegram_router
 from app.routers.reports import router as reports_router
 from app.routers.websocket import router as websocket_router
 from app.utils.logger import logger
+from app.services.scheduler import start_scheduler, shutdown_scheduler
 from fastapi.responses import JSONResponse
 import traceback
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    logger.info("🚀 Uygulama başlatılıyor, scheduler aktif ediliyor...")
+    start_scheduler()
+    yield
+    # Shutdown
+    logger.info("🛑 Uygulama kapanıyor, scheduler durduruluyor...")
+    shutdown_scheduler()
 
 app = FastAPI(
     title=settings.project_name,
     description="Kişisel Yapay Zeka Destekli Yaşam ve İş Yönetim Sistemi API",
     version="1.0.0",
+    lifespan=lifespan
 )
 
 app.add_middleware(
