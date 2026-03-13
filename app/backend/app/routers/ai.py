@@ -51,8 +51,8 @@ EVENT_PATTERN = r"\[ACTION:ADD_EVENT\|([^|\]]*)\|([^|\]]*)\|([^|\]]*)(?:\|([^\]]
 TONE_PATTERN = r"\[TONE:([^\]]*)\]"
 
 
-async def _resolve_project_id(db: AsyncSession, project_name: str, user_id: int) -> Optional[int]:
-    """Proje adını DB'deki ID ile eşleştirir."""
+async def _resolve_project_id(db: AsyncSession, project_name: str, user_id: int, auto_create: bool = True) -> Optional[int]:
+    """Proje adını DB'deki ID ile eşleştirir. Bulamazsa otomatik oluşturur."""
     if not project_name or project_name.lower() in ("null", "genel", "yok", ""):
         return None
     p_query = select(Project).where(
@@ -61,7 +61,26 @@ async def _resolve_project_id(db: AsyncSession, project_name: str, user_id: int)
     )
     p_res = await db.execute(p_query)
     proj = p_res.scalars().first()
-    return proj.id if proj else None
+    if proj:
+        return proj.id
+    
+    # Proje bulunamadı — otomatik oluştur
+    if auto_create and project_name.strip():
+        import random
+        colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6']
+        new_project = Project(
+            user_id=user_id,
+            name=project_name.strip().title(),
+            color=random.choice(colors),
+            is_active=True,
+            sort_order=0
+        )
+        db.add(new_project)
+        await db.flush()
+        logger.info(f"🏢 Yeni firma/proje oluşturuldu: {new_project.name} (ID: {new_project.id})")
+        return new_project.id
+    
+    return None
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -526,6 +545,14 @@ async def get_chat_history(limit: int = 50, db: AsyncSession = Depends(get_db)):
         )
         for m in reversed(messages)
     ]
+
+@router.delete("/chat/history")
+async def clear_chat_history(db: AsyncSession = Depends(get_db)):
+    MOCK_USER_ID = 1
+    from sqlalchemy import delete
+    await db.execute(delete(ChatMessage).where(ChatMessage.user_id == MOCK_USER_ID))
+    await db.commit()
+    return {"status": "success", "message": "Sohbet geçmişi tamamen temizlendi."}
 
 
 class BreakdownResponse(BaseModel):
