@@ -408,18 +408,28 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db))
             # Not'ları görevlere bağla
             if created_items["notes"] and created_items["tasks"]:
                 for note in created_items["notes"]:
-                    note.task_id = created_items["tasks"][0].id
+                    if not note.task_id:
+                        note.task_id = created_items["tasks"][0].id
                 logger.info(f"🔗 {len(created_items['notes'])} not ↔ görev bağlandı")
             
-            # Etkinlikleri notlara bağla
-            if created_items["events"] and created_items["notes"]:
+            # Etkinlikleri notlara ve görevlere bağla
+            if created_items["events"]:
                 for event in created_items["events"]:
-                    if not event.note_id:
+                    if created_items["notes"] and not event.note_id:
                         event.note_id = created_items["notes"][0].id
-                logger.info(f"🔗 {len(created_items['events'])} etkinlik ↔ not bağlandı")
+                    if created_items["tasks"] and not event.task_id:
+                        event.task_id = created_items["tasks"][0].id
+                logger.info(f"🔗 {len(created_items['events'])} etkinlik bağlandı (Not/Görev)")
             
             if created_items["notes"] or created_items["events"]:
                 await db.commit()
+                # Payload'ları frontend için güncelle
+                for act in actions_executed:
+                    if act.action == "ADD_EVENT" and act.success and hasattr(act, "payload") and isinstance(act.payload, dict):
+                        for e in created_items["events"]:
+                            if act.payload.get("title") == e.title:
+                                act.payload["noteId"] = e.note_id
+                                act.payload["taskId"] = e.task_id
                 debug_info["cross_refs_linked"] = True
         except Exception as xref_err:
             logger.warning(f"⚠️ Cross-reference bağlama hatası: {xref_err}")
