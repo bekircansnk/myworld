@@ -69,6 +69,8 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db))
     MOCK_USER_ID = 1
     actions_executed: List[ActionLog] = []
     debug_info: Dict[str, Any] = {}
+    # Cross-reference tracker: aynı sohbette oluşturulan öğeleri bağlamak için
+    created_items: Dict[str, list] = {"tasks": [], "notes": [], "events": []}
     
     try:
         # 0. Session Management
@@ -86,7 +88,7 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db))
             current_session = ChatSession(
                 user_id=MOCK_USER_ID,
                 title=None,  # Will be set after first AI response
-                ai_category="genel"
+                ai_categories=["genel"]
             )
             db.add(current_session)
             await db.flush()  # Get the ID
@@ -262,6 +264,7 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db))
                 db.add(new_task)
                 await db.commit()
                 await db.refresh(new_task)
+                created_items["tasks"].append(new_task)
                 
                 actions_executed.append(ActionLog(
                     action="ADD_TASK",
@@ -300,6 +303,8 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db))
             new_note = Note(user_id=MOCK_USER_ID, content=note_content, source="ai")
             db.add(new_note)
             await db.commit()
+            await db.refresh(new_note)
+            created_items["notes"].append(new_note)
             actions_executed.append(ActionLog(
                 action="ADD_NOTE",
                 details=note_content[:80],
@@ -365,6 +370,8 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db))
                 )
                 db.add(new_event)
                 await db.commit()
+                await db.refresh(new_event)
+                created_items["events"].append(new_event)
                 
                 actions_executed.append(ActionLog(
                     action="ADD_EVENT",
@@ -393,6 +400,30 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db))
         # 5. TONE (RUH HALİ) ALGILAMA
         tone_match = re.search(TONE_PATTERN, ai_reply)
         detected_tone = tone_match.group(1).strip() if tone_match else None
+
+        # =============================================
+        # 5.5 CROSS-REFERENCE: Oluşturulan öğeleri bağla
+        # =============================================
+        try:
+            # Not'ları görevlere bağla
+            if created_items["notes"] and created_items["tasks"]:
+                for note in created_items["notes"]:
+                    note.task_id = created_items["tasks"][0].id
+                logger.info(f"🔗 {len(created_items['notes'])} not ↔ görev bağlandı")
+            
+            # Etkinlikleri notlara bağla
+            if created_items["events"] and created_items["notes"]:
+                for event in created_items["events"]:
+                    if not event.note_id:
+                        event.note_id = created_items["notes"][0].id
+                logger.info(f"🔗 {len(created_items['events'])} etkinlik ↔ not bağlandı")
+            
+            if created_items["notes"] or created_items["events"]:
+                await db.commit()
+                debug_info["cross_refs_linked"] = True
+        except Exception as xref_err:
+            logger.warning(f"⚠️ Cross-reference bağlama hatası: {xref_err}")
+            debug_info["cross_ref_error"] = str(xref_err)
 
         # 6. Tüm komut kodlarını metinden temizle
         clean_reply = ai_reply
@@ -586,7 +617,7 @@ async def create_chat_session(
     session = ChatSession(
         user_id=MOCK_USER_ID,
         title=request.title if request else None,
-        ai_category="genel"
+        ai_categories=["genel"]
     )
     db.add(session)
     await db.commit()
