@@ -539,6 +539,4 @@ Ve bu sistemi kuracak teknik yeteneğe zaten sahipsin. En güçlü silahını (h
 
 Başla. Geri kalanını birlikte kurarız.
 
----
-
-*Bu rapor, Bekircan Sağanak'a özel hazırlanmış nihai kişisel analiz dokümanıdır. Tüm kaynakların (6 yapay zeka raporu + soru-cevaplar + ön profil) sentezinden oluşturulmuştur. "My World" uygulamasının yapay zeka motoru için referans doküman olarak kullanılacaktır.*
+-

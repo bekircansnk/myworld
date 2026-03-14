@@ -5,6 +5,12 @@
 > Herhangi bir AI ajanı bu projeye ilk kez girdiğinde **sadece bu dosyayı** okumalıdır.
 > Dosya dosya analiz yapmak yasaktır — token israfı olur.
 
+> 🔴 **ÇOK BÜYÜK KRİTİK (PRODUCTION RULES) 🔴:** 
+> 1. BU SİSTEM ARTIK YERELDE (LOCALHOST) ÇALIŞMIYOR. Tamamen GERÇEK CANLI DÜNYADA yayına alınmıştır (Frontend: Vercel, Backend: Render, DB: Neon).
+> 2. Kod yazarken, API linklerinde veya resim yollarında ASLA "localhost:3000" veya "localhost:8000" gibi geliştirme yollarına geri dönmeyiniz (Örneğin `process.env.NEXT_PUBLIC_API_URL` kullanılmalıdır).
+> 3. Yayında olan (Production) çalışan sistemin ayarlarını BOZMAYIN.
+> 4. Sistemin güncellendiğini kullanıcının görebilmesi için YAPILAN TÜM KOD DEĞİŞİKLİKLERİ İŞ BİTİMİNDE `git add . && git commit -m "..." && git push` komutlarıyla otomatik olarak GitHub'a YÜKLENMELİDİR. Kullanıcının müdahalesini beklemeyin!
+
 ---
 
 ## 1. PROJE KİMLİĞİ

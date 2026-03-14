@@ -36,10 +36,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        settings.frontend_url,
-        "http://localhost:3000",  # Lokal geliştirme için
-    ],
+    allow_origins=["*"], # local dev esnekliği için
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
