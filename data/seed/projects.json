@@ -12,19 +12,5 @@
     "icon": "shopping-bag",
     "description": "E-Ticaret ve Müşteri İlişkileri",
     "sort_order": 2
-  },
-  {
-    "name": "Kazador",
-    "color": "#F59E0B",
-    "icon": "briefcase",
-    "description": "Kamp Örtüsü ERP ve Üretim",
-    "sort_order": 3
-  },
-  {
-    "name": "Genel / Kişisel",
-    "color": "#10B981",
-    "icon": "user",
-    "description": "Gündelik işler ve özel hayat",
-    "sort_order": 4
   }
 ]
