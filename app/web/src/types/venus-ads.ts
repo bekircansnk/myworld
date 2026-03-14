@@ -84,3 +84,84 @@ export interface VenusCreative {
   tags?: any[];
   created_at: string;
 }
+
+export interface VenusAdsTask {
+  id: number;
+  user_id: number;
+  project_id?: number;
+  campaign_id?: number;
+  title: string;
+  description?: string;
+  category: string;
+  priority: string;
+  status: string;
+  due_date?: string;
+  source: string;
+  ai_notes?: string;
+  completed_at?: string;
+  created_at: string;
+}
+
+export interface VenusReportTemplate {
+  id: number;
+  user_id: number;
+  project_id?: number;
+  title: string;
+  template_type: string;
+  sections?: any;
+  is_default: boolean;
+  created_at: string;
+}
+
+export interface VenusCompetitor {
+  id: number;
+  user_id: number;
+  project_id?: number;
+  brand_name: string;
+  website_url?: string;
+  ad_library_url?: string;
+  category?: string;
+  notes?: string;
+  strengths?: string;
+  weaknesses?: string;
+  creative_style?: string;
+  tags?: any[];
+  created_at: string;
+}
+
+export interface VenusOnboardingChecklist {
+  id: number;
+  user_id: number;
+  project_id?: number;
+  client_name: string;
+  status: string;
+  items?: { title: string; done: boolean; notes?: string }[];
+  notes?: string;
+  created_at: string;
+}
+
+export interface VenusCSVImport {
+  id: number;
+  user_id: number;
+  project_id?: number;
+  filename: string;
+  platform_source: string;
+  rows_imported: number;
+  status: string;
+  error_log?: string;
+  created_at: string;
+}
+
+export interface VenusAIObservation {
+  id: number;
+  user_id: number;
+  project_id?: number;
+  campaign_id?: number;
+  observation_type: string;
+  title: string;
+  content: string;
+  severity: string;
+  is_acknowledged: boolean;
+  related_date_range?: string;
+  created_at: string;
+}

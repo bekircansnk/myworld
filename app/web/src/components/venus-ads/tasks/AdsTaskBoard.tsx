@@ -1,23 +1,245 @@
-import React from 'react';
-import { Target } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useVenusAdsStore } from '@/stores/venusAdsStore';
+import { useProjectStore } from '@/stores/projectStore';
+import { Plus, Target, Clock, CheckCircle2, AlertCircle, ChevronRight, X, Calendar, Flag } from 'lucide-react';
+import { VenusAdsTask } from '@/types/venus-ads';
+
+const CATEGORIES = [
+  { value: 'budget', label: 'Bütçe Kontrolü', color: 'bg-emerald-500' },
+  { value: 'optimization', label: 'Optimizasyon', color: 'bg-blue-500' },
+  { value: 'creative', label: 'Kreatif', color: 'bg-purple-500' },
+  { value: 'targeting', label: 'Hedefleme', color: 'bg-amber-500' },
+  { value: 'reporting', label: 'Raporlama', color: 'bg-indigo-500' },
+  { value: 'other', label: 'Diğer', color: 'bg-slate-500' },
+];
+
+const PRIORITIES = [
+  { value: 'high', label: 'Yüksek', color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/20' },
+  { value: 'medium', label: 'Orta', color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' },
+  { value: 'low', label: 'Düşük', color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-900/20' },
+];
+
+const COLUMNS = [
+  { key: 'todo', label: 'Yapılacak', icon: Clock, color: 'border-slate-300 dark:border-slate-600' },
+  { key: 'in_progress', label: 'Yapılıyor', icon: ChevronRight, color: 'border-blue-400 dark:border-blue-600' },
+  { key: 'done', label: 'Tamamlandı', icon: CheckCircle2, color: 'border-emerald-400 dark:border-emerald-600' },
+];
+
+interface TaskFormProps {
+  onClose: () => void;
+  projectId: number | null;
+  initial?: VenusAdsTask | null;
+}
+
+function TaskForm({ onClose, projectId, initial }: TaskFormProps) {
+  const { createTask, updateTask, fetchTasks } = useVenusAdsStore();
+  const [title, setTitle] = useState(initial?.title || '');
+  const [description, setDescription] = useState(initial?.description || '');
+  const [category, setCategory] = useState(initial?.category || 'optimization');
+  const [priority, setPriority] = useState(initial?.priority || 'medium');
+  const [dueDate, setDueDate] = useState(initial?.due_date?.split('T')[0] || '');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!title.trim()) return;
+    setLoading(true);
+    try {
+      const payload: Partial<VenusAdsTask> = {
+        title,
+        description: description || undefined,
+        category,
+        priority,
+        status: initial?.status || 'todo',
+        due_date: dueDate || undefined,
+        source: 'manual',
+        project_id: projectId || undefined,
+      };
+      if (initial) {
+        await updateTask(initial.id, payload);
+      } else {
+        await createTask(payload);
+      }
+      await fetchTasks(projectId || undefined);
+      onClose();
+    } catch (e) { console.error(e); }
+    setLoading(false);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-white/5">
+          <h2 className="text-lg font-bold text-brand-dark dark:text-white">{initial ? 'Görevi Düzenle' : 'Yeni Görev'}</h2>
+          <button onClick={onClose} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="p-6 space-y-5">
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Başlık *</label>
+            <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ör: Günlük bütçe kontrolü"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1117] text-brand-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-dark/20" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Açıklama</label>
+            <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Detaylar..."
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1117] text-brand-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-dark/20 resize-none" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Kategori</label>
+              <select value={category} onChange={e => setCategory(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1117] text-brand-dark dark:text-white">
+                {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Öncelik</label>
+              <select value={priority} onChange={e => setPriority(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1117] text-brand-dark dark:text-white">
+                {PRIORITIES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Bitiş Tarihi</label>
+            <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1117] text-brand-dark dark:text-white" />
+          </div>
+        </div>
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-white/5 flex justify-end gap-3">
+          <button onClick={onClose} className="px-5 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl">İptal</button>
+          <button onClick={handleSubmit} disabled={loading || !title.trim()}
+            className="px-5 py-2.5 bg-brand-dark text-white hover:bg-black dark:bg-white dark:text-brand-dark dark:hover:bg-gray-100 rounded-xl font-medium disabled:opacity-50">
+            {loading ? 'Kaydediliyor...' : initial ? 'Güncelle' : 'Oluştur'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function AdsTaskBoard({ projectId }: { projectId: number | null }) {
+  const { adsTasks, isLoadingTasks, fetchTasks, updateTask, deleteTask } = useVenusAdsStore();
+  const { projects } = useProjectStore();
+  const currentProject = projects.find(p => p.id === projectId);
+
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<VenusAdsTask | null>(null);
+
+  useEffect(() => {
+    fetchTasks(projectId || undefined);
+  }, [projectId]);
+
+  const handleMoveTask = async (task: VenusAdsTask, newStatus: string) => {
+    await updateTask(task.id, { status: newStatus });
+  };
+
+  const handleDelete = async (id: number) => {
+    if (confirm('Bu görevi silmek istediğinize emin misiniz?')) {
+      await deleteTask(id);
+    }
+  };
+
+  const getPriorityInfo = (p: string) => PRIORITIES.find(pr => pr.value === p) || PRIORITIES[1];
+  const getCategoryInfo = (c: string) => CATEGORIES.find(cat => cat.value === c) || CATEGORIES[5];
+
   return (
     <div className="flex flex-col h-full gap-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-brand-dark dark:text-white flex items-center gap-3">
-             <Target className="w-6 h-6 text-indigo-500" />
+            <Target className="w-6 h-6 text-indigo-500" />
             Operasyon Görevleri
           </h1>
           <p className="text-muted-foreground text-sm mt-0.5">
-            Reklam hesapları için günlük, haftalık optimizasyon görevleri.
+            {currentProject ? `${currentProject.name} markasının g` : 'G'}ünlük, haftalık optimizasyon görevleri.
           </p>
         </div>
+        <button onClick={() => { setEditingTask(null); setIsFormOpen(true); }}
+          className="px-5 py-2.5 bg-brand-dark text-white hover:bg-black dark:bg-white dark:text-brand-dark dark:hover:bg-gray-100 rounded-xl font-medium transition-colors flex items-center gap-2">
+          <Plus className="w-5 h-5" />
+          Yeni Görev
+        </button>
       </div>
-      <div className="flex-1 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-white/5 flex items-center justify-center p-8 text-slate-500">
-         <p>Görev tablosu yapıldı. Yeni görev eklenebilir. (Faz 4 Kapsamı)</p>
-      </div>
+
+      {/* Kanban Board */}
+      {isLoadingTasks ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-slate-200 border-t-brand-dark rounded-full animate-spin dark:border-slate-700 dark:border-t-white" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 items-start">
+          {COLUMNS.map(col => {
+            const tasks = adsTasks.filter(t => t.status === col.key);
+            const Icon = col.icon;
+            return (
+              <div key={col.key} className={`bg-white dark:bg-slate-800 rounded-2xl shadow-sm border-2 ${col.color} overflow-hidden flex flex-col`}>
+                <div className="px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/20 flex items-center justify-between border-b border-slate-100 dark:border-white/5">
+                  <h2 className="font-bold text-brand-dark dark:text-white flex items-center gap-2 text-sm">
+                    <Icon className="w-4 h-4" />
+                    {col.label}
+                  </h2>
+                  <span className="text-[11px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full">
+                    {tasks.length}
+                  </span>
+                </div>
+                <div className="p-3 space-y-3 flex-1 min-h-[200px]">
+                  {tasks.length === 0 ? (
+                    <div className="text-center text-sm text-slate-400 py-8">Henüz görev yok</div>
+                  ) : (
+                    tasks.map(task => {
+                      const pri = getPriorityInfo(task.priority);
+                      const cat = getCategoryInfo(task.category);
+                      return (
+                        <div key={task.id} className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-100 dark:border-white/5 p-4 hover:shadow-md transition-all group cursor-pointer"
+                          onClick={() => { setEditingTask(task); setIsFormOpen(true); }}>
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <h3 className="text-sm font-bold text-brand-dark dark:text-white leading-tight line-clamp-2">{task.title}</h3>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {col.key !== 'done' && (
+                                <button
+                                  onClick={e => { e.stopPropagation(); handleMoveTask(task, col.key === 'todo' ? 'in_progress' : 'done'); }}
+                                  className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-emerald-500" title="İlerlet">
+                                  <ChevronRight className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                              <button onClick={e => { e.stopPropagation(); handleDelete(task.id); }}
+                                className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" title="Sil">
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                          {task.description && (
+                            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-3">{task.description}</p>
+                          )}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded ${pri.bg} ${pri.color}`}>
+                              <Flag className="w-2.5 h-2.5" />
+                              {pri.label}
+                            </span>
+                            <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${cat.color}`} />
+                              {cat.label}
+                            </span>
+                            {task.due_date && (
+                              <span className="inline-flex items-center gap-1 text-[10px] text-slate-400 ml-auto">
+                                <Calendar className="w-2.5 h-2.5" />
+                                {new Date(task.due_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {isFormOpen && <TaskForm onClose={() => setIsFormOpen(false)} projectId={projectId} initial={editingTask} />}
     </div>
   );
 }

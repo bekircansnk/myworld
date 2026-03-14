@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { api } from '@/lib/api';
-import { VenusCampaign, VenusExperiment, VenusCreative } from '@/types/venus-ads';
+import { VenusCampaign, VenusExperiment, VenusCreative, VenusAdsTask, VenusCompetitor, VenusOnboardingChecklist, VenusAIObservation, VenusCSVImport, VenusReportTemplate } from '@/types/venus-ads';
 
 export type VenusViewMode = 'overview' | 'campaigns' | 'tests' | 'creatives' | 'tasks' | 'reports' | 'benchmark' | 'onboarding' | 'csv' | 'ai';
 
@@ -8,6 +8,7 @@ interface VenusAdsState {
   viewMode: VenusViewMode;
   setViewMode: (mode: VenusViewMode) => void;
   
+  // Campaigns
   campaigns: VenusCampaign[];
   isLoadingCampaigns: boolean;
   fetchCampaigns: (projectId?: number) => Promise<void>;
@@ -15,6 +16,7 @@ interface VenusAdsState {
   updateCampaign: (id: number, data: Partial<VenusCampaign>) => Promise<VenusCampaign>;
   deleteCampaign: (id: number) => Promise<void>;
 
+  // Experiments
   experiments: VenusExperiment[];
   isLoadingExperiments: boolean;
   fetchExperiments: (projectId?: number, campaignId?: number) => Promise<void>;
@@ -22,70 +24,107 @@ interface VenusAdsState {
   updateExperiment: (id: number, data: Partial<VenusExperiment>) => Promise<VenusExperiment>;
   deleteExperiment: (id: number) => Promise<void>;
 
+  // Creatives
   creatives: VenusCreative[];
   isLoadingCreatives: boolean;
   fetchCreatives: (projectId?: number) => Promise<void>;
   createCreative: (data: Partial<VenusCreative>) => Promise<VenusCreative>;
   updateCreative: (id: number, data: Partial<VenusCreative>) => Promise<VenusCreative>;
   deleteCreative: (id: number) => Promise<void>;
+
+  // Tasks
+  adsTasks: VenusAdsTask[];
+  isLoadingTasks: boolean;
+  fetchTasks: (projectId?: number) => Promise<void>;
+  createTask: (data: Partial<VenusAdsTask>) => Promise<VenusAdsTask>;
+  updateTask: (id: number, data: Partial<VenusAdsTask>) => Promise<VenusAdsTask>;
+  deleteTask: (id: number) => Promise<void>;
+
+  // Competitors
+  competitors: VenusCompetitor[];
+  isLoadingCompetitors: boolean;
+  fetchCompetitors: (projectId?: number) => Promise<void>;
+  createCompetitor: (data: Partial<VenusCompetitor>) => Promise<VenusCompetitor>;
+  updateCompetitor: (id: number, data: Partial<VenusCompetitor>) => Promise<VenusCompetitor>;
+  deleteCompetitor: (id: number) => Promise<void>;
+
+  // Onboarding
+  checklists: VenusOnboardingChecklist[];
+  isLoadingChecklists: boolean;
+  fetchChecklists: (projectId?: number) => Promise<void>;
+  createChecklist: (data: Partial<VenusOnboardingChecklist>) => Promise<VenusOnboardingChecklist>;
+  updateChecklist: (id: number, data: Partial<VenusOnboardingChecklist>) => Promise<VenusOnboardingChecklist>;
+  deleteChecklist: (id: number) => Promise<void>;
+
+  // AI Observations
+  observations: VenusAIObservation[];
+  isLoadingObservations: boolean;
+  fetchObservations: (projectId?: number) => Promise<void>;
+  acknowledgeObservation: (id: number) => Promise<void>;
+  deleteObservation: (id: number) => Promise<void>;
+
+  // Reports
+  reportTemplates: VenusReportTemplate[];
+  isLoadingReports: boolean;
+  fetchReportTemplates: (projectId?: number) => Promise<void>;
+  createReportTemplate: (data: Partial<VenusReportTemplate>) => Promise<VenusReportTemplate>;
+  deleteReportTemplate: (id: number) => Promise<void>;
+
+  // CSV Imports
+  csvImports: VenusCSVImport[];
+  isLoadingCSV: boolean;
+  fetchCSVImports: (projectId?: number) => Promise<void>;
+}
+
+// Helper to build CRUD actions for a given entity
+function buildCrud<T extends { id: number }>(
+  endpoint: string,
+  stateKey: string,
+  loadingKey: string,
+) {
+  return {
+    [`fetch_${stateKey}`]: async (set: any, projectId?: number) => {
+      set({ [loadingKey]: true });
+      try {
+        const url = projectId ? `${endpoint}?project_id=${projectId}` : endpoint;
+        const res = await api.get(url);
+        set({ [stateKey]: res.data, [loadingKey]: false });
+      } catch (e) { console.error(`Failed to fetch ${stateKey}`, e); set({ [loadingKey]: false }); }
+    },
+  };
 }
 
 export const useVenusAdsStore = create<VenusAdsState>((set) => ({
   viewMode: 'overview',
   setViewMode: (mode) => set({ viewMode: mode }),
   
+  // ── CAMPAIGNS ──
   campaigns: [],
   isLoadingCampaigns: false,
-  
   fetchCampaigns: async (projectId) => {
     set({ isLoadingCampaigns: true });
     try {
       const url = projectId ? `/api/venus/campaigns?project_id=${projectId}` : '/api/venus/campaigns';
-      const response = await api.get(url);
-      set({ campaigns: response.data, isLoadingCampaigns: false });
-    } catch (error) {
-      console.error("Failed to fetch campaigns", error);
-      set({ isLoadingCampaigns: false });
-    }
+      const res = await api.get(url);
+      set({ campaigns: res.data, isLoadingCampaigns: false });
+    } catch (e) { console.error("fetch campaigns", e); set({ isLoadingCampaigns: false }); }
   },
-  
   createCampaign: async (data) => {
-    try {
-      const response = await api.post('/api/venus/campaigns', data);
-      set((state) => ({ campaigns: [response.data, ...state.campaigns] }));
-      return response.data;
-    } catch (error) {
-      console.error("Failed to create campaign", error);
-      throw error;
-    }
+    const res = await api.post('/api/venus/campaigns', data);
+    set((s) => ({ campaigns: [res.data, ...s.campaigns] }));
+    return res.data;
   },
-
   updateCampaign: async (id, data) => {
-    try {
-      const response = await api.put(`/api/venus/campaigns/${id}`, data);
-      set((state) => ({
-        campaigns: state.campaigns.map(c => c.id === id ? response.data : c)
-      }));
-      return response.data;
-    } catch (error) {
-      console.error("Failed to update campaign", error);
-      throw error;
-    }
+    const res = await api.put(`/api/venus/campaigns/${id}`, data);
+    set((s) => ({ campaigns: s.campaigns.map(c => c.id === id ? res.data : c) }));
+    return res.data;
   },
-
   deleteCampaign: async (id) => {
-    try {
-      await api.delete(`/api/venus/campaigns/${id}`);
-      set((state) => ({
-        campaigns: state.campaigns.filter(c => c.id !== id)
-      }));
-    } catch (error) {
-      console.error("Failed to delete campaign", error);
-      throw error;
-    }
+    await api.delete(`/api/venus/campaigns/${id}`);
+    set((s) => ({ campaigns: s.campaigns.filter(c => c.id !== id) }));
   },
 
-  // EXPERIMENTS
+  // ── EXPERIMENTS ──
   experiments: [],
   isLoadingExperiments: false,
   fetchExperiments: async (projectId, campaignId) => {
@@ -94,93 +133,179 @@ export const useVenusAdsStore = create<VenusAdsState>((set) => ({
       let url = '/api/venus/experiments?';
       if (projectId) url += `project_id=${projectId}&`;
       if (campaignId) url += `campaign_id=${campaignId}&`;
-      const response = await api.get(url);
-      set({ experiments: response.data, isLoadingExperiments: false });
-    } catch (error) {
-      console.error("Failed to fetch experiments", error);
-      set({ isLoadingExperiments: false });
-    }
+      const res = await api.get(url);
+      set({ experiments: res.data, isLoadingExperiments: false });
+    } catch (e) { console.error("fetch experiments", e); set({ isLoadingExperiments: false }); }
   },
   createExperiment: async (data) => {
-    try {
-      const response = await api.post('/api/venus/experiments', data);
-      set((state) => ({ experiments: [response.data, ...state.experiments] }));
-      return response.data;
-    } catch (error) {
-      console.error("Failed to create exp", error);
-      throw error;
-    }
+    const res = await api.post('/api/venus/experiments', data);
+    set((s) => ({ experiments: [res.data, ...s.experiments] }));
+    return res.data;
   },
   updateExperiment: async (id, data) => {
-    try {
-      const response = await api.put(`/api/venus/experiments/${id}`, data);
-      set((state) => ({
-        experiments: state.experiments.map(c => c.id === id ? response.data : c)
-      }));
-      return response.data;
-    } catch (error) {
-      console.error("Failed to update exp", error);
-      throw error;
-    }
+    const res = await api.put(`/api/venus/experiments/${id}`, data);
+    set((s) => ({ experiments: s.experiments.map(c => c.id === id ? res.data : c) }));
+    return res.data;
   },
   deleteExperiment: async (id) => {
-    try {
-      await api.delete(`/api/venus/experiments/${id}`);
-      set((state) => ({
-        experiments: state.experiments.filter(c => c.id !== id)
-      }));
-    } catch (error) {
-      console.error("Failed to delete exp", error);
-      throw error;
-    }
+    await api.delete(`/api/venus/experiments/${id}`);
+    set((s) => ({ experiments: s.experiments.filter(c => c.id !== id) }));
   },
 
-  // CREATIVES
+  // ── CREATIVES ──
   creatives: [],
   isLoadingCreatives: false,
   fetchCreatives: async (projectId) => {
     set({ isLoadingCreatives: true });
     try {
       const url = projectId ? `/api/venus/creatives?project_id=${projectId}` : '/api/venus/creatives';
-      const response = await api.get(url);
-      set({ creatives: response.data, isLoadingCreatives: false });
-    } catch (error) {
-      console.error("Failed to fetch creatives", error);
-      set({ isLoadingCreatives: false });
-    }
+      const res = await api.get(url);
+      set({ creatives: res.data, isLoadingCreatives: false });
+    } catch (e) { console.error("fetch creatives", e); set({ isLoadingCreatives: false }); }
   },
   createCreative: async (data) => {
-    try {
-      const response = await api.post('/api/venus/creatives', data);
-      set((state) => ({ creatives: [response.data, ...state.creatives] }));
-      return response.data;
-    } catch (error) {
-      console.error("Failed to create creative", error);
-      throw error;
-    }
+    const res = await api.post('/api/venus/creatives', data);
+    set((s) => ({ creatives: [res.data, ...s.creatives] }));
+    return res.data;
   },
   updateCreative: async (id, data) => {
-    try {
-      const response = await api.put(`/api/venus/creatives/${id}`, data);
-      set((state) => ({
-        creatives: state.creatives.map(c => c.id === id ? response.data : c)
-      }));
-      return response.data;
-    } catch (error) {
-      console.error("Failed to update creative", error);
-      throw error;
-    }
+    const res = await api.put(`/api/venus/creatives/${id}`, data);
+    set((s) => ({ creatives: s.creatives.map(c => c.id === id ? res.data : c) }));
+    return res.data;
   },
   deleteCreative: async (id) => {
-    try {
-      await api.delete(`/api/venus/creatives/${id}`);
-      set((state) => ({
-        creatives: state.creatives.filter(c => c.id !== id)
-      }));
-    } catch (error) {
-      console.error("Failed to delete creative", error);
-      throw error;
-    }
-  }
+    await api.delete(`/api/venus/creatives/${id}`);
+    set((s) => ({ creatives: s.creatives.filter(c => c.id !== id) }));
+  },
 
+  // ── ADS TASKS ──
+  adsTasks: [],
+  isLoadingTasks: false,
+  fetchTasks: async (projectId) => {
+    set({ isLoadingTasks: true });
+    try {
+      const url = projectId ? `/api/venus/tasks?project_id=${projectId}` : '/api/venus/tasks';
+      const res = await api.get(url);
+      set({ adsTasks: res.data, isLoadingTasks: false });
+    } catch (e) { console.error("fetch tasks", e); set({ isLoadingTasks: false }); }
+  },
+  createTask: async (data) => {
+    const res = await api.post('/api/venus/tasks', data);
+    set((s) => ({ adsTasks: [res.data, ...s.adsTasks] }));
+    return res.data;
+  },
+  updateTask: async (id, data) => {
+    const res = await api.put(`/api/venus/tasks/${id}`, data);
+    set((s) => ({ adsTasks: s.adsTasks.map(t => t.id === id ? res.data : t) }));
+    return res.data;
+  },
+  deleteTask: async (id) => {
+    await api.delete(`/api/venus/tasks/${id}`);
+    set((s) => ({ adsTasks: s.adsTasks.filter(t => t.id !== id) }));
+  },
+
+  // ── COMPETITORS ──
+  competitors: [],
+  isLoadingCompetitors: false,
+  fetchCompetitors: async (projectId) => {
+    set({ isLoadingCompetitors: true });
+    try {
+      const url = projectId ? `/api/venus/competitors?project_id=${projectId}` : '/api/venus/competitors';
+      const res = await api.get(url);
+      set({ competitors: res.data, isLoadingCompetitors: false });
+    } catch (e) { console.error("fetch competitors", e); set({ isLoadingCompetitors: false }); }
+  },
+  createCompetitor: async (data) => {
+    const res = await api.post('/api/venus/competitors', data);
+    set((s) => ({ competitors: [res.data, ...s.competitors] }));
+    return res.data;
+  },
+  updateCompetitor: async (id, data) => {
+    const res = await api.put(`/api/venus/competitors/${id}`, data);
+    set((s) => ({ competitors: s.competitors.map(c => c.id === id ? res.data : c) }));
+    return res.data;
+  },
+  deleteCompetitor: async (id) => {
+    await api.delete(`/api/venus/competitors/${id}`);
+    set((s) => ({ competitors: s.competitors.filter(c => c.id !== id) }));
+  },
+
+  // ── ONBOARDING CHECKLISTS ──
+  checklists: [],
+  isLoadingChecklists: false,
+  fetchChecklists: async (projectId) => {
+    set({ isLoadingChecklists: true });
+    try {
+      const url = projectId ? `/api/venus/onboarding?project_id=${projectId}` : '/api/venus/onboarding';
+      const res = await api.get(url);
+      set({ checklists: res.data, isLoadingChecklists: false });
+    } catch (e) { console.error("fetch checklists", e); set({ isLoadingChecklists: false }); }
+  },
+  createChecklist: async (data) => {
+    const res = await api.post('/api/venus/onboarding', data);
+    set((s) => ({ checklists: [res.data, ...s.checklists] }));
+    return res.data;
+  },
+  updateChecklist: async (id, data) => {
+    const res = await api.put(`/api/venus/onboarding/${id}`, data);
+    set((s) => ({ checklists: s.checklists.map(c => c.id === id ? res.data : c) }));
+    return res.data;
+  },
+  deleteChecklist: async (id) => {
+    await api.delete(`/api/venus/onboarding/${id}`);
+    set((s) => ({ checklists: s.checklists.filter(c => c.id !== id) }));
+  },
+
+  // ── AI OBSERVATIONS ──
+  observations: [],
+  isLoadingObservations: false,
+  fetchObservations: async (projectId) => {
+    set({ isLoadingObservations: true });
+    try {
+      const url = projectId ? `/api/venus/ai-observations?project_id=${projectId}` : '/api/venus/ai-observations';
+      const res = await api.get(url);
+      set({ observations: res.data, isLoadingObservations: false });
+    } catch (e) { console.error("fetch observations", e); set({ isLoadingObservations: false }); }
+  },
+  acknowledgeObservation: async (id) => {
+    const res = await api.put(`/api/venus/ai-observations/${id}`, { is_acknowledged: true });
+    set((s) => ({ observations: s.observations.map(o => o.id === id ? res.data : o) }));
+  },
+  deleteObservation: async (id) => {
+    await api.delete(`/api/venus/ai-observations/${id}`);
+    set((s) => ({ observations: s.observations.filter(o => o.id !== id) }));
+  },
+
+  // ── REPORT TEMPLATES ──
+  reportTemplates: [],
+  isLoadingReports: false,
+  fetchReportTemplates: async (projectId) => {
+    set({ isLoadingReports: true });
+    try {
+      const url = projectId ? `/api/venus/reports?project_id=${projectId}` : '/api/venus/reports';
+      const res = await api.get(url);
+      set({ reportTemplates: res.data, isLoadingReports: false });
+    } catch (e) { console.error("fetch reports", e); set({ isLoadingReports: false }); }
+  },
+  createReportTemplate: async (data) => {
+    const res = await api.post('/api/venus/reports', data);
+    set((s) => ({ reportTemplates: [res.data, ...s.reportTemplates] }));
+    return res.data;
+  },
+  deleteReportTemplate: async (id) => {
+    await api.delete(`/api/venus/reports/${id}`);
+    set((s) => ({ reportTemplates: s.reportTemplates.filter(r => r.id !== id) }));
+  },
+
+  // ── CSV IMPORTS ──
+  csvImports: [],
+  isLoadingCSV: false,
+  fetchCSVImports: async (projectId) => {
+    set({ isLoadingCSV: true });
+    try {
+      const url = projectId ? `/api/venus/csv-imports?project_id=${projectId}` : '/api/venus/csv-imports';
+      const res = await api.get(url);
+      set({ csvImports: res.data, isLoadingCSV: false });
+    } catch (e) { console.error("fetch csv imports", e); set({ isLoadingCSV: false }); }
+  },
 }));
