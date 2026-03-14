@@ -16,6 +16,7 @@ import { api } from "@/lib/api"
 import { EVENT_COLORS, CalendarEvent } from "@/types/calendar"
 import { EventDetailDialog } from "@/components/calendar/CalendarPage"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
+import { useAuthStore } from "@/store/authStore"
 
 // Firma ikonları — SVG mini logolar
 const COMPANY_ICONS: Record<string, React.ReactNode> = {
@@ -48,6 +49,7 @@ export function DashboardWidgets() {
   // === STORES ===
   const { tasks, openTaskDetail, updateTaskStatus, fetchTasks } = useTaskStore()
   const { projects, setViewMode, setSelectedProjectId } = useProjectStore()
+  const { user } = useAuthStore()
 
   // === CLOCK ===
   const [currentTime, setCurrentTime] = React.useState(new Date())

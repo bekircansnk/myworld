@@ -3,8 +3,10 @@
 import * as React from "react"
 import { useTheme } from "next-themes"
 import { Bell, Search, Sun, Moon } from "lucide-react"
+import { useAuthStore } from "@/store/authStore"
 
 export function DashboardHeader() {
+  const { user } = useAuthStore()
   const [mounted, setMounted] = React.useState(false)
   const { theme, setTheme } = useTheme()
 

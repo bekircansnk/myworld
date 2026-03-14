@@ -3,7 +3,7 @@
 import * as React from "react"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
-import { useAuthStore } from "@/stores/authStore"
+import { useAuthStore } from "@/store/authStore"
 
 export function DigitalClock() {
   const user = useAuthStore(state => state.user)

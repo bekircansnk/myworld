@@ -19,6 +19,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, 
   isSameDay, addMonths, subMonths, isToday, eachDayOfInterval, addWeeks, subWeeks } from "date-fns"
 import { tr } from "date-fns/locale"
+import { useAuthStore } from "@/store/authStore"
 
 // ============================
 // HELPERS
@@ -381,6 +382,7 @@ export function CalendarPage() {
 // AI CHAT PANEL
 // ============================
 function AIChatPanel({ tasks, events, currentDate }: { tasks: any[], events: CalendarEvent[], currentDate: Date }) {
+  const { user } = useAuthStore()
   const [messages, setMessages] = React.useState<AIChatMessage[]>([
     {
       id: '1',

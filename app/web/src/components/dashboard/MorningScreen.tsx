@@ -3,6 +3,7 @@
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Sun, Coffee, BookOpen, Dumbbell, Sparkles } from "lucide-react"
+import { useAuthStore } from "@/store/authStore"
 
 interface MorningScreenProps {
   onDismiss: () => void;
@@ -15,6 +16,7 @@ const ACTIVITIES = [
 ]
 
 export function MorningScreen({ onDismiss }: MorningScreenProps) {
+  const { user } = useAuthStore()
   const [isVisible, setIsVisible] = React.useState(false)
   const currentActivity = React.useMemo(() => ACTIVITIES[new Date().getDay() % ACTIVITIES.length], [])
 
