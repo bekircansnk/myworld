@@ -83,7 +83,7 @@ export function LoginOverlay() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-foreground placeholder-foreground/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
-                placeholder="Örn: bekir"
+                placeholder="Kullanıcı adınız"
               />
             </div>
             <div>

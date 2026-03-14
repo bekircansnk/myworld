@@ -3,8 +3,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 import os
+import base64
 from datetime import datetime
-import shutil
 
 from app.database import get_db
 from app.models.user import User
@@ -87,18 +87,18 @@ async def update_profile(profile: ProfileUpdate, current_user: User = Depends(ge
 
 @router.post("/upload-avatar")
 async def upload_avatar(file: UploadFile = File(...), current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    upload_dir = "uploads/avatars"
-    os.makedirs(upload_dir, exist_ok=True)
+    # Read file content
+    content = await file.read()
     
-    file_ext = file.filename.split(".")[-1]
-    filename = f"{current_user.id}_{datetime.now().timestamp()}.{file_ext}"
-    file_path = os.path.join(upload_dir, filename)
-    
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    # Check size (optional, e.g., max 2MB)
+    if len(content) > 2 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Dosya boyutu 2MB'den küçük olmalıdır.")
         
-    # Avatar url path
-    avatar_url = f"/uploads/avatars/{filename}"
+    # Convert to base64
+    base64_encoded = base64.b64encode(content).decode('utf-8')
+    mime_type = file.content_type or "image/jpeg"
+    avatar_url = f"data:{mime_type};base64,{base64_encoded}"
+    
     current_user.avatar_url = avatar_url
     await db.commit()
     

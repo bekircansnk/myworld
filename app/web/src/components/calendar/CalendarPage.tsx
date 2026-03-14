@@ -385,7 +385,7 @@ function AIChatPanel({ tasks, events, currentDate }: { tasks: any[], events: Cal
     {
       id: '1',
       role: 'ai',
-      text: `Merhaba Bekir! 👋 Ben takvim asistanın. Bugünkü planlarını yapmana, görevlerini organize etmene yardımcı olabilirim. Bana "Günümü planla" veya "Bu hafta ne yapmalıyım?" gibi sorular sorabilirsin.`,
+      text: `Merhaba {user?.username || ''}! 👋 Ben takvim asistanın. Bugünkü planlarını yapmana, görevlerini organize etmene yardımcı olabilirim. Bana "Günümü planla" veya "Bu hafta ne yapmalıyım?" gibi sorular sorabilirsin.`,
       time: format(new Date(), 'HH:mm')
     }
   ])

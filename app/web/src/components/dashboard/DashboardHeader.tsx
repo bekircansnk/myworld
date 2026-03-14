@@ -54,7 +54,7 @@ export function DashboardHeader() {
       {/* Header Stats Row */}
       <div className="col-span-12 flex flex-col lg:flex-row justify-between items-start lg:items-end mb-2 gap-6">
         <div className="mb-4 lg:mb-0">
-          <h1 className="text-4xl md:text-5xl font-semibold mb-6 text-brand-dark dark:text-white">{greeting}, Bekir</h1>
+          <h1 className="text-4xl md:text-5xl font-semibold mb-6 text-brand-dark dark:text-white">{greeting}{user?.username ? `, ${user.username}` : ''}</h1>
           <div className="flex flex-wrap gap-4 items-end">
             <div>
               <p className="text-sm text-brand-gray dark:text-gray-400 mb-1">Verimlilik</p>

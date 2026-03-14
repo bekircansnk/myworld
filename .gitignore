@@ -23,3 +23,9 @@ coverage/
 
 # Custom
 .silinecekler_cop_kutusu/
+app/backend/uploads/*
+!app/backend/uploads/.gitkeep
+*.db
+*.sqlite3
+*.command
+.env.production

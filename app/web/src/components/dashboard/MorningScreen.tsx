@@ -38,7 +38,7 @@ export function MorningScreen({ onDismiss }: MorningScreenProps) {
          </div>
 
          <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4">
-           Günaydın Bekir!
+           Günaydın {user?.username}!
          </h1>
          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-sm">
            Bugün harika şeyler yapabileceğini biliyorum. Ama işe koyulmadan önce, kendine biraz vakit ayır...

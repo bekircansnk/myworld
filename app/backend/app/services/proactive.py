@@ -30,7 +30,7 @@ def _generate_proactive_text(context: str, instruction: str) -> str:
         
         response = client.models.generate_content(
             model=MODEL_LITE,
-            contents=f"Bağlam:\n{context}\n\nLütfen bu bağlama göre kısa, motive edici ve Bekircan'a uygun proaktif bir mesaj üret.",
+            contents=f"Bağlam:\n{context}\n\nLütfen bu bağlama göre kısa, motive edici ve kullanıcı'a uygun proaktif bir mesaj üret.",
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
                 temperature=0.7,
@@ -39,7 +39,7 @@ def _generate_proactive_text(context: str, instruction: str) -> str:
         return response.text.strip()
     except Exception as e:
         logger.error(f"Proaktif mesaj üretme hatası: {e}")
-        return "Günaydın Bekir! Bugün harika işler başaracağız."
+        return "Günaydın! Bugün harika işler başaracağız. Bugün harika işler başaracağız."
 
 async def morning_greeting():
     """Sabah 09:00'da çalışır (başlangıç saati), günün özetini sunar."""

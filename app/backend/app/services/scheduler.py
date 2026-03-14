@@ -11,7 +11,7 @@ scheduler = AsyncIOScheduler()
 def start_scheduler():
     """APScheduler başlatır ve proaktif AI görevlerini tanımlar."""
     
-    # 1. Sabah Karşılama (Her gün 12:00'de Bekircan'ın uyanma rutinine göre)
+    # 1. Sabah Karşılama (Her gün 12:00'de Kullanıcının uyanma rutinine göre)
     scheduler.add_job(
         morning_greeting,
         CronTrigger(hour=12, minute=0),

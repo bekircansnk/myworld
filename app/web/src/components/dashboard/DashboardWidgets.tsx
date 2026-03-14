@@ -297,7 +297,7 @@ export function DashboardWidgets() {
         
         {/* SOL */}
         <div className="shrink-0 flex items-center mt-2 xl:mt-0">
-          <h1 className="text-4xl md:text-5xl font-semibold text-brand-dark dark:text-white">{greeting}, Bekir</h1>
+          <h1 className="text-4xl md:text-5xl font-semibold text-brand-dark dark:text-white">{greeting}{user?.username ? `, ${user.username}` : ''}</h1>
         </div>
 
         {/* ORTA */}
@@ -389,7 +389,7 @@ export function DashboardWidgets() {
             <div className="flex-grow flex flex-col gap-2.5 overflow-y-auto scrollbar-hide min-h-0">
               {aiMessages.length === 0 ? (
                 <div className="p-3 text-brand-gray/80 dark:text-gray-400 text-xs text-center mt-4">
-                  Merhaba Bekir! Dijital beynin burada. Sana nasıl yardımcı olabilirim? 🚀
+                  Merhaba {user?.username}! Dijital beynin burada. Sana nasıl yardımcı olabilirim? 🚀
                 </div>
               ) : (
                 aiMessages.map((msg) => (

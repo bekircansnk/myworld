@@ -194,7 +194,7 @@ async def enhance_note_with_ai(request: EnhanceRequest):
     - İçinden görev çıkarır
     - Ek fikirler/araştırma önerileri verir
     """
-    prompt = f"""Bekircan sana hızlı bir not yazıyor. Bunu analiz edip zenginleştirmen gerekiyor.
+    prompt = f"""Kullanıcı sana hızlı bir not yazıyor. Bunu analiz edip zenginleştirmen gerekiyor.
 
 NOT İÇERİĞİ:
 \"\"\"{request.content}\"\"\"
@@ -202,7 +202,7 @@ NOT İÇERİĞİ:
 Şimdi bu notu şu kurallara göre işle ve SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
 
 {{
-  "enhanced_content": "Notun zenginleştirilmiş, düzenli, detaylı hali. Yazım hatalarını düzelt, markdownla formatla, emojilerle güzelleştir, eksik noktaları akıllıca tamamla. Bekircan'ın söylediği her şeyi koru ama daha profesyonel ve detaylı hale getir.",
+  "enhanced_content": "Notun zenginleştirilmiş, düzenli, detaylı hali. Yazım hatalarını düzelt, markdownla formatla, emojilerle güzelleştir, eksik noktaları akıllıca tamamla. Kullanıcının söylediği her şeyi koru ama daha profesyonel ve detaylı hale getir.",
   "tasks_found": ["Notun içinden çıkan yapılabilecek görevler listesi (varsa)", "İkinci görev"],
   "ideas": ["Bu konuyla ilgili ek fikir veya araştırma önerisi", "İkinci öneri"]
 }}

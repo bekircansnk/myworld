@@ -219,7 +219,7 @@ export function ChatWidget() {
               <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground space-y-3 opacity-60">
                 <MessageCircle className="w-10 h-10" />
                 <p className="text-sm text-center px-4">
-                  Merhaba Bekir! Ben senin dijital ortağınım. Görev ver, fikir sor, not tut — hepsini hallederim. 🚀
+                  Merhaba {user?.username}! Ben senin dijital ortağınım. Görev ver, fikir sor, not tut — hepsini hallederim. 🚀
                 </p>
               </div>
             ) : (

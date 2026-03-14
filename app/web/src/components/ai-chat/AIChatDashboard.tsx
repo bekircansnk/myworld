@@ -441,7 +441,7 @@ export function AIChatDashboard() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-brand-dark dark:text-white mb-1">
-                    Merhaba Bekir! 👋
+                    Merhaba {user?.username || ''}! 👋
                   </h3>
                   <p className="text-sm text-brand-gray dark:text-gray-400 max-w-sm leading-relaxed">
                     Görev planla, takvimini düzenle, not al — her şeyi birlikte yapalım.

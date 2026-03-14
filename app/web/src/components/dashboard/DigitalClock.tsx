@@ -3,8 +3,10 @@
 import * as React from "react"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
+import { useAuthStore } from "@/stores/authStore"
 
 export function DigitalClock() {
+  const user = useAuthStore(state => state.user)
   const [time, setTime] = React.useState<Date | null>(null)
 
   React.useEffect(() => {
@@ -27,7 +29,7 @@ export function DigitalClock() {
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 via-purple-500/10 to-transparent dark:from-indigo-600/30 dark:via-purple-600/20 blur-xl group-hover:opacity-80 transition-opacity opacity-50" />
       
       <div className="relative z-10 p-4 flex flex-col items-center justify-center h-full">
-        <h2 className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 mb-1 uppercase tracking-widest">{greeting}, Bekir!</h2>
+        <h2 className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 mb-1 uppercase tracking-widest">{greeting}{user?.username ? `, ${user.username}` : ""}!</h2>
         
         {/* Neon Işıklı Saat Görüntüsü */}
         <div className="text-5xl font-black tabular-nums tracking-tighter mb-1 text-slate-800 dark:text-white drop-shadow-md relative">
