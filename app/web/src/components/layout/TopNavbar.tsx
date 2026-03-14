@@ -375,8 +375,8 @@ export function TopNavbar() {
               onClick={() => { setShowUserPanel(!showUserPanel); setShowNotifPanel(false); }}
               className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors overflow-hidden border-2 ${showUserPanel ? 'border-brand-yellow' : 'border-transparent bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
             >
-              {user?.avatar_url ? (
-                 <img src={user.avatar_url.startsWith('http') ? user.avatar_url : `http://localhost:8000${user.avatar_url}`} alt="Avatar" className="w-full h-full object-cover" />
+                {user?.avatar_url ? (
+                  <img src={user.avatar_url.startsWith('http') ? user.avatar_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${user.avatar_url}`} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
                 <User className="w-4 h-4 text-brand-gray dark:text-gray-400" />
               )}
@@ -388,7 +388,7 @@ export function TopNavbar() {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-sm">
                       {user?.avatar_url ? (
-                         <img src={user.avatar_url.startsWith('http') ? user.avatar_url : `http://localhost:8000${user.avatar_url}`} alt="A" className="w-full h-full object-cover" />
+                        <img src={user.avatar_url.startsWith('http') ? user.avatar_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${user.avatar_url}`} alt="A" className="w-full h-full object-cover" />
                       ) : (
                          user?.username?.substring(0,2).toUpperCase() || 'U'
                       )}

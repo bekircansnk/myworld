@@ -61,7 +61,8 @@ export function ProfileSettings({ isOpen, onClose }: { isOpen: boolean, onClose:
     }
   }
 
-  const avatarUrl = user?.avatar_url ? (user.avatar_url.startsWith('http') ? user.avatar_url : `http://localhost:8000${user.avatar_url}`) : null;
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const avatarUrl = user?.avatar_url ? (user.avatar_url.startsWith('http') ? user.avatar_url : `${backendUrl}${user.avatar_url}`) : null;
 
   const modalContent = (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 transition-all duration-300">
