@@ -1,112 +1,306 @@
 {
-  "version": "1.0",
   "meta": {
-    "description": "PikselAI Koçluk Çerçevesi — Kullanıcı davranış kalıpları ve asistan etkileşim rehberi",
-    "purpose": "AI asistanın kullanıcıya nasıl yaklaşması gerektiğini tanımlar. Tüm kullanıcılar için geçerlidir."
+    "version": "2.0",
+    "kaynaklar": "6 farklı yapay zeka raporu (Gemini ×2, Grok ×2, OpenAI ×2), kişisel soru-cevaplar, ön profil raporu — 13 Mart 2026",
+    "amaç": "Ana kullanıcı profilini tam olarak tanımlar. AI asistan bunu sistemin temel bağlamı olarak kullanmalıdır.",
+    "kapsam": "Kişilik psikolojisi, ADHD spektrum analizi, davranış döngüleri, motivasyon haritası, güç/zayıflık matrisi, risk değerlendirmesi, stratejik aksiyon planı, ideal gün tasarımı ve AI iletişim rehberi"
   },
 
-  "personality_profile_template": {
-    "title": "Yüksek Potansiyelli Girişimci / Serbest Çalışan Profili",
-    "typical_traits": {
-      "mbti": "INTP / ENTP — Bağlama göre değişen sosyal introvert",
-      "strengths": ["Hiperfokus", "Teknik beceri", "Vizyon", "Yaratıcılık", "Hızlı öğrenme"],
-      "challenges": ["Başlama eşiği yüksek", "Rutin oluşturmakta güçlük", "Sınır koymakta zorlanma", "Uyku düzensizliği", "Teknoloji bağımlılığı"],
-      "work_style": {
-        "best_environment": "Kafeler, yapılandırılmış dış ortamlar, kısa yoğun çalışma blokları",
-        "worst_environment": "Evsiz, uyaranın bol olduğu ortamlar",
-        "focus_pattern": "Hiperfokus dönemleri + tükenmişlik döngüsü",
-        "motivation_triggers": ["Yeni ve heyecan verici projeler", "Değer görme", "Küçük ve net hedefler"],
-        "demotivation_triggers": ["Belirsiz başlangıçlar", "Tekrarlayan monoton işler", "Uzun süre yalnız çalışma"]
+  "kullanici_profili": {
+    "tek_cumle_ozet": "Teknik yeteneği ve vizyonu çok yüksek, ancak bu potansiyeli tutarlı üretime dönüştürecek bir sistemi henüz kuramamış, yüksek potansiyelli bir girişimci.",
+    "meslek": "Bireysel dijital ajans kurucusu",
+    "uzmanlik_alanlari": ["Yapay zeka", "Otomasyon (n8n)", "Web geliştirme", "Dijital pazarlama", "Yazılım geliştirme (Python)", "IT", "Fotoğrafçılık", "Grafik tasarım"],
+    "teknik_altyapi": ["n8n sunucusu (aktif)", "Python", "Yapay zeka araçları", "Telegram botları"],
+    "calisma_ortami": ["Evden (çift monitör)", "Kafeler", "Mobil"],
+    "yasam_durumu": "Aile evinde yaşıyor — sabit gideri düşük",
+    "finansal_durum": {
+      "birikim": "Yok",
+      "mevcut_gelir_tryl": "3000-5000 TL/iş (başlangıç, yetersiz)",
+      "acil_oncelik": "Gelir artırma — değer bazlı fiyatlandırma gerekli",
+      "muşteri_kazanim_kanali": "Referans bazlı (tanıdık çevresi)"
+    },
+    "destek_cevresi": "Aile ve kardeş destekli"
+  },
+
+  "kisilik_profili": {
+    "mbti": {
+      "sonuc": "INTP-A / ENTP Hibrit",
+      "konsensus": "6/6 rapor uyumlu",
+      "aciklama": "Sosyal ortam ve bağlama göre değişen sosyal introvert. Kafede canlılaşır, ofiste insanlarla iletişimden keyif alır, ama yalnızlıktan da güç alabilir.",
+      "boyutlar": {
+        "I_Introversion": "Sessiz ve sakin yapı. Mesajlaşmayı yüz yüze iletişime tercih eder. Kelimeleri seçmekte zaman zaman zorlanır.",
+        "N_Intuition": "Sürekli yeni fikirler üretir, büyük resmi görür, teknoloji ve inovasyon tutkusu güçlüdür.",
+        "T_Thinking": "Teknik sistem kurmayı tercih eder, mantıksal çerçeveler oluşturur, otomasyon merakı yüksektir.",
+        "P_Perceiving": "Rutin sevmez, spontan ve dürtüsel kararlar alabilir, yapı eksikliği ve son dakikacılık belirgindir."
+      }
+    },
+    "big_five_ocean": {
+      "aciklik_openness": {"puan": 9, "yorum": "Yaratıcılık, yenilik arayışı, yapay zeka tutkusu — çok yüksek"},
+      "sorumluluk_conscientiousness": {"puan": 3.5, "yorum": "Rutin eksikliği, erteleme, unutkanlık, takip zayıflığı — düşük"},
+      "disadonukluk_extraversion": {"puan": 5.5, "yorum": "Ambivert — kafede enerji alır ama yalnızlıktan da keyif alır"},
+      "uyumluluk_agreeableness": {"puan": 7.5, "yorum": "Hayır diyememe, sınır koyamama, başkalarının fikirlerini aşırı önemseme"},
+      "nevrotiklik_neuroticism": {"puan": 6, "yorum": "Gelecek kaygısı var ama yıkıcı değil; kronik kötü hissetme döngüsü riski mevcut"}
+    },
+    "enneagram": {
+      "tip": "7w6 (Coşkulu / Maceracı)",
+      "konsensus": "5/6 rapor",
+      "ozellikler": {
+        "yeni_uyaran_arayisi": "Sürekli yeni projeler, fikirler, teknolojiler peşinde — eski şeyler monoton gelir",
+        "kacınma": "İş teslim korkusu, zorlayıcı görevleri erteleme — acıdan kaçınma mekanizması",
+        "heyecan_dongusu": "Yüksek heyecanla başlar → düşüş yaşar → yeni şeye geçer",
+        "kanat_6_etkisi": "Gelecek kaygısı, destek çevresine güvenme, güvenlik arayışı belirgin",
+        "tip_3_etkisi": "Değer görme, tanınma ve başarılı algılanma isteği güçlü"
+      }
+    },
+    "disc": {
+      "sonuc": "Yüksek I (Influence), Düşük S (Steadiness)",
+      "konsensus": "4/6 rapor",
+      "boyutlar": {
+        "D_Dominance": "Orta-Yüksek — Bağımsızlık, ani kararlar verebilir, kendi yolunu çizer",
+        "I_Influence": "Yüksek — İnsanların işine yarayacak projeler, değer görme, fikirlerini yayma isteği",
+        "S_Steadiness": "Düşük — Rutin sevmez, yapı eksikliği, sabırsızlık belirgin",
+        "C_Conscientiousness": "Orta — Teknik detaylarda güçlü ama takip ve teslimatta zayıf"
       }
     }
   },
 
-  "coaching_principles": {
-    "communication_tone": {
-      "do": [
-        "Kısa ve net konuş",
-        "Somut bir sonraki adım öner",
-        "Samimi ve doğal ol",
-        "Kullanıcının durumunu yargılamadan kabul et",
-        "Zaman çerçevesi ver — '30 dakika' gibi somut süreler motivasyonu artırır"
+  "gelisim_kronolojisi": {
+    "cocukluk": [
+      "Dikkat eksikliği — derslere odaklanamıyordu",
+      "Hiperaktivite — yaramazdı ama okulda içsel bastırma ile sakin duruyordu",
+      "Parmak kaldırmaktan korkuyordu — erken dönem sosyal kaygı belirtisi",
+      "Dersler hep kötüydü — ilgi ve dikkat doğrudan bağlantılı"
+    ],
+    "okul_donemi": [
+      "Son dakikacılık — ödevleri hep son dakikaya bırakırdı",
+      "İlgi duyduğu konularda bile ortalama performans — motivasyon değil dikkat yönetimi sorunu",
+      "Dershane döneminde plan ve rutin sahibi olunca performans arttı (yapı = başarı)"
+    ],
+    "is_hayati": [
+      "İnsanlarla çalışmaktan keyif aldı — ofis sosyalliği, takım çalışması enerji verdi",
+      "Kendini değerli hissetmedi — yaptıklarına değer verilmemesi motivasyonu kırdı",
+      "Maaş anlaşmazlığı sonucu planlı ama dürtüsel bir ayrılma kararı aldı (6 Şubat 2026)"
+    ],
+    "girisimcilik_donemi": [
+      "İlk ayda çok yüksek motivasyonla başladı",
+      "1 ayda heyecan düşüşü, uyku düzeni çöktü (gece 6'da yatma, öğlen 2'de kalkma)",
+      "Hiperfokus ↔ çöküş döngüsü belirginleşti",
+      "Teknik başarılar sürüyor: müşterilere otomasyon sistemleri kuruyor"
+    ],
+    "baglanti_analizi": "Çocukluktan gelen bilişsel yapı kalıpları (dikkat eksikliği, son dakikacılık, hiperfokus) doğrudan yetişkinliğe taşınmış. Bu kalıp, doğru sistem ile yönetildiğinde güce dönüşebilir."
+  },
+
+  "davranissal_analiz": {
+    "prokrastinasyon_dongusu": {
+      "konsensus": "6/6 rapor — çok güvenilir bulgu",
+      "asamalar": [
+        "1. Yeni fikir/proje → Dopamin patlaması, heyecan çok yüksek",
+        "2. Hiperfokus dönemi → Gece 3-4'e kadar saatlerce aralıksız çalışma",
+        "3. Tükenmişlik/çöküş → 3-4 gün hiçbir şey yapamama",
+        "4. Suçluluk + kötü hissetme → 'Neden kalkamıyorum? Neden başaramıyorum?'",
+        "5. Kaçınma → Instagram, TikTok, yatakta kalma (dopamin arayışı)",
+        "6. Döngü başa döner"
       ],
-      "dont": [
-        "Aşırı coşkulu sözler söyleme — 'Harika!', 'Muhteşem!', 'Sen bunu kesinlikle yaparsın!' gibi abartılı ifadeler güven yerine yüzeysellik yaratır",
-        "Robotik ifadeler kullanma — 'Nasıl yardımcı olabilirim?'",
-        "Her cümleyi ünlemle bitirme",
-        "Kullanıcıya söz verme — taahhüt değil, planlama yap",
-        "Uzun açıklamalar yapma — kullanıcı o an ne yapacağını duymak ister"
-      ]
+      "ai_mudahale_stratejisi": "Tükenmişlik aşamasında zorla değil yönlendir. 'Bugün sadece 1 şey yap, 10 dakika' yaklaşımı kullan. Suçluluk üretme, normalize et."
     },
-    "response_examples": {
-      "task_created": "Tamam, ekledim. İlk adım: {first_subtask}. Bunu bugün halleden.",
-      "morning": "Günaydın. Bugün ne üzerinde çalışacaksın?",
-      "task_complete": "Bitti. Sırada {next_task} var.",
-      "long_inactivity": "Uzun süredir bir şey yapmadın. Küçük bir adımla başlamak ister misin?",
-      "late_night": "Saat {time} oldu. Yarın devam etmek tercih olabilir.",
-      "break": "İyi bir çalışmaydı. Biraz dinlen.",
-      "stuck": "Takılı kaldıysan ilk adımı daha da küçük parçalara bölelim."
+    "tetikleyici_mekanizmalar": {
+      "dopamin_dongusu": {
+        "aciklama": "Sabah telefona uzanmak beyne hızlı dopamin sağlar. Bu yüksek uyarandan sonra çalışmak beyne sıkıcı ve acı verici gelir.",
+        "mudahale": "Sabah telefon uzak tutulması — kitap veya kahve ritüeli ile gün başlaması"
+      },
+      "avoidance_coping": {
+        "aciklama": "İş teslim etmeme, fiyat söyleyememe teknik değil duygusal kaçınmadır. Reddedilme, eleştiri ve revizyon riskinden bilişsel kaçınma.",
+        "mudahale": "Teslim adımını küçült — 'sadece dosyayı gönder' şeklinde somutlaştır"
+      },
+      "cevre_bagımliligi": {
+        "aciklama": "Ev: sınırsız uyaran → düşük odak. Kafe: sosyal enerji, sınırlı seçenek → yüksek odak. Metro: internet yok → mükemmel odak. Dış yapı = odak. Sorun irade değil, çevre tasarımı.",
+        "mudahale": "Haftalık kafe çalışması planla. Evde kafe sesi çal, masayı temiz tut."
+      },
+      "oz_belirleme_teorisi": {
+        "ozerklik": "Güçlü — kendi işini kurma kararı, bağımsızlık tutkusu",
+        "yeterlilik": "Güçlü — teknik beceriler, AI ve otomasyon hakimiyeti",
+        "baglilik": "Zayıf — yalnız çalışma, sınırlı sosyal çevre, ekip eksikliği. Bu motivasyon düşüşünü açıklar."
+      }
+    },
+    "adhd_spektrum": {
+      "konsensus": "6/6 rapor — profesyonel değerlendirme şiddetle önerilir",
+      "not": "Bu bir teşhis değil, farkındalık ve strateji açısından kritik bir çerçevedir.",
+      "dsm5_kriterleri": {
+        "dikkatsizlik_belirtileri": "Çoklu belirtiler mevcut",
+        "cocuklukta_baslangic": "Doğrulanmış (12 yaş altı)",
+        "coklu_ortam": "Ev, okul, iş ve girişimcilik ortamlarının hepsinde görülüyor",
+        "gunluk_etki": "Uyku bozulması, görev teslim güçlüğü, iş yönetimi",
+        "hiperfokus": "Çok belirgin"
+      },
+      "strateji_onerisi": "Mikro hedefler, zaman blokları, görünür ilerleme, yapılandırılmış sabah rutini, kademeli alışkanlık ekleme"
     }
   },
 
-  "behavioral_patterns": {
-    "procrastination_cycle": {
-      "description": "Yüksek açıklık gösteren kullanıcıların sık yaşadığı döngü",
-      "stages": [
-        "Yeni fikir / proje — yüksek enerji",
-        "Hiperfokus dönemi — uzun, yoğun çalışma",
-        "Tükenmişlik / çöküş — birkaç gün duraksama",
-        "Suçluluk ve kötü hissetme",
-        "Kaçınma — sosyal medya, telefon",
-        "Döngü sıfırlanır"
-      ],
-      "ai_intervention": "Döngünün tükenmişlik aşamasında kullanıcıyı zorla değil, yönlendir. 'Bugün sadece 1 şey yap' yaklaşımı kullan."
+  "duygusal_profil": {
+    "oz_elestirsizlik_paradoksu": "Bilinçli olarak kendini eleştirmez; 'ben kendimi hiç eleştirmem' der. Ama aynı zamanda 'neden kalkamıyorum, neden başaramıyorum?' iç sesi var. Bu duygusal farkındalık eksikliği + avoidance coping kombinasyonudur.",
+    "iletisim_cekingenlik_kokenleri": {
+      "fiyat_soyleyememe": "Reddedilme ve değersiz görülme korkusu",
+      "hayir_diyememe": "Başkalarının düşüncelerini aşırı önemseme",
+      "is_teslim_edememe": "Eleştiri ve revizyon korkusu — onaylanma ihtiyacı",
+      "sessiz_sakin": "Çocukluktan gelen sosyal kaygı (sınıfta parmak kaldırmaktan korkma)"
     },
-    "executive_function": {
-      "starting_difficulty": "Başlama eşiği yüksek olan kullanıcılar için görevi en küçük birime böl. '5 dakika sadece dosyayı aç' gibi.",
-      "task_switching": "Kullanıcı çok fazla arasında geçiş yapıyorsa, mevcut göreve odaklanmasını iste.",
-      "environmental_anchoring": "Dış yapı (kafe, belirli müzik, rutin saat) odaklanmayı destekler. Bunu anımsatmak işe yarar."
-    }
+    "yalnizlik_sosyallik": {
+      "tip": "Ambivert",
+      "pozitif": "Yalnızken dans eder, şarkı söyler, yemek yapar — sağlıklı iç dünya",
+      "risk": "Evden çalışma + sınırlı sosyal çevre → uzun süreli izolasyon riski"
+    },
+    "psikolojik_destek_gecmisi": "Dershane döneminde kısa süreli psikolojik destek — anlatırken rahatlama var ama uzun soluklu devam edememiş. ADHD odaklı CBT önerilir.",
+    "aile_gecmisi": "Ailede bilinen depresyon/anksiyete/ADHD yoktur — bireysel bilişsel yapı kalıbı olduğunu güçlendirir."
   },
 
-  "adhd_aware_coaching": {
-    "note": "Bu rehber ADHD tanısı için değil, benzer çalışma kalıplarına sahip kullanıcılara etkili destek sağlamak için tasarlanmıştır.",
-    "strategies": [
-      "Mikro hedef: günde 1-3 somut, küçük görev",
-      "Zaman bloğu: 25-90 dakika çalışma seansları",
-      "Görünür ilerleme: tamamlanan görevleri vurgula",
-      "Yapı sağla: sabah planı, gece özet",
-      "Kademeli değişim: yeni alışkanlıkları haftada birer ekle"
+  "motivasyon_haritasi": {
+    "formula": "Motivasyon = (Yenilik + Yapı + Değer Görme) − (Belirsizlik + Monotonluk + İzolasyon)",
+    "guclu_motivatorler": [
+      {"tetikleyici": "Yeni bir şey geliştirmek", "kuvvet": "ÇOK GÜÇLÜ", "ornek": "Gece 3-4'e kadar bırakmadan çalışabilir"},
+      {"tetikleyici": "Yapılandırılmış plan", "kuvvet": "ÇOK GÜÇLÜ", "ornek": "Dershane döneminde plan ile performans arttı"},
+      {"tetikleyici": "Değer görmek / tanınmak", "kuvvet": "ÇOK GÜÇLÜ", "ornek": "'Vay canına, neler yapmışım!' tatmini"},
+      {"tetikleyici": "Bağımsızlık", "kuvvet": "ÇOK GÜÇLÜ", "ornek": "Paraya bağımlı kalmamak güçlü motivatör"},
+      {"tetikleyici": "Kahve, yemek, tatlı", "kuvvet": "ORTA", "ornek": "Fizyolojik tetikleyiciler — ritüel oluşturur"},
+      {"tetikleyici": "Kafe ortamı", "kuvvet": "ORTA", "ornek": "Çevresel yapı + sosyal enerji odak sağlar"}
+    ],
+    "motivasyon_olduruculer": [
+      {"tetikleyici": "Belirsiz başlangıçlar", "kuvvet": "ÇOK GÜÇLÜ", "ornek": "Sabah 'ne yapacağım' hissi felç eder"},
+      {"tetikleyici": "Monoton/tekrar eden işler", "kuvvet": "ÇOK GÜÇLÜ", "ornek": "Rutin görevleri sürekli erteler"},
+      {"tetikleyici": "Telefon ve sosyal medya", "kuvvet": "ÇOK GÜÇLÜ", "ornek": "Günlük 8 saat ekran süresi — dopamin kaçağı"},
+      {"tetikleyici": "Uyku düzensizliği", "kuvvet": "ÇOK GÜÇLÜ", "ornek": "Gece 6'da yatma, öğlen 2'de kalkma döngüsü"},
+      {"tetikleyici": "İletişim gerektiren görevler", "kuvvet": "ORTA", "ornek": "İş teslimi, fiyat söyleme"},
+      {"tetikleyici": "Yalnız çalışma", "kuvvet": "ORTA", "ornek": "Bağlılık ihtiyacının karşılanamaması"}
     ]
   },
 
-  "motivation_framework": {
-    "formula": "Motivasyon = (Netlik + Yenilik + Anlam) — (Belirsizlik + Monotonluk + Yorgunluk)",
-    "levers": {
-      "increase_motivation": [
-        "Görevi netleştir",
-        "İlerlemeyi somutlaştır",
-        "Küçük bir ödül bağla",
-        "Sosyal hesap verebilirlik ekle"
-      ],
-      "reduce_friction": [
-        "Karar sayısını azalt",
-        "Ortamı hazırla",
-        "Başlamayı kolaylaştır — sadece aç, sadece 5 dakika"
-      ]
-    }
+  "guc_zayiflik_matrisi": {
+    "gucler": [
+      {"yetenek": "Hiperfokus", "strateji": "90 dakikalık derin çalışma blokları — kafede. Hiperfokusu dağıtmak değil, planlı ve bilinçli kullanmak."},
+      {"yetenek": "Teknik beceri", "strateji": "Kendi sorunlarını kendi teknolojisiyle çözme avantajı. n8n + AI ile kişisel işletim sistemi kurma."},
+      {"yetenek": "Vizyon", "strateji": "Büyük resmi mikro-hedef sistemiyle somutlaştır. '5 yıllık hayal → bugünkü tek adım.'"},
+      {"yetenek": "Yaratıcılık", "strateji": "Yeni projeler, AI destekli ürünler — ama aynı anda maksimum 2 aktif proje kuralı"},
+      {"yetenek": "Öz farkındalık", "strateji": "Sorunlarını biliyor olmak zaten en zor adımı (kabullenme) geçmek demek."},
+      {"yetenek": "Destek çevresi", "strateji": "Kardeşle haftalık hesap verebilirlik (accountability) seansı kur."}
+    ],
+    "zayifliklar": [
+      {"sorun": "Sabah rutinsizliği", "strateji": "Telefonu yatak odası dışında şarj et. Kahve → kitap → plan ritüeli — hafta hafta kademeli ekle."},
+      {"sorun": "8 saat telefon kullanımı", "strateji": "Kademeli düşüş (haftada 1 saat). Grayscale modu. Sabah ilk 30 dk uçak modu."},
+      {"sorun": "Çevresel bağımlılık (ev = düşük odak)", "strateji": "Evde kafe sesi çal, masa temiz olsun. Haftada 3 gün gerçek kafe çalışması."},
+      {"sorun": "Sınır koyamama, fiyat söyleyememe", "strateji": "Hazır fiyat şablonu PDF + 'hayır' script'leri. E-posta ile teslim (yüz yüze stres azalır)."},
+      {"sorun": "Uyku düzensizliği (gece 6 yatma)", "strateji": "Her 3 günde yatma saatini 30 dk erkene çek. Hedef: 00:00-08:00."},
+      {"sorun": "Unutkanlık ve takip eksikliği", "strateji": "Telegram botu ile anlık görev ekleme. n8n ile otomatik hatırlatıcılar."}
+    ]
   },
 
-  "ideal_day_template": {
-    "description": "Kullanıcıların gün planlaması için referans yapı. Saatler kişiye göre kayar.",
-    "blocks": [
-      {"name": "Uyanış ritüeli", "duration_min": 30, "activity": "Kahve, kısa okuma veya not"},
-      {"name": "Günlük plan", "duration_min": 10, "activity": "Bugün 3 hedef belirleme"},
-      {"name": "Çalışma bloğu 1", "duration_min": 90, "activity": "Yaratıcı veya zor iş"},
-      {"name": "Mola", "duration_min": 30, "activity": "Yemek, kısa yürüyüş"},
-      {"name": "Çalışma bloğu 2", "duration_min": 90, "activity": "İletişim, teslim, teknik"},
-      {"name": "Serbest zaman / hareket", "duration_min": 60, "activity": "Egzersiz, dinlenme"},
-      {"name": "Akşam özeti", "duration_min": 10, "activity": "Bugün ne bitti, yarın ne var"}
+  "risk_degerlendirmesi": [
+    {"risk": "Tükenmişlik (burnout)", "olasilik": "Yüksek", "etki": "Yüksek", "onlem": "Günlük maks 6 saat yoğun çalışma. Planlı mola zorunlu."},
+    {"risk": "İzolasyon", "olasilik": "Orta", "etki": "Orta", "onlem": "Kafe çalışması, sosyal aktiviteler planla."},
+    {"risk": "Sağlık bozulması", "olasilik": "Orta", "etki": "Yüksek", "onlem": "Uyku düzeni, şeker azaltma, haftada 2-3 gün hareket."},
+    {"risk": "Müşteri kaybı (teslim gecikmesi)", "olasilik": "Orta", "etki": "Yüksek", "onlem": "Fiyat şablonu + iş teslim otomasyonu."},
+    {"risk": "Finansal istikrarsızlık", "olasilik": "Yüksek", "etki": "Yüksek", "onlem": "Fiyat artışı acil. Değer bazlı fiyatlandırma. Pasif gelir kaynağı."},
+    {"risk": "Aşırı çoklu proje", "olasilik": "Yüksek", "etki": "Orta", "onlem": "Aynı anda maks 2 aktif proje — tek ürün stratejisi."}
+  ],
+
+  "stratejik_aksiyon_plani": {
+    "ilk_7_gun": [
+      "Sabah telefonu yatak dışında şarj et",
+      "Uyanınca 10 dk kitap oku (yatakta olabilir)",
+      "Kahve hazırla — ritüel başlangıcı",
+      "'Bugün 1 şey bitireceğim' yaz",
+      "Her akşam birine 'bugün ne yaptım' de (hesap verebilirlik)"
+    ],
+    "ilk_30_gun": [
+      "2. hafta: Gün planı yaz (3 mikro-hedef) + masaya geç",
+      "3. hafta: 90 dk çalışma bloğu (günde 1) + 30 dk ödül molası",
+      "4. hafta: Haftada 2-3 gün kafe çalışması + telefonu 6 saate düşür"
+    ],
+    "ilk_90_gun": [
+      "Günlük rutin tamamen oturmuş",
+      "2 çalışma bloğu/gün tutarlı şekilde uygulanıyor",
+      "Müşteri iletişim script'leri ve fiyat şablonu PDF hazır",
+      "Uyku düzeni 00:00-08:00 bandına oturmuş",
+      "Telefon kullanımı 4 saatin altına düşmüş"
+    ],
+    "6_aylik_hedefler": [
+      "Minimum 3 düzenli müşteri",
+      "1 adet pasif gelir kaynağı aktif",
+      "Günlük telefon ortalaması 3 saatin altı",
+      "Haftada 5 gün tutarlı çalışma (günde 5-6 saat)",
+      "Profesyonel ADHD değerlendirmesi tamamlanmış",
+      "Sosyal medyada ilk görünürlük adımları",
+      "Uyku düzeni kararlı (23:30-07:30)",
+      "Haftada 2-3 gün fiziksel aktivite"
     ]
+  },
+
+  "ideal_gun_tasarimi": {
+    "not": "Bu hedef gün yapısı 3. ayın hedefidir. İlk hafta sadece sabah ritüeli ile başla.",
+    "bloklar": [
+      {"saat": "09:00", "aktivite": "Uyanış — telefona dokunma", "detay": "Kitap + su"},
+      {"saat": "09:15", "aktivite": "10 dk kitap okuma", "detay": "Zihin açılsın"},
+      {"saat": "09:30", "aktivite": "Kahve hazırlama + kahvaltı", "detay": "Motivasyon ritüeli"},
+      {"saat": "10:00", "aktivite": "Günün planı", "detay": "Dünün özeti + bugünün 3 hedefi, dashboard kontrolü"},
+      {"saat": "10:30", "aktivite": "Çalışma Bloğu 1 (90 dk)", "detay": "Yaratıcı veya zor işler"},
+      {"saat": "12:00", "aktivite": "Öğle yemeği + kısa mola", "detay": "Telefon yok"},
+      {"saat": "12:30", "aktivite": "Çalışma Bloğu 2 (90 dk)", "detay": "Teknik işler"},
+      {"saat": "14:00", "aktivite": "Ödül molası (30 dk)", "detay": "Sabit ekran — telefon kaydırma yok"},
+      {"saat": "14:30", "aktivite": "Çalışma Bloğu 3 (60-90 dk)", "detay": "İletişim + teslimatlar"},
+      {"saat": "16:00", "aktivite": "Hareket", "detay": "Yürüyüş, havuz veya fitness"},
+      {"saat": "17:00", "aktivite": "İsteğe bağlı Çalışma Bloğu 4", "detay": "Hafif işler, fikirler"},
+      {"saat": "18:30", "aktivite": "Akşam yemeği", "detay": ""},
+      {"saat": "19:00", "aktivite": "Kitap okuma veya kişisel gelişim", "detay": ""},
+      {"saat": "20:00", "aktivite": "Serbest zaman", "detay": "Dizi, arkadaş, sosyal"},
+      {"saat": "23:00", "aktivite": "Uyku hazırlığı", "detay": "Telefonu uzağa koy"},
+      {"saat": "23:30", "aktivite": "Uyku", "detay": ""}
+    ]
+  },
+
+  "ai_iletisim_rehberi": {
+    "genel_ton": {
+      "ilkeler": [
+        "Samimi ve doğal ol — ne aşırı resmi ne boş coşkulu",
+        "Kısa ve net konuş — kullanıcı ne yapacağını duymak ister, uzun açıklama değil",
+        "Somut bir sonraki adım öner — 'şunu yap, 10 dakika' formatı çalışır",
+        "Yargılama yok — durumu normalize et, suçluluk üretme",
+        "Abartılı iltifat ve boş tebrik cümleleri kurma — güvensizlik yaratır"
+      ]
+    },
+    "durum_bazli_yaklasim": {
+      "sabah_karsılama": "Günaydın. Bugün ne yapıyoruz?",
+      "is_tamamlama": "Bitti. Sırada ne var?",
+      "mola": "İyi bir seanstı. Biraz dinlen.",
+      "uzun_hareketsizlik": "Uzun süre bir şey yapmadın. Küçük bir adımla başlayalım mı?",
+      "is_teslimi": "Bu iş bitti. Sadece gönder — revizyon gelirse o zaman bakarız.",
+      "geciken_gorev": "Bu görev {N} gündür bekliyor. Acil mi, yoksa ertelenebilir mi?",
+      "gece_gec_saatler": "Gece {saat} oldu. Yarına bırakmak mantıklı.",
+      "haftalik_basari": "Bu hafta şunu başardın: {liste}.",
+      "takilip_kalan": "Takıldıysan ilk adımı daha küçük parçalara bölelim. Sadece şunu yap: {ilk_adim}.",
+      "sabah_agir_is": "Sabahları enerjin düşük — ağır iş önerme. Hafif bir başlangıç öner.",
+      "burnout_riski": "Uzun süredir çok yoğun çalışıyorsun. Bugün yavaş başlamak mantıklı."
+    },
+    "kritik_bilgiler": [
+      "Zorlama ile motive olmaz — kademeli, nazik yaklaşım gerekir",
+      "Sabahları enerji düşüktür — basit ve net başlangıç öner",
+      "Kahve, yemek, tatlı fizyolojik motivasyon tetikleyicileridir — bağlam olarak kullanılabilir",
+      "Kafe ortamı odaklanmasını güçlendirir — planlamada bunu öner",
+      "Telefon kaydırma en büyük dikkat dağıtıcısı — sabah rutini bağlamında hatırlat",
+      "İş teslimi en hassas konu — cesaretlendirici değil, somut ve adım odaklı yaklaş",
+      "Gece geç saatte aktifse, yarına bırakmasını yavaşça yönlendir",
+      "Hiperfokus dönemindeyse — doğrudan söyleme, destekle ama burnout riskine dikkat et",
+      "Yalnızlık riski var — sosyal aktiviteler ve kafe çalışması planlamasını destekle",
+      "Aynı anda 2'den fazla proje tehlikeli — odak koru",
+      "Meşhur referans bazlı çalışıyor — ölçeklendirme için yeni kanallar öner",
+      "Değer görmek güçlü motivatör — başardıkları somut olarak göster"
+    ]
+  },
+
+  "ozet_karti": {
+    "kisilik": "INTP/ENTP Hibrit | Enneagram 7w6 | Ambivert | Yüksek I-DISC",
+    "gucler": ["Hiperfokus", "Teknik beceri", "Vizyon", "Yaratıcılık", "Öz farkındalık"],
+    "sorunlar": ["Prokrastinasyon", "Uyku düzensizliği", "Telefon bağımlılığı", "Sınır koyamama", "Başlama güçlüğü"],
+    "adhd_spektrum": "Yüksek uyum — profesyonel değerlendirme önerilir",
+    "temel_cozum": "Motivasyon değil, SİSTEM kurulmalı",
+    "durum": "Yüksek potansiyel + sistem eksikliği",
+    "prognoz": "Doğru sistem ve yapı ile çok güçlü bir yere gelebilir"
   }
 }
