@@ -90,7 +90,7 @@ export function ChatWidget() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, user } = useAuthStore()
 
   React.useEffect(() => {
     if (isAuthenticated && messages.length === 0) {

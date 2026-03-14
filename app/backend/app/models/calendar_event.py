@@ -21,7 +21,7 @@ class CalendarEvent(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    user = relationship("User")
+    user = relationship("User", overlaps="calendar_events")
     task = relationship("Task")
     note = relationship("Note")
 

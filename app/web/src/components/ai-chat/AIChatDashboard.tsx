@@ -12,6 +12,7 @@ import { tr } from "date-fns/locale"
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { MiniRobot } from "@/components/chat/MiniRobot"
+import { useAuthStore } from "@/store/authStore"
 
 // ============ CATEGORY CONFIG ============
 
@@ -214,6 +215,8 @@ export function AIChatDashboard() {
     fetchSessions, createSession, selectSession, sendMessage, setCategory, clearActiveSession,
     deleteSession, deleteAllSessions // Added delete actions
   } = useAIChatStore()
+
+  const { user } = useAuthStore()
 
   const [inputValue, setInputValue] = React.useState("")
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
