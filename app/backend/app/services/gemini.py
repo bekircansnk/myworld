@@ -24,8 +24,6 @@ def _get_gemini_client():
 
 # Model Definitions
 MODEL_LITE = "gemini-3.1-flash-lite-preview"
-MODEL_PRO = "gemini-3.1-pro-preview"
-MODEL_IMAGE = "gemini-3.1-flash-image-preview"
 
 async def _log_cost_async(input_tokens: int, output_tokens: int, model_name: str):
     print(f"[COST TRACKING STARTED] In: {input_tokens}, Out: {output_tokens}, Model: {model_name}")
@@ -113,74 +111,25 @@ async def log_cost_awaitable(response, model_name: str):
     except Exception as e:
         print(f"[COST ASYNC ERROR] {e}")
 
-class IntentClassification(BaseModel):
-    intent: str = Field(description="The user's intent. Must be exactly one of: 'STANDARD_CHAT' or 'DEEP_ANALYSIS'")
 
-def classify_intent(message: str) -> str:
-    """
-    Kullanıcının mesajını analiz ederek hangi modelin kullanılması gerektiğine karar verir.
-    """
-    try:
-        system_instruction = (
-            "Sen bir niyet analizatörüsün. Kullanıcının mesajını okuyup ne istediğine karar vereceksin. "
-            "Sadece 2 niyet türü olabilir:\\n"
-            "1. 'STANDARD_CHAT': Normal sohbet, günlük işler, kısa sorular, özetlemeler, hatırlatmalar, şakalar, sistem durmunu sorma.\\n"
-            "2. 'DEEP_ANALYSIS': Çok karmaşık projeler, uzun vadeli ve detaylı stratejik planlamalar, yazılım mimarisi çizimleri, derin hukuki veya bilimsel analiz istekleri.\\n"
-            "Kullanıcı resim, fotoğraf veya görsel üretilmesini istese BİLE, bunu STANDARD_CHAT veya DEEP_ANALYSIS olarak algıla. ASLA görsel üretme.\\n"
-        )
-        
-        response = client.models.generate_content(
-            model=MODEL_LITE, # Hızlı analiz için Lite modelini kullanıyoruz
-            contents=message,
-            config=types.GenerateContentConfig(
-                system_instruction=system_instruction,
-                response_mime_type="application/json",
-                response_schema=IntentClassification,
-                temperature=0.1 # Düşük sıcaklık, kesin kararlar için
-            ),
-        )
-        
-        log_cost_sync(response, MODEL_LITE)
-        
-        result = json.loads(response.text)
-        intent = result.get("intent", "STANDARD_CHAT")
-        
-        # Validasyon
-        if intent not in ["STANDARD_CHAT", "DEEP_ANALYSIS"]:
-            return "STANDARD_CHAT"
-            
-        return intent
-    except Exception as e:
-        print(f"Intent Classification Error: {e}")
-        return "STANDARD_CHAT" # Hata anında varsayılan Lite modeli
 
 from app.ai.prompts import DAY_PLANNING_PROMPT
 
 def generate_chat_response(messages: list, context: str = "", is_day_planning: bool = False) -> str:
-    """
-    Generates a chat response using Gemini API with intelligent model routing.
-    """
+    """Gemini Flash-Lite ile chat yanıtı üretir."""
     try:
-        # 1. Niyet Analizi (Son kullanıcı mesajına göre)
         last_user_message = next((msg.get('content') for msg in reversed(messages) if msg.get('role') == 'user'), "")
         if not last_user_message:
             return "Boş mesaj gönderdiniz."
-            
-        intent = classify_intent(last_user_message)
-        print(f"🧠 AI Router: Tespit Edilen Niyet -> {intent}")
 
-        # 2. İşleme (Routing)
-        selected_model = MODEL_PRO if intent == "DEEP_ANALYSIS" or is_day_planning else MODEL_LITE
-        print(f"🤖 Metin Motoru Seçildi: {selected_model}")
-        
         persona_base = get_personality_instruction()
-        
+
         if is_day_planning:
             from datetime import datetime
             current_date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             planning_instruction = DAY_PLANNING_PROMPT.format(
-                current_date=current_date_str, 
-                tasks_context=context, 
+                current_date=current_date_str,
+                tasks_context=context,
                 user_message=last_user_message
             )
             system_instruction = f"{persona_base}\n\n{planning_instruction}"
@@ -194,29 +143,25 @@ def generate_chat_response(messages: list, context: str = "", is_day_planning: b
             system_instruction=system_instruction,
             temperature=0.7,
         )
-        
-        # Formulate the prompt history
+
         prompt = ""
         for msg in messages:
             role = "Kullanıcı" if msg.get("role") == "user" else "AI"
             prompt += f"{role}: {msg.get('content')}\\n"
-            
         prompt += "AI: "
 
         response = client.models.generate_content(
-            model=selected_model,
+            model=MODEL_LITE,
             contents=prompt,
             config=config,
         )
-        
-        log_cost_sync(response, selected_model)
-        
+
+        log_cost_sync(response, MODEL_LITE)
         return response.text
-            
+
     except Exception as e:
         print(f"Gemini API Error: {str(e)}")
-        # Genel hata
-        return "Üzgünüm, AI servisine erişirken bölgesel bir limit veya API sorunuyla karşılaştım: " + str(e)
+        return "Üzgünüm, AI servisine erişirken bir sorunla karşılaştım: " + str(e)
 
 
 from datetime import datetime
