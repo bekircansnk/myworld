@@ -1,5 +1,5 @@
 # 🌍 MY WORLD — MİMARİ VE SİSTEM KURALLARI (ARCHITECTURE.md)
-# Son Güncelleme: 2026-03-13T16:00+03:00
+# Son Güncelleme: 2026-03-14T05:46+03:00
 
 > **KRİTİK:** Bu dosya tüm sistemin TEK KAYNAĞI (Single Source of Truth) olarak tasarlanmıştır.
 > Herhangi bir AI ajanı bu projeye ilk kez girdiğinde **sadece bu dosyayı** okumalıdır.
@@ -675,6 +675,7 @@ npm run dev   # localhost:3000
 - ✅ WebSocket altyapısı & Proaktif AI Mesajları
 - ✅ Rapor modeli
 - ✅ Kanban board AI aksiyon sonrası otomatik refresh
+- ✅ **Yedekleme Sistemi**: Python tabanlı JSON yedekleme, manuel `.command` başlatıcı ve MacOS LaunchAgent ile günlük (22:11) otomatik yedekleme.
 
 ---
 

@@ -43,12 +43,6 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
       set({ isLoading: false });
     }
   },
-      viewMode: 'month',
-      currentDate: new Date().toISOString(),
-      selectedDate: null,
-      selectedEvent: null,
-      activeFilters: [],
-
       setViewMode: (mode) => set({ viewMode: mode }),
       setCurrentDate: (date) => set({ currentDate: date }),
       setSelectedDate: (date) => set({ selectedDate: date }),
