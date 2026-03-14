@@ -4,7 +4,7 @@ import * as React from "react"
 import { useProjectStore } from "@/stores/projectStore"
 import { useTaskStore } from "@/stores/taskStore"
 import { useTheme } from "next-themes"
-import { Bell, Sun, Moon, User, ChevronDown, Plus, LayoutDashboard, ListTodo, CalendarDays, NotebookPen, X, Clock, AlertTriangle, Check, Bot } from "lucide-react"
+import { Bell, Sun, Moon, User, ChevronDown, Plus, LayoutDashboard, ListTodo, CalendarDays, NotebookPen, X, Clock, AlertTriangle, Check, Bot, Megaphone } from "lucide-react"
 import { format, isToday, isTomorrow, isBefore, addDays } from "date-fns"
 import { tr } from "date-fns/locale"
 import { api } from "@/lib/api"
@@ -204,6 +204,7 @@ export function TopNavbar() {
     { id: 'calendar', label: 'Takvim', icon: CalendarDays },
     { id: 'notes', label: 'Notlar', icon: NotebookPen },
     { id: 'ai_chat', label: 'AI Sohbet', icon: Bot },
+    { id: 'venus_ads', label: 'Venüs Reklam', icon: Megaphone },
   ]
 
   const notifTypeIcon: Record<string, React.ReactNode> = {

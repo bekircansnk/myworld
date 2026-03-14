@@ -57,6 +57,30 @@ app.include_router(reports_router, prefix="/api/reports", tags=["Reports"])
 app.include_router(calendar_router, prefix="/api", tags=["Calendar"])
 app.include_router(websocket_router)
 
+# Venus Routers
+from app.routers.venus.ad_accounts import router as venus_accounts_router
+from app.routers.venus.campaigns import router as venus_campaigns_router
+from app.routers.venus.metrics import router as venus_metrics_router
+from app.routers.venus.experiments import router as venus_experiments_router
+from app.routers.venus.creatives import router as venus_creatives_router
+from app.routers.venus.tasks import router as venus_tasks_router
+from app.routers.venus.reports import router as venus_reports_router
+from app.routers.venus.competitors import router as venus_competitors_router
+from app.routers.venus.onboarding import router as venus_onboarding_router
+from app.routers.venus.csv_imports import router as venus_csv_imports_router
+from app.routers.venus.ai_observations import router as venus_ai_observations_router
+
+app.include_router(venus_accounts_router, prefix="/api/venus/ad-accounts")
+app.include_router(venus_campaigns_router, prefix="/api/venus/campaigns")
+app.include_router(venus_metrics_router, prefix="/api/venus/metrics")
+app.include_router(venus_experiments_router, prefix="/api/venus/experiments")
+app.include_router(venus_creatives_router, prefix="/api/venus/creatives")
+app.include_router(venus_tasks_router, prefix="/api/venus/tasks")
+app.include_router(venus_reports_router, prefix="/api/venus/reports")
+app.include_router(venus_competitors_router, prefix="/api/venus/competitors")
+app.include_router(venus_onboarding_router, prefix="/api/venus/onboarding")
+app.include_router(venus_csv_imports_router, prefix="/api/venus/csv-imports")
+app.include_router(venus_ai_observations_router, prefix="/api/venus/ai-observations")
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc: Exception):

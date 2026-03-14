@@ -10,3 +10,6 @@ from app.models.ai_memory import AIMemory
 from app.models.calendar_event import CalendarEvent
 from app.models.chat_message import ChatMessage
 from app.models.chat_session import ChatSession
+
+# Venus Ads Panel Models
+from app.models.venus import *

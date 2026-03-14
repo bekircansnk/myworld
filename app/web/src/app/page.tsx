@@ -17,6 +17,7 @@ import { AIChatDashboard } from "@/components/ai-chat/AIChatDashboard"
 import { TopNavbar } from "@/components/layout/TopNavbar"
 import { useAuthStore } from "@/store/authStore"
 import { LoginOverlay } from "@/components/auth/LoginOverlay"
+import { VenusAdsLayout } from "@/components/venus-ads/VenusAdsLayout"
 
 export default function DashboardPage() {
   const { isAuthenticated, isLoading: authLoading, checkAuth } = useAuthStore()
@@ -83,6 +84,9 @@ export default function DashboardPage() {
   } else if (viewMode === 'ai_chat') {
     pageTitle = "AI Sohbet"
     pageDescription = "Akıllı asistanınızla konuşun, görev ve plan oluşturun."
+  } else if (viewMode === 'venus_ads') {
+    pageTitle = currentProject ? `${currentProject.name} Reklam Paneli` : "Reklam Paneli"
+    pageDescription = "Reklam operasyonlarını ve analizlerini yönetin."
   } else if (viewMode === 'project' && currentProject) {
     pageTitle = currentProject.name
     pageDescription = "Bu firmaya ait görevleri aşağıdaki panolarda yönetin."
@@ -91,6 +95,7 @@ export default function DashboardPage() {
   const isDashboard = viewMode === 'dashboard'
   const isCalendar = viewMode === 'calendar'
   const isAIChat = viewMode === 'ai_chat'
+  const isVenusAds = viewMode === 'venus_ads'
 
   return (
     <div className="flex flex-col h-screen w-full overflow-hidden">
@@ -106,6 +111,8 @@ export default function DashboardPage() {
         <div className="flex-1 overflow-hidden p-5 lg:p-8">
           <AIChatDashboard />
         </div>
+      ) : isVenusAds ? (
+        <VenusAdsLayout projectId={selectedProjectId} />
       ) : (
         <div className={`flex-1 flex flex-col ${isDashboard ? 'overflow-hidden p-5 lg:p-8' : 'overflow-y-auto overflow-x-hidden p-5 lg:p-8'}`}>
 
