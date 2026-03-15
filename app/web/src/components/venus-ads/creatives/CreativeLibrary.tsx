@@ -92,8 +92,8 @@ export function CreativeLibrary({ projectId }: CreativeLibraryProps) {
                     <div key={creative.id} className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-white/5 overflow-hidden flex flex-col transition-all hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600">
                          {/* Thumbnail Area - Aspect ratio based on format logic (simplified representation) */}
                          <div className="relative w-full aspect-square bg-slate-100 dark:bg-slate-900 flex items-center justify-center p-6 border-b border-slate-100 dark:border-white/5 overflow-hidden">
-                              {creative.thumbnail_url ? (
-                                  <img src={creative.thumbnail_url} alt={creative.creative_name} className="object-cover w-full h-full rounded-lg" />
+                              {(creative.url || creative.thumbnail_url) ? (
+                                  <img src={creative.url || creative.thumbnail_url} alt={creative.creative_name} referrerPolicy="no-referrer" className="object-cover w-full h-full rounded-lg" />
                               ) : (
                                   <div className="flex flex-col items-center justify-center text-slate-400 opacity-50 transform scale-150">
                                       {renderIcon(creative.creative_type)}
