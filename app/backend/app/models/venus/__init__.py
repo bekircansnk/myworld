@@ -9,6 +9,7 @@ from app.models.venus.competitor import VenusCompetitor
 from app.models.venus.onboarding_checklist import VenusOnboardingChecklist
 from app.models.venus.csv_import import VenusCSVImport
 from app.models.venus.ai_observation import VenusAIObservation
+from app.models.venus.ai_analysis_report import VenusAIAnalysisReport
 
 # Export models
 __all__ = [
@@ -22,5 +23,6 @@ __all__ = [
     "VenusCompetitor",
     "VenusOnboardingChecklist",
     "VenusCSVImport",
-    "VenusAIObservation"
+    "VenusAIObservation",
+    "VenusAIAnalysisReport"
 ]

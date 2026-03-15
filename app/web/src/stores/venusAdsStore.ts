@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { api } from '@/lib/api';
-import { VenusCampaign, VenusExperiment, VenusCreative, VenusAdsTask, VenusCompetitor, VenusOnboardingChecklist, VenusAIObservation, VenusCSVImport, VenusReportTemplate } from '@/types/venus-ads';
+import { VenusCampaign, VenusExperiment, VenusCreative, VenusAdsTask, VenusCompetitor, VenusOnboardingChecklist, VenusAIObservation, VenusCSVImport, VenusReportTemplate, VenusAIAnalysisReport } from '@/types/venus-ads';
 
 export type VenusViewMode = 'overview' | 'campaigns' | 'tests' | 'creatives' | 'tasks' | 'reports' | 'benchmark' | 'onboarding' | 'csv' | 'ai';
 export type VenusSelectedEntity = { type: VenusViewMode, id: number };
@@ -92,6 +92,13 @@ interface VenusAdsState {
   createReportTemplate: (data: Partial<VenusReportTemplate>) => Promise<VenusReportTemplate>;
   deleteReportTemplate: (id: number) => Promise<void>;
 
+  // AI Reports
+  aiReports: VenusAIAnalysisReport[];
+  isLoadingAIReports: boolean;
+  fetchAIReports: (projectId?: number) => Promise<void>;
+  createAIAnalysis: (formData: FormData) => Promise<VenusAIAnalysisReport>;
+  deleteAIReport: (id: number) => Promise<void>;
+  downloadAIPDF: (id: number) => Promise<void>;
 }
 
 // Helper to build CRUD actions for a given entity
@@ -365,6 +372,55 @@ export const useVenusAdsStore = create<VenusAdsState>((set) => ({
   deleteReportTemplate: async (id) => {
     await api.delete(`/api/venus/reports/${id}`);
     set((s) => ({ reportTemplates: s.reportTemplates.filter(r => r.id !== id) }));
+  },
+
+  // ── AI REPORTS ──
+  aiReports: [],
+  isLoadingAIReports: false,
+  fetchAIReports: async (projectId) => {
+    set({ isLoadingAIReports: true });
+    try {
+      const url = projectId ? `/api/venus/reports/ai-analysis?project_id=${projectId}` : '/api/venus/reports/ai-analysis';
+      const res = await api.get(url);
+      set({ aiReports: res.data, isLoadingAIReports: false });
+    } catch (e) { console.error("fetch ai reports", e); set({ isLoadingAIReports: false }); }
+  },
+  createAIAnalysis: async (formData) => {
+    set({ isLoadingAIReports: true });
+    try {
+      const res = await api.post('/api/venus/reports/ai-analysis', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      set((s) => ({ aiReports: [res.data, ...s.aiReports], isLoadingAIReports: false }));
+      return res.data;
+    } catch (e) {
+      console.error("create ai analysis", e);
+      set({ isLoadingAIReports: false });
+      throw e;
+    }
+  },
+  deleteAIReport: async (id) => {
+    await api.delete(`/api/venus/reports/ai-analysis/${id}`);
+    set((s) => ({ aiReports: s.aiReports.filter(r => r.id !== id) }));
+  },
+  downloadAIPDF: async (id) => {
+    try {
+      const response = await api.get(`/api/venus/reports/download/${id}`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `AI_Analysis_${id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Download failed', error);
+      throw error;
+    }
   },
 
   // ── CSV IMPORTS ──

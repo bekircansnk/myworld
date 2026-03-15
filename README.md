@@ -23,7 +23,8 @@
 - **🔗 Akıllı Bağlantılar** — Kampanyalar, Testler ve Kreatifler arası tek tıkla navigasyon
 - **🤖 Proaktif AI Asistan** — Sabah/öğle/akşam zamanlamalı bildirimler ve koçluk
 - **⏱️ Pomodoro Timer** — Odaklanma sürelerini kaydeden zamanlayıcı
-- **📊 Performans Analizi** — AI tarafından hazırlanan günlük ve haftalık raporlar
+- **📊 AI Rapor Merkezi (v1)** — YapaySK destekli veri ve dosya analizi, PDF rapor oluşturma ve İnteraktif Dashboard (Faz 1 & 2)
+- **⏱️ Pomodoro Timer** — Odaklanma sürelerini kaydeden zamanlayıcı
 - **🌓 Dark / Light Mode** — Glassmorphism tasarım dili
 
 ---
@@ -65,7 +66,7 @@
 | Not Sistemi | ✅ Canlıda |
 | Proaktif AI Asistan | ✅ Canlıda |
 | Avatar (Base64 / DB) | ✅ Canlıda |
-| Rapor & Analiz | ✅ Canlıda |
+| Rapor & Analiz (AI Rapor Merkezi) | ✅ Canlıda (Faz 1 & 2) |
 | Telegram Bot | 🔄 Geliştirmede |
 
 ---

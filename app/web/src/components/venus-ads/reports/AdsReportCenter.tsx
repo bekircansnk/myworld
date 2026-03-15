@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useVenusAdsStore } from '@/stores/venusAdsStore';
 import { useProjectStore } from '@/stores/projectStore';
 import { Plus, FileText, Clock, Download, Trash2, X, BarChart3, Calendar, TrendingUp, Eye } from 'lucide-react';
-import { VenusReportTemplate } from '@/types/venus-ads';
+import { VenusReportTemplate, VenusAIAnalysisReport } from '@/types/venus-ads';
+import { AIAnalysisForm } from './AIAnalysisForm';
+import { useRouter } from 'next/router';
 
 const TEMPLATE_TYPES = [
   { value: 'weekly', label: 'Haftalık Rapor', icon: Calendar },
@@ -91,14 +93,21 @@ function ReportForm({ onClose, projectId }: ReportFormProps) {
 }
 
 export function AdsReportCenter({ projectId }: { projectId: number | null }) {
-  const { reportTemplates, isLoadingReports, fetchReportTemplates, deleteReportTemplate } = useVenusAdsStore();
+  const router = useRouter();
+  const { 
+    reportTemplates, isLoadingReports, fetchReportTemplates, deleteReportTemplate,
+    aiReports, isLoadingAIReports, fetchAIReports, deleteAIReport, downloadAIPDF
+  } = useVenusAdsStore();
   const { projects } = useProjectStore();
   const currentProject = projects.find(p => p.id === projectId);
 
+  const [activeTab, setActiveTab] = useState<'standard' | 'ai'>('ai');
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isAIFormOpen, setIsAIFormOpen] = useState(false);
 
   useEffect(() => {
     fetchReportTemplates(projectId || undefined);
+    fetchAIReports(projectId || undefined);
   }, [projectId]);
 
   const handleDelete = async (id: number) => {
@@ -121,42 +130,127 @@ export function AdsReportCenter({ projectId }: { projectId: number | null }) {
             {currentProject ? `${currentProject.name} markasının p` : 'P'}erformans raporlarını oluşturun ve yönetin.
           </p>
         </div>
-        <button onClick={() => setIsFormOpen(true)}
-          className="px-5 py-2.5 bg-brand-dark text-white hover:bg-black dark:bg-white dark:text-brand-dark dark:hover:bg-gray-100 rounded-xl font-medium transition-colors flex items-center gap-2">
+        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+          <button 
+            onClick={() => setActiveTab('standard')}
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+              activeTab === 'standard' 
+                ? 'bg-white dark:bg-slate-700 text-brand-dark dark:text-white shadow-sm' 
+                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+            }`}
+          >
+            Standart Şablonlar
+          </button>
+          <button 
+            onClick={() => setActiveTab('ai')}
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
+              activeTab === 'ai' 
+                ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' 
+                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+            }`}
+          >
+            Yapay Zeka Analizi
+            <span className="flex h-2 w-2 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+            </span>
+          </button>
+        </div>
+        <button onClick={() => activeTab === 'ai' ? setIsAIFormOpen(true) : setIsFormOpen(true)}
+          className={`px-5 py-2.5 text-white rounded-xl font-medium transition-colors flex items-center gap-2 ${
+            activeTab === 'ai' 
+              ? 'bg-indigo-600 hover:bg-indigo-700' 
+              : 'bg-brand-dark hover:bg-black dark:bg-white dark:text-brand-dark dark:hover:bg-gray-100'
+          }`}>
           <Plus className="w-5 h-5" />
-          Yeni Şablon
+          {activeTab === 'ai' ? 'Yeni AI Analizi' : 'Yeni Şablon'}
         </button>
       </div>
 
-      {/* Report Templates Grid */}
-      {isLoadingReports ? (
-        <div className="flex-1 flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-slate-200 border-t-brand-dark rounded-full animate-spin dark:border-slate-700 dark:border-t-white" />
-        </div>
-      ) : reportTemplates.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 py-20">
-          <FileText className="w-16 h-16 text-slate-200 dark:text-slate-700 mb-4" />
-          <p className="font-medium text-lg text-slate-500">Henüz rapor şablonu yok</p>
-          <p className="text-sm text-slate-400 mt-1 mb-6">İlk şablonunuzu oluşturarak raporlamaya başlayın.</p>
-          <button onClick={() => setIsFormOpen(true)}
-            className="px-4 py-2 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 font-medium rounded-lg hover:bg-indigo-100 transition-colors">
-            İlk Şablonu Oluştur
-          </button>
-        </div>
+      {/* Content Area Based on Active Tab */}
+      {activeTab === 'standard' ? (
+        isLoadingReports ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-slate-200 border-t-brand-dark rounded-full animate-spin dark:border-slate-700 dark:border-t-white" />
+          </div>
+        ) : reportTemplates.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 py-20">
+            <FileText className="w-16 h-16 text-slate-200 dark:text-slate-700 mb-4" />
+            <p className="font-medium text-lg text-slate-500">Henüz rapor şablonu yok</p>
+            <p className="text-sm text-slate-400 mt-1 mb-6">İlk şablonunuzu oluşturarak raporlamaya başlayın.</p>
+            <button onClick={() => setIsFormOpen(true)}
+              className="px-4 py-2 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 font-medium rounded-lg hover:bg-indigo-100 transition-colors">
+              İlk Şablonu Oluştur
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {reportTemplates.map(report => {
+              const typeInfo = getTypeInfo(report.template_type);
+              const Icon = typeInfo.icon;
+              return (
+                <div key={report.id} className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-white/5 overflow-hidden group hover:shadow-md transition-all">
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center">
+                        <Icon className="w-6 h-6 text-indigo-500" />
+                      </div>
+                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 uppercase">
+                        {typeInfo.label}
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-brand-dark dark:text-white text-base mb-2 line-clamp-2">{report.title}</h3>
+                    <p className="text-xs text-slate-400 flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {new Date(report.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </p>
+                  </div>
+                  <div className="px-6 py-3 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/20 flex items-center justify-between">
+                    <button className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 hover:underline">
+                      <Eye className="w-3.5 h-3.5" />
+                      Önizle
+                    </button>
+                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-slate-700 dark:hover:text-white" title="İndir">
+                        <Download className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => handleDelete(report.id)}
+                        className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded text-slate-400 hover:text-red-500" title="Sil">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {reportTemplates.map(report => {
-            const typeInfo = getTypeInfo(report.template_type);
-            const Icon = typeInfo.icon;
-            return (
+        isLoadingAIReports ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-slate-200 border-t-indigo-500 rounded-full animate-spin dark:border-slate-700 dark:border-t-indigo-400" />
+          </div>
+        ) : aiReports.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 py-20">
+            <BarChart3 className="w-16 h-16 text-indigo-100 dark:text-indigo-900/40 mb-4" />
+            <p className="font-medium text-lg text-slate-500">Henüz AI analiz raporu yok</p>
+            <p className="text-sm text-slate-400 mt-1 mb-6">Yapay zeka ile veri veya dosya analizi başlatın.</p>
+            <button onClick={() => setIsAIFormOpen(true)}
+              className="px-4 py-2 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 font-medium rounded-lg hover:bg-indigo-100 transition-colors">
+              Yeni AI Analizi
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {aiReports.map(report => (
               <div key={report.id} className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-white/5 overflow-hidden group hover:shadow-md transition-all">
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center">
-                      <Icon className="w-6 h-6 text-indigo-500" />
+                      <BarChart3 className="w-6 h-6 text-indigo-500" />
                     </div>
-                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 uppercase">
-                      {typeInfo.label}
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${report.status === 'completed' ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300'}`}>
+                      AI {report.status === 'processing' ? 'İşleniyor' : 'Tamamlandı'}
                     </span>
                   </div>
                   <h3 className="font-bold text-brand-dark dark:text-white text-base mb-2 line-clamp-2">{report.title}</h3>
@@ -166,27 +260,31 @@ export function AdsReportCenter({ projectId }: { projectId: number | null }) {
                   </p>
                 </div>
                 <div className="px-6 py-3 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/20 flex items-center justify-between">
-                  <button className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 hover:underline">
+                  <button onClick={() => router.push(`/venus-ads/reports/ai/${report.id}`)}
+                    className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 hover:underline disabled:opacity-50"
+                    disabled={report.status !== 'completed'}>
                     <Eye className="w-3.5 h-3.5" />
-                    Önizle
+                    Dashboard'u Gör
                   </button>
                   <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-slate-700 dark:hover:text-white" title="İndir">
-                      <Download className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={() => handleDelete(report.id)}
+                    {report.status === 'completed' && (
+                      <button onClick={() => downloadAIPDF(report.id)} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-slate-700 dark:hover:text-white" title="PDF İndir">
+                        <Download className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    <button onClick={() => { if(confirm('Emin misiniz?')) deleteAIReport(report.id) }}
                       className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded text-slate-400 hover:text-red-500" title="Sil">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )
       )}
-
       {isFormOpen && <ReportForm onClose={() => setIsFormOpen(false)} projectId={projectId} />}
+      {isAIFormOpen && <AIAnalysisForm onClose={() => setIsAIFormOpen(false)} projectId={projectId} />}
     </div>
   );
 }

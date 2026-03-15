@@ -1,4 +1,4 @@
-# Son Güncelleme: 2026-03-15T06:05+03:00
+# Son Güncelleme: 2026-03-15T17:55+03:00
 
 > **KRİTİK:** Bu dosya tüm sistemin TEK KAYNAĞI (Single Source of Truth) olarak tasarlanmıştır.
 > Herhangi bir AI ajanı bu projeye ilk kez girdiğinde **sadece bu dosyayı** okumalıdır.
@@ -87,13 +87,18 @@
 │   │   │   │   ├── timer_session.py  # TimerSession (start/end/duration)
 │   │   │   │   ├── ai_memory.py  # AIMemory (short/mid/long term content)
 │   │   │   │   ├── report.py     # DailyReport + WeeklyReport
-│   │   │   │   └── notification.py   # Notification (type, title, message)
+│   │   │   │   ├── notification.py   # Notification (type, title, message)
+│   │   │   │   └── venus/            # Venus Ads Modelleri
+│   │   │   │       ├── ai_analysis_report.py # YapaySK Rapor Modeli
+│   │   │   │       └── ...
 │   │   │   │
 │   │   │   ├── schemas/          # Pydantic DTO'lar
 │   │   │   │   ├── task.py       # TaskCreate/Update/Response/Reorder/BulkUpdate
 │   │   │   │   ├── project.py    # ProjectCreate/Update/Response
 │   │   │   │   ├── note.py       # NoteCreate/Update/Response
-│   │   │   │   └── report.py     # DailyReportResponse, WeeklyReportResponse
+│   │   │   │   ├── report.py     # DailyReportResponse, WeeklyReportResponse
+│   │   │   │   └── venus/
+│   │   │   │       └── ai_analysis_report.py # AI Rapor şemaları
 │   │   │   │
 │   │   │   ├── routers/          # API Endpoint'leri
 │   │   │   │   ├── tasks.py      # /api/tasks — CRUD + reorder + bulk + subtask
@@ -103,12 +108,18 @@
 │   │   │   │   ├── timer.py      # /api/timer/start, /stop, /history
 │   │   │   │   ├── reports.py    # /api/reports/daily, /weekly, /generate/daily
 │   │   │   │   ├── telegram.py   # /api/telegram — Webhook
-│   │   │   │   └── websocket.py  # /ws/ — Bidirectional, broadcast manager
+│   │   │   │   ├── websocket.py  # /ws/ — Bidirectional, broadcast manager
+│   │   │   │   └── venus/
+│   │   │   │       └── reports.py    # /api/venus/reports/ai-analysis — AI Rapor API
 │   │   │   │
 │   │   │   ├── services/         # İş Mantığı
 │   │   │   │   ├── gemini.py     # Gemini API: chat, categorize, breakdown, motivation
 │   │   │   │   ├── report_service.py  # Günlük rapor oluşturma
-│   │   │   │   └── telegram.py   # Telegram mesaj gönderme
+│   │   │   │   ├── telegram.py   # Telegram mesaj gönderme
+│   │   │   │   └── venus/
+│   │   │   │       ├── ai_report_analyst.py # YapaySK Rapor Analiz Servisi
+│   │   │   │       ├── file_processor.py    # Harici dosya işleme
+│   │   │   │       └── pdf_generator.py     # AI Rapor PDF üretici
 │   │   │   │
 │   │   │   ├── ai/               # AI Modülleri
 │   │   │   │   ├── personality.py    # Kişilik yükle + system prompt üretimi
@@ -138,6 +149,7 @@
 │           │   │
 │           │   ├── dashboard/              # KONTROL PANELİ (Dashboard)
 │           │   │   ├── DashboardWidgets.tsx    # Ana dashboard grid (tüm widget'ları barındırır)
+│           │   │   ├── AIDashboard.tsx         # AI Rapor Dashboard (v1)
 │           │   │   ├── DashboardHeader.tsx     # Dashboard üst başlık & AI özet
 │           │   │   ├── DigitalClock.tsx        # Canlı saat + Türkçe selamlama
 │           │   │   ├── MiniCalendar.tsx        # Takvim; due_date'li günler mor nokta
@@ -170,7 +182,8 @@
 │           │   │   └── ProjectSettingsModal.tsx # Proje düzenleme modal
 │           │   │
 │           │   ├── reports/
-│           │   │   └── ReportsPage.tsx        # Rapor ve analiz sayfası
+│           │   │   ├── AdsReportCenter.tsx    # Rapor merkezi (Sekmeli: Normal/AI)
+│           │   │   └── AIAnalysisForm.tsx     # AI Rapor oluşturma modalı
 │           │   │
 │           │   └── providers/              # Provider bileşenleri
 │           │
@@ -278,6 +291,9 @@ TaskDetailPanel her zaman render edilir (global overlay — isDetailPanelOpen il
 | GET     | `/api/auth/me`                   | Mevcut kullanıcı bilgisi            | auth.py              |
 | PUT     | `/api/auth/profile`              | Profil güncelle (username/şifre)    | auth.py              |
 | POST    | `/api/auth/avatar`               | Avatar yükle (multipart/form-data)  | auth.py              |
+| POST    | `/api/venus/reports/ai-analysis` | Yeni AI Raporu oluştur (PDF/Veri) | venus/reports.py |
+| GET     | `/api/venus/reports/ai-analysis` | AI Rapor listesi | venus/reports.py |
+| GET     | `/api/venus/reports/download/{id}` | AI Rapor PDF'ini indir | venus/reports.py |
 | WS      | `/ws/`                           | WebSocket (ping/pong, broadcast)    | websocket.py         |
 
 ---
@@ -696,6 +712,8 @@ npm run dev   # localhost:3000
 - ✅ **Akıllı Görev Notları & AI Review**: Operasyon görevlerinde AI aksiyon önerileri daraltılabilir (collapsible) hale getirildi. Testler tamamlandığında AI'nın otomatik "Learning & Review" (Öğrenim ve Değerlendirme) üretmesi sağlandı.
 - ✅ **Müşteri Devralma (Checklist) UI**: Yatayda uzayan hantal yapı daraltıldı (compact). Silme butonu metnin yanına çekildi ve yeni madde ekleme formu minimalize edildi.
 - ✅ **Ayarlar & Profil**: Profil Ayarları (Kullanıcı adı, şifre, avatar) ve Proje Ayarları (Renk, ikon, isim) modalları tamamlandı.
+- ✅ **AI Rapor Merkezi (Faz 1 & 2)**: YapaySK destekli veri/dosya analizi, otomatik PDF rapor üretimi ve interaktif Dashboard ekranı (VenusAds tasarımıyla uyumlu) geliştirildi.
+
 
 ---
 

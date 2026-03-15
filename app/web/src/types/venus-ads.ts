@@ -171,3 +171,23 @@ export interface VenusAIObservation {
   related_date_range?: string;
   created_at: string;
 }
+
+export interface VenusAIAnalysisReport {
+  id: number;
+  user_id: number;
+  project_id?: number;
+  report_source: string;
+  report_type: string;
+  title: string;
+  uploaded_file_name?: string;
+  uploaded_file_path?: string;
+  uploaded_file_type?: string;
+  uploaded_file_size?: number;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  progress_pct: number;
+  error_message?: string;
+  analysis_result?: any;
+  pdf_file_path?: string;
+  created_at: string;
+  completed_at?: string;
+}
