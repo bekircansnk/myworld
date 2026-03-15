@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { VenusExperiment } from '@/types/venus-ads';
 import { useVenusAdsStore } from '@/stores/venusAdsStore';
-import { X, Save, AlertCircle, Bot } from 'lucide-react';
+import { X, Save, AlertCircle, Bot, CheckCircle2 } from 'lucide-react';
 
 interface TestFormProps {
   onClose: () => void;
@@ -13,7 +13,6 @@ export function TestForm({ onClose, projectId, initialData }: TestFormProps) {
   const { createExperiment, updateExperiment, campaigns, fetchCampaigns, getAICoaching } = useVenusAdsStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [aiCoachComment, setAiCoachComment] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
 
   useEffect(() => {
@@ -42,7 +41,7 @@ export function TestForm({ onClose, projectId, initialData }: TestFormProps) {
     setIsAiLoading(true);
     try {
       const comment = await getAICoaching(formData.experiment_name, formData.hypothesis);
-      setAiCoachComment(comment);
+      setFormData(prev => ({ ...prev, ai_comment: comment }));
     } catch (e) {
       console.error(e);
     } finally {
@@ -51,7 +50,7 @@ export function TestForm({ onClose, projectId, initialData }: TestFormProps) {
   };
 
   const handleHypothesisBlur = () => {
-    if (formData.hypothesis && formData.hypothesis.length >= 20 && !aiCoachComment && !isAiLoading) {
+    if (formData.hypothesis && formData.hypothesis.length >= 20 && !formData.ai_comment && !isAiLoading) {
       handleAiCoach();
     }
   };
@@ -62,10 +61,18 @@ export function TestForm({ onClose, projectId, initialData }: TestFormProps) {
     setIsSubmitting(true);
 
     try {
+      const payload = { ...formData };
+      // Eğer statü 'completed'a veya 'stopped'a geçiyorsa önceli AI yorumunu sıfırla, böylece Modal yeniden üretir.
+      if (initialData && initialData.status !== 'completed' && initialData.status !== 'stopped') {
+        if (formData.status === 'completed' || formData.status === 'stopped') {
+          payload.ai_comment = '';
+        }
+      }
+
       if (initialData?.id) {
-        await updateExperiment(initialData.id, formData);
+        await updateExperiment(initialData.id, payload);
       } else {
-        await createExperiment(formData);
+        await createExperiment(payload);
       }
       onClose();
     } catch (err: any) {
@@ -111,11 +118,17 @@ export function TestForm({ onClose, projectId, initialData }: TestFormProps) {
           <div>
              <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1.5 flex items-center justify-between">
                 <span>Hipotez</span>
-                {!aiCoachComment && formData.hypothesis && formData.experiment_name && (
+                {(!formData.ai_comment || isAiLoading) && formData.hypothesis && formData.experiment_name && (
                    <button type="button" onClick={handleAiCoach} className="text-xs text-indigo-500 hover:text-indigo-600 font-medium flex items-center gap-1">
                       <Bot className="w-3.5 h-3.5" />
                       {isAiLoading ? 'Düşünüyor...' : "AI'dan Öneri Al"}
                    </button>
+                )}
+                {formData.ai_comment && !isAiLoading && (
+                   <span className="text-xs text-emerald-500 font-medium flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      AI Önerisi Eklendi
+                   </span>
                 )}
              </label>
              <textarea
@@ -127,15 +140,6 @@ export function TestForm({ onClose, projectId, initialData }: TestFormProps) {
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1117] text-brand-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-dark/20 dark:focus:ring-white/20 resize-none"
                 placeholder="Bu testte neyi kanıtlamaya çalışıyoruz?"
              />
-             {aiCoachComment && (
-               <div className="mt-3 p-3.5 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-xl border border-indigo-100 dark:border-indigo-900/30 flex items-start gap-3">
-                 <Bot className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
-                 <div className="text-sm text-brand-dark dark:text-slate-300 space-y-1.5">
-                   <p className="font-bold text-indigo-700 dark:text-indigo-400">AI Test Koçu:</p>
-                   <div className="whitespace-pre-wrap">{aiCoachComment}</div>
-                 </div>
-               </div>
-             )}
           </div>
 
           <div>
