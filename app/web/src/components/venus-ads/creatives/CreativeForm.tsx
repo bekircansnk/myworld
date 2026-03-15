@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { VenusCreative } from '@/types/venus-ads';
 import { useVenusAdsStore } from '@/stores/venusAdsStore';
-import { X, Save, AlertCircle } from 'lucide-react';
+import { X, Save, AlertCircle, Image as ImageIcon } from 'lucide-react';
 
 interface CreativeFormProps {
   onClose: () => void;
@@ -17,6 +17,7 @@ export function CreativeForm({ onClose, projectId, initialData }: CreativeFormPr
     fetchExperiments(projectId || undefined);
   }, [projectId]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<Partial<VenusCreative>>(
@@ -52,6 +53,61 @@ export function CreativeForm({ onClose, projectId, initialData }: CreativeFormPr
       setError(err?.response?.data?.detail || "Bir hata oluştu.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Dosya boyutu 10 MB'dan küçük olmalıdır.");
+      return;
+    }
+    
+    setError(null);
+    setIsCompressing(true);
+
+    try {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          const MAX_SIZE = 1600;
+          if (width > MAX_SIZE || height > MAX_SIZE) {
+             const ratio = Math.min(MAX_SIZE / width, MAX_SIZE / height);
+             width = Math.round(width * ratio);
+             height = Math.round(height * ratio);
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+             ctx.drawImage(img, 0, 0, width, height);
+             const compressedDataUrl = canvas.toDataURL('image/webp', 0.8);
+             setFormData(prev => ({ ...prev, url: compressedDataUrl }));
+          }
+          setIsCompressing(false);
+        };
+        img.onerror = () => {
+          setError("Görsel okunurken bir hata oluştu.");
+          setIsCompressing(false);
+        };
+        img.src = event.target?.result as string;
+      };
+      reader.onerror = () => {
+        setError("Dosya okunurken bir hata oluştu.");
+        setIsCompressing(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      setError("Görsel işlenirken bir hata oluştu.");
+      setIsCompressing(false);
     }
   };
 
@@ -177,15 +233,48 @@ export function CreativeForm({ onClose, projectId, initialData }: CreativeFormPr
           </div>
 
           <div>
-             <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1.5">Görsel/Video URL (Drive vs.)</label>
-              <input
-                type="url"
-                name="url"
-                value={formData.url || ''}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1117] text-brand-dark dark:text-white"
-                placeholder="https://..."
-              />
+             <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1.5">Görsel/Video URL veya Dosya Yükle</label>
+              
+             <div className="flex flex-col gap-3">
+               <input
+                 type="url"
+                 name="url"
+                 value={(formData.url && formData.url.startsWith('data:image')) ? '' : formData.url || ''}
+                 onChange={handleChange}
+                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1117] text-brand-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-dark/20 dark:focus:ring-white/20"
+                 placeholder="https://... URL yapıştırabilir veya alttan dosya seçebilirsiniz"
+               />
+               
+               <div className="relative border-2 border-dashed border-slate-300 dark:border-white/10 rounded-xl px-4 py-6 flex flex-col items-center justify-center text-center bg-slate-50 dark:bg-[#0f1117]/50 hover:bg-slate-100 dark:hover:bg-[#0f1117]/80 transition-colors">
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    title=""
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <ImageIcon className="w-8 h-8 text-slate-400 mb-2" />
+                  <p className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                     Bilgisayardan Fotoğraf Yükle
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                     Maks. 10MB (Sunucu için otomatik dönüştürülüp sıkıştırılır)
+                  </p>
+               </div>
+             </div>
+
+             {formData.url && formData.url.startsWith('data:image') && (
+               <div className="mt-4 relative w-full h-48 rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden bg-slate-100 dark:bg-[#0f1117] flex justify-center items-center">
+                 <img src={formData.url} alt="Önizleme" className="max-w-full max-h-full object-contain" />
+                 <button 
+                   type="button" 
+                   onClick={() => setFormData(p => ({...p, url: ''}))} 
+                   className="absolute top-2 right-2 p-1.5 bg-white/90 dark:bg-black/90 hover:bg-white dark:hover:bg-black rounded-lg text-slate-700 dark:text-gray-200 shadow-sm backdrop-blur-sm"
+                 >
+                   <X className="w-4 h-4" />
+                 </button>
+               </div>
+             )}
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-white/5">
@@ -198,10 +287,10 @@ export function CreativeForm({ onClose, projectId, initialData }: CreativeFormPr
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isCompressing}
               className="px-5 py-2.5 rounded-xl font-medium bg-brand-dark text-white hover:bg-black dark:bg-white dark:text-brand-dark dark:hover:bg-gray-100 transition-colors flex items-center gap-2 disabled:opacity-50"
             >
-              {isSubmitting ? (
+              {(isSubmitting || isCompressing) ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <Save className="w-4 h-4" />
