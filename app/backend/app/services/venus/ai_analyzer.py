@@ -1,30 +1,32 @@
 """Venus Ads AI Analyzer Service.
 Uses existing Gemini service to provide campaign analysis, anomaly reports, and optimization suggestions.
 """
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 
 
 async def generate_campaign_analysis(
-    db: Session,
+    db: AsyncSession,
     campaign_id: int,
     user_id: int
 ) -> Dict[str, Any]:
     """Generate AI analysis for a specific campaign using Gemini."""
     from app.models.venus.campaign import VenusCampaign
-    from app.models.venus.daily_metric import VenusDailyMetric
     from app.services.venus.metric_calculator import calculate_campaign_trend
 
-    campaign = db.query(VenusCampaign).filter(
+    query = select(VenusCampaign).where(
         VenusCampaign.id == campaign_id,
         VenusCampaign.user_id == user_id,
-    ).first()
+    )
+    result = await db.execute(query)
+    campaign = result.scalar_one_or_none()
 
     if not campaign:
         return {"error": "Campaign not found"}
 
-    trend_data = calculate_campaign_trend(db, campaign_id, user_id, days=14)
+    trend_data = await calculate_campaign_trend(db, campaign_id, user_id, days=14)
 
     if not trend_data:
         return {
@@ -101,15 +103,15 @@ JSON formatında yanıt ver:
 
 
 async def generate_daily_summary(
-    db: Session,
+    db: AsyncSession,
     user_id: int,
     project_id: Optional[int] = None
 ) -> Dict[str, Any]:
     """Generate a daily AI summary of all campaigns."""
     from app.services.venus.metric_calculator import calculate_kpi_summary, detect_anomalies
 
-    kpis = calculate_kpi_summary(db, user_id, project_id, days=1)
-    anomalies = detect_anomalies(db, user_id, project_id)
+    kpis = await calculate_kpi_summary(db, user_id, project_id, days=1)
+    anomalies = await detect_anomalies(db, user_id, project_id)
 
     prompt = f"""
 Sen bir dijital reklam ajansı yöneticisisin. Bugünkü performans özetini Türkçe olarak hazırla.
@@ -147,7 +149,7 @@ Anomaliler ({len(anomalies)} adet):
 
 
 async def suggest_test_ideas(
-    db: Session,
+    db: AsyncSession,
     campaign_id: int,
     user_id: int
 ) -> List[str]:

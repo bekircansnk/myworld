@@ -154,7 +154,7 @@ def parse_csv_content(
     }
 
 
-def import_rows_to_db(
+async def import_rows_to_db(
     db,
     rows: List[Dict[str, Any]],
     user_id: int,
@@ -163,6 +163,7 @@ def import_rows_to_db(
     """Import parsed CSV rows into venus_daily_metrics table.
     
     Args:
+        db: AsyncSession
         campaign_id_map: Optional dict mapping campaign_name -> campaign_id.
                          If not provided, a new campaign lookup will be made.
     """
@@ -203,5 +204,5 @@ def import_rows_to_db(
         except Exception:
             skipped += 1
 
-    db.commit()
+    await db.commit()
     return {"imported": imported, "skipped": skipped}

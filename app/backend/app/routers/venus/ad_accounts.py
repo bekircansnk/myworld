@@ -9,7 +9,7 @@ from app.models.user import User
 from app.models.venus.ad_account import VenusAdAccount
 from app.schemas.venus.ad_account import AdAccountCreate, AdAccountUpdate, AdAccountResponse
 
-router = APIRouter(prefix="/venus/accounts", tags=["Venus Ads Accounts"])
+router = APIRouter(tags=["Venus Ads Accounts"])
 
 @router.get("", response_model=List[AdAccountResponse])
 async def get_ad_accounts(

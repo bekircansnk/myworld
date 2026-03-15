@@ -10,7 +10,7 @@ from app.models.venus.daily_metric import VenusDailyMetric
 from app.models.venus.campaign import VenusCampaign
 from app.schemas.venus.metric import DailyMetricCreate, DailyMetricUpdate, DailyMetricResponse
 
-router = APIRouter(prefix="/venus/metrics", tags=["Venus Ads Metrics"])
+router = APIRouter(tags=["Venus Ads Metrics"])
 
 @router.get("/overview")
 async def get_metrics_overview(

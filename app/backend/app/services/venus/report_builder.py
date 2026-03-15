@@ -6,8 +6,11 @@ from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
 
 
-def generate_report(
-    db: Session,
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func, desc
+
+async def generate_report(
+    db: AsyncSession,
     user_id: int,
     template_type: str = "weekly",
     project_id: Optional[int] = None,
@@ -22,41 +25,48 @@ def generate_report(
     else:
         days = 7
 
-    kpis = calculate_kpi_summary(db, user_id, project_id, days=days)
+    kpis = await calculate_kpi_summary(db, user_id, project_id, days=days)
 
     # Get top campaigns
     from app.models.venus.daily_metric import VenusDailyMetric
     from app.models.venus.campaign import VenusCampaign
-    from sqlalchemy import func
 
     end_date = datetime.utcnow().date()
     start_date = end_date - timedelta(days=days)
 
     top_campaigns = []
-    campaign_metrics = db.query(
+    
+    query = select(
         VenusDailyMetric.campaign_id,
         func.sum(VenusDailyMetric.spend).label("total_spend"),
         func.sum(VenusDailyMetric.clicks).label("total_clicks"),
         func.sum(VenusDailyMetric.conversions).label("total_conv"),
         func.sum(VenusDailyMetric.conversion_value).label("total_value"),
-    ).filter(
+    ).where(
         VenusDailyMetric.user_id == user_id,
         VenusDailyMetric.date >= str(start_date),
     ).group_by(VenusDailyMetric.campaign_id).order_by(
-        func.sum(VenusDailyMetric.spend).desc()
-    ).limit(10).all()
+        desc(func.sum(VenusDailyMetric.spend))
+    ).limit(10)
+    
+    result = await db.execute(query)
+    campaign_metrics = result.all()
 
     for cm in campaign_metrics:
-        campaign = db.query(VenusCampaign).filter(VenusCampaign.id == cm.campaign_id).first()
+        # cm elements: [campaign_id, total_spend, total_clicks, total_conv, total_value]
+        camp_query = select(VenusCampaign).where(VenusCampaign.id == cm[0])
+        camp_res = await db.execute(camp_query)
+        campaign = camp_res.scalar_one_or_none()
+        
         if campaign:
-            spend = float(cm.total_spend or 0)
-            value = float(cm.total_value or 0)
+            spend = float(cm[1] or 0)
+            value = float(cm[4] or 0)
             top_campaigns.append({
                 "campaign_name": campaign.campaign_name,
                 "platform": campaign.platform,
                 "spend": round(spend, 2),
-                "clicks": int(cm.total_clicks or 0),
-                "conversions": int(cm.total_conv or 0),
+                "clicks": int(cm[2] or 0),
+                "conversions": int(cm[3] or 0),
                 "roas": round(value / spend, 2) if spend > 0 else 0,
             })
 

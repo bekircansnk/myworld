@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, desc
 from typing import List, Optional
 
 from app.database import get_db
@@ -9,63 +9,70 @@ from app.models.user import User
 from app.models.venus.ads_task import VenusAdsTask
 from app.schemas.venus.ads_task import AdsTaskCreate, AdsTaskUpdate, AdsTaskResponse
 
-router = APIRouter()
+# main.py provides prefix=""
+router = APIRouter(tags=["Venus Ads Tasks"])
 
-@router.get("/", response_model=List[AdsTaskResponse])
-def get_tasks(
+@router.get("", response_model=List[AdsTaskResponse])
+async def get_tasks(
     project_id: Optional[int] = None,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    query = db.query(VenusAdsTask).filter(VenusAdsTask.user_id == current_user.id)
+    query = select(VenusAdsTask).where(VenusAdsTask.user_id == current_user.id)
     if project_id:
-        query = query.filter(VenusAdsTask.project_id == project_id)
-    return query.order_by(desc(VenusAdsTask.created_at)).all()
+        query = query.where(VenusAdsTask.project_id == project_id)
+    
+    result = await db.execute(query.order_by(desc(VenusAdsTask.created_at)))
+    return result.scalars().all()
 
-@router.post("/", response_model=AdsTaskResponse)
-def create_task(
+@router.post("", response_model=AdsTaskResponse)
+async def create_task(
     task_in: AdsTaskCreate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    new_task = VenusAdsTask(**task_in.dict(), user_id=current_user.id)
+    new_task = VenusAdsTask(**task_in.model_dump(), user_id=current_user.id)
     db.add(new_task)
-    db.commit()
-    db.refresh(new_task)
+    await db.commit()
+    await db.refresh(new_task)
     return new_task
 
 @router.put("/{task_id}", response_model=AdsTaskResponse)
-def update_task(
+async def update_task(
     task_id: int,
     task_in: AdsTaskUpdate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    task = db.query(VenusAdsTask).filter(
+    result = await db.execute(select(VenusAdsTask).where(
         VenusAdsTask.id == task_id, VenusAdsTask.user_id == current_user.id
-    ).first()
+    ))
+    task = result.scalar_one_or_none()
+    
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
-    for field, value in task_in.dict(exclude_unset=True).items():
+    for field, value in task_in.model_dump(exclude_unset=True).items():
         setattr(task, field, value)
     
-    db.commit()
-    db.refresh(task)
+    await db.commit()
+    await db.refresh(task)
     return task
 
 @router.delete("/{task_id}")
-def delete_task(
+async def delete_task(
     task_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    task = db.query(VenusAdsTask).filter(
+    result = await db.execute(select(VenusAdsTask).where(
         VenusAdsTask.id == task_id, VenusAdsTask.user_id == current_user.id
-    ).first()
+    ))
+    task = result.scalar_one_or_none()
+    
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     
-    db.delete(task)
-    db.commit()
+    await db.delete(task)
+    await db.commit()
     return {"ok": True}

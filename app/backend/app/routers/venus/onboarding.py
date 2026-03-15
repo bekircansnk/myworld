@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, desc
 from typing import List, Optional
 
 from app.database import get_db
@@ -9,63 +9,69 @@ from app.models.user import User
 from app.models.venus.onboarding_checklist import VenusOnboardingChecklist
 from app.schemas.venus.onboarding_checklist import OnboardingChecklistCreate, OnboardingChecklistUpdate, OnboardingChecklistResponse
 
-router = APIRouter()
+router = APIRouter(tags=["Venus Ads Onboarding"])
 
-@router.get("/", response_model=List[OnboardingChecklistResponse])
-def get_onboarding_checklists(
+@router.get("", response_model=List[OnboardingChecklistResponse])
+async def get_onboarding_checklists(
     project_id: Optional[int] = None,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    query = db.query(VenusOnboardingChecklist).filter(VenusOnboardingChecklist.user_id == current_user.id)
+    query = select(VenusOnboardingChecklist).where(VenusOnboardingChecklist.user_id == current_user.id)
     if project_id:
-        query = query.filter(VenusOnboardingChecklist.project_id == project_id)
-    return query.order_by(desc(VenusOnboardingChecklist.created_at)).all()
+        query = query.where(VenusOnboardingChecklist.project_id == project_id)
+        
+    result = await db.execute(query.order_by(desc(VenusOnboardingChecklist.created_at)))
+    return result.scalars().all()
 
-@router.post("/", response_model=OnboardingChecklistResponse)
-def create_onboarding_checklist(
+@router.post("", response_model=OnboardingChecklistResponse)
+async def create_onboarding_checklist(
     in_data: OnboardingChecklistCreate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    new_item = VenusOnboardingChecklist(**in_data.dict(), user_id=current_user.id)
+    new_item = VenusOnboardingChecklist(**in_data.model_dump(), user_id=current_user.id)
     db.add(new_item)
-    db.commit()
-    db.refresh(new_item)
+    await db.commit()
+    await db.refresh(new_item)
     return new_item
 
 @router.put("/{item_id}", response_model=OnboardingChecklistResponse)
-def update_onboarding_checklist(
+async def update_onboarding_checklist(
     item_id: int,
     in_data: OnboardingChecklistUpdate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    item = db.query(VenusOnboardingChecklist).filter(
+    result = await db.execute(select(VenusOnboardingChecklist).where(
         VenusOnboardingChecklist.id == item_id, VenusOnboardingChecklist.user_id == current_user.id
-    ).first()
+    ))
+    item = result.scalar_one_or_none()
+    
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
 
-    for field, value in in_data.dict(exclude_unset=True).items():
+    for field, value in in_data.model_dump(exclude_unset=True).items():
         setattr(item, field, value)
     
-    db.commit()
-    db.refresh(item)
+    await db.commit()
+    await db.refresh(item)
     return item
 
 @router.delete("/{item_id}")
-def delete_onboarding_checklist(
+async def delete_onboarding_checklist(
     item_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    item = db.query(VenusOnboardingChecklist).filter(
+    result = await db.execute(select(VenusOnboardingChecklist).where(
         VenusOnboardingChecklist.id == item_id, VenusOnboardingChecklist.user_id == current_user.id
-    ).first()
+    ))
+    item = result.scalar_one_or_none()
+    
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     
-    db.delete(item)
-    db.commit()
+    await db.delete(item)
+    await db.commit()
     return {"ok": True}

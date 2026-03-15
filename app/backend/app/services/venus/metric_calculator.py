@@ -1,14 +1,14 @@
 """Venus Ads Metric Calculator Service.
 Calculates KPIs (ROAS, CPA, CTR, etc.) from venus_daily_metrics data.
 """
-from sqlalchemy.orm import Session
-from sqlalchemy import func, desc
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func, desc
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 
 
-def calculate_kpi_summary(
-    db: Session,
+async def calculate_kpi_summary(
+    db: AsyncSession,
     user_id: int,
     project_id: Optional[int] = None,
     days: int = 7
@@ -20,21 +20,24 @@ def calculate_kpi_summary(
     start_date = end_date - timedelta(days=days)
     prev_start = start_date - timedelta(days=days)
 
-    query = db.query(VenusDailyMetric).filter(
+    query = select(VenusDailyMetric).where(
         VenusDailyMetric.user_id == user_id,
         VenusDailyMetric.date >= str(start_date),
         VenusDailyMetric.date <= str(end_date),
     )
     if project_id:
         from app.models.venus.campaign import VenusCampaign
-        campaign_ids = [c.id for c in db.query(VenusCampaign.id).filter(
+        campaign_query = select(VenusCampaign.id).where(
             VenusCampaign.user_id == user_id,
             VenusCampaign.project_id == project_id
-        ).all()]
+        )
+        campaign_result = await db.execute(campaign_query)
+        campaign_ids = [c for c in campaign_result.scalars().all()]
         if campaign_ids:
-            query = query.filter(VenusDailyMetric.campaign_id.in_(campaign_ids))
+            query = query.where(VenusDailyMetric.campaign_id.in_(campaign_ids))
 
-    metrics = query.all()
+    result = await db.execute(query)
+    metrics = result.scalars().all()
 
     # Calculate current period
     total_spend = sum(m.spend or 0 for m in metrics)
@@ -51,12 +54,14 @@ def calculate_kpi_summary(
     cpa = (total_spend / total_conversions) if total_conversions > 0 else 0
 
     # Previous period for trend
-    prev_query = db.query(VenusDailyMetric).filter(
+    prev_query = select(VenusDailyMetric).where(
         VenusDailyMetric.user_id == user_id,
         VenusDailyMetric.date >= str(prev_start),
         VenusDailyMetric.date < str(start_date),
     )
-    prev_metrics = prev_query.all()
+    prev_result = await db.execute(prev_query)
+    prev_metrics = prev_result.scalars().all()
+    
     prev_spend = sum(m.spend or 0 for m in prev_metrics)
     prev_roas_val = sum(m.conversion_value or 0 for m in prev_metrics)
     prev_roas = (prev_roas_val / prev_spend) if prev_spend > 0 else 0
@@ -82,8 +87,8 @@ def calculate_kpi_summary(
     }
 
 
-def calculate_campaign_trend(
-    db: Session,
+async def calculate_campaign_trend(
+    db: AsyncSession,
     campaign_id: int,
     user_id: int,
     days: int = 30
@@ -94,11 +99,14 @@ def calculate_campaign_trend(
     end_date = datetime.utcnow().date()
     start_date = end_date - timedelta(days=days)
 
-    metrics = db.query(VenusDailyMetric).filter(
+    query = select(VenusDailyMetric).where(
         VenusDailyMetric.user_id == user_id,
         VenusDailyMetric.campaign_id == campaign_id,
         VenusDailyMetric.date >= str(start_date),
-    ).order_by(VenusDailyMetric.date.asc()).all()
+    ).order_by(VenusDailyMetric.date.asc())
+    
+    result = await db.execute(query)
+    metrics = result.scalars().all()
 
     return [
         {
@@ -114,8 +122,8 @@ def calculate_campaign_trend(
     ]
 
 
-def detect_anomalies(
-    db: Session,
+async def detect_anomalies(
+    db: AsyncSession,
     user_id: int,
     project_id: Optional[int] = None,
     threshold: float = 2.0
@@ -126,11 +134,12 @@ def detect_anomalies(
     end_date = datetime.utcnow().date()
     start_date = end_date - timedelta(days=30)
 
-    query = db.query(VenusDailyMetric).filter(
+    query = select(VenusDailyMetric).where(
         VenusDailyMetric.user_id == user_id,
         VenusDailyMetric.date >= str(start_date),
     )
-    metrics = query.all()
+    result = await db.execute(query)
+    metrics = result.scalars().all()
 
     if len(metrics) < 7:
         return []
