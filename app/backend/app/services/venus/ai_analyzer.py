@@ -174,7 +174,7 @@ Kullanıcı yeni bir reklam deneyi oluşturuyor. Ona bu testi gerçekleştirirke
 Deney Adı: {experiment_name}
 Hipotez: {hypothesis}
 
-Yanıtın doğrudan tavsiye niteliğinde olmalı, "Şunlara dikkat et:" gibi doğrudan konuya girmeli. En fazla 3-4 cümlelik kısa bir paragraf veya 3 maddelik kısa bir liste oluştur.
+KURAL: Kesinlikle [PLAN_START], [TONE:...] gibi sistem formatları veya kod blokları döndürme. Yıldız (*) ile kalın yazma kullanma, sade bir metin olsun. Yanıtın doğrudan tavsiye niteliğinde olmalı, "Şunlara dikkat et:" gibi doğrudan konuya girmeli. En fazla 3-4 cümlelik kısa bir paragraf veya 3 maddelik kısa bir liste oluştur.
 """
     try:
         response = await _generate_response(prompt)
@@ -193,11 +193,10 @@ Başlangıç Hipotezi: {hypothesis}
 Test Sonucu (Öğrenim): {learnings}
 Kazanan Varyasyon: {winner or 'Belirtilmemiş'}
 
-Yanıtın net ve profesyonel olmalı:
-1. Kısa bir değerlendirme (Test sonucu hipotezi doğruladı mı?)
-2. Bu sonuç markaya ne ifade ediyor?
-3. Bir sonraki test/adım için 1 somut aksiyon önerisi.
-Kısa tut, doğrudan içgörülere odaklan.
+KURAL: Kesinlikle [PLAN_START], [TONE:...] gibi formatlar, JSON'lar, süslü parantezler kullanma. "1. Değerlendirme:", "2. Marka İçgörüsü:" gibi numaralı ve sıkıcı listeler yapmak yerine, doğal bir uzman dilinde konuş. Doğrudan içgörülere odaklan, metni temiz ve sade tut (kalın/italik işaretlerini çok fazla kullanma).
+
+Yanıtın şunları içersin (ancak doğal bir metin olarak, başlıklar olmadan parçala):
+Kısa bir değerlendirme (Test sonucu hipotezi doğruladı mı?). Bu sonuç markaya ne ifade ediyor? Bir sonraki test/adım için 1 somut aksiyon önerisi.
 """
     try:
         response = await _generate_response(prompt)
@@ -220,7 +219,7 @@ Görev Başlığı: {title}
 Açıklama: {description}
 {context}
 
-Yanıtın doğrudan tavsiye veya eylem planı şeklinde olmalı. 2-3 cümleyi veya 3 maddelik kısa bir listeyi geçme. İşlem odaklı ol.
+KURAL: Kesinlikle [PLAN_START], [TONE:...] veya herhangi bir json tarzı teknik çıktı verme! Son derece sade, yıldızsız/işaretsiz düz metin kullan. Yanıtın doğrudan tavsiye veya eylem planı şeklinde olmalı. 2-3 cümleyi veya 3 maddelik kısa bir listeyi geçme. İşlem odaklı ol.
 """
     try:
         response = await _generate_response(prompt)
