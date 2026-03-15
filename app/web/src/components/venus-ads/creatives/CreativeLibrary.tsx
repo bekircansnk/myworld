@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useVenusAdsStore } from '@/stores/venusAdsStore';
 import { useProjectStore } from '@/stores/projectStore';
-import { Plus, Image as ImageIcon, Video, Layers, CheckSquare, Star, Edit, Trash2 } from 'lucide-react';
+import { Plus, Image as ImageIcon, Video, Layers, CheckSquare, Star, Edit, Trash2, MessageSquare, X, Target } from 'lucide-react';
 import { CreativeForm } from './CreativeForm';
 import { VenusCreative } from '@/types/venus-ads';
 
@@ -16,6 +16,7 @@ export function CreativeLibrary({ projectId }: CreativeLibraryProps) {
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCreative, setEditingCreative] = useState<VenusCreative | null>(null);
+  const [viewingCreative, setViewingCreative] = useState<VenusCreative | null>(null);
 
   useEffect(() => {
     fetchCreatives(projectId || undefined);
@@ -124,12 +125,25 @@ export function CreativeLibrary({ projectId }: CreativeLibraryProps) {
                          </div>
                          
                          {/* Body */}
-                         <div className="p-4 flex-1 flex flex-col">
+                         <div 
+                            className="p-4 flex-1 flex flex-col cursor-pointer"
+                            onClick={() => setViewingCreative(creative)}
+                         >
                              <div className="flex items-start justify-between gap-2 mb-2">
                                 <h3 className="font-bold text-brand-dark dark:text-white text-sm leading-tight flex-1 line-clamp-2">
                                     {creative.creative_name}
                                 </h3>
                              </div>
+
+                             {/* Notes on Card */}
+                             {creative.notes && (
+                                <div className="mt-1 mb-2 bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-lg border border-slate-100 dark:border-white/5">
+                                   <div className="flex items-start gap-1.5 text-slate-500 dark:text-slate-400">
+                                      <MessageSquare className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                                      <p className="text-xs italic line-clamp-3 leading-relaxed">"{creative.notes}"</p>
+                                   </div>
+                                </div>
+                             )}
 
                             {/* Performans Skoru */}
                             <div className="mt-auto pt-3 flex items-center justify-between">
@@ -156,6 +170,111 @@ export function CreativeLibrary({ projectId }: CreativeLibraryProps) {
           projectId={projectId} 
           initialData={editingCreative} 
         />
+      )}
+
+      {/* Viewing Detail Modal */}
+      {viewingCreative && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#1a1c23] w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden flex flex-col md:flex-row max-h-[90vh]">
+            
+            {/* Left side: Media */}
+            <div className="w-full md:w-1/2 min-h-[300px] bg-slate-100 dark:bg-[#0f1117] relative flex items-center justify-center border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/10 overflow-hidden">
+               {(viewingCreative.url || viewingCreative.thumbnail_url) ? (
+                 <img src={viewingCreative.url || viewingCreative.thumbnail_url} alt={viewingCreative.creative_name} referrerPolicy="no-referrer" className="max-w-full max-h-full object-contain p-4" />
+               ) : (
+                 <div className="flex flex-col items-center justify-center text-slate-400 opacity-50 transform scale-150">
+                    {renderIcon(viewingCreative.creative_type)}
+                 </div>
+               )}
+               <div className="absolute top-4 left-4">
+                  <span className="bg-white/90 dark:bg-black/90 text-slate-800 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm backdrop-blur-sm uppercase tracking-wider border border-slate-200 dark:border-white/10">
+                     {viewingCreative.format || 'Biçim Belirtilmemiş'}
+                  </span>
+               </div>
+               
+               {/* Mobile close button inside image area */}
+               <button onClick={() => setViewingCreative(null)} className="md:hidden absolute top-4 right-4 p-2 bg-white/50 dark:bg-black/50 hover:bg-white dark:hover:bg-black rounded-full backdrop-blur-sm transition-colors text-slate-800 dark:text-white">
+                 <X className="w-5 h-5" />
+               </button>
+            </div>
+
+            {/* Right side: Info */}
+            <div className="w-full md:w-1/2 flex flex-col p-6 overflow-y-auto">
+               <div className="flex justify-between items-start mb-6">
+                 <div>
+                    <h2 className="text-2xl font-bold text-brand-dark dark:text-white leading-tight">
+                       {viewingCreative.creative_name}
+                    </h2>
+                    <div className="flex items-center gap-3 mt-3">
+                       <div className="flex items-center gap-1.5 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 px-3 py-1.5 rounded-lg border border-yellow-100 dark:border-yellow-900/30">
+                           <Star className="w-4 h-4 fill-current" />
+                           <span className="font-bold">{viewingCreative.performance_score ? `${viewingCreative.performance_score}/10 Skor` : 'Skor Yok'}</span>
+                       </div>
+                       {viewingCreative.designer && (
+                          <div className="px-3 py-1.5 bg-slate-100 dark:bg-white/5 rounded-lg text-slate-600 dark:text-slate-300 font-medium text-sm flex items-center gap-1.5 border border-slate-200 dark:border-white/5">
+                             Tasarımcı: {viewingCreative.designer}
+                          </div>
+                       )}
+                    </div>
+                 </div>
+                 <button onClick={() => setViewingCreative(null)} className="hidden md:flex p-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full transition-colors text-slate-600 dark:text-slate-400">
+                   <X className="w-6 h-6" />
+                 </button>
+               </div>
+
+               {/* Notes Section - Centered nicely as requested */}
+               <div className="my-8 flex-1 flex flex-col justify-center">
+                  <div className="bg-brand-slate/5 dark:bg-white/5 rounded-2xl p-8 text-center relative border border-slate-200 dark:border-white/10 shadow-sm">
+                     <MessageSquare className="w-8 h-8 mx-auto text-brand-dark/20 dark:text-white/20 mb-4" />
+                     {viewingCreative.notes ? (
+                        <div>
+                           <h4 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-3">Yorumlar / Notlar</h4>
+                           <p className="text-lg md:text-xl text-slate-700 dark:text-slate-200 font-medium italic leading-relaxed">
+                             "{viewingCreative.notes}"
+                           </p>
+                        </div>
+                     ) : (
+                        <p className="text-slate-400 dark:text-slate-500 italic">Bu kreatif için henüz not / yorum eklenmemiş.</p>
+                     )}
+                  </div>
+               </div>
+
+               <div className="mt-auto border-t border-slate-100 dark:border-white/5 pt-6 flex flex-col gap-4">
+                  {/* Campaign/Experiment Details if available */}
+                  {(viewingCreative.campaign_id || viewingCreative.experiment_id) ? (
+                    <div className="grid grid-cols-2 gap-4">
+                       {viewingCreative.campaign_id && (
+                          <div className="bg-indigo-50 dark:bg-indigo-900/10 p-3 rounded-xl border border-indigo-100 dark:border-indigo-900/20">
+                             <div className="text-[10px] uppercase font-bold text-indigo-500 mb-1 flex items-center gap-1"><Target className="w-3 h-3" /> Bağlı Kampanya</div>
+                             <div className="font-semibold text-slate-700 dark:text-slate-300 text-sm">Kampanya ID: {viewingCreative.campaign_id}</div>
+                          </div>
+                       )}
+                       {viewingCreative.experiment_id && (
+                          <div className="bg-purple-50 dark:bg-purple-900/10 p-3 rounded-xl border border-purple-100 dark:border-purple-900/20">
+                             <div className="text-[10px] uppercase font-bold text-purple-500 mb-1 flex items-center gap-1"><Target className="w-3 h-3" /> Bağlı Deney</div>
+                             <div className="font-semibold text-slate-700 dark:text-slate-300 text-sm">Deney ID: {viewingCreative.experiment_id}</div>
+                          </div>
+                       )}
+                    </div>
+                  ) : null}
+
+                  <div className="flex gap-3 w-full">
+                     <button 
+                       onClick={() => {
+                          setViewingCreative(null);
+                          handleOpenEdit(viewingCreative);
+                       }} 
+                       className="flex-1 py-3 bg-brand-dark text-white hover:bg-black dark:bg-white dark:text-brand-dark dark:hover:bg-gray-100 rounded-xl font-bold transition-colors flex justify-center items-center gap-2"
+                     >
+                       <Edit className="w-4 h-4" />
+                       Düzenle
+                     </button>
+                  </div>
+               </div>
+            </div>
+
+          </div>
+        </div>
       )}
     </div>
   );

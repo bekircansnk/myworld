@@ -21,6 +21,7 @@ from app.services.gemini import generate_chat_response, breakdown_task_with_ai, 
 from app.ai.context import build_system_context
 from app.ai.memory import optimize_context_tokens
 from app.models.chat_message import ChatMessage
+from app.services.location_service import local_to_utc, get_user_timezone, get_current_time_for_user
 
 logger = logging.getLogger("myworld.ai")
 
@@ -51,6 +52,8 @@ NOTE_PATTERN = r"\[ACTION:ADD_NOTE\|([^\]]*)\]"
 LEGACY_TASK_PATTERN = r"\[ACTION:ADD_TASK\|([^|\]]*)\|([^|\]]*)\|([^\]]*)\]"
 PLAN_PATTERN = r"\[PLAN_START\]\s*(.*?)\s*\[PLAN_END\]"
 EVENT_PATTERN = r"\[ACTION:ADD_EVENT\|([^|\]]*)\|([^|\]]*)\|([^|\]]*)(?:\|([^\]]*))?\]"
+EDIT_EVENT_PATTERN = r"\[ACTION:EDIT_EVENT\|(\d+)\|([^\]]+)\]"
+DELETE_EVENT_PATTERN = r"\[ACTION:DELETE_EVENT\|(\d+)\]"
 TONE_PATTERN = r"\[TONE:([^\]]*)\]"
 
 
@@ -356,15 +359,15 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db),
                 continue
                 
             try:
-                # ISO'dan datetime'a çevir, UTC'ye sabitle
-                start_dt = datetime.fromisoformat(raw_start)
-                if start_dt.tzinfo is None:
-                    start_dt = start_dt.replace(tzinfo=timezone.utc)
+                from datetime import timedelta
+                # ISO'dan datetime'a çevir, yerel saat olarak kabul edip UTC'ye dönüştür
+                start_dt = datetime.fromisoformat(raw_start.replace("Z", ""))
+                user_tz = get_user_timezone(current_user)
+                start_dt_utc = local_to_utc(start_dt, user_tz)
                 
                 # Mins'i parse et, bitiş saatini hesapla
-                from datetime import timedelta
                 mins = int(raw_mins)
-                end_dt = start_dt + timedelta(minutes=mins)
+                end_dt_utc = start_dt_utc + timedelta(minutes=mins)
                 
                 # --- DUPLICATE GUARD ---
                 existing_event = await db.execute(
@@ -388,8 +391,8 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db),
                 new_event = CalendarEvent(
                     user_id=MOCK_USER_ID,
                     title=title,
-                    start_time=start_dt,
-                    end_time=end_dt,
+                    start_time=start_dt_utc,
+                    end_time=end_dt_utc,
                     event_type="ai_planned",
                     task_id=task_id_val
                 )
@@ -422,6 +425,98 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db),
                     success=False
                 ))
         
+        # =============================================
+        # 5.6 TAKVİM ETKİNLİĞİ DÜZENLEME: [ACTION:EDIT_EVENT|EventID|Alan=Değer|...]
+        # =============================================
+        edit_event_matches = list(re.finditer(EDIT_EVENT_PATTERN, ai_reply))
+        debug_info["edit_event_commands_found"] = len(edit_event_matches)
+        
+        for match in edit_event_matches:
+            event_id = int(match.group(1).strip())
+            fields_raw = match.group(2).strip()
+            
+            try:
+                result = await db.execute(select(CalendarEvent).where(CalendarEvent.id == event_id, CalendarEvent.user_id == MOCK_USER_ID))
+                event_to_edit = result.scalars().first()
+                
+                if not event_to_edit:
+                    actions_executed.append(ActionLog(action="EDIT_EVENT", details=f"Olay bulunamadı ({event_id})", success=False))
+                    continue
+                    
+                user_tz = get_user_timezone(current_user)
+                from datetime import timedelta
+                
+                for field_group in fields_raw.split("|"):
+                    if "=" not in field_group: continue
+                    k, v = field_group.split("=", 1)
+                    k = k.strip()
+                    v = v.strip()
+                    
+                    if k == "title":
+                        event_to_edit.title = v
+                    elif k == "start" or k == "end":
+                        # mevcut tarihi alıp saati değiştir
+                        old_dt = utc_to_local(event_to_edit.start_time if k == "start" else event_to_edit.end_time, user_tz)
+                        try:
+                            # v is HH:MM
+                            parts = v.split(":")
+                            if len(parts) == 2:
+                                new_local_dt = old_dt.replace(hour=int(parts[0]), minute=int(parts[1]), second=0)
+                                new_utc_dt = local_to_utc(new_local_dt, user_tz)
+                                if k == "start": event_to_edit.start_time = new_utc_dt
+                                else: event_to_edit.end_time = new_utc_dt
+                        except Exception:
+                            pass
+                    elif k == "date":
+                        # v is YYYY-MM-DD
+                        old_start = utc_to_local(event_to_edit.start_time, user_tz)
+                        old_end = utc_to_local(event_to_edit.end_time, user_tz)
+                        try:
+                            new_date = datetime.strptime(v, "%Y-%m-%d").date()
+                            new_start = old_start.replace(year=new_date.year, month=new_date.month, day=new_date.day)
+                            new_end = old_end.replace(year=new_date.year, month=new_date.month, day=new_date.day)
+                            event_to_edit.start_time = local_to_utc(new_start, user_tz)
+                            event_to_edit.end_time = local_to_utc(new_end, user_tz)
+                        except Exception:
+                            pass
+                    elif k == "duration":
+                        # v is minutes
+                        try:
+                            event_to_edit.end_time = event_to_edit.start_time + timedelta(minutes=int(v))
+                        except Exception:
+                            pass
+                            
+                await db.commit()
+                # Store the successful action
+                actions_executed.append(ActionLog(
+                    action="EDIT_EVENT",
+                    details=f"Olay güncellendi: {event_to_edit.title}",
+                    success=True
+                ))
+            except Exception as e:
+                logger.error(f"❌ Event düzenleme hatası: {e}")
+                actions_executed.append(ActionLog(action="EDIT_EVENT", details=f"Hata: {str(e)[:50]}", success=False))
+
+        # =============================================
+        # 5.7 TAKVİM ETKİNLİĞİ SİLME: [ACTION:DELETE_EVENT|EventID]
+        # =============================================
+        delete_event_matches = list(re.finditer(DELETE_EVENT_PATTERN, ai_reply))
+        debug_info["delete_event_commands_found"] = len(delete_event_matches)
+        
+        for match in delete_event_matches:
+            event_id = int(match.group(1).strip())
+            try:
+                result = await db.execute(select(CalendarEvent).where(CalendarEvent.id == event_id, CalendarEvent.user_id == MOCK_USER_ID))
+                event_to_del = result.scalars().first()
+                if event_to_del:
+                    await db.delete(event_to_del)
+                    await db.commit()
+                    actions_executed.append(ActionLog(action="DELETE_EVENT", details=f"Silindi: ID {event_id}", success=True))
+                else:
+                    actions_executed.append(ActionLog(action="DELETE_EVENT", details=f"Bulunamadı: ID {event_id}", success=False))
+            except Exception as e:
+                 actions_executed.append(ActionLog(action="DELETE_EVENT", details=f"Hata: {str(e)[:50]}", success=False))
+
         # 5. TONE (RUH HALİ) ALGILAMA
         tone_match = re.search(TONE_PATTERN, ai_reply)
         detected_tone = tone_match.group(1).strip() if tone_match else None
@@ -466,6 +561,8 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db),
         clean_reply = re.sub(LEGACY_TASK_PATTERN, "", clean_reply)
         clean_reply = re.sub(NOTE_PATTERN, "", clean_reply)
         clean_reply = re.sub(EVENT_PATTERN, "", clean_reply)
+        clean_reply = re.sub(EDIT_EVENT_PATTERN, "", clean_reply)
+        clean_reply = re.sub(DELETE_EVENT_PATTERN, "", clean_reply)
         clean_reply = re.sub(TONE_PATTERN, "", clean_reply)
         clean_reply = re.sub(r'\n{3,}', '\n\n', clean_reply).strip()
         
@@ -500,7 +597,7 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db),
             new_categories = set(current_session.ai_categories or [])
             if action_types & {"CREATE_PLAN", "ADD_TASK", "ADD_SUBTASKS"}:
                 new_categories.add("gorev")
-            if "ADD_EVENT" in action_types:
+            if action_types & {"ADD_EVENT", "EDIT_EVENT", "DELETE_EVENT"}:
                 new_categories.add("takvim")
             if "ADD_NOTE" in action_types:
                 new_categories.add("not")

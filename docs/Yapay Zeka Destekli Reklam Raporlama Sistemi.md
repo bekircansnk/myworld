@@ -1,0 +1,269 @@
+# **Reklam Ajansları İçin Otonom Yapay Zeka Raporlama ve Analiz Sistemi: Kapsamlı Mimari, Entegrasyon ve Model Eğitimi**
+
+## **Giriş**
+
+Dijital reklamcılık ekosistemi ve pazarlama analitiği, 2026 yılı itibarıyla kural tabanlı, manuel otomasyonlardan çıkarak tamamen aracı (agentic) ve otonom yapay zeka sistemlerine doğru köklü bir paradigma değişimi yaşamaktadır.1 Günümüzün hiper-rekabetçi piyasalarında, bir reklam ajansının değer önermesi yalnızca reklam kampanyalarını yayına almak değil; Google Ads, Meta Ads ve TikTok Ads gibi çoklu platformlardan akan devasa veriyi (Big Data) gerçek zamanlı olarak işlemek, anomali tespiti yapmak ve çapraz kanal (cross-channel) bütçe optimizasyonunu stratejik bir anlatıya dönüştürmektir.3 McKinsey ve Gartner raporlarına göre, 2026 yılının sonuna kadar kurumsal uygulamaların %40'ından fazlası göreve özgü yapay zeka ajanlarını barındıracak olup, bu teknolojiyi iş akışlarına entegre eden pazarlama ekipleri yatırım getirilerinde (ROI) muazzam artışlar kaydetmektedir.5
+
+Bir raporlama ajansının veya dijital reklam ajansının veri analitiği departmanını tamamen yapay zekaya devretmesi, basit bir API entegrasyonunun ötesinde, sistemin "düşünme", "araştırma" ve "sunma" yeteneklerinin baştan aşağıya kurgulanmasını gerektirir. İnsan kapasitesinin ötesindeki bu iş yükünü yönetecek sistemin en büyük zorluğu, platform algoritmalarının neredeyse haftalık olarak değişmesidir.5 Bu nedenle, yapay zekanın eğitildiği statik veri setlerine bağımlı kalması kabul edilemez; sistemin sürekli güncel kalmasını sağlayacak dinamik bir dış bağlantı mimarisine ihtiyacı vardır.
+
+Bu rapor, reklam ajansları bünyesinde kurulacak kapsamlı, otonom ve sürekli güncel kalan bir yapay zeka destekli raporlama sisteminin uçtan uca mimarisini detaylandırmaktadır. Sistemin temeli, Bilgi Alma Destekli Üretim (Retrieval-Augmented Generation \- RAG) mimarisine dayanmaktadır.7 Rapor, Google, Meta ve TikTok'un güncel kaynak bağlantılarını, sistemin bu bağlantılardan veriyi nasıl çekeceğini, elde edilen bulguların minimalist bir tasarım diliyle PDF formatında nasıl görselleştirileceğini ve en önemlisi, bu arka plan motorunu çalıştıracak yapay zekanın nasıl yönlendirilip eğitileceğini derinlemesine incelemektedir.
+
+## **Bilgi Alma Destekli Üretim (RAG) Mimarisi ve Gerçek Zamanlı Veri Entegrasyonu**
+
+Büyük dil modellerinin (LLM) dijital pazarlama alanında tek başına kullanılması, "halüsinasyon" (yanlış veya uydurma bilgi üretimi) ve güncellik kaybı gibi kritik riskler taşır.9 Geleneksel modeller, eğitildikleri tarihte dondurulmuş bir bilgi birikimine sahiptir ve ince ayar (fine-tuning) işlemleri yüksek maliyetli ve karmaşıktır.10 Bu sınırları aşmak için kurulacak yapay zeka analiz motorunun kalbine RAG mimarisi yerleştirilmelidir. RAG, yapay zekanın bir soruya yanıt vermeden veya bir veri setini yorumlamadan önce, önceden belirlenmiş ve doğrulanmış dış veri tabanlarında (vektör tabanlarında) eşzamanlı arama yapmasını sağlar.7
+
+### **RAG İş Akışının Teknik Boyutları**
+
+RAG sistemi, dinamik reklamcılık verilerini işlemek üzere beş temel aşamadan oluşur: Veri toplama (Data Collection/Ingestion), Temizleme ve Dönüştürme (Data Cleaning), Parçalara Ayırma ve Vektörleştirme (Chunking and Embedding), Endeksleme (Indexing) ve Geri Çağırma (Retrieval).10
+
+Sistem ilk olarak, RSS beslemeleri, API uç noktaları ve doğrudan bağlantılar aracılığıyla belirlenen resmi reklam kaynaklarından metinleri çeker.14 Çekilen bu veriler (örneğin TikTok'un yeni yayınladığı bir API sürüm notu veya Google'ın blogundaki yeni bir algoritma duyurusu) anlamsal bütünlüğü bozulmayacak şekilde küçük parçalara (chunking) ayrılır.12 Bu parçalar, LLM'in anlayabileceği sayısal vektörlere dönüştürülerek yüksek performanslı bir vektör veri tabanına (örneğin Qdrant veya Milvus) kaydedilir.12
+
+Kullanıcı veya otonom bir tetikleyici (trigger), "Son dönemdeki Meta Ads dönüşüm maliyetlerindeki artışın sebebi nedir?" gibi bir analiz talebinde bulunduğunda, sistem melez arama (hybrid search) yeteneklerini kullanır.16 Melez arama, hem vektörel anlamsal benzerlikleri hem de kesin anahtar kelime eşleşmelerini kullanarak veri tabanından en ilgili bağlamı (context) çeker. Asenkron arama ve önbellekleme (caching) mekanizmaları sayesinde bu işlem milisaniyeler içinde tamamlanır ve büyük dil modeline zenginleştirilmiş bir komut (augmented prompt) olarak sunulur.10 Böylece model, analizini sadece verilen kampanya sayılarına göre değil, platformun o anki güncel algoritma kurallarına göre yapar.
+
+### **Sistemin Sürekli Güncel Kalmasını Sağlayacak Resmi Kaynak Bağlantıları**
+
+Sistemin "öğrenme" materyalleri, statik PDF'ler veya eski eğitim dokümanları olmamalıdır. Yapay zeka ajanının, RAG mimarisi üzerinden günlük olarak taraması ve kendi analiz süzgecinden geçirmesi gereken dünyanın en güncel ve gerçek reklam kaynakları, aşağıdaki tabloda platform bazında sınıflandırılmış ve bağlantılarıyla birlikte sunulmuştur. Bu bağlantılar, sistemin otonom sinir ağını besleyen ana arterlerdir.
+
+| Platform | Kaynak Türü | Hedef Bağlantı (URL) / RSS Akışı | Sistemin Çıkaracağı Analitik Veri Bağlamı |
+| :---- | :---- | :---- | :---- |
+| **Google Ads** | Resmi Ürün ve Ticaret Blogu | https://blog.google/products/ads-commerce/ 17 | AI Max özellik güncellemeleri, VRC Non-Skip reklam formatları, Bidding (teklif) ve bütçe stratejileri, Performance Max özellikleri. |
+| **Google Ads** | Resmi Duyurular | https://support.google.com/google-ads/announcements/ 18 | Meridian ölçüm çözümleri, YouTube Feed & Discover marka uygunluk kontrolleri, Demand Gen optimizasyonları. |
+| **Google Ads** | Geliştirici ve API Blogu | http://ads-developers.googleblog.com/ 19 | API sürüm notları (v23, v24 vb.), kullanımdan kaldırılan metrikler, sistem mimarisi değişiklikleri. |
+| **Google Ads** | Yenilik ve Yapay Zeka Haberleri | https://blog.google/innovation-and-ai/technology/ads/ 21 | Google AI danışmanlık araçları, aracı (agentic) etki öngörüleri, bölgesel reklamcılık kısıtlamaları (örn. Avrupa politikaları). |
+| **Meta Ads** | Teknoloji ve Mühendislik Haberleri | https://about.fb.com/news/category/technologies/meta/ 22 | Yapay zeka altyapı yatırımları (AMD/NVIDIA ortaklıkları), algoritma değişiklikleri, yeni yapay zeka veri merkezleri. |
+| **Meta Ads** | Meta Newsroom / RSS | https://about.fb.com/news/ 23 | Platform güncellemeleri, politika değişiklikleri, güvenlik ve gizlilik standartları. |
+| **Meta Ads** | Arama Motoru Ülkesi (3. Taraf Doğrulama) | https://searchengineland.com/library/platforms/meta 24 | Manus AI entegrasyonu, Andromeda ve GEM sistemleri, Avrupa dijital vergi güncellemeleri, Click/Engage-through ilişkilendirme. |
+| **TikTok Ads** | Resmi İşletme Blogu ve Ürün Önizlemeleri | https://ads.tiktok.com/business/en-US/blog 25 | Smart+ otomasyon güncellemeleri, Market Scope analitikleri, Pulse Suite ve içerik stratejileri, bölgesel yenilikler. |
+| **TikTok Ads** | Geliştirici Sürüm Notları (Changelog) | https://github.com/tiktok/tiktok-business-api-sdk/blob/main/Changelog.md 26 | Piksel bağlantı güncellemeleri, dönüşüm API (CAPI) değişiklikleri, veri transfer protokolleri. |
+| **TikTok Ads** | İşletme API Portalı | https://business-api.tiktok.com/portal/docs 27 | İzleyici entegrasyonu (Audience Integration), webhook abonelikleri, eşzamanlı raporlama veri çekimi. |
+
+Bu tablo, RAG veri tabanının endeksleme listesidir. Otonom yapay zeka, bir müşterinin Google Ads kampanyasında Dönüşüm Başına Maliyet (CPA) metriklerinde ani bir oynama tespit ettiğinde, sorunu sadece istatistiksel bir dalgalanma olarak raporlamaz. Sistem arka planda https://developers.google.com/google-ads/api/docs/release-notes 29 adresini tarayarak, o gün devreye giren yeni bir algoritma güncellemesinin bu duruma yol açıp açmadığını analiz eder ve raporunda "CPA'deki bu artış, Google'ın v23.1 sürümündeki yeni ilişkilendirme modellemesi ile paraleldir" şeklinde bir içgörü sunar.
+
+## **2026 İtibarıyla Platformların Algoritmik Evrimi ve Yapay Zekanın İzlemesi Gereken Dinamikler**
+
+Kapsamlı bir raporlama motorunun verileri doğru sentezleyebilmesi için, analiz ettiği platformların iç mekanizmalarını bilmesi zorunludur. Reklam platformları 2026 yılında, reklamverenlere minimum kontrol sunarken maksimum yapay zeka otomasyonu sağlayan "kara kutu" (black box) sistemlerine dönüşmüştür. Raporlama yapay zekasının incelemesi gereken temel dinamikler şunlardır:
+
+### **Google Ads: AI Max ve Ads Power Pair**
+
+Google Ads, arama ağı ile diğer envanterleri birleştiren çoklu bir otomasyon sistemine geçmiştir. En büyük değişim, Arama Ağı (Search) kampanyaları ile Performance Max (PMax) kampanyalarının entegre çalışarak "Ads Power Pair" (Reklam Güç İkilisi) olarak adlandırılan kombinasyonun yaratılmasıdır.18 Yapay zeka motoru raporlama yaparken, Google'ın tüm kanallarındaki performansı bir bütün olarak ele almalıdır.
+
+Ayrıca Google, yapay zeka destekli metin yönergeleri (text guidelines) ve AI Max özellikleri sunmaktadır.17 Demand Gen (Talep Yaratma) kampanyaları, YouTube ve Discover gibi ağlarda kitlelerin ilgisini çekmek üzere optimize edilmiştir.21 Raporlama sistemi, "Meridian" gibi ölçümleme çözümlerinden gelen verileri kullanarak, artımlılık (incrementality) testlerini analiz etmeli ve bir kampanyanın gerçekten yeni bir satış yaratıp yaratmadığını (yoksa zaten organik olarak gelecek bir satışı mı sahiplendiğini) tespit etmelidir.18
+
+### **Meta Ads: Andromeda, GEM ve Manus AI**
+
+Meta platformunda kampanya performansı, doğrudan "Andromeda" ve "GEM" adı verilen yapay zeka motorlarının insafına kalmıştır.24 Bu sistemler, reklamların sıralamasını, hangi kitleye gösterileceğini ve ardışık (sequencing) gösterim stratejilerini belirler. Raporlama ajansı sistemi, Meta'dan gelen verileri yorumlarken geleneksel "bu reklam çalışmıyor, kapatalım" (scoreboard approach) yaklaşımını terk etmelidir.24 Bunun yerine, yapay zeka ajanları Anahtar Performans Göstergeleri (KPI) arasındaki ilişkileri analiz ederek sistem darboğazlarını (bottleneck) bulmalıdır.
+
+2026 yılı başlarında Meta, Ads Manager içerisine "Manus AI" araçlarını yerleştirmiş ve tıklama ile etkileşim (click and engage-through) kaynaklı dönüşümleri daha net ayıran güncellemeler yapmıştır.24 Sistem, hazırlayacağı raporda dönüşümlerin ne kadarının doğrudan tıklama (click), ne kadarının ise reklamı gördükten sonra gerçekleşen etkileşim (engage-through) sonucu oluştuğunu detaylı bir şekilde analiz etmelidir. Aynı zamanda, Avrupa dijital hizmetler vergisinin reklam harcamalarına %5 oranında yansıması gibi finansal dışsal etkileri otomatik olarak tespit etmeli ve ROAS hesaplamalarını brüt harcama üzerinden değil, net harcama üzerinden yaparak finansal doğruluk sağlamalıdır.24
+
+### **TikTok Ads: Smart+ ve Tam Huni (Full-Funnel) Etkisi**
+
+TikTok, "Smart+" otomasyon çözümleri ile 2026'da öne çıkmaktadır. Smart+, hedef kitle, bütçe, kreatif ve yerleşim kararlarını yapay zekaya devreden bir sistemdir.30 Sistemin raporlama yapay zekası, TikTok verilerini incelerken üç ana getiri metrisine odaklanmalıdır: Yatırım Getirisi (ROI), Efor Getirisi (Return on Effort) ve Yaratıcı Getiri (Return on Creative).30
+
+Ayrıca, TikTok'un "Market Scope" analitik aracı, kullanıcıların satın alma yolculuğunu analiz etmek için kullanılır.25 Yapay zeka, rapor hazırlarken TikTok mağazası (TikTok Shop) huni verileri ile web sitesi huni verilerini yan yana koyarak eşzamanlı bir karşılaştırma yapmalıdır. Ebiquity ve Samba TV gibi kurumlarla yapılan araştırmalar, TikTok'un televizyon reklamlarıyla birleştiğinde "halo etkisi" (halo effect) yarattığını ve bilet satışlarında veya ürün alımlarında %172 oranında artış sağladığını göstermektedir.25 Daha da önemlisi, içerik kalitesi analiz edilirken yapay zeka, "2-saniye kuralı" gibi metrikleri izlemeli; bir videonun ilk iki saniyesindeki kanca (hook) etkisinin, genel ROI ile ne denli korelasyon içinde olduğunu raporda açıkça belirtmelidir.25
+
+## **Performans Metrikleri, Veri Korelasyonu ve Terminolojik Standardizasyon**
+
+Çok kanallı (omni-channel) veri akışında en büyük yanılgı, tüm platformların aynı ölçüm mantığını kullandığını varsaymaktır.31 Yapay zeka, elde ettiği verileri analiz etmeden önce tüm metrikleri stabilize etmeli, tutarlı bir maliyet tabanı ve ilişkilendirme (attribution) modeli (örneğin veri-odaklı/data-driven ilişkilendirme) kullanmalıdır.31
+
+Aşağıdaki tablo, yapay zekanın raporlarında analiz edeceği ana metrikleri, bu metriklerin birbirleriyle olan ilişkilerini ve anlamsal önemlerini göstermektedir:
+
+| Metrik Kısaltması | Tam Açılımı | Yapay Zekanın Raporlama Analizindeki Rolü ve Korelasyon Mantığı |
+| :---- | :---- | :---- |
+| **CPM** | Cost Per Mille (Bin Gösterim Maliyeti) | Hedef kitleye ulaşmanın temel maliyetidir. Yüksek CPM, kitlenin rekabetçi veya çok dar olduğu anlamına gelir. Kampanyanın görünürlük maliyetini belirler.32 |
+| **CTR** | Click-Through Rate (Tıklama Oranı) | Reklamın kitleyle olan anlamsal uyumunu (relevance) ölçer. Yüksek gösterime (Impression) rağmen düşük CTR, reklam kreatifinin başarısız veya kancasının (hook) yetersiz olduğunu gösterir.33 |
+| **CPC** | Cost Per Click (Tıklama Başına Maliyet) | Sitenize çekilen nitelikli trafiğin maliyetidir. Kalite puanı (Quality Score) düştükçe CPC yükselir.32 |
+| **CVR** | Conversion Rate (Dönüşüm Oranı) | Tıklayanların yüzde kaçının istenen eylemi gerçekleştirdiğini gösterir. Yüksek CTR ancak düşük CVR varsa, yapay zeka açılış sayfasında (landing page) sorun olduğunu raporlamalıdır.32 |
+| **CPA** | Cost Per Acquisition (Edinme/Eylem Başına Maliyet) | Bir dönüşüm elde etmek için harcanan ortalama tutardır. Karlılık analizi için temel göstergedir; Müşteri Yaşam Boyu Değeri (LTV) ile karşılaştırılmalıdır.32 |
+| **ROAS** | Return on Ad Spend (Reklam Harcaması Getirisi) | Bütçe tahsisi için en nihai metrik. Platform bazında (Örn. Meta vs. Google) ayrıştırılarak analiz edilmeli ve yapay zeka bütçeyi yüksek ROAS veren platforma kaydırmayı önermelidir.34 |
+
+Yapay zeka analiz motoru, bu metrikleri birbirlerinden bağımsız izole sayılar olarak değil, bir ekosistemin parçaları olarak değerlendirmelidir.32 Örneğin, bir ajan ROAS düşüklüğü saptadığında, sorunun CVR düşüklüğünden mi (web sitesi sorunu), yoksa CPC artışından mı (rekabet sorunu) kaynaklandığını kök neden analiziyle tespit edebilmelidir.38
+
+## **Otonom Analiz Motorunun İş Akışı: Aracı (Agentic) Yapay Zeka Mantığı**
+
+Raporlama sistemi, sadece bir "özetleme aracı" değil, bir "karar destek ve operasyon aracı" olmalıdır.39 Bir yapay zeka ajanı (AI Agent), sıradan bir sohbet robotundan (copilot) farklı olarak, çok adımlı işlemleri dış sistemlere (API'lere) bağlanarak kendi kendine yürütebilir, kararlar alabilir ve bu kararların sonuçlarını değerlendirebilir.40 Sistemin arkasındaki otonom analiz motoru şu aşamalardan geçerek çalışır:
+
+### **1\. Kök Neden Analizi (Root Cause Analysis) ve Anomali Tespiti**
+
+Yapay zeka ajanı, kampanya verilerini 7/24 izleyerek makine öğrenimi algoritmalarıyla "normal" performans sınırlarını çizer.4 Bir kampanyada, örneğin hafta sonu beklenen olağan düşüşlerin ötesinde istatistiksel bir sapma (anomali) meydana geldiğinde, sistem anında tetiklenir.4 Ajan; trafik, CTR, CVR, CPL (Olası Satış Başına Maliyet) ve ROAS metriklerini çaprazlayarak sorunun kaynağına iner.4 Düşüşün sebebi izleme (tracking) kodlarının kopması mı, kreatif yorgunluk (creative fatigue) mu, yoksa hedef kitle doygunluğu mu olduğunu belirler ve hazırladığı raporda sadece "Düşüş var" demek yerine, "Kreatif yorgunluk sebebiyle CPA %40 arttı, yeni kreatif yüklenmesi önerilmektedir" şeklinde aksiyona dönüştürülebilir içgörüler sunar.3
+
+### **2\. Değişim Öncesi ve Sonrası (Before / After) Karşılaştırmalı Analizi**
+
+Raporların ajansın değerini müşteriye kanıtlayabilmesi için optimizasyon başarısını ölçmesi gerekir.43 Müşteri temsilcisi veya hesap yöneticisi kampanyada bir değişiklik yaptığında (örneğin bütçe artırımı, hedef kitle daraltması veya yeni reklam seti yayını), yapay zeka ajanı bu müdahaleyi bir olay günlüğü (event log) olarak kaydeder. Sistem, değişikliğin yapıldığı tarihten önceki 14 günlük veriler ile sonraki 14 günlük verileri otonom olarak kıyaslar.43 CTR'da yüzde kaçlık bir gelişim olduğu, CPA'in ne kadar düştüğü hesaplanır. Eğer beklenen etki görülmediyse (örneğin tıklamalar arttı ama dönüşüm düştü), sistem dışsal faktörleri (örneğin rakip kampanyaları veya pazar trendlerini) inceleyerek mantıklı bir açıklama üretir.43
+
+### **3\. API Entegrasyonları ve Otomasyon Düğümleri (n8n ve Benzeri Platformlar)**
+
+Otonom iş akışları, n8n veya benzeri otomasyon platformları kullanılarak mimariye entegre edilebilir.14 Yapay zeka ajanları (örneğin GPT-4 veya Claude entegrasyonları), GoMarble veya özel API bağlayıcıları aracılığıyla doğrudan Meta Graph API veya Google Ads API'sine erişir.45 Sistem, verileri çeker, anomalileri analiz eder, oluşturulan raporları doğrudan Google Slides sunumlarına dönüştürür veya PDF formatına render edip ajans yöneticisinin Slack/Telegram kanalına yahut doğrudan müşteri e-postasına onay mekanizmasıyla (human-in-the-loop) iletir.45
+
+## **Minimalist Veri Görselleştirme ve Tasarım Mimarisi: PDF Rapor Dizaynı**
+
+Toplanan verilerin, RAG analizlerinin ve üretilen zengin içgörülerin nasıl sunulduğu, en az analizin kendisi kadar önemlidir.49 Karışık, çok fazla renge boğulmuş, salt Excel tablolarından oluşan veri yığınları yöneticiler nezdinde değer görmez. Sistem, Bilgi Tasarımı (Information Design) teorisyenleri Edward Tufte ve Stephen Few'un ilkelerini benimseyen, "veri-mürekkep oranını" (data-ink ratio) maksimize eden, dikkat dağıtıcı dekoratif unsurlardan arındırılmış, modern ve minimalist bir görsel şablon oluşturmalıdır.49
+
+Sistem, yapay zekanın ürettiği metinleri ve sayısal tabloları arka planda Python dili kullanılarak çalışan ReportLab veya WeasyPrint kütüphanelerine aktaracaktır.51 ReportLab, Platypus adı verilen dizgi ve sayfa düzeni motoru sayesinde PDF'leri piksel kusursuzluğunda, dinamik olarak oluşturma yeteneğine sahiptir.53 LLM, JSON formatında hazırladığı verileri ve görselleştirme direktiflerini Python betiğine iletir; betik ise önceden tasarlanmış şablonlar (templates) üzerinden PDF'i anında çizer.55
+
+### **Kapsamlı ve Anlaşılır Raporun Hiyerarşik Yapısı**
+
+Oluşturulacak PDF raporu, paydaşların dikkatini yönlendiren bir görsel hiyerarşi ile aşağıdaki bölümleri içerecek şekilde düzenlenmelidir 57:
+
+1. **Yönetici Özeti (Executive Summary):** Belgenin en kritik kısmıdır. Müşterinin sadece bu sayfayı okuyarak kampanyanın genel sağlık durumunu anlaması gerekir. Sadece en önemli metriklerin (Harcama, Dönüşüm, ROAS) yer aldığı KPI kutucukları (widgets), yapılan en büyük başarılar (wins) ve yapay zekanın sentezlediği 3 maddelik stratejik özet yer alır.58  
+2. **Hedef ve İlerleme Durumu (Goal Progress):** Hedeflenen KPI'lara ne kadar yaklaşıldığını gösteren ilerleme çubukları (progress bars). Müşterinin spesifik hedefleriyle uyumu gösterir.59  
+3. **Harcama ve Gelir Şelalesi (Waterfall Chart):** Finansal raporlamanın kalbidir. Şelale grafikleri, bir başlangıç değerinin ardışık pozitif ve negatif değerlerle nasıl etkilendiğini, bir toplam değere nasıl ulaştığını mükemmel şekilde gösterir.60 Örneğin, brüt gelirden reklam maliyetleri, komisyonlar ve Avrupa dijital hizmetler vergisi gibi negatif kalemlerin düşülüp net kârın adım adım nasıl kaldığını (floating bricks) görselleştirir.  
+4. **Platform ve Kanal Analizi (Channel Breakdown):** Google Ads, Meta Ads ve TikTok Ads performanslarının birbirleriyle karşılaştırılması. Pasta grafikler (Pie charts) yerine veri yoğunluğunu daha iyi veren yatay çubuk grafikler veya sade tablolar kullanılmalıdır.59  
+5. **Kullanıcı Dönüşüm Hunisi (Funnel Chart):** Reklamın gösteriminden (Impression) son tıklama ve satın almaya kadar uzanan evreler. Huninin hangi noktasında daralma (bottleneck) veya kullanıcı terk edişi (drop-off) yaşandığını görselleştirir. Bu huni, yapay zekanın "sorun nerede" teşhisini kanıtlaması için idealdir.62  
+6. **A/B Test ve Değişiklik Gelişim Raporu:** Önceki bölümlerde bahsedilen "Değişim Öncesi/Sonrası" analizlerinin yer aldığı tablo. Net büyüme yüzdelik dilimler halinde yeşil (pozitif) veya kırmızı (negatif) tonlarla vurgulanır.43  
+7. **Yapay Zeka Strateji ve Eylem Planı:** Raporun son sayfası. Yapay zeka, RAG sisteminden çektiği güncel platform algoritma haberleri ile kampanya verilerini birleştirerek, "Önümüzdeki Ay İçin 3 Aksiyon Önerisi" sunar. Örneğin, "TikTok Smart+ otomasyonuna geçiş yapılması" veya "Meta'daki X reklam grubunda kreatif rotasyonuna gidilmesi" gibi.30
+
+Tasarımda aşırı kalabalık grafiklerden (cluttered mess), okuması zor fontlardan kaçınılacak; sade, kurumsal kimlikle uyumlu pastel tonlar ve tutarlı bir renk paleti kullanılacaktır.49
+
+# ---
+
+**ALT BÖLÜM: YAPAY ZEKA MODELİNİ EĞİTME VE YÖNLENDİRME DOKÜMANI**
+
+Bir yapay zeka ajanının, reklam ajansı performans raporlarını bir uzman titizliğinde, eksiksiz, hatasız ve sürekli güncel kaynaklara dayanarak analiz etmesi kendiliğinden gerçekleşmez. Büyük dil modelleri (LLM), yapılandırılmamış ve sınırlanmamış bırakıldıklarında ortalama, yuvarlak ve eyleme dökülemeyecek kadar yüzeysel yanıtlar üretmeye eğilimlidir (generic outputs).44 Kurulacak sistemin mimarisi ne kadar mükemmel olursa olsun, asıl başarı motoru çalıştıran Prompt (Komut) Mühendisliği stratejisinde, sistem yönergelerinde (System Prompt) ve modelin nasıl yönlendirileceğinde yatmaktadır.67
+
+Bu doküman, sistemin arkasındaki yapay zekanın eğitimi, sınırlandırılması ve operasyonel kullanımı için gereken yönergeleri ve yapılandırılmış komut mimarilerini içermektedir. Bu kurallar bütünü, ajansın yapay zekayı bir asistan (copilot) olarak değil, kendi başına karar alabilen analitik bir beyin (agent) olarak kullanmasını sağlayacaktır.40
+
+## **1\. Sistem Yönergesi, Rol (Persona) ve Davranış Sınırlandırmaları**
+
+Yapay zeka sisteminin davranışını belirleyen en üst düzey kural seti Sistem Yönergesi'dir (System Prompt). Modelin bir bot gibi değil, kıdemli bir analist gibi düşünmesi sağlanmalıdır.69
+
+* **Uzmanlık Rolü ve Duruş:** "Sen, uluslararası ölçekte çalışan, veri odaklı, analitik zekası son derece yüksek ve 15 yıllık tecrübeye sahip bir Dijital Büyüme Stratejisti ve Kıdemli Performans Pazarlama Yöneticisisin. Uzmanlık alanın Google Ads, Meta Ads ve TikTok Ads ekosistemlerindeki karmaşık verileri anlamlandırmak, çok kanallı bütçe optimizasyonu yapmak ve kampanyalardaki gizli anomalileri tespit etmektir." 69  
+* **Bilgi Kaynağı ve Güncellik Kuralları (RAG Entegrasyonu):** "Kararlarını asla içsel eğitim verindeki eski bilgilere veya genel geçer internet varsayımlarına dayanarak alma. Her analizin için, sana entegre edilmiş RAG veri tabanındaki (Google Ads Release Notes, Meta Engineering Blog, TikTok Business API Changelog vb.) dinamik ve güncel bilgileri birincil referans kabul et. Algoritma değişikliklerini daima hesaba kat. Yanıtlarında tahmin yürütmekten kaçın, eğer verin eksikse bunu açıkça belirt." 9  
+* **Analitik Kesinlik ve Ton:** "Metinlerini, bir markanın C-Level yöneticisine (CMO/CEO) sunum yapacak profesyonellikte hazırla. Duygusal ifadelerden kaçın. 'Çok iyi gidiyor', 'Büyük başarı' gibi soyut sıfatlar yerine; 'ROAS %24 artarak 3.4 seviyesine ulaştı' gibi somut, istatistiksel ve kanıta dayalı ifadeler kullan." 72
+
+## **2\. TRIM Metodolojisi ve Yapılandırılmış Komut Mühendisliği**
+
+Sistemin otomasyon komutları yazılırken Skai tarafından ortaya konan "TRIM" (Görev, Bağlam, Niyet, Ölçüt) metodolojisi temel alınmalıdır.68 Bulanık sorular yapay zekanın kafasını karıştırır; TRIM çerçevesi ise ajanın tam olarak ne yapması gerektiğini sınırlandırır.
+
+| TRIM Çerçevesi | Tanım ve Önemi | Komut (Prompt) Örneği İçerisindeki Karşılığı |
+| :---- | :---- | :---- |
+| **T \- Task (Görev)** | Ajanın yerine getireceği spesifik, eyleme dönüştürülebilir operasyon. | "Girdi olarak verilen son 30 günlük Google Ads ve Meta Ads metriklerini kıyasla ve bütçe darboğazlarını (bottleneck) tespit et." |
+| **R \- Relevant Context (Bağlam)** | Sektör, marka hedefleri, pazar koşulları ve kampanyanın geçmişi. | "Bu raporlama, e-ticaret sektöründeki bir giyim markası içindir. Kampanyalar geçtiğimiz hafta TikTok Smart+ kullanılarak optimize edilmeye başlanmıştır." |
+| **I \- Intent (Niyet)** | Yapılan bu analizin arkasında yatan stratejik hedef. | "Amacımız, en verimsiz reklam kanallarını tespit ederek bütçeyi CVR değeri yüksek olan diğer kanallara otonom olarak kaydırmaktır." |
+| **M \- Measurable Criteria (Ölçülebilir Kriterler)** | Yapay zekanın çıktısını şekillendirecek kesin format ve sayısal eşikler. | "Sadece CPA değeri 100 TL'nin üzerinde olan ve en az 5.000 gösterim alan reklam setlerini JSON formatında sırala. Çıktı formatı, 3 paragraflık özet ve 4 sütunlu tablodan oluşmalıdır." |
+
+Yapay zeka bu çerçeve ile eğitildiğinde, çıktılar her zaman öngörülebilir, tutarlı ve doğrudan PDF şablonlarına yerleştirilebilir formatta olacaktır.68
+
+## **3\. Modelle Etkileşim: Kapsamlı Optimizasyon ve Analiz Prompt Şablonları**
+
+Sistem çalışırken LLM motorunu tetikleyecek, farklı analiz ihtiyaçlarına yönelik özel prompt şablonları oluşturulmalıdır. Bu şablonlar, aynı zamanda modelin ince ayar (fine-tuning) süreçlerinde de eğitim verisi olarak sisteme sunulmalıdır.44
+
+### **A. Kök Neden Analizi (Root Cause Analysis) Eğitim Promptu**
+
+*Amaç:* Metriklerdeki yükseliş veya düşüşlerin arkasındaki nedenleri, sadece verileri okuyarak değil, veriler arasındaki ilişkileri mantıksal olarak kurarak açıklamak.4 **Sistem Girdisi:** {{Campaign\_Performance\_Data\_CSV}}, {{RAG\_Latest\_Platform\_Updates}} **Yönerge:** "Sana sağlanan kampanya veri setini incele. Bir önceki raporlama dönemine (7 günlük periyot) kıyasla CPA (Müşteri Edinme Maliyeti) değerinde %15'in üzerinde bir artış gösteren tüm kampanya gruplarını tespit et. Bu artışların olası sebeplerini belirlemek için şu adımları izle:
+
+1. Reklam Sıklığı (Frequency) ile CTR (Tıklama Oranı) korelasyonunu kontrol et. Sıklık artarken CTR düşüyorsa, bunun 'Yaratıcı Yorgunluk' (Creative Fatigue) olduğunu belirt.4  
+2. Tıklama Oranı (CTR) yüksek ancak Dönüşüm Oranı (CVR) düşük olan gruplar için 'Açılış Sayfası Uyumsuzluğu veya Sitedeki Teknik Hata' teşhisi koy.  
+3. RAG veritabanını tarayarak, bu düşüşün yaşandığı tarihlerde platform (örneğin Meta Andromeda veya Google AI Max) genelinde raporlanmış global bir güncelleme veya sinyal kaybı olup olmadığını kontrol et. **Çıktı Formatı:** Teşhis, Kanıtlama (hangi metriklere dayandığı) ve Önerilen Stratejik Çözüm alt başlıklarını içeren, yüzdelik oranların koyu renkle vurgulandığı net bir tablo oluştur." 44
+
+### **B. Değişim Öncesi ve Sonrası (Before/After) Kanıt Promptu**
+
+*Amaç:* Ajansın kampanya üzerindeki optimizasyon etkisini müşteriye somut kanıtlarla göstermek ve başarıyı meşrulaştırmak.43 **Sistem Girdisi:** {{Optimization\_Event\_Date}}, {{Data\_Pre\_Event}}, {{Data\_Post\_Event}} **Yönerge:** "Müşteri kampanyasında {{Optimization\_Event\_Date}} tarihinde hedef kitle segmentasyonu daraltılmış ve teklif stratejisi değiştirilmiştir. Bu tarih öncesindeki 14 günlük periyot ile sonrasındaki 14 günlük periyodu karşılaştır. Yalnızca Tıklama, Toplam Maliyet, Dönüşüm Sayısı, CPA ve ROAS metriklerine odaklan. Her bir metrikteki net yüzdelik artışı veya azalışı hesapla. Beklenmeyen bir sonuç ortaya çıkmışsa (örneğin CPC arttığı halde ROAS da arttıysa), bu durumu 'trafiğin pahalılaşmasına rağmen kalitesinin artması ve dönüşüm niyetinin yükselmesi' çerçevesinde mantıksal olarak açıkla. **Çıktı Formatı:** 'Değişim Öncesi', 'Değişim Sonrası' ve 'Net FARK (%)' sütunlarını barındıran bir karşılaştırma tablosu ve tablonun altında bu değişimin genel kârlılığa etkisini anlatan 2 cümlelik minimalist bir paragraf." 43
+
+### **C. Metin Dışı Kreatif (Creative Audit) Yönlendirme Promptu**
+
+*Amaç:* Görsel ağırlıklı platformlarda (özellikle TikTok ve Meta Reels) hangi reklam görselinin veya videosunun neden başarılı olduğunu anlamlandırmak.25 **Sistem Girdisi:** {{Creative\_Level\_Performance\_Data}} (İzlenme süreleri, 2-saniye tutma oranları, etkileşimler, CTR). **Yönerge:** "Meta Reels ve TikTok kampanyalarından elde edilen reklam görseli (creative) bazlı verileri analiz et. Reklamları üç ana aşamada değerlendir: 'Kanca (Hook) Başarısı' (ilk 2 saniyelik izlenme oranı ve kaydırmayı durdurma/thumb-stop), 'İlgi Tutma Başarısı' (Videonun %50'sinin izlenme oranı) ve 'Eylem Çağrısı (CTA) Başarısı' (CTR ve Dönüşüm). 25 Marka mesajını doğru veremeyen, yüksek izlenmeye rağmen düşük CTR getiren videoları tespit et. **Çıktı Formatı:** En yüksek ROI getiren 3 kreatifin ortak özelliklerini (görsel unsurlar, metin uzunluğu, müzik kullanımı) bir analiz paragrafında birleştir. Düşük performanslı 3 kreatif için ise neden başarısız olduklarını belirterek iyileştirme tavsiyeleri sun." 72
+
+## **4\. Eğitimde Çapraz Platform Bilinci (Cross-Channel Synergy)**
+
+Yapay zeka sistemi eğitilirken, reklam platformlarının birbirinden izole silolar (silos) olmadığı, tam tersine birbirini besleyen bir ekosistem oluşturduğu öğretilmelidir.32 Modelin ağırlıklandırılmış eğitim setine şu kurallar yerleştirilmelidir:
+
+* TikTok'un üst huni (top-of-funnel) keşiflerinde ve kültürel trendlerde çok güçlü olduğu, Meta'nın talep yaratma (demand generation) aşamasında, Google Ads Arama Ağı'nın ise en alt hunideki (lower funnel) yüksek niyetli (high-intent) talebi toplamada etkili olduğu bilinci aşılanmalıdır.25  
+* RAG üzerinden gelen araştırmalar ışığında, örneğin Ebiquity analizlerinin TikTok'un televizyon reklamlarıyla birleştiğinde yarattığı "halo etkisi" veya Meta platformunda reklamı gören bir kullanıcının gidip Google'da organik arama yaparak marka değerini (brand lift) nasıl artırdığı gibi korelasyonlar modele öğretilmelidir.24  
+* Çapraz kanal atıf (attribution) analizleri yaparken model, hiçbir zaman ilkel "Son Tıklama" (Last Click) modelini kullanmamalı, daima "Veri Odaklı" (Data-Driven) veya "Pozisyona Dayalı" (Position-Based) ilişkilendirme yapılarına öncelik vermesi gerektiği kuralı ile sınırlandırılmalıdır.31
+
+## **5\. Güvenişilirlik, Halüsinasyon Kontrolü ve Matematiksel Doğrulama (Governance)**
+
+Büyük dil modellerinin en zayıf noktası, aritmetik hesaplamalarda mantık hataları yapabilmeleri ve güvenilirmiş gibi görünen ancak hatalı olan çıkarımlar (halüsinasyonlar) sunabilmeleridir.79 Eğitimin bu son aşamasında, modelin güvenliğini sağlamak için mimariye kısıtlamalar eklenmelidir:
+
+* **Aritmetik Denetim Kısıtlaması (Separation of Concerns):** Modele açıkça şu kural öğretilmelidir: "Asla kendi kelime tahmin yeteneğini kullanarak toplama, çıkarma, yüzdelik hesaplama veya ROAS formülasyonu (Gelir / Gider) yapma." Sistem, tüm sayısal hesaplamaları Python tabanlı bir kod ortamında (Pandas DataFrame gibi) çalıştırmalıdır. Yapay zekanın görevi, hesaplamak değil, zaten kod tarafından doğru hesaplanmış sayısal tabloları alıp anlamsal olarak yorumlamaktır.54  
+* **Tutarlılık ve İsimlendirme Kuralları (Taxonomy):** Model, oluşturduğu raporun başından sonuna kadar aynı terimleri kullanmaya zorlanmalıdır. Bir tabloda "Harcama" dediği değere, sonraki paragrafta "Maliyet" diyerek kafa karışıklığı yaratmamalıdır.31  
+* **Kaynak Atfı Zorunluluğu (Citation Requirement):** Ajans müşterilerine sunulacak raporun güvenilirliği için model, RAG sisteminden platform değişiklikleriyle ilgili bir bilgi aktardığında, kaynağını analizin sonuna \`\` formatında referans göstermek zorundadır.1 "Tıklama maliyetlerindeki artış, Avrupa genelinde uygulanan yeni %5 dijital hizmetler vergisinden kaynaklanmaktadır" gibi bir iddiayı, mutlaka resmi Meta kaynağıyla desteklemesi şart koşulmalıdır.24
+
+## **Genel Değerlendirme**
+
+Dünyadaki veri akış hızının insan algısını aştığı 2026 reklamcılık sektöründe, bir ajansın otonom yapay zeka entegrasyonuna geçişi, verimlilik artışından çok bir varoluş gerekliliğidir.5 Bu raporda sunulan sistem; Google, Meta ve TikTok'un resmi kanal bağlantılarından RAG teknolojisi ile durmaksızın veri çeken, algoritmaların anlık değişimlerini kendi veri setiyle harmanlayan ve kampanya performans metriklerini kök neden analizine kadar derinlemesine inceleyen canlı bir organizma olarak tasarlanmıştır.3
+
+Raporların son kullanıcıya ulaşan çıktı katmanı, minimalist görsel tasarım prensiplerini ve Python temelli otomatik PDF üretim mekanizmalarını kullanarak; karmaşıklığı sade, stratejik ve karar alınabilir şelale ile huni grafiklerine dönüştürmektedir.49 Ancak sistemin asıl dehası, yapay zekayı bir sohbet aracı olmaktan çıkarıp, TRIM metodolojisi, çapraz kanal bilinci ve matematiksel tutarlılık kısıtlamaları ile şekillendirilmiş bir strateji uzmanına dönüştüren eğitim ve komut (prompt) mimarilerindedir.40 Kurulan bu uçtan uca mimari; ajansın manuel raporlama yükünü ortadan kaldıracak, veri tutarlılığını garantileyecek ve müşterilere her zaman pazarın en güncel, analitik derinliği en yüksek raporlarını, şeffaf bir otomasyon döngüsü içinde sunacaktır. Sistemin düzenli olarak yeni API bağlantıları ve otomasyon düğümleri ile genişletilmesi, bu yapının sürekli öğrenen, evrilen ve dijital büyüme hedeflerini maksimize eden eşsiz bir değer üreticisi olmasını sağlayacaktır.
+
+#### **Alıntılanan çalışmalar**
+
+1. AI trends in Marketing for 2026: what to expect | Narrativa, erişim tarihi Mart 15, 2026, [https://www.narrativa.com/ai-trends-in-marketing-for-2026-what-to-expect/](https://www.narrativa.com/ai-trends-in-marketing-for-2026-what-to-expect/)  
+2. From Ambition to Activation: Organizations Stand at the Untapped Edge of AI's Potential, Reveals Deloitte Survey – Press Release, erişim tarihi Mart 15, 2026, [https://www.deloitte.com/us/en/about/press-room/state-of-ai-report-2026.html](https://www.deloitte.com/us/en/about/press-room/state-of-ai-report-2026.html)  
+3. How AI agents are automating client reporting for marketing agencies \- Glean, erişim tarihi Mart 15, 2026, [https://www.glean.com/perspectives/how-ai-agents-are-transforming-client-reporting-workflows-for-marketing-agencies](https://www.glean.com/perspectives/how-ai-agents-are-transforming-client-reporting-workflows-for-marketing-agencies)  
+4. Campaign Anomaly Detection with AI \- The Pedowitz Group, erişim tarihi Mart 15, 2026, [https://www.pedowitzgroup.com/campaign-anomaly-detection-with-ai](https://www.pedowitzgroup.com/campaign-anomaly-detection-with-ai)  
+5. AI Agent Marketing: How Autonomous AI Is Changing Content Ops in 2026 \- Averi, erişim tarihi Mart 15, 2026, [https://www.averi.ai/how-to/ai-agent-marketing-how-autonomous-ai-is-changing-content-ops-in-2026](https://www.averi.ai/how-to/ai-agent-marketing-how-autonomous-ai-is-changing-content-ops-in-2026)  
+6. AI Marketing Automation 2026: Complete Guide to Self-Optimizing Campaigns \- Neuwark, erişim tarihi Mart 15, 2026, [https://neuwark.com/blog/ai-marketing-automation-2026-guide](https://neuwark.com/blog/ai-marketing-automation-2026-guide)  
+7. What are RAG models? A guide to enterprise AI in 2025 \- Glean, erişim tarihi Mart 15, 2026, [https://www.glean.com/blog/rag-models-enterprise-ai](https://www.glean.com/blog/rag-models-enterprise-ai)  
+8. What Is Retrieval-Augmented Generation (RAG)? \- Salesforce, erişim tarihi Mart 15, 2026, [https://www.salesforce.com/agentforce/what-is-rag/](https://www.salesforce.com/agentforce/what-is-rag/)  
+9. What is Retrieval Augmented Generation (RAG)? \- Databricks, erişim tarihi Mart 15, 2026, [https://www.databricks.com/blog/what-is-retrieval-augmented-generation](https://www.databricks.com/blog/what-is-retrieval-augmented-generation)  
+10. What is RAG (Retrieval Augmented Generation)? \- IBM, erişim tarihi Mart 15, 2026, [https://www.ibm.com/think/topics/retrieval-augmented-generation](https://www.ibm.com/think/topics/retrieval-augmented-generation)  
+11. I Built RAG Systems for Enterprises (20K+ Docs). Here's the learning path I wish I had (complete guide) : r/LLMDevs \- Reddit, erişim tarihi Mart 15, 2026, [https://www.reddit.com/r/LLMDevs/comments/1nl9oxo/i\_built\_rag\_systems\_for\_enterprises\_20k\_docs/](https://www.reddit.com/r/LLMDevs/comments/1nl9oxo/i_built_rag_systems_for_enterprises_20k_docs/)  
+12. How to build a RAG system (with Meilisearch), erişim tarihi Mart 15, 2026, [https://www.meilisearch.com/blog/how-to-build-rag](https://www.meilisearch.com/blog/how-to-build-rag)  
+13. erişim tarihi Mart 15, 2026, [https://www.nimbleway.com/blog/rag-pipeline-guide](https://www.nimbleway.com/blog/rag-pipeline-guide)  
+14. AI Agent integrations | Workflow automation with n8n, erişim tarihi Mart 15, 2026, [https://n8n.io/integrations/agent/](https://n8n.io/integrations/agent/)  
+15. How to Build a RAG System That Actually Works \- YouTube, erişim tarihi Mart 15, 2026, [https://www.youtube.com/watch?v=pvCabUerwss](https://www.youtube.com/watch?v=pvCabUerwss)  
+16. How I Built an Enterprise RAG System That Searches 50+ Million Records in Under 30 Seconds \- Medium, erişim tarihi Mart 15, 2026, [https://medium.com/@ceo\_44783/how-i-built-an-enterprise-rag-system-that-searches-50-million-records-in-under-30-seconds-fe84f409b187](https://medium.com/@ceo_44783/how-i-built-an-enterprise-rag-system-that-searches-50-million-records-in-under-30-seconds-fe84f409b187)  
+17. Google Ads & Commerce, erişim tarihi Mart 15, 2026, [https://blog.google/products/ads-commerce/](https://blog.google/products/ads-commerce/)  
+18. New features & announcements \- Google Ads Help, erişim tarihi Mart 15, 2026, [https://support.google.com/google-ads/announcements/9048695?hl=en](https://support.google.com/google-ads/announcements/9048695?hl=en)  
+19. Update to the 2025 Google Ads API release schedule, erişim tarihi Mart 15, 2026, [http://ads-developers.googleblog.com/2025/05/update-to-2025-google-ads-api-release.html](http://ads-developers.googleblog.com/2025/05/update-to-2025-google-ads-api-release.html)  
+20. Subscribe to the blog \- Google Ads Developer Blog, erişim tarihi Mart 15, 2026, [http://ads-developers.googleblog.com/2024/09/subscribe-to-blog.html](http://ads-developers.googleblog.com/2024/09/subscribe-to-blog.html)  
+21. Official news and updates about Google Ads, erişim tarihi Mart 15, 2026, [https://blog.google/innovation-and-ai/technology/ads/](https://blog.google/innovation-and-ai/technology/ads/)  
+22. Latest Meta Company News | Meta Newsroom \- About Meta | Social Technology, VR, AR, and Innovation \- Facebook, erişim tarihi Mart 15, 2026, [https://about.fb.com/news/category/technologies/meta/](https://about.fb.com/news/category/technologies/meta/)  
+23. Newsroom \- About Meta | Social Technology, VR, AR, and Innovation \- Facebook, erişim tarihi Mart 15, 2026, [https://about.fb.com/news/](https://about.fb.com/news/)  
+24. Meta news, analysis, trends, tactics and how-to guides from Search ..., erişim tarihi Mart 15, 2026, [https://searchengineland.com/library/platforms/meta](https://searchengineland.com/library/platforms/meta)  
+25. TikTok Advertising Blog: Find Product Updates, Insights & Tips, erişim tarihi Mart 15, 2026, [https://ads.tiktok.com/business/en-US/blog](https://ads.tiktok.com/business/en-US/blog)  
+26. tiktok-business-api-sdk/Changelog.md at main \- GitHub, erişim tarihi Mart 15, 2026, [https://github.com/tiktok/tiktok-business-api-sdk/blob/main/Changelog.md](https://github.com/tiktok/tiktok-business-api-sdk/blob/main/Changelog.md)  
+27. TikTok API for Business, erişim tarihi Mart 15, 2026, [https://business-api.tiktok.com/portal](https://business-api.tiktok.com/portal)  
+28. Docs \- TikTok API for Business, erişim tarihi Mart 15, 2026, [https://business-api.tiktok.com/portal/docs](https://business-api.tiktok.com/portal/docs)  
+29. Release notes | Google Ads API | Google for Developers, erişim tarihi Mart 15, 2026, [https://developers.google.com/google-ads/api/docs/release-notes](https://developers.google.com/google-ads/api/docs/release-notes)  
+30. Smart+: AI-Powered Solution To Maximize Ad Campaign Results ..., erişim tarihi Mart 15, 2026, [https://ads.tiktok.com/business/en-US/blog/smart-plus-ai-performance-solution](https://ads.tiktok.com/business/en-US/blog/smart-plus-ai-performance-solution)  
+31. Return on Ad Spend (ROAS): The Complete B2B Marketing Guide \- LEADSCALE, erişim tarihi Mart 15, 2026, [https://leadscale.com/insights/roas/](https://leadscale.com/insights/roas/)  
+32. A Guide to Ecommerce Metrics \- Triple Whale Help Center, erişim tarihi Mart 15, 2026, [https://kb.triplewhale.com/en/articles/9530592-a-guide-to-ecommerce-metrics](https://kb.triplewhale.com/en/articles/9530592-a-guide-to-ecommerce-metrics)  
+33. 25 Key Advertising Metrics All Digital Marketers Should Track \- Dragonfly AI, erişim tarihi Mart 15, 2026, [https://dragonflyai.co/resources/blog/25-key-advertising-metrics-all-digital-marketers-should-track](https://dragonflyai.co/resources/blog/25-key-advertising-metrics-all-digital-marketers-should-track)  
+34. Google Ads KPIs Explained: CTR, CPC, ROAS & More \- Complete Guide 2025 | AskGAAI, erişim tarihi Mart 15, 2026, [https://askgaai.com/google-ads-kpis-guide](https://askgaai.com/google-ads-kpis-guide)  
+35. 25 Advertising Metrics All Digital Marketers Need to Be Tracking \- Instapage, erişim tarihi Mart 15, 2026, [https://instapage.com/blog/key-advertising-metrics](https://instapage.com/blog/key-advertising-metrics)  
+36. What is return on ad spend (ROAS)? \- Adjust, erişim tarihi Mart 15, 2026, [https://www.adjust.com/glossary/roas-definition/](https://www.adjust.com/glossary/roas-definition/)  
+37. ROAS Optimization: How to Maximize Returns on Ad Spend in 2025 \- Eliya, erişim tarihi Mart 15, 2026, [https://www.eliya.io/blog/marketing-spend-optimization/roas-optimization](https://www.eliya.io/blog/marketing-spend-optimization/roas-optimization)  
+38. Return on Ad Spend (ROAS): The Definitive 2026 Guide \- Improvado, erişim tarihi Mart 15, 2026, [https://improvado.io/blog/return-on-ad-spend](https://improvado.io/blog/return-on-ad-spend)  
+39. Agentic AI and the Future of Media & Advertising in 2026 \- Snowflake, erişim tarihi Mart 15, 2026, [https://www.snowflake.com/en/blog/advertising-media-predictions-2026/](https://www.snowflake.com/en/blog/advertising-media-predictions-2026/)  
+40. AI Agents for Marketing Operations: Automate Campaign Reporting & Content Personalization at Scale \- StackAI, erişim tarihi Mart 15, 2026, [https://www.stack-ai.com/insights/ai-agents-for-marketing-operations-automate-campaign-reporting-content-personalization-at-scale](https://www.stack-ai.com/insights/ai-agents-for-marketing-operations-automate-campaign-reporting-content-personalization-at-scale)  
+41. Finance scenario: Spend anomaly identification agent \- adoption.microsoft.com, erişim tarihi Mart 15, 2026, [https://adoption.microsoft.com/en-us/scenario-library/finance/spend-anomaly-identification-agent/](https://adoption.microsoft.com/en-us/scenario-library/finance/spend-anomaly-identification-agent/)  
+42. Build a Log Analysis Multi-Agent Self-Corrective RAG System with NVIDIA Nemotron, erişim tarihi Mart 15, 2026, [https://developer.nvidia.com/blog/build-a-log-analysis-multi-agent-self-corrective-rag-system-with-nvidia-nemotron/](https://developer.nvidia.com/blog/build-a-log-analysis-multi-agent-self-corrective-rag-system-with-nvidia-nemotron/)  
+43. MINT's Data Analyst Agent Just Got Smarter: 5 New Use Cases to Uncover Campaign Insights, erişim tarihi Mart 15, 2026, [https://www.mint.ai/blog/mints-data-analyst-agent-just-got-smarter-5-new-use-cases-to-uncover-campaign-insights](https://www.mint.ai/blog/mints-data-analyst-agent-just-got-smarter-5-new-use-cases-to-uncover-campaign-insights)  
+44. ChatGPT for Marketing Analytics: 15 Prompts That Actually Work \- Dataslayer, erişim tarihi Mart 15, 2026, [https://www.dataslayer.ai/blog/chatgpt-prompts-that-actually-work](https://www.dataslayer.ai/blog/chatgpt-prompts-that-actually-work)  
+45. Automate weekly Meta Ad reports with Claude AI, GoMarble MCP & Google Slides \- N8N, erişim tarihi Mart 15, 2026, [https://n8n.io/workflows/7695-automate-weekly-meta-ad-reports-with-claude-ai-gomarble-mcp-and-google-slides/](https://n8n.io/workflows/7695-automate-weekly-meta-ad-reports-with-claude-ai-gomarble-mcp-and-google-slides/)  
+46. Conversational Meta ads reporting & management with GPT-5 | n8n workflow template, erişim tarihi Mart 15, 2026, [https://n8n.io/workflows/7957-conversational-meta-ads-reporting-and-management-with-gpt-5/](https://n8n.io/workflows/7957-conversational-meta-ads-reporting-and-management-with-gpt-5/)  
+47. Automate Multi-Platform Social Media Content Creation with AI | n8n workflow template, erişim tarihi Mart 15, 2026, [https://n8n.io/workflows/3066-automate-multi-platform-social-media-content-creation-with-ai/](https://n8n.io/workflows/3066-automate-multi-platform-social-media-content-creation-with-ai/)  
+48. AI marketing report (Google Analytics & Ads, Meta Ads), sent via email/Telegram \- N8N, erişim tarihi Mart 15, 2026, [https://n8n.io/workflows/2783-ai-marketing-report-google-analytics-and-ads-meta-ads-sent-via-emailtelegram/](https://n8n.io/workflows/2783-ai-marketing-report-google-analytics-and-ads-meta-ads-sent-via-emailtelegram/)  
+49. With Dashboards, Formatting and Layout Definitely Matter \- Perceptual Edge, erişim tarihi Mart 15, 2026, [https://www.perceptualedge.com/articles/Whitepapers/Formatting\_and\_Layout\_Matter.pdf](https://www.perceptualedge.com/articles/Whitepapers/Formatting_and_Layout_Matter.pdf)  
+50. A Guide to Creating Dashboards People Love to Use \- Squarespace, erişim tarihi Mart 15, 2026, [https://static1.squarespace.com/static/52f42657e4b0b3416ff6b831/t/55b9117ae4b060a0d84fef15/1438191994754/Dashboards\_People\_Love\_To\_Use\_Whitepaper\_v2.pdf](https://static1.squarespace.com/static/52f42657e4b0b3416ff6b831/t/55b9117ae4b060a0d84fef15/1438191994754/Dashboards_People_Love_To_Use_Whitepaper_v2.pdf)  
+51. 13 Best Tools For Automated Reports \- Displayr, erişim tarihi Mart 15, 2026, [https://www.displayr.com/best-tools-for-automated-reports/](https://www.displayr.com/best-tools-for-automated-reports/)  
+52. looking for an "low dependency" or pythonesque way to generate PDF's : r/Python \- Reddit, erişim tarihi Mart 15, 2026, [https://www.reddit.com/r/Python/comments/y0dxrg/looking\_for\_an\_low\_dependency\_or\_pythonesque\_way/](https://www.reddit.com/r/Python/comments/y0dxrg/looking_for_an_low_dependency_or_pythonesque_way/)  
+53. How to Generate PDF Using ReportLab in Python (Updated 2025), erişim tarihi Mart 15, 2026, [https://pdfnoodle.com/blog/how-to-generate-pdf-from-html-using-reportlab-in-python](https://pdfnoodle.com/blog/how-to-generate-pdf-from-html-using-reportlab-in-python)  
+54. Data Deep Dive: Creating PDF reports with ReportLab and Pandas, erişim tarihi Mart 15, 2026, [https://nicd.org.uk/knowledge-hub/creating-pdf-reports-with-reportlab-and-pandas](https://nicd.org.uk/knowledge-hub/creating-pdf-reports-with-reportlab-and-pandas)  
+55. PedroReports-An Open Source LLM Powered Automated Data Analysis Report Generator Tool : r/Python \- Reddit, erişim tarihi Mart 15, 2026, [https://www.reddit.com/r/Python/comments/1ifqz4j/pedroreportsan\_open\_source\_llm\_powered\_automated/](https://www.reddit.com/r/Python/comments/1ifqz4j/pedroreportsan_open_source_llm_powered_automated/)  
+56. Generating pdfs with ReportLab \- Ryan von Kunes Newton \- Medium, erişim tarihi Mart 15, 2026, [https://vonkunesnewton.medium.com/generating-pdfs-with-reportlab-ced3b04aedef](https://vonkunesnewton.medium.com/generating-pdfs-with-reportlab-ced3b04aedef)  
+57. Report and Dashboard Design Principles \[Slides\] | PDF | Page Layout | Computing \- Scribd, erişim tarihi Mart 15, 2026, [https://www.scribd.com/document/993123321/Report-and-Dashboard-Design-Principles-Slides](https://www.scribd.com/document/993123321/Report-and-Dashboard-Design-Principles-Slides)  
+58. 9 Free Digital Marketing Report Templates to Save You Time | Whatagraph, erişim tarihi Mart 15, 2026, [https://whatagraph.com/blog/articles/digital-marketing-report-template](https://whatagraph.com/blog/articles/digital-marketing-report-template)  
+59. Free Digital Marketing Report Sample PDF \- AgencyAnalytics, erişim tarihi Mart 15, 2026, [https://agencyanalytics.com/blog/digital-marketing-report-sample-pdf](https://agencyanalytics.com/blog/digital-marketing-report-sample-pdf)  
+60. Create a waterfall chart \- Microsoft Support, erişim tarihi Mart 15, 2026, [https://support.microsoft.com/en-us/office/create-a-waterfall-chart-8de1ece4-ff21-4d37-acd7-546f5527f185](https://support.microsoft.com/en-us/office/create-a-waterfall-chart-8de1ece4-ff21-4d37-acd7-546f5527f185)  
+61. Waterfall Chart Guide: How to Visualize Change Step by Step \- Domo, erişim tarihi Mart 15, 2026, [https://www.domo.com/learn/charts/waterfall-charts](https://www.domo.com/learn/charts/waterfall-charts)  
+62. A Complete Guide to Funnel Charts | Atlassian, erişim tarihi Mart 15, 2026, [https://www.atlassian.com/data/charts/funnel-chart-complete-guide](https://www.atlassian.com/data/charts/funnel-chart-complete-guide)  
+63. Free funnel chart templates to customize and share \- Canva, erişim tarihi Mart 15, 2026, [https://www.canva.com/online-whiteboard/templates/funnel-chart/](https://www.canva.com/online-whiteboard/templates/funnel-chart/)  
+64. Funnel Chart in Reports: Benefits, Uses & How to Create It, erişim tarihi Mart 15, 2026, [https://www.boldreports.com/blog/how-to-create-funnel-chart-in-reports/](https://www.boldreports.com/blog/how-to-create-funnel-chart-in-reports/)  
+65. Design Principles in the Development of Dashboards for Business Management, erişim tarihi Mart 15, 2026, [https://www.researchgate.net/publication/355031055\_Design\_Principles\_in\_the\_Development\_of\_Dashboards\_for\_Business\_Management](https://www.researchgate.net/publication/355031055_Design_Principles_in_the_Development_of_Dashboards_for_Business_Management)  
+66. 44 Best Business Report Templates & Examples for 2026 \- Visme, erişim tarihi Mart 15, 2026, [https://visme.co/blog/business-report-templates/](https://visme.co/blog/business-report-templates/)  
+67. How to Learn AI Prompt Engineering for Marketing \- HubSpot Academy, erişim tarihi Mart 15, 2026, [https://academy.hubspot.com/lessons/ai-prompting-for-marketers](https://academy.hubspot.com/lessons/ai-prompting-for-marketers)  
+68. Getting Good at AI: A Marketer's Guide to Prompt Engineering \- Skai, erişim tarihi Mart 15, 2026, [https://skai.io/blog/marketers-guide-to-prompt-engineering/](https://skai.io/blog/marketers-guide-to-prompt-engineering/)  
+69. 5 AI Prompts Every Digital Marketer Needs To Scale Campaigns in 2026 \- Reddit, erişim tarihi Mart 15, 2026, [https://www.reddit.com/r/PromptEngineering/comments/1qcloww/5\_ai\_prompts\_every\_digital\_marketer\_needs\_to/](https://www.reddit.com/r/PromptEngineering/comments/1qcloww/5_ai_prompts_every_digital_marketer_needs_to/)  
+70. This single prompt generates my entire MARKETING STRATEGY : r/ChatGPTPromptGenius \- Reddit, erişim tarihi Mart 15, 2026, [https://www.reddit.com/r/ChatGPTPromptGenius/comments/1jmti61/this\_single\_prompt\_generates\_my\_entire\_marketing/](https://www.reddit.com/r/ChatGPTPromptGenius/comments/1jmti61/this_single_prompt_generates_my_entire_marketing/)  
+71. What is RAG? \- Retrieval-Augmented Generation AI Explained \- AWS, erişim tarihi Mart 15, 2026, [https://aws.amazon.com/what-is/retrieval-augmented-generation/](https://aws.amazon.com/what-is/retrieval-augmented-generation/)  
+72. 18 ChatGPT Prompts for Ad Creative and Copywriting That Actually Improve Performance, erişim tarihi Mart 15, 2026, [https://pixis.ai/blog/18-chatgpt-prompts-for-ad-creative-and-copywriting-that-actually-improve-performance/](https://pixis.ai/blog/18-chatgpt-prompts-for-ad-creative-and-copywriting-that-actually-improve-performance/)  
+73. AI Prompts for Finance: 15 Real-World Examples \- AFP, erişim tarihi Mart 15, 2026, [https://www.financialprofessionals.org/training-resources/resources/articles/Details/ai-prompts-for-finance-15-real-world-examples](https://www.financialprofessionals.org/training-resources/resources/articles/Details/ai-prompts-for-finance-15-real-world-examples)  
+74. 25+ AI prompts for Marketing in 2025 \- Glean, erişim tarihi Mart 15, 2026, [https://www.glean.com/blog/ai-prompts-for-marketing](https://www.glean.com/blog/ai-prompts-for-marketing)  
+75. How to Find Winning Creatives and Use AI to Maximize ROAS \- Segwise AI, erişim tarihi Mart 15, 2026, [https://segwise.ai/blog/ai-strategies-winning-creative-ads](https://segwise.ai/blog/ai-strategies-winning-creative-ads)  
+76. 20 AI Prompt Ideas & Example Templates For PPC (Easy \+ Advanced), erişim tarihi Mart 15, 2026, [https://www.searchenginejournal.com/ai-prompt-ideas-templates-ppc/560023/](https://www.searchenginejournal.com/ai-prompt-ideas-templates-ppc/560023/)  
+77. TikTok for Business | Marketing & Advertising on TikTok, erişim tarihi Mart 15, 2026, [https://ads.tiktok.com/business/en-US](https://ads.tiktok.com/business/en-US)  
+78. 40 AI prompts to boost your marketing team's creativity and efficiency \- Atlassian, erişim tarihi Mart 15, 2026, [https://www.atlassian.com/blog/artificial-intelligence/ai-prompts-for-marketing](https://www.atlassian.com/blog/artificial-intelligence/ai-prompts-for-marketing)  
+79. AI Agentic Workflows: Marketing Revolution 2026, erişim tarihi Mart 15, 2026, [https://thesmarketers.com/blogs/ai-agentic-workflows-marketing/](https://thesmarketers.com/blogs/ai-agentic-workflows-marketing/)  
+80. Agentic AI in Enterprise Marketing: 2026 Playbook for Strategy, Execution, and Measurement | ALM Corp, erişim tarihi Mart 15, 2026, [https://almcorp.com/blog/agentic-ai-enterprise-marketing-playbook-2026/](https://almcorp.com/blog/agentic-ai-enterprise-marketing-playbook-2026/)

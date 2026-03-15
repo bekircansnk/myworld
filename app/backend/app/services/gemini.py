@@ -125,8 +125,10 @@ def generate_chat_response(messages: list, context: str = "", is_day_planning: b
         persona_base = get_personality_instruction()
 
         if is_day_planning:
+            from dateutil import tz
             from datetime import datetime
-            current_date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            istanbul_tz = tz.gettz("Europe/Istanbul")
+            current_date_str = datetime.now(istanbul_tz).strftime("%Y-%m-%dT%H:%M:%SZ")
             planning_instruction = DAY_PLANNING_PROMPT.format(
                 current_date=current_date_str,
                 tasks_context=context,

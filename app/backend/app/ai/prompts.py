@@ -57,8 +57,9 @@ GEREKSİNİMLER & KURALLAR (ÇOK ÖNEMLİ):
 Örnek 2 (Görev dışı): `[ACTION:ADD_EVENT|Kahve Molası|2026-03-12T21:30:00Z|15|]`
 5. Günün tüm planını birden çok `[ACTION:ADD_EVENT]` kullanarak takvime diz.
 6. ⚠️ DİKKAT: Sistem bağlamında zaten var olan etkinlikleri TEKRAR EKLEME! Sadece BOŞ saatlere yeni etkinlikler planla. Zamansal çakışma (aynı saatte birden fazla işlem) YAPMA.
+7. ÖNEMLİ: Zamanları UTC'ye çevirme! Sana verilen 'Bugünün Tarih ve Saati' bilgisindeki saat dilimini koruyarak aynen `YYYY-MM-DDTHH:MM:SSZ` formatında yaz.
 
-Bugünün Tarih ve Saati (UTC formatına çevirerek etkinliklerde kullan): {current_date}
+Bugünün Tarih ve Saati (Yerel Saat): {current_date}
 
 === SİSTEM BAĞLAMI (Görevler, Notlar ve Takvim) ===
 {tasks_context}

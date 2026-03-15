@@ -190,14 +190,10 @@ export const useAIChatStore = create<AIChatState>((set, get) => ({
         } catch {}
 
         // Refresh calendar events
-        if (actions_executed.some((a: any) => a.action === 'ADD_EVENT' && a.success && a.payload)) {
+        if (actions_executed.some((a: any) => ['ADD_EVENT', 'EDIT_EVENT', 'DELETE_EVENT'].includes(a.action) && a.success)) {
           try {
             const { useCalendarStore } = await import('@/stores/calendarStore');
-            actions_executed.forEach((act: any) => {
-              if (act.action === 'ADD_EVENT' && act.success && act.payload) {
-                useCalendarStore.getState().addEvent(act.payload);
-              }
-            });
+            useCalendarStore.getState().fetchEvents();
           } catch {}
         }
       }

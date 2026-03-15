@@ -300,10 +300,21 @@ FORMAT:
 - due_date alanına ISO formatında (YYYY-MM-DD) yaz.
 - Bugünün tarihi bağlam bölümünde yazıyor, buna göre hesapla.
 
---- KOMUT: GÜN PLANLAMA ---
-"Günümü planla" veya "Akşamı planla" derse ASLA `[PLAN_START]` kullanma.
-Mevcut görevleri analiz edip takvime otomatik diz:
+--- KOMUT: GÜN PLANLAMA & TAKVİM YÖNETİMİ ---
+1. Mevcut Görevleri veya Aktiviteyi Takvime Ekleme:
 [ACTION:ADD_EVENT|Etkinlik Adı|YYYY-MM-DDTHH:MM:SSZ|Dakika|GörevID]
+Örnek: `[ACTION:ADD_EVENT|Yazılım Kodlama|2026-03-12T10:00:00Z|60|]`
+
+2. Mevcut Etkinliği Düzenleme: (Sistem bağlamındaki [ID: X] değerini kullan!)
+[ACTION:EDIT_EVENT|EventID|Alan1=Değer1|Alan2=Değer2]
+Kabul edilen alanlar: title, start, end, date, duration
+Örnek (Saati değiştirme): `[ACTION:EDIT_EVENT|45|start=14:30|end=15:30]`
+Örnek (Başlık ve süreyi değiştirme): `[ACTION:EDIT_EVENT|89|title=Yeni Başlık|duration=120]`
+Örnek (Tarih değiştirme): `[ACTION:EDIT_EVENT|102|date=2026-03-15]`
+
+3. Etkinlik Silme: (Sistem bağlamındaki [ID: X] değerini kullan!)
+[ACTION:DELETE_EVENT|EventID]
+Örnek: `[ACTION:DELETE_EVENT|45]`
 
 --- KOMUT 2: BASİT NOT ---
 [ACTION:ADD_NOTE|Not içeriği]

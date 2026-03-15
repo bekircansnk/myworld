@@ -6,6 +6,10 @@ from app.models.task import Task
 from app.models.project import Project
 from app.models.note import Note
 from app.models.calendar_event import CalendarEvent
+from app.models.user import User
+from app.models.chat_session import ChatSession
+from app.services.location_service import utc_to_local, get_current_time_for_user, get_user_timezone
+from app.services.prayer_times_service import get_prayer_times
 
 async def build_system_context(db: AsyncSession, user_id: int) -> str:
     """
@@ -42,13 +46,50 @@ async def build_system_context(db: AsyncSession, user_id: int) -> str:
     total_done = len(done_tasks)
     total_subtasks = len(subtasks)
     
+    # Kullanıcı bilgileri
+    user_res = await db.execute(select(User).filter(User.id == user_id))
+    user = user_res.scalars().first()
+    
+    tz_str = get_user_timezone(user)
+    local_time = get_current_time_for_user(user)
+    
+    # Son Sohbet Geçmişi
+    sessions_res = await db.execute(
+        select(ChatSession).filter(ChatSession.user_id == user_id, ChatSession.is_active == True)
+        .order_by(ChatSession.updated_at.desc()).limit(3)
+    )
+    last_sessions = sessions_res.scalars().all()
+    
+    # Ezan Vakitleri
+    location = user.location if getattr(user, "location", None) else {"city": "Istanbul", "district": "Basaksehir", "country": "Turkey"}
+    city_str = location.get("city", "Istanbul")
+    country_str = location.get("country", "Turkey")
+    prayer_times = get_prayer_times(local_time.date(), city_str, country_str)
+
     # Bağlam oluştur
-    context = "=== SİSTEM DURUMU ===\n"
-    context += f"Tarih: {datetime.now().strftime('%d %B %Y %A, %H:%M')}\n"
+    context = "=== KONUM VE KİŞİSEL BİLGİLER ===\n"
+    context += f"📍 Konum: {city_str}, {location.get('district', '')}, {country_str}\n"
+    context += f"🕐 Yerel Saat: {local_time.strftime('%d %B %Y %A, %H:%M')} ({tz_str})\n"
+    context += "🕌 Bugünün Ezan Vakitleri:\n"
+    for name, time_ in prayer_times.items():
+        if name == 'aksam':
+            context += f"  - {name.capitalize()} (İftar): {time_}\n"
+        else:
+            context += f"  - {name.capitalize()}: {time_}\n"
+            
+    context += "\n=== SON SOHBET GEÇMİŞİ ===\n"
+    if not last_sessions:
+        context += "- Henüz geçmiş yok.\n"
+    for s in last_sessions:
+        if s.updated_at:
+            t = utc_to_local(s.updated_at, tz_str).strftime('%d/%m %H:%M')
+            context += f"- [{t}] \"{s.title}\" → Son Mesaj: {s.last_user_message or ''}\n"
+
+    context += "\n=== SİSTEM DURUMU ===\n"
     context += f"Toplam Aktif Görev: {total_active} | Tamamlanmış: {total_done} | Alt Görev: {total_subtasks}\n\n"
     
     # Takvim Etkinlikleri
-    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0)
+    today_start = local_time.replace(hour=0, minute=0, second=0).astimezone(timezone.utc)
     period_start = today_start - timedelta(days=7)
     period_end = today_start + timedelta(days=2)
     
@@ -62,14 +103,16 @@ async def build_system_context(db: AsyncSession, user_id: int) -> str:
     events = event_result.scalars().all()
     
     context += "=== TAKVİM ETKİNLİKLERİ (SON 7 GÜN + BUGÜN + YARIN) ===\n"
-    context += "⚠️ AŞAĞIDAKİ ETKİNLİKLER ZATEN TAKVİMDE VAR. Benzer veya aynı etkinlik OLUŞTURMA!\n"
+    context += "⚠️ AŞAĞIDAKİ ETKİNLİKLER ZATEN TAKVİMDE VAR. Benzer veya aynı etkinlik OLUŞTURMA! (Düzenleme veya silme işlemi için [ID: X] kullanın)\n"
     if not events:
         context += "- Yakın zamanda etkinlik yok.\n"
     for e in events:
-        time_str = e.start_time.strftime('%d/%m %H:%M')
-        end_str = e.end_time.strftime('%H:%M') if e.end_time else "?"
+        local_start = utc_to_local(e.start_time, tz_str)
+        local_end = utc_to_local(e.end_time, tz_str) if e.end_time else None
+        time_str = local_start.strftime('%d/%m %H:%M')
+        end_str = local_end.strftime('%H:%M') if local_end else "?"
         task_ref = f" (Görev ID:{e.task_id})" if e.task_id else ""
-        context += f"- [{time_str}-{end_str}] {e.title}{task_ref}\n"
+        context += f"- [ID:{e.id}] [{time_str}-{end_str}] {e.title}{task_ref}\n"
     context += "\n"
     
     # Projeler

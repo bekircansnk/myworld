@@ -12,6 +12,9 @@ class User(Base):
     avatar_url = Column(String, nullable=True)
     settings = Column(JSON, default={})
     
+    timezone = Column(String, default="Europe/Istanbul")
+    location = Column(JSON, default={"city": "Başakşehir", "district": "Başakşehir", "country": "Türkiye", "timezone": "Europe/Istanbul"})
+    
     projects = relationship("Project", back_populates="user")
     tasks = relationship("Task", back_populates="user")
     notes = relationship("Note", back_populates="user")

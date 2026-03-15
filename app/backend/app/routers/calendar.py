@@ -9,15 +9,20 @@ from app.models.calendar_event import CalendarEvent
 from app.schemas.calendar import CalendarEventCreate, CalendarEventUpdate, CalendarEventResponse
 from app.dependencies.auth import get_current_user
 from app.models.user import User
+from app.services.location_service import local_to_utc, utc_to_local, get_user_timezone
 
 router = APIRouter(prefix="/calendar/events", tags=["calendar"])
 
 def convert_to_response(db_event: CalendarEvent) -> CalendarEventResponse:
     # DB: start_time, end_time, event_type
     # Frontend: date, startTime, endTime, category
-    date_str = db_event.start_time.strftime("%Y-%m-%d")
-    start_str = db_event.start_time.strftime("%H:%M")
-    end_str = db_event.end_time.strftime("%H:%M")
+    tz_str = db_event.user.timezone if getattr(db_event, "user", None) and getattr(db_event.user, "timezone", None) else "Europe/Istanbul"
+    start_local = utc_to_local(db_event.start_time, tz_str)
+    end_local = utc_to_local(db_event.end_time, tz_str)
+    
+    date_str = start_local.strftime("%Y-%m-%d")
+    start_str = start_local.strftime("%H:%M")
+    end_str = end_local.strftime("%H:%M")
     
     return CalendarEventResponse(
         id=db_event.id,
@@ -46,10 +51,9 @@ async def create_event(event: CalendarEventCreate, db: AsyncSession = Depends(ge
     start_dt = datetime.fromisoformat(start_time_str)
     end_dt = datetime.fromisoformat(end_time_str)
     
-    if start_dt.tzinfo is None:
-        start_dt = start_dt.replace(tzinfo=timezone.utc)
-    if end_dt.tzinfo is None:
-        end_dt = end_dt.replace(tzinfo=timezone.utc)
+    user_tz = get_user_timezone(current_user)
+    start_dt = local_to_utc(start_dt, user_tz)
+    end_dt = local_to_utc(end_dt, user_tz)
         
     db_event = CalendarEvent(
         user_id=current_user.id,
@@ -81,12 +85,16 @@ async def update_event(event_id: int, event: CalendarEventUpdate, db: AsyncSessi
     if not db_event:
         raise HTTPException(status_code=404, detail="Event not found")
         
-    date_val = event.date or db_event.start_time.strftime("%Y-%m-%d")
-    start_val = event.startTime or db_event.start_time.strftime("%H:%M")
-    end_val = event.endTime or db_event.end_time.strftime("%H:%M")
+    user_tz = get_user_timezone(current_user)
+    date_val = event.date or utc_to_local(db_event.start_time, user_tz).strftime("%Y-%m-%d")
+    start_val = event.startTime or utc_to_local(db_event.start_time, user_tz).strftime("%H:%M")
+    end_val = event.endTime or utc_to_local(db_event.end_time, user_tz).strftime("%H:%M")
     
-    new_start_dt = datetime.fromisoformat(f"{date_val}T{start_val}:00").replace(tzinfo=timezone.utc)
-    new_end_dt = datetime.fromisoformat(f"{date_val}T{end_val}:00").replace(tzinfo=timezone.utc)
+    new_start_dt = datetime.fromisoformat(f"{date_val}T{start_val}:00")
+    new_end_dt = datetime.fromisoformat(f"{date_val}T{end_val}:00")
+    
+    db_event.start_time = local_to_utc(new_start_dt, user_tz)
+    db_event.end_time = local_to_utc(new_end_dt, user_tz)
     
     db_event.start_time = new_start_dt
     db_event.end_time = new_end_dt

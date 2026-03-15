@@ -233,6 +233,18 @@ export function CreativeForm({ onClose, projectId, initialData }: CreativeFormPr
           </div>
 
           <div>
+             <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1.5">Kreatif Yorumu / Notlar</label>
+             <textarea
+               name="notes"
+               value={formData.notes || ''}
+               onChange={handleChange}
+               rows={3}
+               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1117] text-brand-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-dark/20 dark:focus:ring-white/20"
+               placeholder="Kreatif hakkında alınmış notlar veya yorumlar..."
+             />
+          </div>
+
+          <div>
              <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1.5">Görsel/Video URL veya Dosya Yükle</label>
               
              <div className="flex flex-col gap-3">
