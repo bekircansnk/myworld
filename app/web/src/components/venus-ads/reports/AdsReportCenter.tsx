@@ -38,7 +38,6 @@ function ReportForm({ onClose, projectId }: ReportFormProps) {
           recommendations: true,
         },
       });
-      await fetchReportTemplates(projectId || undefined);
       onClose();
     } catch (e) { console.error(e); }
     setLoading(false);

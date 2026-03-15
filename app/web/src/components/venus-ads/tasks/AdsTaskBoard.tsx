@@ -92,7 +92,6 @@ function TaskForm({ onClose, projectId, initial }: TaskFormProps) {
       } else {
         await createTask(payload);
       }
-      await fetchTasks(projectId || undefined);
       onClose();
     } catch (e) { console.error(e); }
     setLoading(false);

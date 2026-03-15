@@ -37,7 +37,6 @@ function ChecklistForm({ onClose, projectId }: ChecklistFormProps) {
         notes: notes || undefined,
         project_id: projectId || undefined,
       });
-      await fetchChecklists(projectId || undefined);
       onClose();
     } catch (e) { console.error(e); }
     setLoading(false);
@@ -97,32 +96,29 @@ export function OnboardingChecklist({ projectId }: { projectId: number | null })
     });
   };
 
-  const toggleItem = async (checklist: VenusOnboardingChecklist, index: number) => {
+  const toggleItem = (checklist: VenusOnboardingChecklist, index: number) => {
     const newItems = [...(checklist.items || [])];
     newItems[index] = { ...newItems[index], done: !newItems[index].done };
     const allDone = newItems.every(i => i.done);
-    await updateChecklist(checklist.id, { items: newItems, status: allDone ? 'completed' : 'in_progress' });
-    await fetchChecklists(projectId || undefined);
+    updateChecklist(checklist.id, { items: newItems, status: allDone ? 'completed' : 'in_progress' });
   };
 
-  const handleDeleteItem = async (checklist: VenusOnboardingChecklist, index: number) => {
+  const handleDeleteItem = (checklist: VenusOnboardingChecklist, index: number) => {
     if (confirm('Bu maddeyi silmek istediğinize emin misiniz?')) {
       const newItems = (checklist.items || []).filter((_, i) => i !== index);
       const allDone = newItems.length > 0 && newItems.every(i => i.done);
-      await updateChecklist(checklist.id, { items: newItems, status: allDone ? 'completed' : 'in_progress' });
-      await fetchChecklists(projectId || undefined);
+      updateChecklist(checklist.id, { items: newItems, status: allDone ? 'completed' : 'in_progress' });
     }
   };
 
-  const handleAddItem = async (checklist: VenusOnboardingChecklist, e: React.FormEvent) => {
+  const handleAddItem = (checklist: VenusOnboardingChecklist, e: React.FormEvent) => {
     e.preventDefault();
     const title = newItemTexts[checklist.id]?.trim();
     if (!title) return;
     
     const newItems = [...(checklist.items || []), { title, done: false }];
-    await updateChecklist(checklist.id, { items: newItems, status: 'in_progress' });
+    updateChecklist(checklist.id, { items: newItems, status: 'in_progress' });
     setNewItemTexts(prev => ({ ...prev, [checklist.id]: '' }));
-    await fetchChecklists(projectId || undefined);
   };
 
   const handleDelete = async (id: number) => {
@@ -216,33 +212,33 @@ export function OnboardingChecklist({ projectId }: { projectId: number | null })
                     </div>
                     <div className="space-y-1">
                       {items.map((item, idx) => (
-                        <div key={idx} className="flex items-center gap-2 group">
+                        <div key={idx} className="flex items-center gap-2 group px-3 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors w-max max-w-full">
                           <button onClick={() => toggleItem(cl, idx)}
-                            className="flex-1 text-left flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                            className="text-left flex items-center gap-3">
                             {item.done
                               ? <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
                               : <Circle className="w-5 h-5 text-slate-300 dark:text-slate-600 shrink-0 group-hover:text-indigo-400" />}
-                            <span className={`text-sm ${item.done ? 'line-through text-slate-400' : 'text-brand-dark dark:text-white'}`}>
+                            <span className={`text-sm tracking-tight ${item.done ? 'line-through text-slate-400' : 'text-brand-dark dark:text-white'}`}>
                               {item.title}
                             </span>
                           </button>
                           <button onClick={() => handleDeleteItem(cl, idx)}
-                            className="p-2 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
-                            <Trash2 className="w-4 h-4" />
+                            className="p-1.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 shrink-0">
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       ))}
                     </div>
                     
-                    <form onSubmit={(e) => handleAddItem(cl, e)} className="mt-4 flex items-center gap-2">
+                    <form onSubmit={(e) => handleAddItem(cl, e)} className="mt-4 flex items-center gap-2 max-w-sm ml-2">
                        <input 
                          type="text" 
                          placeholder="Yeni madde ekle..." 
                          value={newItemTexts[cl.id] || ''}
                          onChange={e => setNewItemTexts(prev => ({ ...prev, [cl.id]: e.target.value }))}
-                         className="flex-1 px-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1117] text-brand-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-dark/20"
+                         className="flex-1 px-3 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1117] text-brand-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-dark/20"
                        />
-                       <button type="submit" disabled={!newItemTexts[cl.id]?.trim()} className="p-2.5 bg-brand-dark text-white rounded-xl disabled:opacity-50 hover:bg-black dark:bg-white dark:text-brand-dark dark:hover:bg-gray-200 transition-colors">
+                       <button type="submit" disabled={!newItemTexts[cl.id]?.trim()} className="p-1.5 bg-brand-dark text-white rounded-lg disabled:opacity-50 hover:bg-black dark:bg-white dark:text-brand-dark dark:hover:bg-gray-200 transition-colors shrink-0">
                           <Plus className="w-4 h-4" />
                        </button>
                     </form>

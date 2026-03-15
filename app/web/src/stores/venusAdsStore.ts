@@ -150,9 +150,15 @@ export const useVenusAdsStore = create<VenusAdsState>((set) => ({
     return res.data;
   },
   updateCampaign: async (id, data) => {
-    const res = await api.put(`/api/venus/campaigns/${id}`, data);
-    set((s) => ({ campaigns: s.campaigns.map(c => c.id === id ? res.data : c) }));
-    return res.data;
+    set((s) => ({ campaigns: s.campaigns.map(c => c.id === id ? { ...c, ...data } : c) }));
+    try {
+      const res = await api.put(`/api/venus/campaigns/${id}`, data);
+      set((s) => ({ campaigns: s.campaigns.map(c => c.id === id ? res.data : c) }));
+      return res.data;
+    } catch (e) {
+      // Optimizm rollback could be handled here or by re-fetching, simplest is full state updates anyway
+      throw e;
+    }
   },
   deleteCampaign: async (id) => {
     await api.delete(`/api/venus/campaigns/${id}`);
@@ -178,6 +184,7 @@ export const useVenusAdsStore = create<VenusAdsState>((set) => ({
     return res.data;
   },
   updateExperiment: async (id, data) => {
+    set((s) => ({ experiments: s.experiments.map(c => c.id === id ? { ...c, ...data } : c) }));
     const res = await api.put(`/api/venus/experiments/${id}`, data);
     set((s) => ({ experiments: s.experiments.map(c => c.id === id ? res.data : c) }));
     return res.data;
@@ -213,6 +220,7 @@ export const useVenusAdsStore = create<VenusAdsState>((set) => ({
     return res.data;
   },
   updateCreative: async (id, data) => {
+    set((s) => ({ creatives: s.creatives.map(c => c.id === id ? { ...c, ...data } : c) }));
     const res = await api.put(`/api/venus/creatives/${id}`, data);
     set((s) => ({ creatives: s.creatives.map(c => c.id === id ? res.data : c) }));
     return res.data;
@@ -239,6 +247,7 @@ export const useVenusAdsStore = create<VenusAdsState>((set) => ({
     return res.data;
   },
   updateTask: async (id, data) => {
+    set((s) => ({ adsTasks: s.adsTasks.map(t => t.id === id ? { ...t, ...data } : t) }));
     const res = await api.put(`/api/venus/tasks/${id}`, data);
     set((s) => ({ adsTasks: s.adsTasks.map(t => t.id === id ? res.data : t) }));
     return res.data;
@@ -295,6 +304,7 @@ export const useVenusAdsStore = create<VenusAdsState>((set) => ({
     return res.data;
   },
   updateChecklist: async (id, data) => {
+    set((s) => ({ checklists: s.checklists.map(c => c.id === id ? { ...c, ...data } : c) }));
     const res = await api.put(`/api/venus/onboarding/${id}`, data);
     set((s) => ({ checklists: s.checklists.map(c => c.id === id ? res.data : c) }));
     return res.data;

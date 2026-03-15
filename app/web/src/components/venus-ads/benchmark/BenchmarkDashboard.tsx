@@ -42,7 +42,6 @@ function CompetitorForm({ onClose, projectId, initial }: CompetitorFormProps) {
       } else {
         await createCompetitor(payload);
       }
-      await fetchCompetitors(projectId || undefined);
       onClose();
     } catch (e) { console.error(e); }
     setLoading(false);

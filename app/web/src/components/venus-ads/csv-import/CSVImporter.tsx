@@ -63,7 +63,6 @@ export function CSVImporter({ projectId }: { projectId: number | null }) {
 
       setUploadStatus('success');
       setUploadMessage(`"${file.name}" başarıyla içe aktarıldı ve veritabanına kaydedildi.`);
-      await fetchCSVImports(projectId || undefined);
     } catch (e: any) {
       console.error(e);
       setUploadStatus('error');
