@@ -377,6 +377,15 @@ TaskDetailPanel her zaman render edilir (global overlay — isDetailPanelOpen il
 - Günlük: tasks_completed, tasks_added, total_work_minutes, ai_summary, mood_score
 - Haftalık: week_start/end, tasks_completed, total_work_hours, productivity_score, ai_analysis
 
+### venus (Module)
+- **AdAccount**: Reklam hesabı (Google, Meta vb.)
+- **Campaign**: Bütçe, tarih ve platform bazlı reklam grubu
+- **DailyMetric**: Günlük harcama, tıklama, dönüşüm verileri
+- **Creative**: Görsel/Metin varlıkları
+- **Experiment**: A/B test senaryoları ve başarı metrikleri
+- **CSVImport**: Yükleme geçmişi ve dosya durumu
+- **AIObservation**: Gemini tarafından üretilen içgörüler
+
 ### notifications
 - type: "urgent_task" / "break_time" / "motivation" / "morning_greeting"
 - title, message, is_read, action_url, scheduled_at, sent_at
