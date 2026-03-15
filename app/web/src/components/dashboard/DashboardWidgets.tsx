@@ -350,21 +350,60 @@ export function DashboardWidgets() {
 
         {/* ========= SOL KOLON ========= */}
         <div className="col-span-12 lg:col-span-3 flex flex-col gap-4 min-h-0">
-          {/* Dijital Saat */}
-          <div className="floating-card rounded-2xl p-8 flex flex-col items-center justify-center h-44 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-5">
-              <Clock className="w-16 h-16" />
+          {/* Dijital & Analog Saat */}
+          <div className="floating-card rounded-3xl p-8 flex flex-col items-center justify-between h-[280px] relative overflow-hidden group">
+            {/* Background Decoration */}
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand-yellow/5 rounded-full blur-3xl group-hover:bg-brand-yellow/10 transition-colors" />
+            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
+            
+            <div className="relative z-10 w-full flex flex-col items-center">
+              <div className="text-5xl font-light tracking-tighter text-brand-dark dark:text-white mb-1 tabular-nums drop-shadow-sm">
+                {format(currentTime, 'HH:mm')}
+                <span className="text-xl ml-1 opacity-50 font-normal">{format(currentTime, ':ss')}</span>
+              </div>
+              <div className="text-[10px] text-brand-gray dark:text-gray-400 uppercase tracking-[0.3em] font-bold">
+                {format(currentTime, 'dd MMMM EEEE', { locale: tr })}
+              </div>
             </div>
-            <div className="text-5xl font-light tracking-tight text-brand-dark dark:text-white mb-1 tabular-nums">
-              {format(currentTime, 'HH:mm')}
-            </div>
-            <div className="text-sm text-brand-gray dark:text-gray-400 uppercase tracking-[0.2em] font-medium">
-              {format(currentTime, 'dd MMMM EEEE', { locale: tr })}
+
+            {/* Analog Clock SVG */}
+            <div className="relative z-10 flex items-center justify-center py-2">
+              <div className="relative w-32 h-32">
+                {/* Clock Face base */}
+                <div className="absolute inset-0 rounded-full border border-brand-dark/5 dark:border-white/5 bg-white/50 dark:bg-black/20 shadow-inner" />
+                
+                {/* Hour ticks */}
+                {[...Array(12)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`absolute left-1/2 top-1/2 w-1 rounded-full origin-bottom -translate-x-1/2 -translate-y-full ${i % 3 === 0 ? 'h-3 bg-brand-dark/20 dark:bg-white/30' : 'h-1.5 bg-brand-dark/10 dark:bg-white/10'}`}
+                    style={{ transform: `rotate(${i * 30}deg) translateY(-54px) translateX(-50%)` }}
+                  />
+                ))}
+
+                {/* Hour Hand */}
+                <div
+                  className="absolute left-1/2 top-1/2 w-1.5 h-10 bg-brand-dark dark:bg-white rounded-full origin-bottom -translate-x-1/2 -translate-y-full shadow-sm"
+                  style={{ transform: `rotate(${(currentTime.getHours() % 12) * 30 + currentTime.getMinutes() * 0.5}deg) translateY(-2px)` }}
+                />
+                {/* Minute Hand */}
+                <div
+                  className="absolute left-1/2 top-1/2 w-1 h-14 bg-brand-gray dark:bg-gray-400 rounded-full origin-bottom -translate-x-1/2 -translate-y-full shadow-sm"
+                  style={{ transform: `rotate(${currentTime.getMinutes() * 6}deg) translateY(-2px)` }}
+                />
+                {/* Second Hand */}
+                <div
+                  className="absolute left-1/2 top-1/2 w-0.5 h-16 bg-brand-yellow rounded-full origin-bottom -translate-x-1/2 -translate-y-full"
+                  style={{ transform: `rotate(${currentTime.getSeconds() * 6}deg) translateY(-2px)` }}
+                />
+                {/* Center dot */}
+                <div className="absolute left-1/2 top-1/2 w-3 h-3 bg-brand-dark dark:bg-white rounded-full border-2 border-brand-yellow -translate-x-1/2 -translate-y-1/2 z-20 shadow-md" />
+              </div>
             </div>
           </div>
 
           {/* Akıllı Asistan */}
-          <div className="floating-card rounded-2xl p-6 flex-grow flex flex-col gap-3 overflow-hidden min-h-[300px]">
+          <div className="floating-card rounded-3xl p-6 flex-grow flex flex-col gap-3 overflow-hidden min-h-[300px]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-brand-yellow flex items-center justify-center shadow-sm">
@@ -446,10 +485,10 @@ export function DashboardWidgets() {
 
         {/* ========= ORTA KOLON ========= */}
         <div className="col-span-12 lg:col-span-6 flex flex-col gap-4 min-h-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 shrink-0" style={{ maxHeight: '45%' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 shrink-0 h-[280px]">
 
             {/* Gelişim Chart — SABİT, proje bazlı */}
-            <div className="floating-card rounded-2xl p-6 relative">
+            <div className="floating-card rounded-3xl p-6 relative flex flex-col">
               <button className="absolute top-6 right-6 w-8 h-8 bg-brand-bg dark:bg-slate-900 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-slate-700 transition">
                 <ArrowUpRight className="w-3.5 h-3.5 text-brand-gray dark:text-gray-400" />
               </button>
@@ -483,7 +522,7 @@ export function DashboardWidgets() {
             </div>
 
             {/* Çalışma Sayacı & Aktif Etkinlik */}
-            <div className="floating-card rounded-2xl p-5 relative flex flex-row h-[230px]">
+            <div className="floating-card rounded-3xl p-5 relative flex flex-row shrink-0">
               
               {/* Sol Taraf: Çalışma Sayacı */}
               <div className="w-[50%] flex flex-col items-center justify-between border-r border-slate-100 dark:border-white/5 pr-4 relative">
@@ -578,7 +617,7 @@ export function DashboardWidgets() {
           </div>
 
           {/* Takvim — Görevler gösterimli */}
-          <div className="floating-card rounded-2xl p-6 flex-grow relative overflow-hidden">
+          <div className="floating-card rounded-3xl p-6 flex-grow relative overflow-hidden">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-brand-dark dark:text-white flex items-center gap-2">
                 <CalendarDays className="w-5 h-5 text-brand-yellow" />
@@ -641,7 +680,7 @@ export function DashboardWidgets() {
         <div className="col-span-12 lg:col-span-3 flex flex-col gap-4 min-h-0">
 
           {/* Durum Paneli (eski Oryantasyon) */}
-          <div className="floating-card rounded-2xl p-6">
+          <div className="floating-card rounded-3xl p-6 h-[280px] flex flex-col justify-between">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold text-brand-dark dark:text-white">Durum Paneli</h3>
               <div className="flex bg-brand-bg dark:bg-slate-900 p-1 rounded-full">
@@ -682,7 +721,7 @@ export function DashboardWidgets() {
           </div>
 
           {/* Görevler — canlı, tıklanabilir */}
-          <div className="floating-card rounded-2xl p-6 flex-grow relative overflow-hidden flex flex-col">
+          <div className="floating-card rounded-3xl p-6 flex-grow relative overflow-hidden flex flex-col">
             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-3/4 h-8 bg-brand-yellow/5 dark:bg-white/5 blur-xl rounded-full" />
 
             <div className="flex justify-between items-end mb-4 relative z-10 mt-1">
