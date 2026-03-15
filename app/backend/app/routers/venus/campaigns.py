@@ -12,42 +12,40 @@ from app.schemas.venus.campaign import CampaignCreate, CampaignUpdate, CampaignR
 router = APIRouter(prefix="/venus/campaigns", tags=["Venus Ads Campaigns"])
 
 @router.get("", response_model=List[CampaignResponse])
-async def get_campaigns(
+def get_campaigns(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
     project_id: Optional[int] = None,
     platform: Optional[str] = None
 ):
-    query = select(VenusCampaign).where(VenusCampaign.user_id == current_user.id)
+    query = db.query(VenusCampaign).filter(VenusCampaign.user_id == current_user.id)
     if project_id:
-        query = query.where(VenusCampaign.project_id == project_id)
+        query = query.filter(VenusCampaign.project_id == project_id)
     if platform:
-        query = query.where(VenusCampaign.platform == platform)
+        query = query.filter(VenusCampaign.platform == platform)
         
-    result = await db.execute(query.order_by(VenusCampaign.id.desc()))
-    return result.scalars().all()
+    return query.order_by(VenusCampaign.id.desc()).all()
 
 @router.post("", response_model=CampaignResponse)
-async def create_campaign(
+def create_campaign(
     campaign: CampaignCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     new_campaign = VenusCampaign(**campaign.model_dump(), user_id=current_user.id)
     db.add(new_campaign)
-    await db.commit()
-    await db.refresh(new_campaign)
+    db.commit()
+    db.refresh(new_campaign)
     return new_campaign
 
 @router.put("/{campaign_id}", response_model=CampaignResponse)
-async def update_campaign(
+def update_campaign(
     campaign_id: int,
     campaign_update: CampaignUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    result = await db.execute(select(VenusCampaign).where(VenusCampaign.id == campaign_id, VenusCampaign.user_id == current_user.id))
-    db_campaign = result.scalar_one_or_none()
+    db_campaign = db.query(VenusCampaign).filter(VenusCampaign.id == campaign_id, VenusCampaign.user_id == current_user.id).first()
     
     if not db_campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
@@ -55,22 +53,21 @@ async def update_campaign(
     for key, value in campaign_update.model_dump(exclude_unset=True).items():
         setattr(db_campaign, key, value)
         
-    await db.commit()
-    await db.refresh(db_campaign)
+    db.commit()
+    db.refresh(db_campaign)
     return db_campaign
 
 @router.delete("/{campaign_id}")
-async def delete_campaign(
+def delete_campaign(
     campaign_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    result = await db.execute(select(VenusCampaign).where(VenusCampaign.id == campaign_id, VenusCampaign.user_id == current_user.id))
-    db_campaign = result.scalar_one_or_none()
+    db_campaign = db.query(VenusCampaign).filter(VenusCampaign.id == campaign_id, VenusCampaign.user_id == current_user.id).first()
     
     if not db_campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
         
-    await db.delete(db_campaign)
-    await db.commit()
+    db.delete(db_campaign)
+    db.commit()
     return {"ok": True}

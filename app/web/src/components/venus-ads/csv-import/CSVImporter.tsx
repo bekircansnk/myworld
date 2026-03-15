@@ -55,25 +55,19 @@ export function CSVImporter({ projectId }: { projectId: number | null }) {
     }
 
     setUploadStatus('uploading');
-    setUploadMessage(`"${file.name}" yükleniyor...`);
+    setUploadMessage(`"${file.name}" yükleniyor ve işleniyor...`);
 
-    // Simulate upload since actual CSV backend service is Phase B
-    // In Phase D this will call the real endpoint
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('platform_source', selectedPlatform);
-      if (projectId) formData.append('project_id', String(projectId));
-
-      // For now use a timeout to simulate the upload
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // @ts-ignore
+      await useVenusAdsStore.getState().uploadCSV(file, selectedPlatform, projectId || undefined);
 
       setUploadStatus('success');
-      setUploadMessage(`"${file.name}" başarıyla yüklendi! CSV parse motoru Phase D'de aktif edilecek.`);
+      setUploadMessage(`"${file.name}" başarıyla içe aktarıldı ve veritabanına kaydedildi.`);
       await fetchCSVImports(projectId || undefined);
     } catch (e: any) {
+      console.error(e);
       setUploadStatus('error');
-      setUploadMessage(e.message || 'Yükleme sırasında bir hata oluştu.');
+      setUploadMessage(e.response?.data?.detail || e.message || 'Yükleme sırasında bir hata oluştu.');
     }
   };
 

@@ -8,6 +8,20 @@ interface VenusAdsState {
   viewMode: VenusViewMode;
   setViewMode: (mode: VenusViewMode) => void;
   
+  // Overview Data
+  overviewData: any;
+  isLoadingOverview: boolean;
+  fetchOverview: (projectId?: number) => Promise<void>;
+  
+  // CSV Imports
+  csvImports: VenusCSVImport[];
+  isLoadingCSV: boolean;
+  fetchCSVImports: (projectId?: number) => Promise<void>;
+  createCSVImport: (data: Partial<VenusCSVImport>) => Promise<VenusCSVImport>;
+  updateCSVImport: (id: number, data: Partial<VenusCSVImport>) => Promise<VenusCSVImport>;
+  deleteCSVImport: (id: number) => Promise<void>;
+  uploadCSV: (file: File, platform: string, projectId?: number) => Promise<VenusCSVImport>;
+
   // Campaigns
   campaigns: VenusCampaign[];
   isLoadingCampaigns: boolean;
@@ -59,7 +73,9 @@ interface VenusAdsState {
   // AI Observations
   observations: VenusAIObservation[];
   isLoadingObservations: boolean;
+  isGeneratingAI: boolean;
   fetchObservations: (projectId?: number) => Promise<void>;
+  generateDailySummary: (projectId?: number) => Promise<void>;
   acknowledgeObservation: (id: number) => Promise<void>;
   deleteObservation: (id: number) => Promise<void>;
 
@@ -70,10 +86,6 @@ interface VenusAdsState {
   createReportTemplate: (data: Partial<VenusReportTemplate>) => Promise<VenusReportTemplate>;
   deleteReportTemplate: (id: number) => Promise<void>;
 
-  // CSV Imports
-  csvImports: VenusCSVImport[];
-  isLoadingCSV: boolean;
-  fetchCSVImports: (projectId?: number) => Promise<void>;
 }
 
 // Helper to build CRUD actions for a given entity
@@ -98,6 +110,21 @@ export const useVenusAdsStore = create<VenusAdsState>((set) => ({
   viewMode: 'overview',
   setViewMode: (mode) => set({ viewMode: mode }),
   
+  // ── OVERVIEW ──
+  overviewData: null,
+  isLoadingOverview: false,
+  fetchOverview: async (projectId) => {
+    set({ isLoadingOverview: true });
+    try {
+      const url = projectId ? `/api/venus/metrics/overview?project_id=${projectId}&days=7` : '/api/venus/metrics/overview?days=7';
+      const res = await api.get(url);
+      set({ overviewData: res.data, isLoadingOverview: false });
+    } catch (e) {
+      console.error("fetch overview", e);
+      set({ isLoadingOverview: false });
+    }
+  },
+
   // ── CAMPAIGNS ──
   campaigns: [],
   isLoadingCampaigns: false,
@@ -259,6 +286,7 @@ export const useVenusAdsStore = create<VenusAdsState>((set) => ({
   // ── AI OBSERVATIONS ──
   observations: [],
   isLoadingObservations: false,
+  isGeneratingAI: false,
   fetchObservations: async (projectId) => {
     set({ isLoadingObservations: true });
     try {
@@ -266,6 +294,17 @@ export const useVenusAdsStore = create<VenusAdsState>((set) => ({
       const res = await api.get(url);
       set({ observations: res.data, isLoadingObservations: false });
     } catch (e) { console.error("fetch observations", e); set({ isLoadingObservations: false }); }
+  },
+  generateDailySummary: async (projectId) => {
+    set({ isGeneratingAI: true });
+    try {
+      const url = projectId ? `/api/venus/ai-observations/generate-daily?project_id=${projectId}` : '/api/venus/ai-observations/generate-daily';
+      await api.post(url);
+      // Re-fetch after generation
+      const fetchUrl = projectId ? `/api/venus/ai-observations?project_id=${projectId}` : '/api/venus/ai-observations';
+      const res = await api.get(fetchUrl);
+      set({ observations: res.data, isGeneratingAI: false });
+    } catch (e) { console.error("generate daily ai", e); set({ isGeneratingAI: false }); }
   },
   acknowledgeObservation: async (id) => {
     const res = await api.put(`/api/venus/ai-observations/${id}`, { is_acknowledged: true });
@@ -307,5 +346,39 @@ export const useVenusAdsStore = create<VenusAdsState>((set) => ({
       const res = await api.get(url);
       set({ csvImports: res.data, isLoadingCSV: false });
     } catch (e) { console.error("fetch csv imports", e); set({ isLoadingCSV: false }); }
+  },
+  createCSVImport: async (data) => {
+    const res = await api.post('/api/venus/csv-imports', data);
+    set((s) => ({ csvImports: [res.data, ...s.csvImports] }));
+    return res.data;
+  },
+  updateCSVImport: async (id, data) => {
+    const res = await api.put(`/api/venus/csv-imports/${id}`, data);
+    set((s) => ({ csvImports: s.csvImports.map(c => c.id === id ? res.data : c) }));
+    return res.data;
+  },
+  deleteCSVImport: async (id) => {
+    await api.delete(`/api/venus/csv-imports/${id}`);
+    set((s) => ({ csvImports: s.csvImports.filter(c => c.id !== id) }));
+  },
+  uploadCSV: async (file: File, platform: string, projectId?: number) => {
+    set({ isLoadingCSV: true });
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('platform_source', platform);
+      if (projectId) formData.append('project_id', String(projectId));
+
+      const response = await api.post('/api/venus/csv-imports/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const data = response.data;
+      set(state => ({ csvImports: [data, ...state.csvImports], isLoadingCSV: false }));
+      return data;
+    } catch (error) {
+      console.error("uploadCSV", error);
+      set({ isLoadingCSV: false });
+      throw error;
+    }
   },
 }));

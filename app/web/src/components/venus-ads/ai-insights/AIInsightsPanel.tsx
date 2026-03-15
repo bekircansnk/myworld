@@ -43,8 +43,8 @@ const TYPE_LABELS: Record<string, string> = {
   budget: 'Bütçe Uyarısı',
 };
 
-export function AIInsightsPanel({ projectId }: { projectId: number | null }) {
-  const { observations, isLoadingObservations, fetchObservations, acknowledgeObservation, deleteObservation } = useVenusAdsStore();
+  export function AIInsightsPanel({ projectId }: { projectId: number | null }) {
+  const { observations, isLoadingObservations, isGeneratingAI, fetchObservations, generateDailySummary, acknowledgeObservation, deleteObservation } = useVenusAdsStore();
   const { projects } = useProjectStore();
   const currentProject = projects.find(p => p.id === projectId);
 
@@ -54,6 +54,10 @@ export function AIInsightsPanel({ projectId }: { projectId: number | null }) {
 
   const unacknowledged = observations.filter(o => !o.is_acknowledged);
   const acknowledged = observations.filter(o => o.is_acknowledged);
+
+  const handleGenerate = async () => {
+    await generateDailySummary(projectId || undefined);
+  };
 
   const renderCard = (obs: VenusAIObservation) => {
     const severity = SEVERITY_CONFIG[obs.severity] || SEVERITY_CONFIG.info;
@@ -111,10 +115,25 @@ export function AIInsightsPanel({ projectId }: { projectId: number | null }) {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400 flex items-center gap-1">
+          <span className="text-xs text-slate-400 flex items-center gap-1 hidden sm:flex">
             <Shield className="w-3.5 h-3.5" />
-            Gemini AI ile güçlendirilmiştir
+            Gemini AI
           </span>
+          <button
+            onClick={handleGenerate}
+            disabled={isGeneratingAI}
+            className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all ${
+              isGeneratingAI
+                ? 'bg-slate-100 text-slate-400 cursor-not-allowed dark:bg-slate-800'
+                : 'bg-indigo-500 text-white hover:bg-indigo-600 hover:shadow-md hover:shadow-indigo-500/20'
+            }`}
+          >
+            {isGeneratingAI ? (
+              <><div className="w-4 h-4 border-2 border-slate-300 border-t-white rounded-full animate-spin" /> Analiz Ediliyor...</>
+            ) : (
+              <><Sparkles className="w-4 h-4" /> Yeni Analiz Başlat</>
+            )}
+          </button>
         </div>
       </div>
 

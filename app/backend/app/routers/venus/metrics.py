@@ -12,6 +12,16 @@ from app.schemas.venus.metric import DailyMetricCreate, DailyMetricUpdate, Daily
 
 router = APIRouter(prefix="/venus/metrics", tags=["Venus Ads Metrics"])
 
+@router.get("/overview")
+async def get_metrics_overview(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    project_id: Optional[int] = None,
+    days: int = 7
+):
+    from app.services.venus.metric_calculator import calculate_kpi_summary
+    return calculate_kpi_summary(db=db, user_id=current_user.id, project_id=project_id, days=days)
+
 @router.get("", response_model=List[DailyMetricResponse])
 async def get_metrics(
     db: Session = Depends(get_db),

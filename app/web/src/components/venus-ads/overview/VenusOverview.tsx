@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useVenusAdsStore } from '@/stores/venusAdsStore';
 import { useProjectStore } from '@/stores/projectStore';
 import { DollarSign, BarChart3, TrendingUp, HandCoins, AlertTriangle, CheckCircle2 } from 'lucide-react';
@@ -8,16 +8,26 @@ interface VenusOverviewProps {
 }
 
 export function VenusOverview({ projectId }: VenusOverviewProps) {
-  const { campaigns, isLoadingCampaigns } = useVenusAdsStore();
+  const { campaigns, isLoadingCampaigns, fetchCampaigns, overviewData, isLoadingOverview, fetchOverview, observations, fetchObservations } = useVenusAdsStore();
   const { projects } = useProjectStore();
   const currentProject = projects.find(p => p.id === projectId);
 
-  // Mock metrics until backend fully integrated
-  const metrics = [
-    { label: 'Toplam Harcama', value: '₺0.00', icon: DollarSign, trend: '+0%', positive: true },
-    { label: 'Dönüşümler', value: '0', icon: CheckCircle2, trend: '+0%', positive: true },
-    { label: 'Ortalama ROAS', value: '0.00', icon: TrendingUp, trend: '-0%', positive: false },
-    { label: 'Ortalama CPA', value: '₺0.00', icon: HandCoins, trend: '+0%', positive: false },
+  useEffect(() => {
+    fetchCampaigns(projectId || undefined);
+    fetchOverview(projectId || undefined);
+    fetchObservations(projectId || undefined);
+  }, [projectId]);
+
+  const metrics = overviewData ? [
+    { label: 'Toplam Harcama', value: `₺${Number(overviewData.total_spend || 0).toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, icon: DollarSign, trend: `${overviewData.spend_change_pct > 0 ? '+' : ''}${overviewData.spend_change_pct}%`, positive: overviewData.spend_change_pct <= 0 },
+    { label: 'Dönüşümler', value: overviewData.total_conversions?.toLocaleString('tr-TR') || '0', icon: CheckCircle2, trend: '', positive: true },
+    { label: 'Ortalama ROAS', value: `${Number(overviewData.roas || 0).toFixed(2)}x`, icon: TrendingUp, trend: `${overviewData.roas_change_pct > 0 ? '+' : ''}${overviewData.roas_change_pct}%`, positive: overviewData.roas_change_pct >= 0 },
+    { label: 'Ortalama CPA', value: `₺${Number(overviewData.cpa || 0).toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, icon: HandCoins, trend: '', positive: true },
+  ] : [
+    { label: 'Toplam Harcama', value: '...', icon: DollarSign, trend: '', positive: true },
+    { label: 'Dönüşümler', value: '...', icon: CheckCircle2, trend: '', positive: true },
+    { label: 'Ortalama ROAS', value: '...', icon: TrendingUp, trend: '', positive: false },
+    { label: 'Ortalama CPA', value: '...', icon: HandCoins, trend: '', positive: false },
   ];
 
   return (
@@ -42,7 +52,9 @@ export function VenusOverview({ projectId }: VenusOverviewProps) {
               </div>
             </div>
             <div className="flex items-end justify-between gap-2">
-              <span className="text-2xl font-bold text-brand-dark dark:text-white">{metric.value}</span>
+              <span className="text-2xl font-bold text-brand-dark dark:text-white">
+                {isLoadingOverview ? '...' : metric.value}
+              </span>
               <span className={`text-xs font-bold leading-6 ${metric.positive ? 'text-emerald-500' : 'text-red-500'}`}>
                 {metric.trend}
               </span>
@@ -57,7 +69,9 @@ export function VenusOverview({ projectId }: VenusOverviewProps) {
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-white/5 min-h-[300px] flex items-center justify-center">
             <div className="text-center">
               <BarChart3 className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-              <p className="text-sm text-brand-gray dark:text-gray-500">Trend grafiği yakında eklenecek...</p>
+              <p className="text-sm text-brand-gray dark:text-gray-500">
+                {overviewData?.date_range ? `${overviewData.date_range} Seçili` : 'Trend grafiği yakında eklenecek...'}
+              </p>
             </div>
           </div>
           
