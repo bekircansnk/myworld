@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useVenusAdsStore } from '@/stores/venusAdsStore';
 import { useProjectStore } from '@/stores/projectStore';
 import { Plus, Search, Filter, MoreHorizontal, Edit, Trash2, Target, ExternalLink } from 'lucide-react';
@@ -10,7 +10,7 @@ interface CampaignExplorerProps {
 }
 
 export function CampaignExplorer({ projectId }: CampaignExplorerProps) {
-  const { campaigns, isLoadingCampaigns, deleteCampaign } = useVenusAdsStore();
+  const { campaigns, isLoadingCampaigns, deleteCampaign, selectedEntityToView, setSelectedEntityToView } = useVenusAdsStore();
   const { projects } = useProjectStore();
   const currentProject = projects.find(p => p.id === projectId);
 
@@ -20,6 +20,17 @@ export function CampaignExplorer({ projectId }: CampaignExplorerProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [platformFilter, setPlatformFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  useEffect(() => {
+    if (selectedEntityToView?.type === 'campaigns') {
+      const target = campaigns.find(c => c.id === selectedEntityToView.id);
+      if (target) {
+        setEditingCampaign(target);
+        setIsFormOpen(true);
+      }
+      setSelectedEntityToView(null);
+    }
+  }, [selectedEntityToView, campaigns]);
 
   const handleOpenNewCampaign = () => {
     setEditingCampaign(null);

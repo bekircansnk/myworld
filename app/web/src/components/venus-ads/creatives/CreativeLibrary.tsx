@@ -10,7 +10,7 @@ interface CreativeLibraryProps {
 }
 
 export function CreativeLibrary({ projectId }: CreativeLibraryProps) {
-  const { creatives, isLoadingCreatives, fetchCreatives, deleteCreative } = useVenusAdsStore();
+  const { creatives, isLoadingCreatives, fetchCreatives, deleteCreative, selectedEntityToView, setSelectedEntityToView } = useVenusAdsStore();
   const { projects } = useProjectStore();
   const currentProject = projects.find(p => p.id === projectId);
 
@@ -20,6 +20,17 @@ export function CreativeLibrary({ projectId }: CreativeLibraryProps) {
   useEffect(() => {
     fetchCreatives(projectId || undefined);
   }, [projectId]);
+
+  useEffect(() => {
+    if (selectedEntityToView?.type === 'creatives') {
+      const target = creatives.find(c => c.id === selectedEntityToView.id);
+      if (target) {
+        setEditingCreative(target);
+        setIsFormOpen(true);
+      }
+      setSelectedEntityToView(null);
+    }
+  }, [selectedEntityToView, creatives]);
 
   const handleOpenNew = () => {
     setEditingCreative(null);

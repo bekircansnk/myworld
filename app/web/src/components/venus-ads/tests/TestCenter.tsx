@@ -12,7 +12,7 @@ interface TestCenterProps {
 }
 
 export function TestCenter({ projectId }: TestCenterProps) {
-  const { experiments, isLoadingExperiments, fetchExperiments, deleteCampaign: deleteExperiment } = useVenusAdsStore();
+  const { experiments, isLoadingExperiments, fetchExperiments, deleteCampaign: deleteExperiment, selectedEntityToView, setSelectedEntityToView, setViewMode } = useVenusAdsStore();
   const { projects } = useProjectStore();
   const currentProject = projects.find(p => p.id === projectId);
   const { campaigns, creatives } = useVenusAdsStore();
@@ -24,6 +24,16 @@ export function TestCenter({ projectId }: TestCenterProps) {
   useEffect(() => {
     fetchExperiments(projectId || undefined);
   }, [projectId]);
+
+  useEffect(() => {
+    if (selectedEntityToView?.type === 'tests') {
+      const target = experiments.find(e => e.id === selectedEntityToView.id);
+      if (target) {
+        setDetailTest(target);
+      }
+      setSelectedEntityToView(null);
+    }
+  }, [selectedEntityToView, experiments]);
 
   const handleOpenNew = () => {
     setEditingTest(null);
@@ -103,8 +113,8 @@ export function TestCenter({ projectId }: TestCenterProps) {
                                
                                {(lc || kr) && (
                                   <div className="flex flex-wrap gap-2 mb-3">
-                                     {lc && <LinkedItemChip type="campaign" label={lc.campaign_name} />}
-                                     {kr && <LinkedItemChip type="creative" label={kr.creative_name} />}
+                                     {lc && <LinkedItemChip type="campaign" label={lc.campaign_name} onClick={() => { setSelectedEntityToView({ type: 'campaigns', id: lc.id }); setViewMode('campaigns'); }} />}
+                                     {kr && <LinkedItemChip type="creative" label={kr.creative_name} onClick={() => { setSelectedEntityToView({ type: 'creatives', id: kr.id }); setViewMode('creatives'); }} />}
                                   </div>
                                )}
 
@@ -162,8 +172,8 @@ export function TestCenter({ projectId }: TestCenterProps) {
                                
                                {(lc || kr) && (
                                   <div className="flex flex-wrap gap-2 mt-2 mb-3">
-                                     {lc && <LinkedItemChip type="campaign" label={lc.campaign_name} />}
-                                     {kr && <LinkedItemChip type="creative" label={kr.creative_name} />}
+                                     {lc && <LinkedItemChip type="campaign" label={lc.campaign_name} onClick={() => { setSelectedEntityToView({ type: 'campaigns', id: lc.id }); setViewMode('campaigns'); }} />}
+                                     {kr && <LinkedItemChip type="creative" label={kr.creative_name} onClick={() => { setSelectedEntityToView({ type: 'creatives', id: kr.id }); setViewMode('creatives'); }} />}
                                   </div>
                                )}
                                {test.learnings && (

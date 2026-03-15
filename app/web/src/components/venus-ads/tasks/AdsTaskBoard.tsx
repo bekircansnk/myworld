@@ -105,7 +105,7 @@ function TaskForm({ onClose, projectId, initial }: TaskFormProps) {
           <h2 className="text-lg font-bold text-brand-dark dark:text-white">{initial ? 'Görevi Düzenle' : 'Yeni Görev'}</h2>
           <button onClick={onClose} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"><X className="w-5 h-5" /></button>
         </div>
-        <div className="p-6 space-y-5">
+        <div className="p-6 space-y-5 overflow-y-auto max-h-[60vh]">
           <div>
             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Başlık *</label>
             <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ör: Günlük bütçe kontrolü"
@@ -165,15 +165,16 @@ function TaskForm({ onClose, projectId, initial }: TaskFormProps) {
            </div>
 
            {(aiNotes || isAiLoading) && (
-              <div className="bg-indigo-50/50 dark:bg-indigo-900/10 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
+              <div className="bg-indigo-50/50 dark:bg-indigo-900/10 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/30 group">
                  <div className="flex items-center gap-2 mb-2 text-indigo-600 dark:text-indigo-400">
                     <Bot className="w-4 h-4" />
-                    <span className="text-xs font-bold uppercase tracking-wider">AI Görev Notu</span>
+                    <span className="text-xs font-bold uppercase tracking-wider flex-1">AI Görev Notu</span>
+                    {!isAiLoading && <span className="text-[10px] text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">Daraltmak/Açmak için fareyle üzerine gelin</span>}
                  </div>
                  {isAiLoading ? (
                     <div className="text-sm text-indigo-500 animate-pulse">AI detayları analiz ediyor...</div>
                  ) : (
-                    <p className="text-sm text-brand-dark dark:text-slate-200 whitespace-pre-wrap leading-relaxed">{aiNotes}</p>
+                    <p className="text-sm text-brand-dark dark:text-slate-200 whitespace-pre-wrap leading-relaxed max-h-16 overflow-hidden group-hover:max-h-[500px] transition-all duration-300">{aiNotes}</p>
                  )}
               </div>
            )}
@@ -202,7 +203,7 @@ function TaskForm({ onClose, projectId, initial }: TaskFormProps) {
 }
 
 export function AdsTaskBoard({ projectId }: { projectId: number | null }) {
-  const { adsTasks, isLoadingTasks, fetchTasks, updateTask, deleteTask } = useVenusAdsStore();
+  const { adsTasks, isLoadingTasks, fetchTasks, updateTask, deleteTask, setViewMode, setSelectedEntityToView, selectedEntityToView } = useVenusAdsStore();
   const { projects } = useProjectStore();
   const currentProject = projects.find(p => p.id === projectId);
 
@@ -212,6 +213,17 @@ export function AdsTaskBoard({ projectId }: { projectId: number | null }) {
   useEffect(() => {
     fetchTasks(projectId || undefined);
   }, [projectId]);
+
+  useEffect(() => {
+    if (selectedEntityToView?.type === 'tasks') {
+      const target = adsTasks.find(t => t.id === selectedEntityToView.id);
+      if (target) {
+        setEditingTask(target);
+        setIsFormOpen(true);
+      }
+      setSelectedEntityToView(null);
+    }
+  }, [selectedEntityToView, adsTasks]);
 
   const handleMoveTask = async (task: VenusAdsTask, newStatus: string) => {
     await updateTask(task.id, { status: newStatus });
@@ -330,9 +342,9 @@ export function AdsTaskBoard({ projectId }: { projectId: number | null }) {
                           
                           {(lc || le || lr) && (
                             <div className="flex flex-wrap gap-1 mb-3">
-                              {lc && <LinkedItemChip type="campaign" label={lc.campaign_name} />}
-                              {le && <LinkedItemChip type="experiment" label={le.experiment_name} />}
-                              {lr && <LinkedItemChip type="creative" label={lr.creative_name} />}
+                              {lc && <LinkedItemChip type="campaign" label={lc.campaign_name} onClick={() => { setSelectedEntityToView({ type: 'campaigns', id: lc.id }); setViewMode('campaigns'); }} />}
+                              {le && <LinkedItemChip type="experiment" label={le.experiment_name} onClick={() => { setSelectedEntityToView({ type: 'tests', id: le.id }); setViewMode('tests'); }} />}
+                              {lr && <LinkedItemChip type="creative" label={lr.creative_name} onClick={() => { setSelectedEntityToView({ type: 'creatives', id: lr.id }); setViewMode('creatives'); }} />}
                             </div>
                           )}
 

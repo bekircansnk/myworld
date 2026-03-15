@@ -3,10 +3,13 @@ import { api } from '@/lib/api';
 import { VenusCampaign, VenusExperiment, VenusCreative, VenusAdsTask, VenusCompetitor, VenusOnboardingChecklist, VenusAIObservation, VenusCSVImport, VenusReportTemplate } from '@/types/venus-ads';
 
 export type VenusViewMode = 'overview' | 'campaigns' | 'tests' | 'creatives' | 'tasks' | 'reports' | 'benchmark' | 'onboarding' | 'csv' | 'ai';
+export type VenusSelectedEntity = { type: VenusViewMode, id: number };
 
 interface VenusAdsState {
   viewMode: VenusViewMode;
   setViewMode: (mode: VenusViewMode) => void;
+  selectedEntityToView: VenusSelectedEntity | null;
+  setSelectedEntityToView: (entity: VenusSelectedEntity | null) => void;
   
   // Overview Data
   overviewData: any;
@@ -112,6 +115,8 @@ function buildCrud<T extends { id: number }>(
 export const useVenusAdsStore = create<VenusAdsState>((set) => ({
   viewMode: 'overview',
   setViewMode: (mode) => set({ viewMode: mode }),
+  selectedEntityToView: null,
+  setSelectedEntityToView: (entity) => set({ selectedEntityToView: entity }),
   
   // ── OVERVIEW ──
   overviewData: null,

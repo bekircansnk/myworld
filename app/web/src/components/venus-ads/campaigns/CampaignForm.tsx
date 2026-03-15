@@ -11,7 +11,7 @@ interface CampaignFormProps {
 }
 
 export function CampaignForm({ onClose, projectId, initialData }: CampaignFormProps) {
-  const { createCampaign, updateCampaign, experiments, creatives, adsTasks, fetchExperiments, fetchCreatives, fetchTasks, setViewMode } = useVenusAdsStore();
+  const { createCampaign, updateCampaign, experiments, creatives, adsTasks, fetchExperiments, fetchCreatives, fetchTasks, setViewMode, setSelectedEntityToView } = useVenusAdsStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -204,7 +204,7 @@ export function CampaignForm({ onClose, projectId, initialData }: CampaignFormPr
                       <p className="text-sm text-slate-400 pb-2">Bağlı test bulunamadı.</p>
                     )}
                     {experiments.filter(e => e.campaign_id === initialData.id).map(exp => (
-                      <button key={exp.id} onClick={() => { onClose(); setViewMode('tests'); }} className="w-full text-left bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl p-3 hover:border-purple-300 transition-colors flex justify-between items-center group">
+                      <button key={exp.id} onClick={() => { onClose(); setSelectedEntityToView({ type: 'tests', id: exp.id }); setViewMode('tests'); }} className="w-full text-left bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl p-3 hover:border-purple-300 transition-colors flex justify-between items-center group">
                         <div>
                           <p className="text-sm font-bold text-brand-dark dark:text-white line-clamp-1">{exp.experiment_name}</p>
                           <p className="text-xs text-slate-500 line-clamp-1">{exp.hypothesis}</p>
@@ -226,7 +226,7 @@ export function CampaignForm({ onClose, projectId, initialData }: CampaignFormPr
                       <p className="text-sm text-slate-400 pb-2">Bağlı kreatif bulunamadı.</p>
                     )}
                     {creatives.filter(c => c.campaign_id === initialData.id).map(crt => (
-                      <button key={crt.id} onClick={() => { onClose(); setViewMode('creatives'); }} className="w-full text-left bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl p-3 hover:border-emerald-300 transition-colors flex justify-between items-center group">
+                      <button key={crt.id} onClick={() => { onClose(); setSelectedEntityToView({ type: 'creatives', id: crt.id }); setViewMode('creatives'); }} className="w-full text-left bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl p-3 hover:border-emerald-300 transition-colors flex justify-between items-center group">
                         <div>
                           <p className="text-sm font-bold text-brand-dark dark:text-white line-clamp-1">{crt.creative_name}</p>
                         </div>
@@ -247,7 +247,7 @@ export function CampaignForm({ onClose, projectId, initialData }: CampaignFormPr
                       <p className="text-sm text-slate-400 pb-2">Bağlı görev bulunamadı.</p>
                     )}
                     {adsTasks.filter(t => t.campaign_id === initialData.id).map(task => (
-                      <button key={task.id} onClick={() => { onClose(); setViewMode('tasks'); }} className="w-full text-left bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl p-3 hover:border-blue-300 transition-colors flex justify-between items-center group">
+                      <button key={task.id} onClick={() => { onClose(); setSelectedEntityToView({ type: 'tasks', id: task.id }); setViewMode('tasks'); }} className="w-full text-left bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl p-3 hover:border-blue-300 transition-colors flex justify-between items-center group">
                         <div>
                           <p className="text-sm font-bold text-brand-dark dark:text-white line-clamp-1">{task.title}</p>
                         </div>
