@@ -4,7 +4,7 @@ import { useProjectStore } from '@/stores/projectStore';
 import { Plus, FileText, Clock, Download, Trash2, X, BarChart3, Calendar, TrendingUp, Eye } from 'lucide-react';
 import { VenusReportTemplate, VenusAIAnalysisReport } from '@/types/venus-ads';
 import { AIAnalysisForm } from './AIAnalysisForm';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 const TEMPLATE_TYPES = [
   { value: 'weekly', label: 'Haftalık Rapor', icon: Calendar },
@@ -202,7 +202,7 @@ export function AdsReportCenter({ projectId }: { projectId: number | null }) {
                     <h3 className="font-bold text-brand-dark dark:text-white text-base mb-2 line-clamp-2">{report.title}</h3>
                     <p className="text-xs text-slate-400 flex items-center gap-1">
                       <Clock className="w-3 h-3" />
-                      {new Date(report.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      {report.created_at ? new Date(report.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
                     </p>
                   </div>
                   <div className="px-6 py-3 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/20 flex items-center justify-between">
@@ -256,7 +256,7 @@ export function AdsReportCenter({ projectId }: { projectId: number | null }) {
                   <h3 className="font-bold text-brand-dark dark:text-white text-base mb-2 line-clamp-2">{report.title}</h3>
                   <p className="text-xs text-slate-400 flex items-center gap-1">
                     <Clock className="w-3 h-3" />
-                    {new Date(report.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    {report.created_at ? new Date(report.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
                   </p>
                 </div>
                 <div className="px-6 py-3 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/20 flex items-center justify-between">

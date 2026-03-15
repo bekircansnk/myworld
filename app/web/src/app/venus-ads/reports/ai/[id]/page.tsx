@@ -96,7 +96,7 @@ export default function AIDashboardPage() {
                   Yapay Zeka Destekli Strateji Özeti
                 </div>
                 <div className="px-2.5 py-1 text-[10px] font-bold bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded-full uppercase">
-                  {data.report_meta?.period || report.created_at.split('T')[0]}
+                  {data.report_meta?.period || (report.created_at ? report.created_at.split('T')[0] : '')}
                 </div>
               </div>
               <h1 className="text-2xl lg:text-3xl font-extrabold text-brand-dark dark:text-white tracking-tight">
@@ -227,7 +227,7 @@ export default function AIDashboardPage() {
                 <div key={i} className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-white/5 flex flex-col md:flex-row items-start md:items-center gap-6 transition-all hover:bg-slate-100 dark:hover:bg-slate-800">
                   <div className="w-full md:w-48 shrink-0">
                     <h4 className="font-bold text-brand-dark dark:text-white flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${ch.platform?.toLowerCase().includes('google') ? 'bg-red-500' : ch.platform?.toLowerCase().includes('meta') ? 'bg-blue-500' : 'bg-black dark:bg-white'}`}></div>
+                      <div className={`w-2 h-2 rounded-full ${ch.platform?.toLowerCase()?.includes('google') ? 'bg-red-500' : ch.platform?.toLowerCase()?.includes('meta') ? 'bg-blue-500' : 'bg-black dark:bg-white'}`}></div>
                       {ch.platform}
                     </h4>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Pay: %{ch.spend_share_pct}</p>
