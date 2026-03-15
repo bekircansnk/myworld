@@ -58,6 +58,7 @@ export interface VenusExperiment {
   project_id?: number;
   campaign_id?: number;
   experiment_name: string;
+  creative_id?: number;
   hypothesis?: string;
   status: string;
   start_date?: string;
@@ -65,6 +66,7 @@ export interface VenusExperiment {
   metrics_tracked?: any[];
   winner?: string;
   learnings?: string;
+  ai_comment?: string;
   created_at: string;
 }
 
@@ -72,6 +74,8 @@ export interface VenusCreative {
   id: number;
   user_id: number;
   project_id?: number;
+  campaign_id?: number;
+  experiment_id?: number;
   creative_name: string;
   creative_type: string;
   format?: string;
@@ -90,6 +94,8 @@ export interface VenusAdsTask {
   user_id: number;
   project_id?: number;
   campaign_id?: number;
+  experiment_id?: number;
+  creative_id?: number;
   title: string;
   description?: string;
   category: string;

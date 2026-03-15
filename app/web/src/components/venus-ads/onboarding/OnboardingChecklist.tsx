@@ -83,6 +83,7 @@ export function OnboardingChecklist({ projectId }: { projectId: number | null })
   const currentProject = projects.find(p => p.id === projectId);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
+  const [newItemTexts, setNewItemTexts] = useState<Record<number, string>>({});
 
   useEffect(() => {
     fetchChecklists(projectId || undefined);
@@ -101,6 +102,26 @@ export function OnboardingChecklist({ projectId }: { projectId: number | null })
     newItems[index] = { ...newItems[index], done: !newItems[index].done };
     const allDone = newItems.every(i => i.done);
     await updateChecklist(checklist.id, { items: newItems, status: allDone ? 'completed' : 'in_progress' });
+    await fetchChecklists(projectId || undefined);
+  };
+
+  const handleDeleteItem = async (checklist: VenusOnboardingChecklist, index: number) => {
+    if (confirm('Bu maddeyi silmek istediğinize emin misiniz?')) {
+      const newItems = (checklist.items || []).filter((_, i) => i !== index);
+      const allDone = newItems.length > 0 && newItems.every(i => i.done);
+      await updateChecklist(checklist.id, { items: newItems, status: allDone ? 'completed' : 'in_progress' });
+      await fetchChecklists(projectId || undefined);
+    }
+  };
+
+  const handleAddItem = async (checklist: VenusOnboardingChecklist, e: React.FormEvent) => {
+    e.preventDefault();
+    const title = newItemTexts[checklist.id]?.trim();
+    if (!title) return;
+    
+    const newItems = [...(checklist.items || []), { title, done: false }];
+    await updateChecklist(checklist.id, { items: newItems, status: 'in_progress' });
+    setNewItemTexts(prev => ({ ...prev, [checklist.id]: '' }));
     await fetchChecklists(projectId || undefined);
   };
 
@@ -195,17 +216,36 @@ export function OnboardingChecklist({ projectId }: { projectId: number | null })
                     </div>
                     <div className="space-y-1">
                       {items.map((item, idx) => (
-                        <button key={idx} onClick={() => toggleItem(cl, idx)}
-                          className="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group">
-                          {item.done
-                            ? <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
-                            : <Circle className="w-5 h-5 text-slate-300 dark:text-slate-600 shrink-0 group-hover:text-indigo-400" />}
-                          <span className={`text-sm ${item.done ? 'line-through text-slate-400' : 'text-brand-dark dark:text-white'}`}>
-                            {item.title}
-                          </span>
-                        </button>
+                        <div key={idx} className="flex items-center gap-2 group">
+                          <button onClick={() => toggleItem(cl, idx)}
+                            className="flex-1 text-left flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                            {item.done
+                              ? <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                              : <Circle className="w-5 h-5 text-slate-300 dark:text-slate-600 shrink-0 group-hover:text-indigo-400" />}
+                            <span className={`text-sm ${item.done ? 'line-through text-slate-400' : 'text-brand-dark dark:text-white'}`}>
+                              {item.title}
+                            </span>
+                          </button>
+                          <button onClick={() => handleDeleteItem(cl, idx)}
+                            className="p-2 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       ))}
                     </div>
+                    
+                    <form onSubmit={(e) => handleAddItem(cl, e)} className="mt-4 flex items-center gap-2">
+                       <input 
+                         type="text" 
+                         placeholder="Yeni madde ekle..." 
+                         value={newItemTexts[cl.id] || ''}
+                         onChange={e => setNewItemTexts(prev => ({ ...prev, [cl.id]: e.target.value }))}
+                         className="flex-1 px-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1117] text-brand-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-dark/20"
+                       />
+                       <button type="submit" disabled={!newItemTexts[cl.id]?.trim()} className="p-2.5 bg-brand-dark text-white rounded-xl disabled:opacity-50 hover:bg-black dark:bg-white dark:text-brand-dark dark:hover:bg-gray-200 transition-colors">
+                          <Plus className="w-4 h-4" />
+                       </button>
+                    </form>
                     {cl.notes && (
                       <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg text-xs text-slate-500 dark:text-slate-400">
                         <strong>Not:</strong> {cl.notes}

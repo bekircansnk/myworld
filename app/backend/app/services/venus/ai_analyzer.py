@@ -159,3 +159,45 @@ async def suggest_test_ideas(
         "Farklı hedef kitle segmentleri ile test yapın",
         "Kreatif formatlarını (görsel vs video) karşılaştırın",
     ])
+
+async def generate_ai_coach_comment(experiment_name: str, hypothesis: str) -> str:
+    """Generate pre-test AI coaching suggestions based on hypothesis."""
+    prompt = f"""
+Sen bir A/B testi ve reklam optimizasyon uzmanısın.
+Kullanıcı yeni bir reklam deneyi oluşturuyor. Ona bu testi gerçekleştirirken nelere dikkat etmesi gerektiği konusunda kısa ve profesyonel bir koçluk tavsiyesi ver.
+
+Deney Adı: {experiment_name}
+Hipotez: {hypothesis}
+
+Yanıtın doğrudan tavsiye niteliğinde olmalı, "Şunlara dikkat et:" gibi doğrudan konuya girmeli. En fazla 3-4 cümlelik kısa bir paragraf veya 3 maddelik kısa bir liste oluştur.
+"""
+    try:
+        from app.services.gemini import generate_response
+        response = await generate_response(prompt)
+        return response
+    except Exception as e:
+        return f"AI koçluk şu an kullanılamıyor: {str(e)}"
+
+async def generate_ai_review(experiment_name: str, hypothesis: str, learnings: str, winner: str) -> str:
+    """Generate post-test AI review analysis based on learnings and outcome."""
+    prompt = f"""
+Sen bir A/B testi ve veri analizi uzmanısın.
+Tamamlanmış bir reklam deneyi için değerlendirme yazacaksın. Bu testten çıkarılacak dersleri özetle ve bir sonraki adım için aksiyon önerisi sun.
+
+Deney Adı: {experiment_name}
+Başlangıç Hipotezi: {hypothesis}
+Test Sonucu (Öğrenim): {learnings}
+Kazanan Varyasyon: {winner or 'Belirtilmemiş'}
+
+Yanıtın net ve profesyonel olmalı:
+1. Kısa bir değerlendirme (Test sonucu hipotezi doğruladı mı?)
+2. Bu sonuç markaya ne ifade ediyor?
+3. Bir sonraki test/adım için 1 somut aksiyon önerisi.
+Kısa tut, doğrudan içgörülere odaklan.
+"""
+    try:
+        from app.services.gemini import generate_response
+        response = await generate_response(prompt)
+        return response
+    except Exception as e:
+        return f"AI değerlendirmesi şu an kullanılamıyor: {str(e)}"

@@ -9,6 +9,8 @@ class VenusAdsTask(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=True)
     campaign_id = Column(Integer, ForeignKey("venus_campaigns.id"), nullable=True)
+    experiment_id = Column(Integer, ForeignKey("venus_experiments.id"), nullable=True)
+    creative_id = Column(Integer, ForeignKey("venus_creatives.id"), nullable=True)
 
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)

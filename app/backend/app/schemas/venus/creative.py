@@ -4,6 +4,8 @@ from datetime import datetime
 
 class CreativeBase(BaseModel):
     project_id: Optional[int] = None
+    campaign_id: Optional[int] = None
+    experiment_id: Optional[int] = None
     creative_name: str
     creative_type: str
     format: Optional[str] = None
@@ -20,6 +22,8 @@ class CreativeCreate(CreativeBase):
 
 class CreativeUpdate(BaseModel):
     project_id: Optional[int] = None
+    campaign_id: Optional[int] = None
+    experiment_id: Optional[int] = None
     creative_name: Optional[str] = None
     creative_type: Optional[str] = None
     format: Optional[str] = None

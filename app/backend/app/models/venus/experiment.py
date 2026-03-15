@@ -9,6 +9,7 @@ class VenusExperiment(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=True)
     campaign_id = Column(Integer, ForeignKey("venus_campaigns.id"), nullable=True)
+    creative_id = Column(Integer, ForeignKey("venus_creatives.id"), nullable=True)
 
     experiment_name = Column(String, nullable=False)
     hypothesis = Column(Text, nullable=True)
@@ -20,6 +21,7 @@ class VenusExperiment(Base):
     metrics_tracked = Column(JSON, default=list) # e.g. ["cpa", "roas", "ctr"]
     winner = Column(String, nullable=True)
     learnings = Column(Text, nullable=True)
+    ai_comment = Column(Text, nullable=True)
 
     # Relationships
     campaign = relationship("VenusCampaign")

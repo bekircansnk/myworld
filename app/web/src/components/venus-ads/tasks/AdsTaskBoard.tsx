@@ -3,6 +3,7 @@ import { useVenusAdsStore } from '@/stores/venusAdsStore';
 import { useProjectStore } from '@/stores/projectStore';
 import { Plus, Target, Clock, CheckCircle2, AlertCircle, ChevronRight, X, Calendar, Flag } from 'lucide-react';
 import { VenusAdsTask } from '@/types/venus-ads';
+import { LinkedItemChip } from '../LinkedItemChip';
 
 const CATEGORIES = [
   { value: 'budget', label: 'Bütçe Kontrolü', color: 'bg-emerald-500' },
@@ -32,12 +33,22 @@ interface TaskFormProps {
 }
 
 function TaskForm({ onClose, projectId, initial }: TaskFormProps) {
-  const { createTask, updateTask, fetchTasks } = useVenusAdsStore();
+  const { createTask, updateTask, fetchTasks, campaigns, experiments, creatives, fetchCampaigns, fetchExperiments, fetchCreatives } = useVenusAdsStore();
+  
+  useEffect(() => {
+    fetchCampaigns(projectId || undefined);
+    fetchExperiments(projectId || undefined);
+    fetchCreatives(projectId || undefined);
+  }, [projectId]);
+
   const [title, setTitle] = useState(initial?.title || '');
   const [description, setDescription] = useState(initial?.description || '');
   const [category, setCategory] = useState(initial?.category || 'optimization');
   const [priority, setPriority] = useState(initial?.priority || 'medium');
   const [dueDate, setDueDate] = useState(initial?.due_date?.split('T')[0] || '');
+  const [campaignId, setCampaignId] = useState<number | ''>(initial?.campaign_id || '');
+  const [experimentId, setExperimentId] = useState<number | ''>(initial?.experiment_id || '');
+  const [creativeId, setCreativeId] = useState<number | ''>(initial?.creative_id || '');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
@@ -53,6 +64,9 @@ function TaskForm({ onClose, projectId, initial }: TaskFormProps) {
         due_date: dueDate || undefined,
         source: 'manual',
         project_id: projectId || undefined,
+        campaign_id: campaignId || undefined,
+        experiment_id: experimentId || undefined,
+        creative_id: creativeId || undefined,
       };
       if (initial) {
         await updateTask(initial.id, payload);
@@ -104,6 +118,32 @@ function TaskForm({ onClose, projectId, initial }: TaskFormProps) {
             <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1117] text-brand-dark dark:text-white" />
           </div>
+          <div className="grid grid-cols-3 gap-4">
+             <div>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Kampanya</label>
+                <select value={campaignId} onChange={e => setCampaignId(Number(e.target.value) || '')}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1117] text-brand-dark dark:text-white">
+                  <option value="">- Seçiniz -</option>
+                  {campaigns.map(c => <option key={c.id} value={c.id}>{c.campaign_name}</option>)}
+                </select>
+             </div>
+             <div>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Test / Deney</label>
+                <select value={experimentId} onChange={e => setExperimentId(Number(e.target.value) || '')}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1117] text-brand-dark dark:text-white">
+                  <option value="">- Seçiniz -</option>
+                  {experiments.map(c => <option key={c.id} value={c.id}>{c.experiment_name}</option>)}
+                </select>
+             </div>
+             <div>
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Kreatif</label>
+                <select value={creativeId} onChange={e => setCreativeId(Number(e.target.value) || '')}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1117] text-brand-dark dark:text-white">
+                  <option value="">- Seçiniz -</option>
+                  {creatives.map(c => <option key={c.id} value={c.id}>{c.creative_name}</option>)}
+                </select>
+             </div>
+          </div>
         </div>
         <div className="px-6 py-4 border-t border-slate-100 dark:border-white/5 flex justify-end gap-3">
           <button onClick={onClose} className="px-5 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl">İptal</button>
@@ -141,6 +181,25 @@ export function AdsTaskBoard({ projectId }: { projectId: number | null }) {
 
   const getPriorityInfo = (p: string) => PRIORITIES.find(pr => pr.value === p) || PRIORITIES[1];
   const getCategoryInfo = (c: string) => CATEGORIES.find(cat => cat.value === c) || CATEGORIES[5];
+  
+  const handleDragStart = (e: React.DragEvent, taskId: number) => {
+    e.dataTransfer.setData('taskId', taskId.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault(); // Necessary to allow dropping
+  };
+
+  const handleDrop = async (e: React.DragEvent, status: string) => {
+    e.preventDefault();
+    const taskId = parseInt(e.dataTransfer.getData('taskId'), 10);
+    if (!isNaN(taskId)) {
+       const task = adsTasks.find(t => t.id === taskId);
+       if (task && task.status !== status) {
+          await handleMoveTask(task, status);
+       }
+    }
+  };
 
   return (
     <div className="flex flex-col h-full gap-6">
@@ -173,7 +232,11 @@ export function AdsTaskBoard({ projectId }: { projectId: number | null }) {
             const tasks = adsTasks.filter(t => t.status === col.key);
             const Icon = col.icon;
             return (
-              <div key={col.key} className={`bg-white dark:bg-slate-800 rounded-2xl shadow-sm border-2 ${col.color} overflow-hidden flex flex-col`}>
+              <div key={col.key} 
+                className={`bg-white dark:bg-slate-800 rounded-2xl shadow-sm border-2 ${col.color} overflow-hidden flex flex-col`}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, col.key)}
+              >
                 <div className="px-5 py-3.5 bg-slate-50/50 dark:bg-slate-900/20 flex items-center justify-between border-b border-slate-100 dark:border-white/5">
                   <h2 className="font-bold text-brand-dark dark:text-white flex items-center gap-2 text-sm">
                     <Icon className="w-4 h-4" />
@@ -190,8 +253,16 @@ export function AdsTaskBoard({ projectId }: { projectId: number | null }) {
                     tasks.map(task => {
                       const pri = getPriorityInfo(task.priority);
                       const cat = getCategoryInfo(task.category);
+                      const { campaigns, experiments, creatives } = useVenusAdsStore.getState();
+                      const lc = campaigns.find(c => c.id === task.campaign_id);
+                      const le = experiments.find(x => x.id === task.experiment_id);
+                      const lr = creatives.find(c => c.id === task.creative_id);
+
                       return (
-                        <div key={task.id} className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-100 dark:border-white/5 p-4 hover:shadow-md transition-all group cursor-pointer"
+                        <div key={task.id} 
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, task.id)}
+                          className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-100 dark:border-white/5 p-4 hover:shadow-md transition-all group cursor-move"
                           onClick={() => { setEditingTask(task); setIsFormOpen(true); }}>
                           <div className="flex items-start justify-between gap-2 mb-2">
                             <h3 className="text-sm font-bold text-brand-dark dark:text-white leading-tight line-clamp-2">{task.title}</h3>
@@ -212,6 +283,15 @@ export function AdsTaskBoard({ projectId }: { projectId: number | null }) {
                           {task.description && (
                             <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-3">{task.description}</p>
                           )}
+                          
+                          {(lc || le || lr) && (
+                            <div className="flex flex-wrap gap-1 mb-3">
+                              {lc && <LinkedItemChip type="campaign" label={lc.campaign_name} />}
+                              {le && <LinkedItemChip type="experiment" label={le.experiment_name} />}
+                              {lr && <LinkedItemChip type="creative" label={lr.creative_name} />}
+                            </div>
+                          )}
+
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded ${pri.bg} ${pri.color}`}>
                               <Flag className="w-2.5 h-2.5" />

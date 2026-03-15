@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useVenusAdsStore } from '@/stores/venusAdsStore';
 import { useProjectStore } from '@/stores/projectStore';
 import { Plus, Beaker, CheckCircle2, ChevronRight, Edit, Trash2 } from 'lucide-react';
-import { TestForm } from './TestForm';
 import { VenusExperiment } from '@/types/venus-ads';
+import { TestForm } from './TestForm';
+import { LinkedItemChip } from '../LinkedItemChip';
+import { TestDetailModal } from './TestDetailModal';
 
 interface TestCenterProps {
   projectId: number | null;
@@ -13,9 +15,11 @@ export function TestCenter({ projectId }: TestCenterProps) {
   const { experiments, isLoadingExperiments, fetchExperiments, deleteCampaign: deleteExperiment } = useVenusAdsStore();
   const { projects } = useProjectStore();
   const currentProject = projects.find(p => p.id === projectId);
+  const { campaigns, creatives } = useVenusAdsStore();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTest, setEditingTest] = useState<VenusExperiment | null>(null);
+  const [detailTest, setDetailTest] = useState<VenusExperiment | null>(null);
 
   useEffect(() => {
     fetchExperiments(projectId || undefined);
@@ -79,25 +83,37 @@ export function TestCenter({ projectId }: TestCenterProps) {
                   <div className="p-8 text-center text-sm text-slate-500">Aktif bir A/B testi bulunmuyor.</div>
                 ) : (
                   <div className="flex flex-col divide-y divide-slate-100 dark:divide-white/5">
-                      {runningTests.map(test => (
-                          <div key={test.id} className="p-5 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors group">
+                      {runningTests.map(test => {
+                          const lc = campaigns.find(c => c.id === test.campaign_id);
+                          const kr = creatives.find(c => c.id === test.creative_id);
+                          return (
+                          <div key={test.id} onClick={() => setDetailTest(test)} className="p-5 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors group cursor-pointer relative">
                                <div className="flex justify-between items-start mb-2">
-                                   <h3 className="font-bold text-brand-dark dark:text-white text-base">{test.experiment_name}</h3>
-                                   <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button onClick={() => handleOpenEdit(test)} className="p-1 text-slate-400 hover:text-brand-dark dark:hover:text-white"><Edit className="w-4 h-4" /></button>
-                                        <button onClick={() => handleDelete(test.id)} className="p-1 text-slate-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+                                   <h3 className="font-bold text-brand-dark dark:text-white text-base pr-8">{test.experiment_name}</h3>
+                                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-4 top-4">
+                                        <button onClick={(e) => { e.stopPropagation(); handleOpenEdit(test); }} className="p-1.5 text-slate-400 hover:text-brand-dark dark:hover:text-white bg-white dark:bg-slate-800 shadow-sm rounded-lg"><Edit className="w-4 h-4" /></button>
+                                        <button onClick={(e) => { e.stopPropagation(); handleDelete(test.id); }} className="p-1.5 text-slate-400 hover:text-red-500 bg-white dark:bg-slate-800 shadow-sm rounded-lg"><Trash2 className="w-4 h-4" /></button>
                                    </div>
                                </div>
                                {test.hypothesis && (
-                                   <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-100 dark:border-white/5">
+                                   <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-100 dark:border-white/5">
                                        <strong>Hipotez:</strong> {test.hypothesis}
                                    </p>
                                )}
-                               <button onClick={() => handleOpenEdit(test)} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 hover:underline">
+                               
+                               {(lc || kr) && (
+                                  <div className="flex flex-wrap gap-2 mb-3">
+                                     {lc && <LinkedItemChip type="campaign" label={lc.campaign_name} />}
+                                     {kr && <LinkedItemChip type="creative" label={kr.creative_name} />}
+                                  </div>
+                               )}
+
+                               <button onClick={(e) => { e.stopPropagation(); handleOpenEdit(test); }} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 hover:underline">
                                     Sonucu Belirle <ChevronRight className="w-3 h-3" />
                                </button>
                           </div>
-                      ))}
+                          );
+                      })}
                   </div>
                 )}
              </div>
@@ -118,11 +134,14 @@ export function TestCenter({ projectId }: TestCenterProps) {
                   <div className="p-8 text-center text-sm text-slate-500">Henüz tamamlanmış bir test yok.</div>
                 ) : (
                   <div className="flex flex-col divide-y divide-slate-100 dark:divide-white/5">
-                      {pastTests.map(test => (
-                          <div key={test.id} className="p-5 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors group">
+                      {pastTests.map(test => {
+                          const lc = campaigns.find(c => c.id === test.campaign_id);
+                          const kr = creatives.find(c => c.id === test.creative_id);
+                          return (
+                          <div key={test.id} onClick={() => setDetailTest(test)} className="p-5 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors group cursor-pointer relative">
                                <div className="flex justify-between items-start mb-2">
-                                   <div>
-                                     <h3 className="font-bold text-slate-700 dark:text-slate-300 line-through decoration-slate-300 dark:decoration-slate-600 opacity-60 text-sm">
+                                   <div className="pr-8">
+                                     <h3 className="font-bold text-slate-700 dark:text-slate-300 text-sm">
                                          {test.experiment_name}
                                      </h3>
                                      <div className="mt-1 flex items-center gap-2">
@@ -136,17 +155,24 @@ export function TestCenter({ projectId }: TestCenterProps) {
                                          )}
                                      </div>
                                    </div>
-                                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button onClick={() => handleDelete(test.id)} className="p-1 text-slate-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-4 top-4">
+                                        <button onClick={(e) => { e.stopPropagation(); handleDelete(test.id); }} className="p-1.5 text-slate-400 hover:text-red-500 bg-white dark:bg-slate-800 shadow-sm rounded-lg"><Trash2 className="w-4 h-4" /></button>
                                    </div>
                                </div>
+                               
+                               {(lc || kr) && (
+                                  <div className="flex flex-wrap gap-2 mt-2 mb-3">
+                                     {lc && <LinkedItemChip type="campaign" label={lc.campaign_name} />}
+                                     {kr && <LinkedItemChip type="creative" label={kr.creative_name} />}
+                                  </div>
+                               )}
                                {test.learnings && (
-                                   <div className="text-sm text-slate-600 dark:text-slate-400 mt-3 p-3 bg-emerald-50/50 dark:bg-emerald-900/10 rounded-lg border border-emerald-100/50 dark:border-emerald-900/20">
+                                   <div className="text-sm text-slate-600 dark:text-slate-400 mt-2 p-3 bg-emerald-50/50 dark:bg-emerald-900/10 rounded-lg border border-emerald-100/50 dark:border-emerald-900/20 line-clamp-2">
                                        <strong>Öğrenim:</strong> {test.learnings}
                                    </div>
                                )}
                           </div>
-                      ))}
+                      )})}
                   </div>
                 )}
              </div>
@@ -159,6 +185,13 @@ export function TestCenter({ projectId }: TestCenterProps) {
           onClose={() => setIsFormOpen(false)} 
           projectId={projectId} 
           initialData={editingTest} 
+        />
+      )}
+      
+      {detailTest && (
+        <TestDetailModal
+          test={detailTest}
+          onClose={() => setDetailTest(null)}
         />
       )}
     </div>

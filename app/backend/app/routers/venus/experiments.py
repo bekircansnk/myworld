@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from pydantic import BaseModel
 from typing import List, Optional
 
 from app.database import get_db
@@ -8,6 +9,17 @@ from app.dependencies.auth import get_current_user
 from app.models.user import User
 from app.models.venus.experiment import VenusExperiment
 from app.schemas.venus.experiment import ExperimentCreate, ExperimentUpdate, ExperimentResponse
+from app.services.venus.ai_analyzer import generate_ai_coach_comment, generate_ai_review
+
+class CoachRequest(BaseModel):
+    experiment_name: str
+    hypothesis: str
+
+class ReviewRequest(BaseModel):
+    experiment_name: str
+    hypothesis: str
+    learnings: str
+    winner: Optional[str] = None
 
 router = APIRouter(tags=["Venus Ads Experiments"])
 
@@ -74,3 +86,33 @@ async def delete_experiment(
     await db.delete(db_exp)
     await db.commit()
     return {"ok": True}
+
+@router.post("/{experiment_id}/ai-coach")
+async def get_ai_coaching(
+    experiment_id: int,  # Could be 0 for new tests
+    request: CoachRequest,
+    current_user: User = Depends(get_current_user)
+):
+    comment = await generate_ai_coach_comment(request.experiment_name, request.hypothesis)
+    return {"ai_comment": comment}
+
+@router.post("/{experiment_id}/ai-review")
+async def get_ai_review(
+    experiment_id: int,
+    request: ReviewRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    result = await db.execute(select(VenusExperiment).where(VenusExperiment.id == experiment_id, VenusExperiment.user_id == current_user.id))
+    db_exp = result.scalar_one_or_none()
+    
+    if not db_exp:
+        raise HTTPException(status_code=404, detail="Experiment not found")
+        
+    comment = await generate_ai_review(request.experiment_name, request.hypothesis, request.learnings, request.winner)
+    
+    # Save to db
+    db_exp.ai_comment = comment
+    await db.commit()
+    
+    return {"ai_comment": comment}

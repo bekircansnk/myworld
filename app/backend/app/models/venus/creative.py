@@ -12,6 +12,9 @@ class VenusCreative(Base):
     creative_name = Column(String, nullable=False)
     creative_type = Column(String, nullable=False) # image, video, carousel, text
     format = Column(String, nullable=True) # 1x1, 9x16, 16x9
+
+    campaign_id = Column(Integer, ForeignKey("venus_campaigns.id"), nullable=True)
+    experiment_id = Column(Integer, ForeignKey("venus_experiments.id"), nullable=True)
     url = Column(String, nullable=True) 
     thumbnail_url = Column(String, nullable=True)
     

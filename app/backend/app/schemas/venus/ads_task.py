@@ -5,6 +5,8 @@ from datetime import date, datetime
 class AdsTaskBase(BaseModel):
     project_id: Optional[int] = None
     campaign_id: Optional[int] = None
+    experiment_id: Optional[int] = None
+    creative_id: Optional[int] = None
     title: str
     description: Optional[str] = None
     category: Optional[str] = "daily_check"
@@ -21,6 +23,8 @@ class AdsTaskCreate(AdsTaskBase):
 class AdsTaskUpdate(BaseModel):
     project_id: Optional[int] = None
     campaign_id: Optional[int] = None
+    experiment_id: Optional[int] = None
+    creative_id: Optional[int] = None
     title: Optional[str] = None
     description: Optional[str] = None
     category: Optional[str] = None

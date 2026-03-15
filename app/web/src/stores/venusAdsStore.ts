@@ -37,6 +37,8 @@ interface VenusAdsState {
   createExperiment: (data: Partial<VenusExperiment>) => Promise<VenusExperiment>;
   updateExperiment: (id: number, data: Partial<VenusExperiment>) => Promise<VenusExperiment>;
   deleteExperiment: (id: number) => Promise<void>;
+  getAICoaching: (experimentName: string, hypothesis: string) => Promise<string>;
+  getAIReview: (id: number, experimentName: string, hypothesis: string, learnings: string, winner?: string) => Promise<string>;
 
   // Creatives
   creatives: VenusCreative[];
@@ -177,6 +179,15 @@ export const useVenusAdsStore = create<VenusAdsState>((set) => ({
   deleteExperiment: async (id) => {
     await api.delete(`/api/venus/experiments/${id}`);
     set((s) => ({ experiments: s.experiments.filter(c => c.id !== id) }));
+  },
+  getAICoaching: async (experimentName, hypothesis) => {
+    const res = await api.post('/api/venus/experiments/0/ai-coach', { experiment_name: experimentName, hypothesis });
+    return res.data.ai_comment;
+  },
+  getAIReview: async (id, experimentName, hypothesis, learnings, winner) => {
+    const res = await api.post(`/api/venus/experiments/${id}/ai-review`, { experiment_name: experimentName, hypothesis, learnings, winner });
+    set((s) => ({ experiments: s.experiments.map(c => c.id === id ? { ...c, ai_comment: res.data.ai_comment } : c) }));
+    return res.data.ai_comment;
   },
 
   // ── CREATIVES ──
