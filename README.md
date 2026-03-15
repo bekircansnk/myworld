@@ -19,6 +19,8 @@
 - **📋 Kanban Görev Yönetimi** — AI destekli alt görev oluşturma ve durum takibi
 - **📅 Takvim** — Bulut senkronizasyonlu, sürükle-bırak ve görev entegrasyonlu
 - **📝 Akıllı Notlar** — AI ile otomatik başlık ve kategori atama
+- **📈 Venus Ads v2** — Reklam KPI takibi, CSV veri yükleme ve **Optimistic UI (Işık Hızında Güncelleme)**
+- **🔗 Akıllı Bağlantılar** — Kampanyalar, Testler ve Kreatifler arası tek tıkla navigasyon
 - **🤖 Proaktif AI Asistan** — Sabah/öğle/akşam zamanlamalı bildirimler ve koçluk
 - **⏱️ Pomodoro Timer** — Odaklanma sürelerini kaydeden zamanlayıcı
 - **📊 Performans Analizi** — AI tarafından hazırlanan günlük ve haftalık raporlar

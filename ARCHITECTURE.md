@@ -1,5 +1,4 @@
-# 🌍 MY WORLD — MİMARİ VE SİSTEM KURALLARI (ARCHITECTURE.md)
-# Son Güncelleme: 2026-03-15T03:30+03:00
+# Son Güncelleme: 2026-03-15T06:05+03:00
 
 > **KRİTİK:** Bu dosya tüm sistemin TEK KAYNAĞI (Single Source of Truth) olarak tasarlanmıştır.
 > Herhangi bir AI ajanı bu projeye ilk kez girdiğinde **sadece bu dosyayı** okumalıdır.
@@ -691,6 +690,12 @@ npm run dev   # localhost:3000
 - ✅ Kanban board AI aksiyon sonrası otomatik refresh
 - ✅ **Venus Ads Panel (v2)**: Reklam performans takip sistemi, CSV veri yükleme, KPI hesaplama (ROAS/CPA) ve Gemini AI içgörü entegrasyonu tamamlandı. Örnek dosyalar ve kullanıcı rehberi eklendi.
 - ✅ **Yedekleme Sistemi**: Python tabanlı JSON yedekleme, manuel `.command` başlatıcı ve MacOS LaunchAgent ile günlük (22:11) otomatik yedekleme.
+- ✅ **Optimistic UI & Performans**: Tüm Venus Ads panellerinde (Kampanyalar, Görevler, Testler, Checklistler) asenkron güncelleme altyapısına geçildi. Kullanıcı tıkladığı anda görsel veri değişir, sayfa yenileme beklemesi (5sn blokajı) kaldırıldı.
+- ✅ **Venus Ads Varlık Bağlantıları (Cross-Linking)**: Kampanya, Test, Kreatif ve Görevler arasında "Tıklanabilir Çip" bağlantıları kuruldu. Bir kampanya içinden ilgili göreve tıklandığında otomatik olarak o modüle geçiş yapılır ve ilgili varlığın detay/düzenleme penceresi açılır.
+- ✅ **Kreatif Laboratuvarı Geliştirmeleri**: Google Drive ve harici URL'lerden gelen resimlerin "no-referrer" politikasıyla sorunsuz görüntülenmesi sağlandı.
+- ✅ **Akıllı Görev Notları & AI Review**: Operasyon görevlerinde AI aksiyon önerileri daraltılabilir (collapsible) hale getirildi. Testler tamamlandığında AI'nın otomatik "Learning & Review" (Öğrenim ve Değerlendirme) üretmesi sağlandı.
+- ✅ **Müşteri Devralma (Checklist) UI**: Yatayda uzayan hantal yapı daraltıldı (compact). Silme butonu metnin yanına çekildi ve yeni madde ekleme formu minimalize edildi.
+- ✅ **Ayarlar & Profil**: Profil Ayarları (Kullanıcı adı, şifre, avatar) ve Proje Ayarları (Renk, ikon, isim) modalları tamamlandı.
 
 ---
 
