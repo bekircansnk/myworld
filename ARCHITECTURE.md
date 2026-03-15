@@ -1,5 +1,5 @@
 # 🌍 MY WORLD — MİMARİ VE SİSTEM KURALLARI (ARCHITECTURE.md)
-# Son Güncelleme: 2026-03-14T05:46+03:00
+# Son Güncelleme: 2026-03-15T03:30+03:00
 
 > **KRİTİK:** Bu dosya tüm sistemin TEK KAYNAĞI (Single Source of Truth) olarak tasarlanmıştır.
 > Herhangi bir AI ajanı bu projeye ilk kez girdiğinde **sadece bu dosyayı** okumalıdır.
@@ -266,6 +266,10 @@ TaskDetailPanel her zaman render edilir (global overlay — isDetailPanelOpen il
 | GET     | `/api/reports/daily`             | Günlük rapor geçmişi                | reports.py           |
 | POST    | `/api/reports/generate/daily`    | Günlük rapor oluştur                | reports.py           |
 | GET     | `/api/reports/weekly`            | Haftalık rapor geçmişi              | reports.py           |
+| GET     | `/api/venus/metrics/overview`    | Venus KPI özeti                     | venus/metrics.py     |
+| GET     | `/api/venus/campaigns`           | Venus Kampanya listesi              | venus/campaigns.py   |
+| POST    | `/api/venus/csv-imports/upload`  | Venus CSV/XLSX veri yükleme         | venus/csv_imports.py |
+| POST    | `/api/venus/ai-observations/generate-daily` | Venus AI günlük analiz üret | venus/ai_obs.py |
 | GET     | `/api/calendar/events`           | Takvim etkinliklerini listele       | calendar.py          |
 | POST    | `/api/calendar/events`           | Yeni takvim etkinliği               | calendar.py          |
 | PUT     | `/api/calendar/events/{id}`      | Etkinlik güncelle                   | calendar.py          |
@@ -576,10 +580,11 @@ Ana yapı: Sol panel (takvim grid) + Sağ sidebar (günün programı + etkinlikl
 | noteStore      | noteStore.ts      | notes[], selectedNote, isDetailPanelOpen | fetchNotes, addNoteAction, addExplicitNoteAction, deleteNoteAction, updateNoteInList, openNoteDetail, closeNoteDetail |
 | calendarStore  | calendarStore.ts  | events[], viewMode, currentDate, selectedEvent | addEvent, updateEvent, deleteEvent, setViewMode, setCurrentDate; **persist: localStorage** |
 | webSocketStore | webSocketStore.ts | socket, isConnected   | connect (auto-reconnect 5sn), disconnect, sendMessage |
+| venusAdsStore  | venusAdsStore.ts  | campaigns[], overviewData, observations[] | fetchOverview, fetchCampaigns, uploadCSV, generateDailySummary |
 
 ### ViewMode Tanımı (projectStore.ts)
 ```typescript
-type ViewMode = 'dashboard' | 'all_tasks' | 'project' | 'notes' | 'reports' | 'calendar'
+type ViewMode = 'dashboard' | 'all_tasks' | 'project' | 'notes' | 'reports' | 'calendar' | 'venus_ads'
 ```
 
 ### TypeScript Interfaces (types/index.ts)
@@ -675,6 +680,7 @@ npm run dev   # localhost:3000
 - ✅ WebSocket altyapısı & Proaktif AI Mesajları
 - ✅ Rapor modeli
 - ✅ Kanban board AI aksiyon sonrası otomatik refresh
+- ✅ **Venus Ads Panel (v2)**: Reklam performans takip sistemi, CSV veri yükleme, KPI hesaplama (ROAS/CPA) ve Gemini AI içgörü entegrasyonu tamamlandı. Örnek dosyalar ve kullanıcı rehberi eklendi.
 - ✅ **Yedekleme Sistemi**: Python tabanlı JSON yedekleme, manuel `.command` başlatıcı ve MacOS LaunchAgent ile günlük (22:11) otomatik yedekleme.
 
 ---

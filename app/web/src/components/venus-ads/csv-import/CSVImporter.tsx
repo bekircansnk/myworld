@@ -99,19 +99,44 @@ export function CSVImporter({ projectId }: { projectId: number | null }) {
       </div>
 
       {/* Platform Selection */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Platform:</span>
-        {PLATFORMS.map(p => (
-          <button key={p.value} onClick={() => setSelectedPlatform(p.value)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 text-sm font-medium transition-all ${
-              selectedPlatform === p.value
-                ? 'border-brand-dark dark:border-white bg-slate-50 dark:bg-slate-700 text-brand-dark dark:text-white'
-                : 'border-slate-200 dark:border-white/10 text-slate-500 hover:border-slate-300'
-            }`}>
-            <span className={`w-2 h-2 rounded-full ${p.color}`} />
-            {p.label}
-          </button>
-        ))}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Platform Seçin:</span>
+          {PLATFORMS.map(p => (
+            <button key={p.value} onClick={() => setSelectedPlatform(p.value)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 text-sm font-medium transition-all ${
+                selectedPlatform === p.value
+                  ? 'border-brand-dark dark:border-white bg-slate-50 dark:bg-slate-700 text-brand-dark dark:text-white'
+                  : 'border-slate-200 dark:border-white/10 text-slate-500 hover:border-slate-300'
+              }`}>
+              <span className={`w-2 h-2 rounded-full ${p.color}`} />
+              {p.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-4 p-4 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-900/30">
+          <div className="flex-1">
+            <h4 className="text-xs font-bold text-indigo-900 dark:text-indigo-300 mb-1">Örnek Dosyanız Yok mu?</h4>
+            <p className="text-[11px] text-indigo-700/70 dark:text-indigo-400/70">Sistemin tanıması için aşağıdaki örnek formatları indirip inceleyebilirsiniz.</p>
+          </div>
+          <div className="flex gap-2">
+            <a 
+              href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/static/samples/google_ads_sample.csv`} 
+              download 
+              className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-800 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 rounded-lg hover:bg-white/80 transition-all flex items-center gap-1.5"
+            >
+              <FileSpreadsheet className="w-3 h-3" /> Google Örneği
+            </a>
+            <a 
+              href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/static/samples/meta_ads_sample.csv`} 
+              download 
+              className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-800 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 rounded-lg hover:bg-white/80 transition-all flex items-center gap-1.5"
+            >
+              <FileSpreadsheet className="w-3 h-3" /> Meta Örneği
+            </a>
+          </div>
+        </div>
       </div>
 
       {/* Drop Zone */}
