@@ -6,6 +6,13 @@ from sqlalchemy import select
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 
+async def _generate_response(prompt: str) -> str:
+    from app.services.gemini import generate_chat_response
+    import asyncio
+    messages = [{"role": "user", "content": prompt}]
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, generate_chat_response, messages, "")
+
 
 async def generate_campaign_analysis(
     db: AsyncSession,
@@ -67,8 +74,7 @@ JSON formatında yanıt ver:
 """
 
     try:
-        from app.services.gemini import generate_response
-        response = await generate_response(prompt)
+        response = await _generate_response(prompt)
 
         # Try to parse JSON from response
         import json
@@ -132,8 +138,7 @@ Anomaliler ({len(anomalies)} adet):
     prompt += "\nKısa, özlü bir günlük brifing hazırla (maks 3 paragraf)."
 
     try:
-        from app.services.gemini import generate_response
-        response = await generate_response(prompt)
+        response = await _generate_response(prompt)
         return {
             "summary": response,
             "kpis": kpis,
@@ -172,8 +177,7 @@ Hipotez: {hypothesis}
 Yanıtın doğrudan tavsiye niteliğinde olmalı, "Şunlara dikkat et:" gibi doğrudan konuya girmeli. En fazla 3-4 cümlelik kısa bir paragraf veya 3 maddelik kısa bir liste oluştur.
 """
     try:
-        from app.services.gemini import generate_response
-        response = await generate_response(prompt)
+        response = await _generate_response(prompt)
         return response
     except Exception as e:
         return f"AI koçluk şu an kullanılamıyor: {str(e)}"
@@ -196,8 +200,30 @@ Yanıtın net ve profesyonel olmalı:
 Kısa tut, doğrudan içgörülere odaklan.
 """
     try:
-        from app.services.gemini import generate_response
-        response = await generate_response(prompt)
+        response = await _generate_response(prompt)
         return response
     except Exception as e:
         return f"AI değerlendirmesi şu an kullanılamıyor: {str(e)}"
+
+async def generate_ai_task_notes(title: str, description: str, campaign_name: Optional[str] = None, experiment_name: Optional[str] = None, creative_name: Optional[str] = None) -> str:
+    """Generate AI notes for an ads task based on its context."""
+    context = ""
+    if campaign_name: context += f"\nBağlı Kampanya: {campaign_name}"
+    if experiment_name: context += f"\nBağlı Test: {experiment_name}"
+    if creative_name: context += f"\nBağlı Kreatif: {creative_name}"
+    
+    prompt = f"""
+Sen dijital reklam operasyonları (AdOps) uzmanısın. Kullanıcı bir görev oluşturuyor veya güncelliyor. 
+Bu görevle ilgili bir eylem planı, ipucu veya uyarı içeren kısa bir yapay zeka notu (AI Note) üret.
+
+Görev Başlığı: {title}
+Açıklama: {description}
+{context}
+
+Yanıtın doğrudan tavsiye veya eylem planı şeklinde olmalı. 2-3 cümleyi veya 3 maddelik kısa bir listeyi geçme. İşlem odaklı ol.
+"""
+    try:
+        response = await _generate_response(prompt)
+        return response
+    except Exception as e:
+        return f"AI görev notu şu an kullanılamıyor: {str(e)}"

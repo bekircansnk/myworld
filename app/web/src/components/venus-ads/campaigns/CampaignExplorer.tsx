@@ -143,7 +143,7 @@ export function CampaignExplorer({ projectId }: CampaignExplorerProps) {
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                 {filteredCampaigns.map(c => (
-                  <tr key={c.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/80 transition-colors group">
+                  <tr key={c.id} onClick={() => handleOpenEditCampaign(c)} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/80 transition-colors group cursor-pointer">
                     <td className="px-6 py-4 whitespace-nowrap">
                        <span className="font-medium capitalize text-slate-600 dark:text-gray-300 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded inline-flex items-center gap-1.5 text-xs">
                           {c.platform === 'meta' && <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />}

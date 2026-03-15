@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useVenusAdsStore } from '@/stores/venusAdsStore';
 import { useProjectStore } from '@/stores/projectStore';
-import { Plus, Target, Clock, CheckCircle2, AlertCircle, ChevronRight, X, Calendar, Flag } from 'lucide-react';
+import { Plus, Target, Clock, CheckCircle2, AlertCircle, ChevronRight, X, Calendar, Flag, Bot, Wand2 } from 'lucide-react';
 import { VenusAdsTask } from '@/types/venus-ads';
 import { LinkedItemChip } from '../LinkedItemChip';
 
@@ -33,7 +33,7 @@ interface TaskFormProps {
 }
 
 function TaskForm({ onClose, projectId, initial }: TaskFormProps) {
-  const { createTask, updateTask, fetchTasks, campaigns, experiments, creatives, fetchCampaigns, fetchExperiments, fetchCreatives } = useVenusAdsStore();
+  const { createTask, updateTask, fetchTasks, campaigns, experiments, creatives, fetchCampaigns, fetchExperiments, fetchCreatives, getAITaskNotes } = useVenusAdsStore();
   
   useEffect(() => {
     fetchCampaigns(projectId || undefined);
@@ -49,7 +49,25 @@ function TaskForm({ onClose, projectId, initial }: TaskFormProps) {
   const [campaignId, setCampaignId] = useState<number | ''>(initial?.campaign_id || '');
   const [experimentId, setExperimentId] = useState<number | ''>(initial?.experiment_id || '');
   const [creativeId, setCreativeId] = useState<number | ''>(initial?.creative_id || '');
+  const [aiNotes, setAiNotes] = useState<string>(initial?.ai_notes || '');
   const [loading, setLoading] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+
+  const handleGenerateAI = async () => {
+    if (!title.trim()) return;
+    setIsAiLoading(true);
+    try {
+      const campName = campaigns.find(c => c.id === campaignId)?.campaign_name;
+      const expName = experiments.find(e => e.id === experimentId)?.experiment_name;
+      const crName = creatives.find(c => c.id === creativeId)?.creative_name;
+      const note = await getAITaskNotes(title, description, campName, expName, crName);
+      setAiNotes(note);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!title.trim()) return;
@@ -67,6 +85,7 @@ function TaskForm({ onClose, projectId, initial }: TaskFormProps) {
         campaign_id: campaignId || undefined,
         experiment_id: experimentId || undefined,
         creative_id: creativeId || undefined,
+        ai_notes: aiNotes || undefined,
       };
       if (initial) {
         await updateTask(initial.id, payload);
@@ -141,16 +160,41 @@ function TaskForm({ onClose, projectId, initial }: TaskFormProps) {
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1117] text-brand-dark dark:text-white">
                   <option value="">- Seçiniz -</option>
                   {creatives.map(c => <option key={c.id} value={c.id}>{c.creative_name}</option>)}
-                </select>
-             </div>
-          </div>
+                 </select>
+              </div>
+           </div>
+
+           {(aiNotes || isAiLoading) && (
+              <div className="bg-indigo-50/50 dark:bg-indigo-900/10 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
+                 <div className="flex items-center gap-2 mb-2 text-indigo-600 dark:text-indigo-400">
+                    <Bot className="w-4 h-4" />
+                    <span className="text-xs font-bold uppercase tracking-wider">AI Görev Notu</span>
+                 </div>
+                 {isAiLoading ? (
+                    <div className="text-sm text-indigo-500 animate-pulse">AI detayları analiz ediyor...</div>
+                 ) : (
+                    <p className="text-sm text-brand-dark dark:text-slate-200 whitespace-pre-wrap leading-relaxed">{aiNotes}</p>
+                 )}
+              </div>
+           )}
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 dark:border-white/5 flex justify-end gap-3">
-          <button onClick={onClose} className="px-5 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl">İptal</button>
-          <button onClick={handleSubmit} disabled={loading || !title.trim()}
-            className="px-5 py-2.5 bg-brand-dark text-white hover:bg-black dark:bg-white dark:text-brand-dark dark:hover:bg-gray-100 rounded-xl font-medium disabled:opacity-50">
-            {loading ? 'Kaydediliyor...' : initial ? 'Güncelle' : 'Oluştur'}
+        <div className="px-6 py-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
+          <button 
+            onClick={handleGenerateAI} 
+            disabled={isAiLoading || !title.trim()} 
+            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors disabled:opacity-50 dark:text-indigo-400 dark:hover:bg-indigo-900/30"
+          >
+            <Wand2 className="w-4 h-4" />
+            AI'dan Aksiyon Önerisi Al
           </button>
+          
+          <div className="flex gap-3">
+            <button onClick={onClose} className="px-5 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl">İptal</button>
+            <button onClick={handleSubmit} disabled={loading || !title.trim()}
+              className="px-5 py-2.5 bg-brand-dark text-white hover:bg-black dark:bg-white dark:text-brand-dark dark:hover:bg-gray-100 rounded-xl font-medium disabled:opacity-50">
+              {loading ? 'Kaydediliyor...' : initial ? 'Güncelle' : 'Oluştur'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

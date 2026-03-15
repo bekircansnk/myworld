@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { VenusCreative } from '@/types/venus-ads';
 import { useVenusAdsStore } from '@/stores/venusAdsStore';
 import { X, Save, AlertCircle } from 'lucide-react';
@@ -10,7 +10,12 @@ interface CreativeFormProps {
 }
 
 export function CreativeForm({ onClose, projectId, initialData }: CreativeFormProps) {
-  const { createCreative, updateCreative } = useVenusAdsStore();
+  const { createCreative, updateCreative, campaigns, experiments, fetchCampaigns, fetchExperiments } = useVenusAdsStore();
+  
+  useEffect(() => {
+    fetchCampaigns(projectId || undefined);
+    fetchExperiments(projectId || undefined);
+  }, [projectId]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -142,6 +147,33 @@ export function CreativeForm({ onClose, projectId, initialData }: CreativeFormPr
                 placeholder="Örn: 8.5"
               />
             </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+             <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1.5 border-l-2 border-indigo-500 pl-2">Bağlı Kampanya</label>
+                <select 
+                  name="campaign_id" 
+                  value={formData.campaign_id || ''} 
+                  onChange={(e) => setFormData(p => ({ ...p, campaign_id: Number(e.target.value) || undefined }))}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1117] text-brand-dark dark:text-white"
+                >
+                  <option value="">- Bağımsız Kreatif -</option>
+                  {campaigns.map(c => <option key={c.id} value={c.id}>{c.campaign_name}</option>)}
+                </select>
+             </div>
+             <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1.5 border-l-2 border-purple-500 pl-2">Bağlı Test / Deney</label>
+                <select 
+                  name="experiment_id" 
+                  value={formData.experiment_id || ''} 
+                  onChange={(e) => setFormData(p => ({ ...p, experiment_id: Number(e.target.value) || undefined }))}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0f1117] text-brand-dark dark:text-white"
+                >
+                  <option value="">- Bağımsız Kreatif -</option>
+                  {experiments.map(c => <option key={c.id} value={c.id}>{c.experiment_name}</option>)}
+                </select>
+             </div>
           </div>
 
           <div>

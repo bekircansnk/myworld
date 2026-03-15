@@ -55,6 +55,7 @@ interface VenusAdsState {
   createTask: (data: Partial<VenusAdsTask>) => Promise<VenusAdsTask>;
   updateTask: (id: number, data: Partial<VenusAdsTask>) => Promise<VenusAdsTask>;
   deleteTask: (id: number) => Promise<void>;
+  getAITaskNotes: (title: string, description?: string, campaignName?: string, experimentName?: string, creativeName?: string) => Promise<string>;
 
   // Competitors
   competitors: VenusCompetitor[];
@@ -240,6 +241,10 @@ export const useVenusAdsStore = create<VenusAdsState>((set) => ({
   deleteTask: async (id) => {
     await api.delete(`/api/venus/tasks/${id}`);
     set((s) => ({ adsTasks: s.adsTasks.filter(t => t.id !== id) }));
+  },
+  getAITaskNotes: async (title, description, campaignName, experimentName, creativeName) => {
+    const res = await api.post('/api/venus/tasks/ai-notes', { title, description, campaign_name: campaignName, experiment_name: experimentName, creative_name: creativeName });
+    return res.data.ai_notes;
   },
 
   // ── COMPETITORS ──

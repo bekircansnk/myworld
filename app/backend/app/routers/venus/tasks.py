@@ -9,8 +9,33 @@ from app.models.user import User
 from app.models.venus.ads_task import VenusAdsTask
 from app.schemas.venus.ads_task import AdsTaskCreate, AdsTaskUpdate, AdsTaskResponse
 
+from pydantic import BaseModel
+from app.services.venus.ai_analyzer import generate_ai_task_notes
+
 # main.py provides prefix=""
 router = APIRouter(tags=["Venus Ads Tasks"])
+
+class TaskAiNoteRequest(BaseModel):
+    title: str
+    description: Optional[str] = None
+    campaign_name: Optional[str] = None
+    experiment_name: Optional[str] = None
+    creative_name: Optional[str] = None
+
+@router.post("/ai-notes")
+async def get_task_ai_notes(
+    req: TaskAiNoteRequest,
+    current_user: User = Depends(get_current_user)
+):
+    note = await generate_ai_task_notes(
+        title=req.title,
+        description=req.description or "",
+        campaign_name=req.campaign_name,
+        experiment_name=req.experiment_name,
+        creative_name=req.creative_name
+    )
+    return {"ai_notes": note}
+
 
 @router.get("", response_model=List[AdsTaskResponse])
 async def get_tasks(
