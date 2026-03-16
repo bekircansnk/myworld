@@ -23,8 +23,19 @@ export function TTSPlayer({ text, apiKey, className = '' }: TTSPlayerProps) {
     previewVoice,
     togglePlayPause,
     stop,
-    download
+    download,
+    playbackTime,
+    playbackDuration,
+    seekTo
   } = useTTS({ apiKey });
+
+  // Zaman formatlama yardımcısı (01:23)
+  const formatTime = (time: number) => {
+    if (!time || isNaN(time)) return "0:00";
+    const m = Math.floor(time / 60);
+    const s = Math.floor(time % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
 
   const hasStarted = progress.total > 0;
   const isFinished = !isGenerating && hasStarted;
@@ -94,35 +105,71 @@ export function TTSPlayer({ text, apiKey, className = '' }: TTSPlayerProps) {
       {/* Alt Kısım: İlerleme ve Hata Durumu */}
       {hasStarted && (
         <div className="flex flex-col gap-2">
-          {/* Progress Bar */}
-          <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
-            <div 
-              className="bg-indigo-500 h-1.5 rounded-full transition-all duration-300"
-              style={{ width: `${(progress.current / progress.total) * 100}%` }}
-            />
-          </div>
-          
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <div className="flex items-center gap-1.5">
-              {isGenerating && <Loader2 className="w-3 h-3 animate-spin text-indigo-400" />}
-              <span>
-                {isGenerating 
-                  ? `İşleniyor... (${progress.current}/${progress.total})` 
-                  : 'İşlem tamamlandı.'}
-              </span>
-            </div>
-            
-            {/* İndir Butonu (Sadece bittiğinde görünür) */}
-            {fullAudioUrl && (
-              <button
-                onClick={download}
-                className="flex items-center gap-1 text-indigo-400 hover:text-indigo-300 transition-colors"
-              >
-                <Download className="w-3 h-3" />
-                <span>İndir</span>
-              </button>
-            )}
-          </div>
+          {isGenerating ? (
+            <>
+              {/* Progress Bar Yükleme Aşaması */}
+              <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+                <div 
+                  className="bg-indigo-500 h-1.5 rounded-full transition-all duration-300"
+                  style={{ width: `${(progress.current / progress.total) * 100}%` }}
+                />
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+                <Loader2 className="w-3 h-3 animate-spin text-indigo-400" />
+                <span>İşleniyor... ({progress.current}/{progress.total})</span>
+              </div>
+            </>
+          ) : (
+            fullAudioUrl && (
+              <div className="flex flex-col gap-2 mt-1">
+                {/* Oynatma (Scrub Yüzeyi) Progress Bar */}
+                <div className="flex items-center gap-2.5">
+                  <span className="text-[10px] tabular-nums font-medium text-slate-400 w-7 text-right">
+                    {formatTime(playbackTime)}
+                  </span>
+                  
+                  <div className="relative flex-1 group cursor-pointer h-4 flex items-center">
+                    <input
+                      type="range"
+                      min="0"
+                      max={playbackDuration || 100}
+                      step="0.01"
+                      value={playbackTime}
+                      onChange={(e) => seekTo(Number(e.target.value))}
+                      className="absolute inset-0 w-full opacity-0 cursor-pointer z-10"
+                    />
+                    <div className="w-full bg-slate-700/50 rounded-full h-1.5 relative overflow-hidden group-hover:bg-slate-700 transition-colors">
+                      <div 
+                        className="bg-indigo-500 h-full rounded-full transition-all duration-75 relative"
+                        style={{ width: `${playbackDuration > 0 ? (playbackTime / playbackDuration) * 100 : 0}%` }}
+                      >
+                        {/* Dot indicator */}
+                        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full shadow-sm shadow-indigo-500/50 scale-0 group-hover:scale-100 transition-transform" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <span className="text-[10px] tabular-nums font-medium text-slate-400 w-7">
+                    {formatTime(playbackDuration)}
+                  </span>
+                </div>
+                
+                {/* Durum & İndirme İkonu */}
+                <div className="flex items-center justify-between ml-1 text-xs">
+                  <div className="text-[10px] text-emerald-400 font-bold tracking-wide">
+                    Ses Dosyası Hazır
+                  </div>
+                  <button
+                    onClick={download}
+                    className="flex items-center gap-1.5 text-indigo-400 hover:text-indigo-300 font-medium transition-colors p-1"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>İndir</span>
+                  </button>
+                </div>
+              </div>
+            )
+          )}
         </div>
       )}
 

@@ -3,11 +3,11 @@ import { GoogleGenAI, Modality } from '@google/genai';
 import { chunkText, base64ToUint8Array, createWavBlob } from './utils';
 
 export const VOICES = [
-  { id: 'Puck', name: 'Puck (Yumuşak, Sakin)' },
-  { id: 'Charon', name: 'Charon (Derin, Tok)' },
-  { id: 'Kore', name: 'Kore (Net, Öğretici)' },
-  { id: 'Fenrir', name: 'Fenrir (Güçlü, Kararlı)' },
-  { id: 'Zephyr', name: 'Zephyr (Hafif, Akıcı)' },
+  { id: 'Puck', name: 'Yumuşak' },
+  { id: 'Charon', name: 'Derin' },
+  { id: 'Kore', name: 'Net' },
+  { id: 'Fenrir', name: 'Güçlü' },
+  { id: 'Zephyr', name: 'Hafif' },
 ];
 
 interface UseTTSProps {
@@ -23,6 +23,10 @@ export function useTTS({ apiKey }: UseTTSProps = {}) {
   
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [fullAudioUrl, setFullAudioUrl] = useState<string | null>(null);
+
+  // Playback tracking
+  const [playbackTime, setPlaybackTime] = useState(0);
+  const [playbackDuration, setPlaybackDuration] = useState(0);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -59,15 +63,33 @@ export function useTTS({ apiKey }: UseTTSProps = {}) {
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio();
-      audioRef.current.onended = handleAudioEnded;
+      audioRef.current.onended = () => {
+        setIsPlaying(false);
+        setPlaybackTime(0);
+      };
       audioRef.current.onerror = () => {
         console.error("Audio playback error.");
         setIsPlaying(false);
       };
       audioRef.current.onpause = () => setIsPlaying(false);
       audioRef.current.onplay = () => setIsPlaying(true);
+      audioRef.current.ontimeupdate = () => {
+        if (audioRef.current) {
+          setPlaybackTime(audioRef.current.currentTime);
+        }
+      };
+      audioRef.current.onloadedmetadata = () => {
+        if (audioRef.current && Number.isFinite(audioRef.current.duration)) {
+          setPlaybackDuration(audioRef.current.duration);
+        }
+      };
+      audioRef.current.oncanplay = () => {
+        if (audioRef.current && Number.isFinite(audioRef.current.duration)) {
+          setPlaybackDuration(audioRef.current.duration);
+        }
+      }
     }
-  }, [handleAudioEnded]);
+  }, []);
 
   const previewVoice = async (selectedVoice: string = voice) => {
     if (isPreviewing) return;
@@ -230,6 +252,14 @@ export function useTTS({ apiKey }: UseTTSProps = {}) {
     }
     setIsPlaying(false);
     setIsGenerating(false);
+    setPlaybackTime(0);
+  };
+
+  const seekTo = (time: number) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+      setPlaybackTime(time);
+    }
   };
 
   const download = () => {
@@ -256,6 +286,9 @@ export function useTTS({ apiKey }: UseTTSProps = {}) {
     previewVoice,
     togglePlayPause,
     stop,
-    download
+    download,
+    playbackTime,
+    playbackDuration,
+    seekTo
   };
 }
