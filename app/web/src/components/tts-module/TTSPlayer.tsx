@@ -61,7 +61,7 @@ export function TTSPlayer({ text, apiKey, className = '' }: TTSPlayerProps) {
         </div>
 
         {/* Ana Aksiyon Butonu (Başlat/Durdur) */}
-        {!hasStarted || isFinished ? (
+        {!isGenerating && !fullAudioUrl ? (
           <button
             onClick={() => generateAndPlay(text)}
             disabled={!text.trim() || isGenerating}
@@ -74,15 +74,16 @@ export function TTSPlayer({ text, apiKey, className = '' }: TTSPlayerProps) {
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               onClick={togglePlayPause}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              disabled={isGenerating}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-wait"
             >
               {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
-              <span>{isPlaying ? 'Duraklat' : 'Devam Et'}</span>
+              <span>{isGenerating ? 'Ses Hazırlanıyor...' : (isPlaying ? 'Duraklat' : 'Dinle')}</span>
             </button>
             <button
               onClick={stop}
               className="p-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition-colors"
-              title="İptal Et"
+              title={isGenerating ? "İşlemi İptal Et" : "Oynatıcıyı Kapat"}
             >
               <Square className="w-4 h-4 fill-current" />
             </button>

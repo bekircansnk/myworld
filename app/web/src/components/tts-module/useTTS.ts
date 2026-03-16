@@ -24,8 +24,6 @@ export function useTTS({ apiKey }: UseTTSProps = {}) {
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [fullAudioUrl, setFullAudioUrl] = useState<string | null>(null);
   
-  const audioQueueRef = useRef<string[]>([]);
-  const currentPlayIndexRef = useRef(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -49,30 +47,13 @@ export function useTTS({ apiKey }: UseTTSProps = {}) {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
-      audioQueueRef.current.forEach(url => URL.revokeObjectURL(url));
       if (fullAudioUrl) URL.revokeObjectURL(fullAudioUrl);
     };
   }, [fullAudioUrl]);
 
-  const playNextInQueue = useCallback(() => {
-    if (!audioRef.current) return;
-    
-    if (currentPlayIndexRef.current < audioQueueRef.current.length) {
-      const targetUrl = audioQueueRef.current[currentPlayIndexRef.current];
-      if (audioRef.current.src !== targetUrl) {
-        audioRef.current.src = targetUrl;
-        audioRef.current.play().catch(e => console.error("Auto-play failed:", e));
-        setIsPlaying(true);
-      }
-    } else if (!isGenerating) {
-      setIsPlaying(false);
-    }
-  }, [isGenerating]);
-
   const handleAudioEnded = useCallback(() => {
-    currentPlayIndexRef.current += 1;
-    playNextInQueue();
-  }, [playNextInQueue]);
+    setIsPlaying(false);
+  }, []);
 
   // Initialize audio element
   useEffect(() => {
@@ -80,20 +61,13 @@ export function useTTS({ apiKey }: UseTTSProps = {}) {
       audioRef.current = new Audio();
       audioRef.current.onended = handleAudioEnded;
       audioRef.current.onerror = () => {
-        console.error("Audio playback error, skipping chunk.");
-        handleAudioEnded();
+        console.error("Audio playback error.");
+        setIsPlaying(false);
       };
       audioRef.current.onpause = () => setIsPlaying(false);
       audioRef.current.onplay = () => setIsPlaying(true);
     }
   }, [handleAudioEnded]);
-
-  // Trigger playback when queue updates
-  useEffect(() => {
-    if (audioQueueRef.current.length > 0 && !isPlaying && currentPlayIndexRef.current < audioQueueRef.current.length) {
-      playNextInQueue();
-    }
-  }, [audioQueueRef.current.length, isPlaying, playNextInQueue]);
 
   const previewVoice = async (selectedVoice: string = voice) => {
     if (isPreviewing) return;
@@ -141,8 +115,6 @@ export function useTTS({ apiKey }: UseTTSProps = {}) {
     
     setIsGenerating(true);
     setError(null);
-    audioQueueRef.current = [];
-    currentPlayIndexRef.current = 0;
     setIsPlaying(false);
     if (fullAudioUrl) URL.revokeObjectURL(fullAudioUrl);
     setFullAudioUrl(null);
@@ -153,7 +125,8 @@ export function useTTS({ apiKey }: UseTTSProps = {}) {
       setIsPreviewing(false);
     }
     
-    const textChunks = chunkText(text, 400);
+    // Chunk size increased to 4000 to keep most notes as a single block
+    const textChunks = chunkText(text, 4000);
     setProgress({ current: 0, total: textChunks.length });
     let fetchedPcm: Uint8Array[] = [];
 
@@ -190,13 +163,7 @@ export function useTTS({ apiKey }: UseTTSProps = {}) {
             const wavBlob = createWavBlob(pcm, 24000);
             const url = URL.createObjectURL(wavBlob);
             
-            audioQueueRef.current = [...audioQueueRef.current, url];
             setProgress(prev => ({ ...prev, current: i + 1 }));
-            
-            // Trigger playback for the first chunk immediately
-            if (i === 0 && audioRef.current) {
-               playNextInQueue();
-            }
             
             chunkSuccess = true;
           } else {
@@ -231,7 +198,15 @@ export function useTTS({ apiKey }: UseTTSProps = {}) {
           offset += pcm.length;
         }
         const fullWav = createWavBlob(combined, 24000);
-        setFullAudioUrl(URL.createObjectURL(fullWav));
+        const finalUrl = URL.createObjectURL(fullWav);
+        setFullAudioUrl(finalUrl);
+        
+        // Auto-play instantly when generation completely finishes
+        if (audioRef.current) {
+          audioRef.current.src = finalUrl;
+          audioRef.current.play().catch(e => console.error("Auto-play combined failed:", e));
+          setIsPlaying(true);
+        }
       }
     }
   };
@@ -241,7 +216,7 @@ export function useTTS({ apiKey }: UseTTSProps = {}) {
     if (isPlaying) {
       audioRef.current.pause();
     } else {
-      if (audioQueueRef.current.length > 0) {
+      if (fullAudioUrl || audioRef.current.src) {
         audioRef.current.play();
       }
     }
