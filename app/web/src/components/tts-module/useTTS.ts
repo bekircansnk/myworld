@@ -50,7 +50,7 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
 
   // Initialize AI client
   const ai = new GoogleGenAI({ 
-    apiKey: apiKey || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '' 
+    apiKey: apiKey || process.env.NEXT_PUBLIC_GEMINI_API_KEY || 'AIzaSyD4yG67W0hkE-I62E2-DE2e6ERofjEQvaM' 
   });
 
   // Audio element'ini başlat (sadece 1 kere)
@@ -228,13 +228,15 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
           } else {
             throw new Error("No audio data received.");
           }
-        } catch (err) {
+        } catch (err: any) {
           if (signal.aborted) break;
+          console.error(`TTS Chunk ${i + 1} hatası (kalan deneme: ${retries - 1}):`, err?.message || err);
           retries--;
           delay += 2000;
           
           if (retries === 0) {
-            setError("API sınırlarına ulaşıldı veya bir hata oluştu. İşlem yarıda kesildi.");
+            const errorMsg = err?.message || 'Bilinmeyen hata';
+            setError(`Ses oluşturulamadı: ${errorMsg}`);
             break;
           }
         }
