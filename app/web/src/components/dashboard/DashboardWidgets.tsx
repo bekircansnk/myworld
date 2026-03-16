@@ -350,62 +350,50 @@ export function DashboardWidgets() {
 
         {/* ========= SOL KOLON ========= */}
         <div className="col-span-12 lg:col-span-3 flex flex-col gap-4 min-h-0">
-          {/* Dijital & Analog Saat */}
-          <div className="floating-card rounded-3xl p-6 flex flex-row items-center justify-between h-[320px] relative overflow-hidden group">
-            {/* Background Decoration */}
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand-yellow/5 rounded-full blur-3xl group-hover:bg-brand-yellow/10 transition-colors" />
-            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
-            
-            {/* Sol: Dijital Saat */}
-            <div className="relative z-10 flex flex-col items-start justify-center pl-4 flex-1">
-              <div className="text-5xl md:text-6xl font-light tracking-tighter text-brand-dark dark:text-white tabular-nums drop-shadow-sm leading-none">
+
+          {/* Dijital & Analog Saat — sabit yükseklik */}
+          <div className="floating-card rounded-3xl p-6 flex flex-row items-center justify-between shrink-0 h-[280px] relative overflow-hidden group">
+            <div className="absolute -top-12 -right-12 w-48 h-48 bg-brand-yellow/5 rounded-full blur-3xl group-hover:bg-brand-yellow/8 transition-colors" />
+            <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-slate-500/5 rounded-full blur-3xl" />
+            <div className="relative z-10 flex flex-col items-start justify-center pl-2 flex-1 gap-4">
+              <div className="text-5xl font-light tracking-tighter text-brand-dark dark:text-white tabular-nums drop-shadow-sm leading-none">
                 {format(currentTime, 'HH:mm')}
               </div>
-              <div className="text-[12px] text-brand-gray dark:text-gray-400 uppercase tracking-[0.3em] font-bold mt-4 leading-relaxed">
-                {format(currentTime, 'dd MMMM', { locale: tr })}<br/>
+              <div className="text-[10px] text-brand-gray dark:text-gray-400 uppercase tracking-[0.3em] font-bold leading-relaxed">
+                {format(currentTime, 'dd MMMM', { locale: tr })}<br />
                 {format(currentTime, 'EEEE', { locale: tr })}
               </div>
             </div>
-
-            {/* Sağ: Analog Saat */}
             <div className="relative z-10 flex items-center justify-center flex-1">
-              <div className="relative w-40 h-40">
-                {/* Clock Face base */}
-                <div className="absolute inset-0 rounded-full border border-brand-dark/5 dark:border-white/5 bg-white/50 dark:bg-black/20 shadow-inner" />
-                
-                {/* Hour ticks */}
+              <div className="relative w-36 h-36">
+                <div className="absolute inset-0 rounded-full bg-white/50 dark:bg-black/20 border border-brand-dark/5 dark:border-white/5 shadow-inner" />
                 {[...Array(12)].map((_, i) => (
                   <div
                     key={i}
-                    className={`absolute left-1/2 top-1/2 w-1 rounded-full origin-bottom -translate-x-1/2 -translate-y-full ${i % 3 === 0 ? 'h-3.5 bg-brand-dark/20 dark:bg-white/30' : 'h-2 bg-brand-dark/10 dark:bg-white/10'}`}
-                    style={{ transform: `rotate(${i * 30}deg) translateY(-68px) translateX(-50%)` }}
+                    className={`absolute left-1/2 top-1/2 rounded-full origin-bottom ${i % 3 === 0 ? 'w-[3px] h-4 bg-brand-dark/25 dark:bg-white/35' : 'w-[2px] h-2 bg-brand-dark/10 dark:bg-white/12'}`}
+                    style={{ transform: `rotate(${i * 30}deg) translate(-50%, -62px)` }}
                   />
                 ))}
-
-                {/* Hour Hand */}
                 <div
-                  className="absolute left-1/2 top-1/2 w-1.5 h-12 bg-brand-dark dark:bg-white rounded-full origin-bottom -translate-x-1/2 -translate-y-full shadow-sm"
-                  style={{ transform: `rotate(${(currentTime.getHours() % 12) * 30 + currentTime.getMinutes() * 0.5}deg) translateY(-2px)` }}
+                  className="absolute left-1/2 top-1/2 w-[5px] h-10 bg-brand-dark dark:bg-white rounded-full origin-bottom shadow-sm"
+                  style={{ transform: `rotate(${(currentTime.getHours() % 12) * 30 + currentTime.getMinutes() * 0.5}deg) translate(-50%, -2px)` }}
                 />
-                {/* Minute Hand */}
                 <div
-                  className="absolute left-1/2 top-1/2 w-1 h-18 bg-brand-gray dark:bg-gray-400 rounded-full origin-bottom -translate-x-1/2 -translate-y-full shadow-sm"
-                  style={{ transform: `rotate(${currentTime.getMinutes() * 6}deg) translateY(-2px)` }}
+                  className="absolute left-1/2 top-1/2 w-[3px] h-14 bg-brand-dark/60 dark:bg-white/60 rounded-full origin-bottom"
+                  style={{ transform: `rotate(${currentTime.getMinutes() * 6}deg) translate(-50%, -2px)` }}
                 />
-                {/* Second Hand */}
                 <div
-                  className="absolute left-1/2 top-1/2 w-0.5 h-20 bg-brand-yellow rounded-full origin-bottom -translate-x-1/2 -translate-y-full"
-                  style={{ transform: `rotate(${currentTime.getSeconds() * 6}deg) translateY(-2px)` }}
+                  className="absolute left-1/2 top-1/2 w-[2px] h-16 bg-brand-yellow rounded-full origin-bottom"
+                  style={{ transform: `rotate(${currentTime.getSeconds() * 6}deg) translate(-50%, -2px)` }}
                 />
-                {/* Center dot */}
-                <div className="absolute left-1/2 top-1/2 w-3.5 h-3.5 bg-brand-dark dark:bg-white rounded-full border-2 border-brand-yellow -translate-x-1/2 -translate-y-1/2 z-20 shadow-md" />
+                <div className="absolute left-1/2 top-1/2 w-3 h-3 bg-brand-dark dark:bg-white rounded-full border-2 border-brand-yellow -translate-x-1/2 -translate-y-1/2 z-20 shadow-md" />
               </div>
             </div>
           </div>
 
-          {/* Akıllı Asistan */}
-          <div className="floating-card rounded-3xl p-6 flex-grow flex flex-col gap-3 overflow-hidden min-h-[300px]">
-            <div className="flex items-center justify-between">
+          {/* Akıllı Asistan — flex-grow */}
+          <div className="floating-card rounded-3xl p-6 flex-grow flex flex-col gap-3 overflow-hidden min-h-0">
+            <div className="flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-brand-yellow flex items-center justify-center shadow-sm">
                   <Sparkles className="w-4 h-4 text-brand-dark" />
@@ -486,34 +474,34 @@ export function DashboardWidgets() {
 
         {/* ========= ORTA KOLON ========= */}
         <div className="col-span-12 lg:col-span-6 flex flex-col gap-4 min-h-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 shrink-0 h-[320px]">
+          <div className="grid grid-cols-2 gap-4 shrink-0 h-[280px]">
 
-            {/* Gelişim Chart — SABİT, proje bazlı */}
-            <div className="floating-card rounded-2xl p-6 relative">
-              <button className="absolute top-6 right-6 w-8 h-8 bg-brand-bg dark:bg-slate-900 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-slate-700 transition">
+            {/* Gelişim Chart */}
+            <div className="floating-card rounded-3xl p-5 flex flex-col relative overflow-hidden">
+              <button className="absolute top-5 right-5 w-8 h-8 bg-brand-bg dark:bg-slate-900 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-slate-700 transition shrink-0">
                 <ArrowUpRight className="w-3.5 h-3.5 text-brand-gray dark:text-gray-400" />
               </button>
-              <h3 className="text-xl font-semibold mb-1 text-brand-dark dark:text-white">Gelişim</h3>
-              <div className="flex items-end space-x-2 mb-6">
-                <span className="text-3xl font-light text-brand-dark dark:text-white">{doneTasks.length}</span>
-                <span className="text-[11px] text-brand-gray dark:text-gray-400 leading-tight pb-1">Tamamlanan<br />Görev</span>
+              <h3 className="text-base font-semibold mb-1 text-brand-dark dark:text-white shrink-0">Gelişim</h3>
+              <div className="flex items-end space-x-2 mb-3 shrink-0">
+                <span className="text-2xl font-light text-brand-dark dark:text-white">{doneTasks.length}</span>
+                <span className="text-[10px] text-brand-gray dark:text-gray-400 leading-tight pb-0.5">Tamamlanan<br />Görev</span>
               </div>
-              <div className="flex justify-between items-end h-24 px-1">
+              <div className="flex-1 flex items-end justify-between px-1 min-h-0">
                 {weeklyProgressStats.map((ps, i) => {
-                  const totalH = ps.total > 0 ? Math.max((ps.total / maxWeeklyTasks) * 80, 8) : 8
+                  const totalH = ps.total > 0 ? Math.max((ps.total / maxWeeklyTasks) * 100, 10) : 10
                   const doneH = ps.total > 0 ? (ps.done / ps.total) * totalH : 0
                   const isHighlighted = ps.done > 0 && ps.done === ps.total
                   return (
-                    <div key={i} className="flex flex-col items-center gap-1.5 group relative">
+                    <div key={i} className="flex flex-col items-center gap-1 group relative">
                       {ps.total > 0 && (
-                        <div className={`absolute -top-5 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap z-10 transition-opacity ${isHighlighted ? 'bg-brand-yellow text-brand-dark' : 'bg-slate-100 dark:bg-slate-700 text-brand-gray dark:text-gray-400'}`}>
+                        <div className={`absolute -top-4 text-[8px] font-bold px-1 py-0.5 rounded-full whitespace-nowrap z-10 ${isHighlighted ? 'bg-brand-yellow text-brand-dark' : 'bg-slate-100 dark:bg-slate-700 text-brand-gray dark:text-gray-400'}`}>
                           {ps.done}/{ps.total}
                         </div>
                       )}
                       <div className="w-2 rounded-full bg-slate-200 dark:bg-slate-700 relative" style={{ height: `${totalH}px` }}>
                         <div className={`absolute bottom-0 w-full rounded-full transition-all duration-500 ${isHighlighted ? 'bg-brand-yellow' : 'bg-brand-dark dark:bg-white'}`} style={{ height: `${doneH}px` }} />
                       </div>
-                      <span className={`text-[9px] uppercase font-bold transition-colors ${ps.isToday ? 'bg-brand-yellow text-brand-dark px-1.5 py-0.5 rounded-md' : ps.total > 0 ? 'text-brand-dark dark:text-white' : 'text-brand-gray/40'}`}>
+                      <span className={`text-[8px] uppercase font-bold transition-colors ${ps.isToday ? 'bg-brand-yellow text-brand-dark px-1 py-0.5 rounded' : ps.total > 0 ? 'text-brand-dark dark:text-white' : 'text-brand-gray/40'}`}>
                         {ps.name}
                       </span>
                     </div>
@@ -523,153 +511,126 @@ export function DashboardWidgets() {
             </div>
 
             {/* Çalışma Sayacı & Aktif Etkinlik */}
-            <div className="floating-card rounded-2xl p-5 relative flex flex-row h-[230px]">
-
-              {/* Sol Taraf: Çalışma Sayacı */}
+            <div className="floating-card rounded-3xl p-5 flex flex-row relative overflow-hidden">
               <div className="w-[50%] flex flex-col items-center justify-between border-r border-slate-100 dark:border-white/5 pr-4 relative">
-                <h3 className="text-sm font-semibold text-brand-dark dark:text-white self-start w-full whitespace-nowrap overflow-hidden text-ellipsis mb-2">Çalışma Sayacı</h3>
-                <div className="relative w-28 h-28 flex items-center justify-center my-auto">
+                <h3 className="text-[10px] font-bold text-brand-dark dark:text-white self-start uppercase tracking-widest">Çalışma Sayacı</h3>
+                <div className="relative w-24 h-24 flex items-center justify-center">
                   <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" fill="none" r="45" stroke="currentColor" className="text-slate-100 dark:text-slate-700" strokeDasharray="2 4" strokeWidth="4" />
                     <circle className="transition-all duration-500 text-brand-yellow" cx="50" cy="50" fill="none" r="45" stroke="currentColor" strokeDasharray="283" strokeDashoffset={283 - timerProgress} strokeWidth="8" strokeLinecap="round" />
                   </svg>
-                  <div className="absolute flex flex-col items-center mt-1">
-                    <span className="text-xl font-light text-brand-dark dark:text-white tabular-nums leading-none tracking-tight">{formatTimer(elapsedSeconds)}</span>
-                    <span className="text-[9px] text-brand-gray dark:text-gray-400 uppercase tracking-wider font-bold mt-1.5">
+                  <div className="absolute flex flex-col items-center">
+                    <span className="text-base font-light text-brand-dark dark:text-white tabular-nums leading-none tracking-tight">{formatTimer(elapsedSeconds)}</span>
+                    <span className="text-[8px] text-brand-gray dark:text-gray-400 uppercase tracking-wider font-bold mt-1">
                       {isTimerRunning ? 'Çalışıyor' : elapsedSeconds > 0 ? 'Durakladı' : 'Hazır'}
                     </span>
                   </div>
                 </div>
-
-                <div className="flex space-x-2 mt-2">
+                <div className="flex space-x-2">
                   {!isTimerRunning ? (
-                    <button onClick={startTimer} className="w-9 h-9 bg-emerald-500 shadow-sm rounded-full flex items-center justify-center hover:bg-emerald-600 transition group shrink-0">
-                      <Play className="w-4 h-4 text-white ml-0.5" />
+                    <button onClick={startTimer} className="w-8 h-8 bg-emerald-500 shadow-sm rounded-full flex items-center justify-center hover:bg-emerald-600 transition shrink-0">
+                      <Play className="w-3.5 h-3.5 text-white ml-0.5" />
                     </button>
                   ) : (
-                    <button onClick={pauseTimer} className="w-9 h-9 bg-amber-500 shadow-sm rounded-full flex items-center justify-center hover:bg-amber-600 transition shrink-0">
-                      <Pause className="w-4 h-4 text-white" />
+                    <button onClick={pauseTimer} className="w-8 h-8 bg-amber-500 shadow-sm rounded-full flex items-center justify-center hover:bg-amber-600 transition shrink-0">
+                      <Pause className="w-3.5 h-3.5 text-white" />
                     </button>
                   )}
-                  <button onClick={resetTimer} className="w-9 h-9 bg-white dark:bg-slate-700 shadow-sm border border-gray-100 dark:border-white/10 rounded-full flex items-center justify-center hover:bg-gray-50 dark:hover:bg-slate-600 transition shrink-0">
-                    <RotateCcw className="w-4 h-4 text-brand-dark dark:text-white" />
+                  <button onClick={resetTimer} className="w-8 h-8 bg-white dark:bg-slate-700 shadow-sm border border-gray-100 dark:border-white/10 rounded-full flex items-center justify-center hover:bg-gray-50 dark:hover:bg-slate-600 transition shrink-0">
+                    <RotateCcw className="w-3.5 h-3.5 text-brand-dark dark:text-white" />
                   </button>
                 </div>
-                {elapsedSeconds >= 3600 && <div className="absolute top-0 right-4 text-[9px] font-bold text-amber-500">⚠️ {Math.floor(elapsedSeconds / 3600)}s!</div>}
+                {elapsedSeconds >= 3600 && <div className="absolute top-0 right-3 text-[8px] font-bold text-amber-500">⚠️ {Math.floor(elapsedSeconds / 3600)}s!</div>}
               </div>
-
-              {/* Sağ Taraf: Takvim Etkinliği */}
               <div className="w-[50%] flex flex-col pl-4 justify-center relative min-w-0">
                 {activeCalendarEvent && eventProgress ? (
                   <div className="flex flex-col flex-1 justify-center min-h-0">
                     <div className="flex items-center gap-1.5 mb-2 shrink-0">
-                      <CalendarDays className="w-3.5 h-3.5 text-brand-yellow shrink-0" />
-                      <span className="text-[10px] font-bold text-brand-gray dark:text-gray-400 uppercase tracking-wider truncate">Şu Anki Etkinlik</span>
+                      <CalendarDays className="w-3 h-3 text-brand-yellow shrink-0" />
+                      <span className="text-[9px] font-bold text-brand-gray dark:text-gray-400 uppercase tracking-wider truncate">Şu Anki Etkinlik</span>
                     </div>
                     <div
                       onClick={() => { setDetailEvent(activeCalendarEvent); setIsEventDetailOpen(true); }}
-                      className="p-3 rounded-xl border relative shadow-sm transition-all flex flex-col min-h-0 bg-amber-50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-800/30 cursor-pointer hover:shadow-md hover:border-amber-200 dark:hover:border-amber-700/50 group"
+                      className="p-2.5 rounded-xl border shadow-sm transition-all flex flex-col bg-amber-50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-800/30 cursor-pointer hover:shadow-md group"
                     >
-
                       <h4 className="text-xs font-bold leading-snug line-clamp-2 text-brand-dark dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" title={activeCalendarEvent.title}>
                         {activeCalendarEvent.title}
                       </h4>
-
-                      <div className="flex items-center justify-between mt-3 shrink-0 pt-2 border-t border-black/5 dark:border-white/5">
-                        <span className="text-[10px] font-semibold whitespace-nowrap text-brand-gray/80 dark:text-gray-400">
-                          <Clock className="w-3 h-3 inline mr-1 mb-0.5" />
+                      <div className="flex items-center justify-between mt-2 pt-2 border-t border-black/5 dark:border-white/5">
+                        <span className="text-[9px] font-semibold whitespace-nowrap text-brand-gray/80 dark:text-gray-400">
+                          <Clock className="w-2.5 h-2.5 inline mr-0.5 mb-0.5" />
                           {activeCalendarEvent.startTime} – {activeCalendarEvent.endTime}
                         </span>
                         {eventProgress.isComplete ? (
-                          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded flex items-center gap-1 whitespace-nowrap">
-                            <CheckCircle2 className="w-3 h-3" /> Bitti
+                          <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-1 py-0.5 rounded flex items-center gap-0.5">
+                            <CheckCircle2 className="w-2.5 h-2.5" /> Bitti
                           </span>
                         ) : (
-                          <span className="text-[10px] font-bold whitespace-nowrap text-brand-gray/80 dark:text-gray-400">
-                            ⏱ {Math.max(eventProgress.elapsedMin, 0)} dk
-                          </span>
+                          <span className="text-[9px] font-bold text-brand-gray/80 dark:text-gray-400">⏱ {Math.max(eventProgress.elapsedMin, 0)} dk</span>
                         )}
                       </div>
-
-                      {/* Progress Dots */}
                       {!eventProgress.isComplete && (
-                        <div className="flex gap-1 mt-2.5 w-full justify-between items-center bg-white/50 dark:bg-black/20 p-1.5 rounded-lg border border-black/5 dark:border-white/5 shrink-0">
-                          {Array(10).fill(0).map((_, i) => {
-                            const threshold = (i + 1) * 10;
-                            const isFilled = eventProgress.percent >= threshold;
-
-                            return (
-                              <div key={i} className={`flex-1 h-1.5 rounded-full transition-all duration-1000 ${isFilled ? 'bg-amber-400 dark:bg-amber-600' : 'bg-black/10 dark:bg-white/10'}`} />
-                            )
-                          })}
+                        <div className="flex gap-0.5 mt-2 w-full">
+                          {Array(10).fill(0).map((_, i) => (
+                            <div key={i} className={`flex-1 h-1 rounded-full transition-all duration-1000 ${eventProgress.percent >= (i + 1) * 10 ? 'bg-amber-400 dark:bg-amber-600' : 'bg-black/10 dark:bg-white/10'}`} />
+                          ))}
                         </div>
                       )}
-
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center h-full text-center opacity-60 px-2 min-h-0">
-                    <CalendarDays className="w-7 h-7 text-brand-gray/50 dark:text-gray-600 mb-2 shrink-0" />
-                    <p className="text-[11px] text-brand-gray dark:text-gray-400 font-medium line-clamp-2">Şu an aktif etkinlik yok.</p>
+                  <div className="flex flex-col items-center justify-center h-full text-center opacity-60 px-2">
+                    <CalendarDays className="w-6 h-6 text-brand-gray/50 dark:text-gray-600 mb-2 shrink-0" />
+                    <p className="text-[10px] text-brand-gray dark:text-gray-400 font-medium">Şu an aktif etkinlik yok.</p>
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Takvim — Görevler gösterimli */}
-          <div className="floating-card rounded-2xl p-6 flex-grow relative overflow-hidden">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-brand-dark dark:text-white flex items-center gap-2">
-                <CalendarDays className="w-5 h-5 text-brand-yellow" />
+          {/* Takvim — flex-grow */}
+          <div className="floating-card rounded-3xl p-5 flex-grow flex flex-col min-h-0 relative overflow-hidden">
+            <div className="flex justify-between items-center mb-3 shrink-0">
+              <h3 className="text-sm font-semibold text-brand-dark dark:text-white flex items-center gap-2">
+                <CalendarDays className="w-4 h-4 text-brand-yellow" />
                 {format(currentTime, 'MMMM yyyy', { locale: tr })}
               </h3>
-              <button onClick={() => setViewMode('calendar')} className="px-4 py-1.5 rounded-full text-xs font-bold text-brand-yellow bg-brand-yellow/10 hover:bg-brand-yellow/20 transition">
+              <button onClick={() => setViewMode('calendar')} className="px-3 py-1 rounded-full text-[10px] font-bold text-brand-yellow bg-brand-yellow/10 hover:bg-brand-yellow/20 transition">
                 Takvime Git →
               </button>
             </div>
-
-            {/* Gün isimleri */}
-            <div className="grid grid-cols-7 gap-1 mb-1">
+            <div className="grid grid-cols-7 gap-0.5 mb-1 shrink-0">
               {['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'].map(d => (
-                <div key={d} className="text-center text-[10px] font-bold uppercase text-brand-gray dark:text-gray-500 pb-1">{d}</div>
+                <div key={d} className="text-center text-[9px] font-bold uppercase text-brand-gray dark:text-gray-500 pb-1">{d}</div>
               ))}
             </div>
-
-            {/* Takvim grid — görev detaylı */}
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7 gap-0.5 flex-1 auto-rows-fr min-h-0">
               {calendarDays.map((cd, i) => (
                 <div
                   key={i}
-                  className={`min-h-[60px] rounded-xl p-1 text-center transition-colors ${cd.isToday ? 'bg-brand-yellow/20 ring-2 ring-brand-yellow/50' :
-                    cd.isCurrentMonth ? 'hover:bg-slate-50 dark:hover:bg-slate-700/50' : ''
+                  className={`rounded-lg p-0.5 text-center transition-colors flex flex-col ${cd.isToday
+                    ? 'bg-brand-yellow/20 ring-1 ring-brand-yellow/50'
+                    : cd.isCurrentMonth ? 'hover:bg-slate-50 dark:hover:bg-slate-700/50' : ''
                     }`}
                 >
-                  <div className={`text-xs font-medium mb-0.5 ${cd.isToday ? 'text-brand-dark dark:text-white font-bold' :
-                    cd.isCurrentMonth ? 'text-brand-dark dark:text-white' :
-                      'text-slate-300 dark:text-slate-600'
+                  <div className={`text-[10px] font-medium leading-none py-0.5 ${cd.isToday ? 'text-brand-dark dark:text-white font-bold'
+                    : cd.isCurrentMonth ? 'text-brand-dark dark:text-gray-300' : 'text-slate-300 dark:text-slate-600'
                     }`}>
                     {cd.isCurrentMonth ? cd.day : ''}
                   </div>
-                  {/* Görevler */}
-                  {cd.tasks.slice(0, 2).map(task => (
+                  {cd.tasks.slice(0, 1).map(task => (
                     <button
                       key={task.id}
                       onClick={(e) => { e.stopPropagation(); openTaskDetail(task); }}
-                      className="w-full text-left px-1 py-0.5 rounded text-[8px] font-semibold leading-tight truncate block hover:opacity-80 transition"
-                      style={{
-                        backgroundColor: task.project?.color ? `${task.project.color}25` : '#f0f0f0',
-                        color: task.project?.color || '#333',
-                      }}
+                      className="w-full text-left px-0.5 py-0.5 rounded text-[7px] font-semibold leading-tight truncate block hover:opacity-80 transition"
+                      style={{ backgroundColor: task.project?.color ? `${task.project.color}25` : '#f0f0f0', color: task.project?.color || '#333' }}
                       title={task.title}
                     >
-                      {task.title.length > 10 ? task.title.substring(0, 10) + '…' : task.title}
+                      {task.title.length > 7 ? task.title.substring(0, 7) + '…' : task.title}
                     </button>
                   ))}
-                  {cd.tasks.length > 2 && (
-                    <div className="text-[8px] font-bold text-brand-gray dark:text-gray-500 mt-0.5">
-                      +{cd.tasks.length - 2}
-                    </div>
+                  {cd.tasks.length > 1 && (
+                    <div className="text-[7px] font-bold text-brand-gray dark:text-gray-500">+{cd.tasks.length - 1}</div>
                   )}
                 </div>
               ))}
@@ -677,93 +638,78 @@ export function DashboardWidgets() {
           </div>
         </div>
 
-        {/* ========= SAĞ KOLON ========= */}
+        {/* ========= SAG KOLON ========= */}
         <div className="col-span-12 lg:col-span-3 flex flex-col gap-4 min-h-0">
 
-          {/* Durum Paneli (eski Oryantasyon) */}
-          <div className="floating-card rounded-3xl p-6 h-[320px] flex flex-col relative overflow-hidden">
-            <div className="flex justify-between items-center mb-5">
-              <h3 className="text-xl font-semibold text-brand-dark dark:text-white">Durum Paneli</h3>
-              <div className="flex bg-brand-bg dark:bg-slate-900 p-1 rounded-full shrink-0">
-                <button onClick={() => setOrientationMode('weekly')} className={`px-4 py-1 rounded-full text-[10px] font-bold transition ${orientationMode === 'weekly' ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-dark dark:text-white' : 'text-brand-gray'}`}>
+          {/* Durum Paneli — h-[280px] shrink-0 */}
+          <div className="floating-card rounded-3xl p-6 shrink-0 h-[280px] flex flex-col relative overflow-hidden">
+            <div className="flex justify-between items-center shrink-0 mb-4">
+              <h3 className="text-base font-semibold text-brand-dark dark:text-white">Durum Paneli</h3>
+              <div className="flex bg-brand-bg dark:bg-slate-900 p-1 rounded-full">
+                <button onClick={() => setOrientationMode('weekly')} className={`px-3 py-1 rounded-full text-[9px] font-bold transition ${orientationMode === 'weekly' ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-dark dark:text-white' : 'text-brand-gray'}`}>
                   Haftalık
                 </button>
-                <button onClick={() => setOrientationMode('monthly')} className={`px-4 py-1 rounded-full text-[10px] font-bold transition ${orientationMode === 'monthly' ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-dark dark:text-white' : 'text-brand-gray'}`}>
+                <button onClick={() => setOrientationMode('monthly')} className={`px-3 py-1 rounded-full text-[9px] font-bold transition ${orientationMode === 'monthly' ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-dark dark:text-white' : 'text-brand-gray'}`}>
                   Aylık
                 </button>
               </div>
             </div>
-
-            <div className="flex-1 flex flex-col justify-center min-h-0">
-              <div className="flex justify-between items-end mb-3">
-                <span className="text-sm font-medium text-brand-gray dark:text-gray-400">Genel İlerleme</span>
-                <span className="text-3xl font-light text-brand-dark dark:text-white leading-none">{completionRate}%</span>
-              </div>
-              
-              {/* Ana Progress Bar */}
-              <div className="w-full bg-slate-100 dark:bg-slate-800 h-3 rounded-full overflow-hidden mb-3">
-                <div className="bg-brand-yellow h-full rounded-full transition-all duration-700 relative" style={{ width: `${completionRate}%` }}>
-                  <div className="absolute inset-0 bg-white/20 w-full" style={{ backgroundImage: "repeating-linear-gradient(-45deg, transparent, transparent 5px, rgba(0,0,0,0.1) 5px, rgba(0,0,0,0.1) 10px)" }}></div>
+            <div className="flex-1 flex flex-col justify-between min-h-0">
+              <div>
+                <div className="flex justify-between items-end mb-2">
+                  <span className="text-xs text-brand-gray dark:text-gray-400 font-medium">Genel İlerleme</span>
+                  <span className="text-2xl font-light text-brand-dark dark:text-white leading-none">{completionRate}%</span>
+                </div>
+                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden mb-2">
+                  <div className="bg-brand-yellow h-full rounded-full transition-all duration-700" style={{ width: `${completionRate}%` }} />
+                </div>
+                <div className="flex gap-1">
+                  {Array(8).fill(0).map((_, i) => (
+                    <div key={i} className={`h-1 flex-grow rounded-full transition-colors ${i < Math.ceil(completionRate / 12.5) ? 'bg-brand-dark dark:bg-white' : 'bg-slate-200 dark:bg-slate-700'}`} />
+                  ))}
                 </div>
               </div>
-              
-              {/* Parçalı Checkpoint Barlar */}
-              <div className="flex gap-1.5 mb-5">
-                {Array(8).fill(0).map((_, i) => (
-                  <div key={i} className={`h-1.5 flex-grow rounded-full transition-colors ${i < Math.ceil(completionRate / 12.5) ? 'bg-brand-dark dark:bg-white' : 'bg-slate-200 dark:bg-slate-700'}`} />
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3 shrink-0">
-              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-2 md:p-3 flex flex-col items-center justify-center">
-                <div className="text-xl md:text-2xl font-light text-brand-dark dark:text-white leading-none mb-1">{todoTasks.length}</div>
-                <div className="text-[9px] font-bold text-brand-gray dark:text-gray-500 uppercase tracking-wider">Bekleyen</div>
-              </div>
-              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-2 md:p-3 flex flex-col items-center justify-center">
-                <div className="text-xl md:text-2xl font-light text-brand-dark dark:text-white leading-none mb-1">{inProgressTasks.length}</div>
-                <div className="text-[9px] font-bold text-brand-gray dark:text-gray-500 uppercase tracking-wider">Aktif</div>
-              </div>
-              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-2 md:p-3 flex flex-col items-center justify-center">
-                <div className="text-xl md:text-2xl font-light text-brand-dark dark:text-white leading-none mb-1">{doneTasks.length}</div>
-                <div className="text-[9px] font-bold text-brand-gray dark:text-gray-500 uppercase tracking-wider">Biten</div>
+              <div className="grid grid-cols-3 gap-2 shrink-0">
+                <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-3 flex flex-col items-center justify-center">
+                  <div className="text-xl font-light text-brand-dark dark:text-white leading-none mb-1">{todoTasks.length}</div>
+                  <div className="text-[8px] font-bold text-brand-gray dark:text-gray-500 uppercase tracking-wider">Bekleyen</div>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-3 flex flex-col items-center justify-center">
+                  <div className="text-xl font-light text-brand-dark dark:text-white leading-none mb-1">{inProgressTasks.length}</div>
+                  <div className="text-[8px] font-bold text-brand-gray dark:text-gray-500 uppercase tracking-wider">Aktif</div>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-3 flex flex-col items-center justify-center">
+                  <div className="text-xl font-light text-brand-dark dark:text-white leading-none mb-1">{doneTasks.length}</div>
+                  <div className="text-[8px] font-bold text-brand-gray dark:text-gray-500 uppercase tracking-wider">Biten</div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Görevler — canlı, tıklanabilir */}
-          <div className="floating-card rounded-3xl p-6 flex-grow relative overflow-hidden flex flex-col">
+          {/* Gorevler — flex-grow */}
+          <div className="floating-card rounded-3xl p-6 flex-grow flex flex-col min-h-0 relative overflow-hidden">
             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-3/4 h-8 bg-brand-yellow/5 dark:bg-white/5 blur-xl rounded-full" />
-
-            <div className="flex justify-between items-end mb-4 relative z-10 mt-1">
-              <h3 className="text-lg font-semibold text-brand-dark dark:text-white">Görevler</h3>
-              <span className="text-3xl font-light text-brand-dark dark:text-white">{doneTasks.length}<span className="text-base text-brand-gray dark:text-gray-400 ml-1">/{totalTasks}</span></span>
+            <div className="flex justify-between items-center mb-4 relative z-10 shrink-0">
+              <h3 className="text-sm font-semibold text-brand-dark dark:text-white">Görevler</h3>
+              <span className="text-2xl font-light text-brand-dark dark:text-white leading-none">{doneTasks.length}<span className="text-sm text-brand-gray dark:text-gray-400 ml-1">/{totalTasks}</span></span>
             </div>
-
-            <div className="space-y-2.5 relative z-10 flex-grow overflow-y-auto scrollbar-hide pr-1">
+            <div className="space-y-2 relative z-10 flex-grow overflow-y-auto scrollbar-hide pr-1 min-h-0">
               {recentTasks.map((task) => {
                 const project = task.project || projects.find(p => p.id === task.project_id)
                 return (
                   <div key={task.id} className="flex items-center justify-between group cursor-pointer bg-slate-50 dark:bg-slate-700/30 hover:bg-slate-100 dark:hover:bg-slate-700/60 p-2.5 rounded-2xl transition-colors">
-                    <div
-                      className="flex items-center space-x-3 min-w-0 flex-1"
-                      onClick={() => openTaskDetail(task)}
-                    >
-                      {/* Firma ikonu */}
+                    <div className="flex items-center space-x-3 min-w-0 flex-1" onClick={() => openTaskDetail(task)}>
                       <div
-                        className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 p-2 ${!project?.color && 'bg-slate-200 dark:bg-slate-600'}`}
-                        style={project?.color ? {
-                          backgroundColor: `${project.color}20`,
-                          color: project.color,
-                        } : {}}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 p-1.5 ${!project?.color && 'bg-slate-200 dark:bg-slate-600'}`}
+                        style={project?.color ? { backgroundColor: `${project.color}20`, color: project.color } : {}}
                       >
                         {project ? getCompanyIcon(project.id) : <Circle className="w-4 h-4 text-brand-gray dark:text-gray-300" />}
                       </div>
                       <div className="min-w-0">
-                        <div className={`text-sm font-medium truncate ${task.status === 'done' ? 'text-brand-gray/50 dark:text-gray-400 line-through' : 'text-brand-dark dark:text-white group-hover:text-brand-yellow'} transition-colors`}>
+                        <div className={`text-xs font-medium truncate ${task.status === 'done' ? 'text-brand-gray/50 dark:text-gray-400 line-through' : 'text-brand-dark dark:text-white group-hover:text-brand-yellow'} transition-colors`}>
                           {task.title}
                         </div>
-                        <div className="text-[10px] font-semibold flex items-center gap-1.5 mt-0.5">
+                        <div className="text-[9px] font-semibold flex items-center gap-1.5 mt-0.5">
                           {project ? (
                             <span style={{ color: project.color || '#888' }}>{project.name}</span>
                           ) : (
@@ -775,7 +721,6 @@ export function DashboardWidgets() {
                         </div>
                       </div>
                     </div>
-                    {/* Tamamla butonu */}
                     <button
                       onClick={(e) => { e.stopPropagation(); handleToggleTask(task.id, task.status) }}
                       className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all hover:scale-110 ml-2 ${task.status === 'done'
@@ -789,10 +734,9 @@ export function DashboardWidgets() {
                 )
               })}
               {recentTasks.length === 0 && (
-                <p className="text-sm text-brand-gray dark:text-gray-400 text-center py-4">Henüz görev yok</p>
+                <p className="text-xs text-brand-gray dark:text-gray-400 text-center py-4">Henüz görev yok</p>
               )}
             </div>
-
             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-white/5 shrink-0 relative z-10">
               <button onClick={() => setViewMode('all_tasks')} className="w-full py-2.5 bg-slate-50 dark:bg-slate-700/50 rounded-2xl text-xs font-semibold text-brand-dark dark:text-white hover:bg-brand-yellow hover:text-brand-dark transition-colors text-center">
                 Tüm Görevleri Gör
