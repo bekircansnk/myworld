@@ -48,10 +48,9 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Initialize AI client
-  const ai = new GoogleGenAI({ 
-    apiKey: apiKey || process.env.NEXT_PUBLIC_GEMINI_API_KEY || 'AIzaSyD4yG67W0hkE-I62E2-DE2e6ERofjEQvaM' 
-  });
+  // Initialize AI client (API anahtarı güvenli şekilde env'den alınır)
+  const geminiKey = apiKey || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+  const ai = geminiKey ? new GoogleGenAI({ apiKey: geminiKey }) : null;
 
   // Audio element'ini başlat (sadece 1 kere)
   useEffect(() => {
@@ -116,7 +115,10 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
   }, []);
 
   const previewVoice = async (selectedVoice: string = voice) => {
-    if (isPreviewing) return;
+    if (isPreviewing || !ai) {
+      if (!ai) setError('API anahtarı bulunamadı. Lütfen ayarları kontrol edin.');
+      return;
+    }
     
     if (previewAudioRef.current) {
       previewAudioRef.current.pause();
@@ -162,6 +164,10 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
 
   const generateAndPlay = async (text: string) => {
     if (!text.trim()) return;
+    if (!ai) {
+      setError('API anahtarı bulunamadı. Lütfen ayarları kontrol edin.');
+      return;
+    }
     
     if (abortControllerRef.current) abortControllerRef.current.abort();
     abortControllerRef.current = new AbortController();
