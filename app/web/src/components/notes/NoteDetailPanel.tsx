@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 import { format, formatDistanceToNow } from "date-fns"
 import { tr } from "date-fns/locale"
+import { TTSPlayer } from "@/components/tts-module"
 
 export function NoteDetailPanel() {
   const {
@@ -263,11 +264,16 @@ export function NoteDetailPanel() {
                     </div>
                   </div>
                  ) : (
-                  <div 
-                    className="prose prose-slate dark:prose-invert max-w-none text-[14px] leading-relaxed text-slate-700 dark:text-white/80 whitespace-pre-wrap rounded-2xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 p-6 shadow-sm min-h-[300px] hover:bg-slate-50 dark:hover:bg-white/10 transition-colors cursor-text"
-                    onClick={() => setIsEditingContent(true)}
-                  >
-                    {selectedNote.content}
+                  <div className="flex flex-col gap-6">
+                    <div 
+                      className="prose prose-slate dark:prose-invert max-w-none text-[14px] leading-relaxed text-slate-700 dark:text-white/80 whitespace-pre-wrap rounded-2xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 p-6 shadow-sm min-h-[300px] hover:bg-slate-50 dark:hover:bg-white/10 transition-colors cursor-text"
+                      onClick={() => setIsEditingContent(true)}
+                    >
+                      {selectedNote.content}
+                    </div>
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <TTSPlayer text={selectedNote.content || ""} />
+                    </div>
                   </div>
                  )}
                </div>
