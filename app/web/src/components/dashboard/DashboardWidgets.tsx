@@ -356,17 +356,18 @@ export function DashboardWidgets() {
             <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand-yellow/5 rounded-full blur-3xl group-hover:bg-brand-yellow/10 transition-colors" />
             <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
             
-            {/* Sol: Dijital Saat */}
+            {/* Sol: Dijital Saat Detayları */}
             <div className="relative z-10 flex flex-col items-start justify-center pl-2 flex-1">
-              <div className="text-4xl md:text-5xl font-light tracking-tighter text-brand-dark dark:text-white tabular-nums drop-shadow-sm leading-none">
+              <div className="text-5xl md:text-6xl font-light tracking-tighter text-brand-dark dark:text-white tabular-nums drop-shadow-sm leading-none">
                 {format(currentTime, 'HH:mm')}
               </div>
-              <div className="text-lg opacity-40 font-medium text-brand-dark dark:text-white mt-1 mb-3">
-                {format(currentTime, ':ss')}
-              </div>
-              <div className="text-[10px] text-brand-gray dark:text-gray-400 uppercase tracking-[0.2em] font-bold leading-relaxed max-w-[120px]">
-                {format(currentTime, 'dd MMMM', { locale: tr })}<br/>
-                {format(currentTime, 'EEEE', { locale: tr })}
+              <div className="mt-6 flex flex-col">
+                <div className="text-2xl md:text-3xl font-medium text-brand-dark dark:text-white leading-tight">
+                  {format(currentTime, 'dd MMMM', { locale: tr })}
+                </div>
+                <div className="text-[10px] text-brand-gray dark:text-gray-400 uppercase tracking-[0.2em] font-bold mt-2">
+                  {format(currentTime, 'EEEE', { locale: tr })}
+                </div>
               </div>
             </div>
 
@@ -683,43 +684,50 @@ export function DashboardWidgets() {
         {/* ========= SAĞ KOLON ========= */}
         <div className="col-span-12 lg:col-span-3 flex flex-col gap-4 min-h-0">
 
-          {/* Durum Paneli (eski Oryantasyon) */}
-          <div className="floating-card rounded-3xl p-6 h-[300px] flex flex-col justify-between">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-brand-dark dark:text-white">Durum Paneli</h3>
-              <div className="flex bg-brand-bg dark:bg-slate-900 p-1 rounded-full">
-                <button onClick={() => setOrientationMode('weekly')} className={`px-4 py-1 rounded-full text-[10px] font-bold transition ${orientationMode === 'weekly' ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-dark dark:text-white' : 'text-brand-gray'}`}>
-                  Haftalık
-                </button>
-                <button onClick={() => setOrientationMode('monthly')} className={`px-4 py-1 rounded-full text-[10px] font-bold transition ${orientationMode === 'monthly' ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-dark dark:text-white' : 'text-brand-gray'}`}>
-                  Aylık
-                </button>
+          {/* Durum Paneli (Saat ile simetrik) */}
+          <div className="floating-card rounded-3xl p-6 h-[300px] flex flex-row items-center justify-between relative overflow-hidden group">
+            {/* Background Decoration */}
+            <div className="absolute -top-10 -left-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl group-hover:bg-emerald-500/10 transition-colors" />
+            
+            {/* Sol: İstatistikler */}
+            <div className="relative z-10 flex flex-col justify-between h-full py-2 flex-1">
+              <div>
+                <h3 className="text-xl font-semibold text-brand-dark dark:text-white mb-1">Durum Paneli</h3>
+                <div className="flex bg-brand-bg dark:bg-slate-900 p-1 rounded-full w-fit mb-4">
+                  <button onClick={() => setOrientationMode('weekly')} className={`px-4 py-1 rounded-full text-[10px] font-bold transition ${orientationMode === 'weekly' ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-dark dark:text-white' : 'text-brand-gray'}`}>
+                    Haftalık
+                  </button>
+                  <button onClick={() => setOrientationMode('monthly')} className={`px-4 py-1 rounded-full text-[10px] font-bold transition ${orientationMode === 'monthly' ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-dark dark:text-white' : 'text-brand-gray'}`}>
+                    Aylık
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                 <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-brand-bg dark:bg-slate-900/50 rounded-2xl p-3 border border-black/5 dark:border-white/5">
+                      <div className="text-xl font-bold text-brand-dark dark:text-white">{todoTasks.length}</div>
+                      <div className="text-[9px] font-bold text-brand-gray/60 dark:text-gray-500 uppercase">Bekleyen</div>
+                    </div>
+                    <div className="bg-brand-bg dark:bg-slate-900/50 rounded-2xl p-3 border border-black/5 dark:border-white/5">
+                      <div className="text-xl font-bold text-brand-dark dark:text-white">{doneTasks.length}</div>
+                      <div className="text-[9px] font-bold text-brand-gray/60 dark:text-gray-500 uppercase">Biten</div>
+                    </div>
+                 </div>
               </div>
             </div>
-            <div className="flex justify-between items-end mb-4">
-              <span className="text-sm text-brand-gray dark:text-gray-400">Genel İlerleme</span>
-              <span className="text-2xl font-light text-brand-dark dark:text-white">{completionRate}%</span>
-            </div>
-            <div className="w-full bg-brand-bg dark:bg-slate-900 h-2 rounded-full overflow-hidden">
-              <div className="bg-brand-yellow h-full rounded-full transition-all duration-700" style={{ width: `${completionRate}%` }} />
-            </div>
-            <div className="flex gap-1.5 mt-4">
-              {Array(8).fill(0).map((_, i) => (
-                <div key={i} className={`h-1 flex-grow rounded-full ${i < Math.ceil(completionRate / 12.5) ? 'bg-brand-dark dark:bg-white' : 'bg-gray-200 dark:bg-slate-700'}`} />
-              ))}
-            </div>
-            <div className="grid grid-cols-3 gap-3 mt-4 text-center">
-              <div className="bg-brand-bg dark:bg-slate-900 rounded-xl p-2">
-                <div className="text-lg font-bold text-brand-dark dark:text-white">{todoTasks.length}</div>
-                <div className="text-[9px] font-bold text-brand-gray dark:text-gray-500 uppercase">Bekleyen</div>
-              </div>
-              <div className="bg-brand-bg dark:bg-slate-900 rounded-xl p-2">
-                <div className="text-lg font-bold text-brand-dark dark:text-white">{inProgressTasks.length}</div>
-                <div className="text-[9px] font-bold text-brand-gray dark:text-gray-500 uppercase">Aktif</div>
-              </div>
-              <div className="bg-brand-bg dark:bg-slate-900 rounded-xl p-2">
-                <div className="text-lg font-bold text-brand-dark dark:text-white">{doneTasks.length}</div>
-                <div className="text-[9px] font-bold text-brand-gray dark:text-gray-500 uppercase">Biten</div>
+
+            {/* Sağ: Görsel İlerleme */}
+            <div className="relative z-10 flex flex-col items-center justify-center flex-1">
+              <div className="relative w-32 h-32 flex items-center justify-center">
+                 <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" fill="none" r="42" stroke="currentColor" className="text-slate-100 dark:text-slate-800" strokeWidth="8" />
+                    <circle className="transition-all duration-1000 text-brand-yellow" cx="50" cy="50" fill="none" r="42" stroke="currentColor" strokeDasharray="264" strokeDashoffset={264 - (completionRate * 2.64)} strokeWidth="10" strokeLinecap="round" />
+                 </svg>
+                 <div className="absolute flex flex-col items-center">
+                    <span className="text-3xl font-light text-brand-dark dark:text-white leading-none">{completionRate}%</span>
+                    <span className="text-[9px] text-brand-gray dark:text-gray-500 font-bold uppercase mt-1">İlerleme</span>
+                 </div>
               </div>
             </div>
           </div>
@@ -728,12 +736,15 @@ export function DashboardWidgets() {
           <div className="floating-card rounded-3xl p-6 flex-grow relative overflow-hidden flex flex-col">
             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-3/4 h-8 bg-brand-yellow/5 dark:bg-white/5 blur-xl rounded-full" />
 
-            <div className="flex justify-between items-end mb-4 relative z-10 mt-1">
+            <div className="flex justify-between items-end mb-5 relative z-10 mt-1">
               <h3 className="text-lg font-semibold text-brand-dark dark:text-white">Görevler</h3>
-              <span className="text-3xl font-light text-brand-dark dark:text-white">{doneTasks.length}<span className="text-base text-brand-gray dark:text-gray-400 ml-1">/{totalTasks}</span></span>
+              <div className="flex items-center gap-2">
+                 <span className="text-3xl font-light text-brand-dark dark:text-white">{doneTasks.length}</span>
+                 <span className="text-sm text-brand-gray/60 dark:text-gray-400 font-bold mb-1">/ {totalTasks}</span>
+              </div>
             </div>
 
-            <div className="space-y-2.5 relative z-10 flex-grow overflow-y-auto scrollbar-hide pr-1">
+            <div className="space-y-3 relative z-10 flex-grow overflow-y-auto scrollbar-hide pr-1">
               {recentTasks.map((task) => {
                 const project = task.project || projects.find(p => p.id === task.project_id)
                 return (
