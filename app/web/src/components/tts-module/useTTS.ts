@@ -27,18 +27,11 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   
-  // Kayıtlı ses URL'sini resolve et
-  const resolvedSavedUrl = (() => {
-    if (savedAudioUrl && savedAudioText && currentText && savedAudioText === currentText) {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      return `${baseUrl}${savedAudioUrl}`;
-    }
-    return null;
-  })();
-
-  const [fullAudioUrl, setFullAudioUrl] = useState<string | null>(resolvedSavedUrl);
+  const [fullAudioUrl, setFullAudioUrl] = useState<string | null>(null);
   // Saved url ile local blob url ayrımı yapmak lazım (revoke için)
   const isBlobUrlRef = useRef(false);
+  // Kayıtlı ses var mı? (not düzenlenmemiş ise)
+  const [hasSavedAudio, setHasSavedAudio] = useState(false);
 
   // Playback tracking
   const [playbackTime, setPlaybackTime] = useState(0);
@@ -92,15 +85,22 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
     };
   }, []);
 
-  // Kayıtlı ses URL'si değişince audio element src'sini güncelle
+  // Kayıtlı ses URL'si varsa yükle (not açıldığında veya props değiştiğinde)
   useEffect(() => {
-    if (resolvedSavedUrl && audioRef.current) {
-      setFullAudioUrl(resolvedSavedUrl);
-      audioRef.current.src = resolvedSavedUrl;
-      audioRef.current.load();
+    if (savedAudioUrl) {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const url = `${baseUrl}${savedAudioUrl}`;
+      
+      setFullAudioUrl(url);
+      setHasSavedAudio(true);
       isBlobUrlRef.current = false;
+      
+      if (audioRef.current) {
+        audioRef.current.src = url;
+        audioRef.current.load();
+      }
     }
-  }, [resolvedSavedUrl]);
+  }, [savedAudioUrl]);
 
   // Cleanup blob URL on unmount
   useEffect(() => {
@@ -373,6 +373,6 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
     playbackTime,
     playbackDuration,
     seekTo,
-    hasSavedAudio: !!resolvedSavedUrl
+    hasSavedAudio
   };
 }
