@@ -69,9 +69,9 @@ export function DashboardWidgets() {
     const todayEvents = calendarEvents
       .filter(e => e.date === todayStr && e.startTime && e.endTime && !e.allDay)
       .sort((a, b) => a.startTime!.localeCompare(b.startTime!))
-    
+
     const nowMinutes = now.getHours() * 60 + now.getMinutes()
-    
+
     const current = todayEvents.find(e => {
       const [sh, sm] = e.startTime!.split(':').map(Number)
       const [eh, em] = e.endTime!.split(':').map(Number)
@@ -79,7 +79,7 @@ export function DashboardWidgets() {
       const end = eh * 60 + em
       return nowMinutes >= start && nowMinutes < end
     })
-    
+
     return current || null
   }, [calendarEvents, currentTime])
 
@@ -94,7 +94,7 @@ export function DashboardWidgets() {
     const totalMin = endMin - startMin
     // Handle edge case where totalMin could be 0
     if (totalMin <= 0) return { elapsedMin: 0, totalMin: 0, percent: 100, isComplete: true }
-    
+
     const elapsedMin = nowMin - startMin
     const percent = Math.min(Math.max((elapsedMin / totalMin) * 100, 0), 100)
     const isComplete = percent >= 100
@@ -211,14 +211,14 @@ export function DashboardWidgets() {
       const date = new Date(startOfWeek)
       date.setDate(startOfWeek.getDate() + index)
       const isToday = isSameDay(date, now)
-      
+
       const assignedToDay = mainTasks.filter(t => {
         if (t.due_date && isSameDay(new Date(t.due_date), date)) return true
         if (t.status === 'done' && t.completed_at && isSameDay(new Date(t.completed_at), date)) return true
         return false
       })
       const doneOnDay = assignedToDay.filter(t => t.status === 'done')
-      
+
       return {
         name: dayName,
         total: assignedToDay.length,
@@ -285,8 +285,8 @@ export function DashboardWidgets() {
 
   return (
     <div className="flex flex-col h-full w-full min-h-0 overflow-hidden gap-4">
-      <ConfirmDialog 
-        isOpen={isClearHistoryConfirmOpen} 
+      <ConfirmDialog
+        isOpen={isClearHistoryConfirmOpen}
         onOpenChange={setIsClearHistoryConfirmOpen}
         title="Sohbet Geçmişini Temizle"
         description="Tüm sohbet geçmişini silmek istediğinize emin misiniz? Bu işlem geri alınamaz."
@@ -296,7 +296,7 @@ export function DashboardWidgets() {
 
       {/* === HEADER STATS === */}
       <div className="flex flex-col xl:flex-row justify-between items-center w-full gap-6 shrink-0 mb-4">
-        
+
         {/* SOL */}
         <div className="shrink-0 flex items-center mt-2 xl:mt-0">
           <h1 className="text-4xl md:text-5xl font-semibold text-brand-dark dark:text-white">{greeting}{user?.username ? `, ${user.username}` : ''}</h1>
@@ -350,65 +350,21 @@ export function DashboardWidgets() {
 
         {/* ========= SOL KOLON ========= */}
         <div className="col-span-12 lg:col-span-3 flex flex-col gap-4 min-h-0">
-          {/* Dijital & Analog Saat */}
-          <div className="floating-card rounded-3xl p-6 flex flex-row items-center justify-between h-[300px] relative overflow-hidden group">
-            {/* Background Decoration */}
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand-yellow/5 rounded-full blur-3xl group-hover:bg-brand-yellow/10 transition-colors" />
-            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
-            
-            {/* Sol: Dijital Saat Detayları */}
-            <div className="relative z-10 flex flex-col items-start justify-center pl-2 flex-1">
-              <div className="text-5xl md:text-6xl font-light tracking-tighter text-brand-dark dark:text-white tabular-nums drop-shadow-sm leading-none">
-                {format(currentTime, 'HH:mm')}
-              </div>
-              <div className="mt-6 flex flex-col">
-                <div className="text-2xl md:text-3xl font-medium text-brand-dark dark:text-white leading-tight">
-                  {format(currentTime, 'dd MMMM', { locale: tr })}
-                </div>
-                <div className="text-[10px] text-brand-gray dark:text-gray-400 uppercase tracking-[0.2em] font-bold mt-2">
-                  {format(currentTime, 'EEEE', { locale: tr })}
-                </div>
-              </div>
+          {/* Dijital Saat */}
+          <div className="floating-card rounded-2xl p-8 flex flex-col items-center justify-center h-44 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-5">
+              <Clock className="w-16 h-16" />
             </div>
-
-            {/* Sağ: Analog Saat */}
-            <div className="relative z-10 flex items-center justify-center flex-1">
-              <div className="relative w-36 h-36 md:w-40 md:h-40">
-                {/* Clock Face base */}
-                <div className="absolute inset-0 rounded-full border border-brand-dark/5 dark:border-white/5 bg-white/50 dark:bg-black/20 shadow-inner" />
-                
-                {/* Hour ticks */}
-                {[...Array(12)].map((_, i) => (
-                  <div
-                    key={i}
-                    className={`absolute left-1/2 top-1/2 w-1 rounded-full origin-bottom -translate-x-1/2 -translate-y-full ${i % 3 === 0 ? 'h-3 bg-brand-dark/20 dark:bg-white/30' : 'h-1.5 bg-brand-dark/10 dark:bg-white/10'}`}
-                    style={{ transform: `rotate(${i * 30}deg) translateY(-64px) translateX(-50%)` }}
-                  />
-                ))}
-
-                {/* Hour Hand */}
-                <div
-                  className="absolute left-1/2 top-1/2 w-1.5 h-12 bg-brand-dark dark:bg-white rounded-full origin-bottom -translate-x-1/2 -translate-y-full shadow-sm"
-                  style={{ transform: `rotate(${(currentTime.getHours() % 12) * 30 + currentTime.getMinutes() * 0.5}deg) translateY(-2px)` }}
-                />
-                {/* Minute Hand */}
-                <div
-                  className="absolute left-1/2 top-1/2 w-1 h-16 bg-brand-gray dark:bg-gray-400 rounded-full origin-bottom -translate-x-1/2 -translate-y-full shadow-sm"
-                  style={{ transform: `rotate(${currentTime.getMinutes() * 6}deg) translateY(-2px)` }}
-                />
-                {/* Second Hand */}
-                <div
-                  className="absolute left-1/2 top-1/2 w-0.5 h-18 bg-brand-yellow rounded-full origin-bottom -translate-x-1/2 -translate-y-full"
-                  style={{ transform: `rotate(${currentTime.getSeconds() * 6}deg) translateY(-2px)` }}
-                />
-                {/* Center dot */}
-                <div className="absolute left-1/2 top-1/2 w-3 h-3 bg-brand-dark dark:bg-white rounded-full border-2 border-brand-yellow -translate-x-1/2 -translate-y-1/2 z-20 shadow-md" />
-              </div>
+            <div className="text-5xl font-light tracking-tight text-brand-dark dark:text-white mb-1 tabular-nums">
+              {format(currentTime, 'HH:mm')}
+            </div>
+            <div className="text-sm text-brand-gray dark:text-gray-400 uppercase tracking-[0.2em] font-medium">
+              {format(currentTime, 'dd MMMM EEEE', { locale: tr })}
             </div>
           </div>
 
           {/* Akıllı Asistan */}
-          <div className="floating-card rounded-3xl p-6 flex-grow flex flex-col gap-3 overflow-hidden min-h-[300px]">
+          <div className="floating-card rounded-2xl p-6 flex-grow flex flex-col gap-3 overflow-hidden min-h-[300px]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-brand-yellow flex items-center justify-center shadow-sm">
@@ -419,16 +375,16 @@ export function DashboardWidgets() {
                   <p className="text-[10px] text-brand-gray dark:text-gray-500">Sana nasıl yardımcı olabilirim?</p>
                 </div>
               </div>
-              <button 
-                onClick={() => setIsClearHistoryConfirmOpen(true)} 
+              <button
+                onClick={() => setIsClearHistoryConfirmOpen(true)}
                 disabled={isClearing || aiMessages.length === 0}
                 className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-500 dark:bg-slate-900/50 dark:hover:bg-red-500/10 dark:text-slate-500 dark:hover:text-red-400 transition-colors disabled:opacity-50"
                 title="Sohbet Geçmişini Temizle"
               >
                 {isClearing ? (
-                   <span className="w-4 h-4 rounded-full border-2 border-slate-300 border-t-red-500 animate-spin" />
+                  <span className="w-4 h-4 rounded-full border-2 border-slate-300 border-t-red-500 animate-spin" />
                 ) : (
-                   <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4" />
                 )}
               </button>
             </div>
@@ -490,10 +446,10 @@ export function DashboardWidgets() {
 
         {/* ========= ORTA KOLON ========= */}
         <div className="col-span-12 lg:col-span-6 flex flex-col gap-4 min-h-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 shrink-0 h-[300px]">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 shrink-0" style={{ maxHeight: '45%' }}>
 
             {/* Gelişim Chart — SABİT, proje bazlı */}
-            <div className="floating-card rounded-3xl p-6 relative flex flex-col">
+            <div className="floating-card rounded-2xl p-6 relative">
               <button className="absolute top-6 right-6 w-8 h-8 bg-brand-bg dark:bg-slate-900 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-slate-700 transition">
                 <ArrowUpRight className="w-3.5 h-3.5 text-brand-gray dark:text-gray-400" />
               </button>
@@ -527,102 +483,102 @@ export function DashboardWidgets() {
             </div>
 
             {/* Çalışma Sayacı & Aktif Etkinlik */}
-            <div className="floating-card rounded-3xl p-5 relative flex flex-row shrink-0">
-              
+            <div className="floating-card rounded-2xl p-5 relative flex flex-row h-[230px]">
+
               {/* Sol Taraf: Çalışma Sayacı */}
               <div className="w-[50%] flex flex-col items-center justify-between border-r border-slate-100 dark:border-white/5 pr-4 relative">
-                 <h3 className="text-sm font-semibold text-brand-dark dark:text-white self-start w-full whitespace-nowrap overflow-hidden text-ellipsis mb-2">Çalışma Sayacı</h3>
-                 <div className="relative w-28 h-28 flex items-center justify-center my-auto">
-                   <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                     <circle cx="50" cy="50" fill="none" r="45" stroke="currentColor" className="text-slate-100 dark:text-slate-700" strokeDasharray="2 4" strokeWidth="4" />
-                     <circle className="transition-all duration-500 text-brand-yellow" cx="50" cy="50" fill="none" r="45" stroke="currentColor" strokeDasharray="283" strokeDashoffset={283 - timerProgress} strokeWidth="8" strokeLinecap="round" />
-                   </svg>
-                   <div className="absolute flex flex-col items-center mt-1">
-                     <span className="text-xl font-light text-brand-dark dark:text-white tabular-nums leading-none tracking-tight">{formatTimer(elapsedSeconds)}</span>
-                     <span className="text-[9px] text-brand-gray dark:text-gray-400 uppercase tracking-wider font-bold mt-1.5">
-                       {isTimerRunning ? 'Çalışıyor' : elapsedSeconds > 0 ? 'Durakladı' : 'Hazır'}
-                     </span>
-                   </div>
-                 </div>
-                 
-                 <div className="flex space-x-2 mt-2">
-                   {!isTimerRunning ? (
-                     <button onClick={startTimer} className="w-9 h-9 bg-emerald-500 shadow-sm rounded-full flex items-center justify-center hover:bg-emerald-600 transition group shrink-0">
-                       <Play className="w-4 h-4 text-white ml-0.5" />
-                     </button>
-                   ) : (
-                     <button onClick={pauseTimer} className="w-9 h-9 bg-amber-500 shadow-sm rounded-full flex items-center justify-center hover:bg-amber-600 transition shrink-0">
-                       <Pause className="w-4 h-4 text-white" />
-                     </button>
-                   )}
-                   <button onClick={resetTimer} className="w-9 h-9 bg-white dark:bg-slate-700 shadow-sm border border-gray-100 dark:border-white/10 rounded-full flex items-center justify-center hover:bg-gray-50 dark:hover:bg-slate-600 transition shrink-0">
-                     <RotateCcw className="w-4 h-4 text-brand-dark dark:text-white" />
-                   </button>
-                 </div>
-                 {elapsedSeconds >= 3600 && <div className="absolute top-0 right-4 text-[9px] font-bold text-amber-500">⚠️ {Math.floor(elapsedSeconds / 3600)}s!</div>}
+                <h3 className="text-sm font-semibold text-brand-dark dark:text-white self-start w-full whitespace-nowrap overflow-hidden text-ellipsis mb-2">Çalışma Sayacı</h3>
+                <div className="relative w-28 h-28 flex items-center justify-center my-auto">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" fill="none" r="45" stroke="currentColor" className="text-slate-100 dark:text-slate-700" strokeDasharray="2 4" strokeWidth="4" />
+                    <circle className="transition-all duration-500 text-brand-yellow" cx="50" cy="50" fill="none" r="45" stroke="currentColor" strokeDasharray="283" strokeDashoffset={283 - timerProgress} strokeWidth="8" strokeLinecap="round" />
+                  </svg>
+                  <div className="absolute flex flex-col items-center mt-1">
+                    <span className="text-xl font-light text-brand-dark dark:text-white tabular-nums leading-none tracking-tight">{formatTimer(elapsedSeconds)}</span>
+                    <span className="text-[9px] text-brand-gray dark:text-gray-400 uppercase tracking-wider font-bold mt-1.5">
+                      {isTimerRunning ? 'Çalışıyor' : elapsedSeconds > 0 ? 'Durakladı' : 'Hazır'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex space-x-2 mt-2">
+                  {!isTimerRunning ? (
+                    <button onClick={startTimer} className="w-9 h-9 bg-emerald-500 shadow-sm rounded-full flex items-center justify-center hover:bg-emerald-600 transition group shrink-0">
+                      <Play className="w-4 h-4 text-white ml-0.5" />
+                    </button>
+                  ) : (
+                    <button onClick={pauseTimer} className="w-9 h-9 bg-amber-500 shadow-sm rounded-full flex items-center justify-center hover:bg-amber-600 transition shrink-0">
+                      <Pause className="w-4 h-4 text-white" />
+                    </button>
+                  )}
+                  <button onClick={resetTimer} className="w-9 h-9 bg-white dark:bg-slate-700 shadow-sm border border-gray-100 dark:border-white/10 rounded-full flex items-center justify-center hover:bg-gray-50 dark:hover:bg-slate-600 transition shrink-0">
+                    <RotateCcw className="w-4 h-4 text-brand-dark dark:text-white" />
+                  </button>
+                </div>
+                {elapsedSeconds >= 3600 && <div className="absolute top-0 right-4 text-[9px] font-bold text-amber-500">⚠️ {Math.floor(elapsedSeconds / 3600)}s!</div>}
               </div>
 
               {/* Sağ Taraf: Takvim Etkinliği */}
               <div className="w-[50%] flex flex-col pl-4 justify-center relative min-w-0">
-                 {activeCalendarEvent && eventProgress ? (
-                   <div className="flex flex-col flex-1 justify-center min-h-0">
-                     <div className="flex items-center gap-1.5 mb-2 shrink-0">
-                       <CalendarDays className="w-3.5 h-3.5 text-brand-yellow shrink-0" />
-                       <span className="text-[10px] font-bold text-brand-gray dark:text-gray-400 uppercase tracking-wider truncate">Şu Anki Etkinlik</span>
-                     </div>
-                     <div 
-                        onClick={() => { setDetailEvent(activeCalendarEvent); setIsEventDetailOpen(true); }}
-                        className="p-3 rounded-xl border relative shadow-sm transition-all flex flex-col min-h-0 bg-amber-50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-800/30 cursor-pointer hover:shadow-md hover:border-amber-200 dark:hover:border-amber-700/50 group"
-                     >
-                       
-                       <h4 className="text-xs font-bold leading-snug line-clamp-2 text-brand-dark dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" title={activeCalendarEvent.title}>
-                          {activeCalendarEvent.title}
-                       </h4>
-                       
-                       <div className="flex items-center justify-between mt-3 shrink-0 pt-2 border-t border-black/5 dark:border-white/5">
-                         <span className="text-[10px] font-semibold whitespace-nowrap text-brand-gray/80 dark:text-gray-400">
-                           <Clock className="w-3 h-3 inline mr-1 mb-0.5" />
-                           {activeCalendarEvent.startTime} – {activeCalendarEvent.endTime}
-                         </span>
-                         {eventProgress.isComplete ? (
-                           <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded flex items-center gap-1 whitespace-nowrap">
-                             <CheckCircle2 className="w-3 h-3" /> Bitti
-                           </span>
-                         ) : (
-                           <span className="text-[10px] font-bold whitespace-nowrap text-brand-gray/80 dark:text-gray-400">
-                             ⏱ {Math.max(eventProgress.elapsedMin, 0)} dk
-                           </span>
-                         )}
-                       </div>
-                       
-                       {/* Progress Dots */}
-                       {!eventProgress.isComplete && (
-                         <div className="flex gap-1 mt-2.5 w-full justify-between items-center bg-white/50 dark:bg-black/20 p-1.5 rounded-lg border border-black/5 dark:border-white/5 shrink-0">
-                           {Array(10).fill(0).map((_, i) => {
-                             const threshold = (i + 1) * 10;
-                             const isFilled = eventProgress.percent >= threshold;
-                             
-                             return (
-                               <div key={i} className={`flex-1 h-1.5 rounded-full transition-all duration-1000 ${isFilled ? 'bg-amber-400 dark:bg-amber-600' : 'bg-black/10 dark:bg-white/10'}`} />
-                             )
-                           })}
-                         </div>
-                       )}
+                {activeCalendarEvent && eventProgress ? (
+                  <div className="flex flex-col flex-1 justify-center min-h-0">
+                    <div className="flex items-center gap-1.5 mb-2 shrink-0">
+                      <CalendarDays className="w-3.5 h-3.5 text-brand-yellow shrink-0" />
+                      <span className="text-[10px] font-bold text-brand-gray dark:text-gray-400 uppercase tracking-wider truncate">Şu Anki Etkinlik</span>
+                    </div>
+                    <div
+                      onClick={() => { setDetailEvent(activeCalendarEvent); setIsEventDetailOpen(true); }}
+                      className="p-3 rounded-xl border relative shadow-sm transition-all flex flex-col min-h-0 bg-amber-50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-800/30 cursor-pointer hover:shadow-md hover:border-amber-200 dark:hover:border-amber-700/50 group"
+                    >
 
-                     </div>
-                   </div>
-                 ) : (
-                   <div className="flex flex-col items-center justify-center h-full text-center opacity-60 px-2 min-h-0">
-                     <CalendarDays className="w-7 h-7 text-brand-gray/50 dark:text-gray-600 mb-2 shrink-0" />
-                     <p className="text-[11px] text-brand-gray dark:text-gray-400 font-medium line-clamp-2">Şu an aktif etkinlik yok.</p>
-                   </div>
-                 )}
+                      <h4 className="text-xs font-bold leading-snug line-clamp-2 text-brand-dark dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" title={activeCalendarEvent.title}>
+                        {activeCalendarEvent.title}
+                      </h4>
+
+                      <div className="flex items-center justify-between mt-3 shrink-0 pt-2 border-t border-black/5 dark:border-white/5">
+                        <span className="text-[10px] font-semibold whitespace-nowrap text-brand-gray/80 dark:text-gray-400">
+                          <Clock className="w-3 h-3 inline mr-1 mb-0.5" />
+                          {activeCalendarEvent.startTime} – {activeCalendarEvent.endTime}
+                        </span>
+                        {eventProgress.isComplete ? (
+                          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded flex items-center gap-1 whitespace-nowrap">
+                            <CheckCircle2 className="w-3 h-3" /> Bitti
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold whitespace-nowrap text-brand-gray/80 dark:text-gray-400">
+                            ⏱ {Math.max(eventProgress.elapsedMin, 0)} dk
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Progress Dots */}
+                      {!eventProgress.isComplete && (
+                        <div className="flex gap-1 mt-2.5 w-full justify-between items-center bg-white/50 dark:bg-black/20 p-1.5 rounded-lg border border-black/5 dark:border-white/5 shrink-0">
+                          {Array(10).fill(0).map((_, i) => {
+                            const threshold = (i + 1) * 10;
+                            const isFilled = eventProgress.percent >= threshold;
+
+                            return (
+                              <div key={i} className={`flex-1 h-1.5 rounded-full transition-all duration-1000 ${isFilled ? 'bg-amber-400 dark:bg-amber-600' : 'bg-black/10 dark:bg-white/10'}`} />
+                            )
+                          })}
+                        </div>
+                      )}
+
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-center opacity-60 px-2 min-h-0">
+                    <CalendarDays className="w-7 h-7 text-brand-gray/50 dark:text-gray-600 mb-2 shrink-0" />
+                    <p className="text-[11px] text-brand-gray dark:text-gray-400 font-medium line-clamp-2">Şu an aktif etkinlik yok.</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           {/* Takvim — Görevler gösterimli */}
-          <div className="floating-card rounded-3xl p-6 flex-grow relative overflow-hidden">
+          <div className="floating-card rounded-2xl p-6 flex-grow relative overflow-hidden">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-brand-dark dark:text-white flex items-center gap-2">
                 <CalendarDays className="w-5 h-5 text-brand-yellow" />
@@ -684,67 +640,67 @@ export function DashboardWidgets() {
         {/* ========= SAĞ KOLON ========= */}
         <div className="col-span-12 lg:col-span-3 flex flex-col gap-4 min-h-0">
 
-          {/* Durum Paneli (Saat ile simetrik) */}
-          <div className="floating-card rounded-3xl p-6 h-[300px] flex flex-row items-center justify-between relative overflow-hidden group">
-            {/* Background Decoration */}
-            <div className="absolute -top-10 -left-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl group-hover:bg-emerald-500/10 transition-colors" />
-            
-            {/* Sol: İstatistikler */}
-            <div className="relative z-10 flex flex-col justify-between h-full py-2 flex-1">
-              <div>
-                <h3 className="text-xl font-semibold text-brand-dark dark:text-white mb-1">Durum Paneli</h3>
-                <div className="flex bg-brand-bg dark:bg-slate-900 p-1 rounded-full w-fit mb-4">
-                  <button onClick={() => setOrientationMode('weekly')} className={`px-4 py-1 rounded-full text-[10px] font-bold transition ${orientationMode === 'weekly' ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-dark dark:text-white' : 'text-brand-gray'}`}>
-                    Haftalık
-                  </button>
-                  <button onClick={() => setOrientationMode('monthly')} className={`px-4 py-1 rounded-full text-[10px] font-bold transition ${orientationMode === 'monthly' ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-dark dark:text-white' : 'text-brand-gray'}`}>
-                    Aylık
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                 <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-brand-bg dark:bg-slate-900/50 rounded-2xl p-3 border border-black/5 dark:border-white/5">
-                      <div className="text-xl font-bold text-brand-dark dark:text-white">{todoTasks.length}</div>
-                      <div className="text-[9px] font-bold text-brand-gray/60 dark:text-gray-500 uppercase">Bekleyen</div>
-                    </div>
-                    <div className="bg-brand-bg dark:bg-slate-900/50 rounded-2xl p-3 border border-black/5 dark:border-white/5">
-                      <div className="text-xl font-bold text-brand-dark dark:text-white">{doneTasks.length}</div>
-                      <div className="text-[9px] font-bold text-brand-gray/60 dark:text-gray-500 uppercase">Biten</div>
-                    </div>
-                 </div>
+          {/* Durum Paneli (eski Oryantasyon) */}
+          <div className="floating-card rounded-3xl p-6 h-[300px] flex flex-col relative overflow-hidden">
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-xl font-semibold text-brand-dark dark:text-white">Durum Paneli</h3>
+              <div className="flex bg-brand-bg dark:bg-slate-900 p-1 rounded-full shrink-0">
+                <button onClick={() => setOrientationMode('weekly')} className={`px-4 py-1 rounded-full text-[10px] font-bold transition ${orientationMode === 'weekly' ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-dark dark:text-white' : 'text-brand-gray'}`}>
+                  Haftalık
+                </button>
+                <button onClick={() => setOrientationMode('monthly')} className={`px-4 py-1 rounded-full text-[10px] font-bold transition ${orientationMode === 'monthly' ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-dark dark:text-white' : 'text-brand-gray'}`}>
+                  Aylık
+                </button>
               </div>
             </div>
 
-            {/* Sağ: Görsel İlerleme */}
-            <div className="relative z-10 flex flex-col items-center justify-center flex-1">
-              <div className="relative w-32 h-32 flex items-center justify-center">
-                 <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" fill="none" r="42" stroke="currentColor" className="text-slate-100 dark:text-slate-800" strokeWidth="8" />
-                    <circle className="transition-all duration-1000 text-brand-yellow" cx="50" cy="50" fill="none" r="42" stroke="currentColor" strokeDasharray="264" strokeDashoffset={264 - (completionRate * 2.64)} strokeWidth="10" strokeLinecap="round" />
-                 </svg>
-                 <div className="absolute flex flex-col items-center">
-                    <span className="text-3xl font-light text-brand-dark dark:text-white leading-none">{completionRate}%</span>
-                    <span className="text-[9px] text-brand-gray dark:text-gray-500 font-bold uppercase mt-1">İlerleme</span>
-                 </div>
+            <div className="flex-1 flex flex-col justify-center min-h-0">
+              <div className="flex justify-between items-end mb-3">
+                <span className="text-sm font-medium text-brand-gray dark:text-gray-400">Genel İlerleme</span>
+                <span className="text-3xl font-light text-brand-dark dark:text-white leading-none">{completionRate}%</span>
+              </div>
+              
+              {/* Ana Progress Bar */}
+              <div className="w-full bg-slate-100 dark:bg-slate-800 h-3 rounded-full overflow-hidden mb-3">
+                <div className="bg-brand-yellow h-full rounded-full transition-all duration-700 relative" style={{ width: `${completionRate}%` }}>
+                  <div className="absolute inset-0 bg-white/20 w-full" style={{ backgroundImage: "repeating-linear-gradient(-45deg, transparent, transparent 5px, rgba(0,0,0,0.1) 5px, rgba(0,0,0,0.1) 10px)" }}></div>
+                </div>
+              </div>
+              
+              {/* Parçalı Checkpoint Barlar */}
+              <div className="flex gap-1.5 mb-5">
+                {Array(8).fill(0).map((_, i) => (
+                  <div key={i} className={`h-1.5 flex-grow rounded-full transition-colors ${i < Math.ceil(completionRate / 12.5) ? 'bg-brand-dark dark:bg-white' : 'bg-slate-200 dark:bg-slate-700'}`} />
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3 shrink-0">
+              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-2 md:p-3 flex flex-col items-center justify-center">
+                <div className="text-xl md:text-2xl font-light text-brand-dark dark:text-white leading-none mb-1">{todoTasks.length}</div>
+                <div className="text-[9px] font-bold text-brand-gray dark:text-gray-500 uppercase tracking-wider">Bekleyen</div>
+              </div>
+              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-2 md:p-3 flex flex-col items-center justify-center">
+                <div className="text-xl md:text-2xl font-light text-brand-dark dark:text-white leading-none mb-1">{inProgressTasks.length}</div>
+                <div className="text-[9px] font-bold text-brand-gray dark:text-gray-500 uppercase tracking-wider">Aktif</div>
+              </div>
+              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-2 md:p-3 flex flex-col items-center justify-center">
+                <div className="text-xl md:text-2xl font-light text-brand-dark dark:text-white leading-none mb-1">{doneTasks.length}</div>
+                <div className="text-[9px] font-bold text-brand-gray dark:text-gray-500 uppercase tracking-wider">Biten</div>
               </div>
             </div>
           </div>
 
           {/* Görevler — canlı, tıklanabilir */}
-          <div className="floating-card rounded-3xl p-6 flex-grow relative overflow-hidden flex flex-col">
+          <div className="floating-card rounded-3xl p-6 flex-grow relative overflow-hidden flex flex-col min-h-[300px]">
             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-3/4 h-8 bg-brand-yellow/5 dark:bg-white/5 blur-xl rounded-full" />
 
-            <div className="flex justify-between items-end mb-5 relative z-10 mt-1">
+            <div className="flex justify-between items-end mb-4 relative z-10 mt-1">
               <h3 className="text-lg font-semibold text-brand-dark dark:text-white">Görevler</h3>
-              <div className="flex items-center gap-2">
-                 <span className="text-3xl font-light text-brand-dark dark:text-white">{doneTasks.length}</span>
-                 <span className="text-sm text-brand-gray/60 dark:text-gray-400 font-bold mb-1">/ {totalTasks}</span>
-              </div>
+              <span className="text-3xl font-light text-brand-dark dark:text-white">{doneTasks.length}<span className="text-base text-brand-gray dark:text-gray-400 ml-1">/{totalTasks}</span></span>
             </div>
 
-            <div className="space-y-3 relative z-10 flex-grow overflow-y-auto scrollbar-hide pr-1">
+            <div className="space-y-2.5 relative z-10 flex-grow overflow-y-auto scrollbar-hide pr-1">
               {recentTasks.map((task) => {
                 const project = task.project || projects.find(p => p.id === task.project_id)
                 return (
