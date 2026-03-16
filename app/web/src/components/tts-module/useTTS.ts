@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { GoogleGenAI, Modality } from '@google/genai';
 import { chunkText, base64ToUint8Array, createWavBlob } from './utils';
+import { api } from '@/lib/api';
 
 export const VOICES = [
   { id: 'Puck', name: 'Yumuşak' },
@@ -13,12 +14,10 @@ export const VOICES = [
 interface UseTTSProps {
   apiKey?: string;
   noteId?: number;
-  savedAudioUrl?: string;
-  savedAudioText?: string;
+  savedAudioUrl?: string | null;
+  savedAudioText?: string | null;
   currentText?: string;
 }
-
-import { api } from '@/lib/api';
 
 export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentText }: UseTTSProps = {}) {
   const [voice, setVoice] = useState('Kore');
@@ -26,16 +25,20 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
   const [progress, setProgress] = useState({ current: 0, total: 0 });
-  const [fullAudioUrl, setFullAudioUrl] = useState<string | null>(() => {
+  
+  // Kayıtlı ses URL'sini resolve et
+  const resolvedSavedUrl = (() => {
     if (savedAudioUrl && savedAudioText && currentText && savedAudioText === currentText) {
-       // Backend'de statik dosya olduğu için public URL'e yönlendiriyoruz
-       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-       return `${baseUrl}${savedAudioUrl}`;
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      return `${baseUrl}${savedAudioUrl}`;
     }
     return null;
-  });
+  })();
+
+  const [fullAudioUrl, setFullAudioUrl] = useState<string | null>(resolvedSavedUrl);
+  // Saved url ile local blob url ayrımı yapmak lazım (revoke için)
+  const isBlobUrlRef = useRef(false);
 
   // Playback tracking
   const [playbackTime, setPlaybackTime] = useState(0);
@@ -47,61 +50,69 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
 
   // Initialize AI client
   const ai = new GoogleGenAI({ 
-    apiKey: apiKey || process.env.NEXT_PUBLIC_GEMINI_API_KEY || 'AIzaSyD4yG67W0hkE-I62E2-DE2e6ERofjEQvaM' 
+    apiKey: apiKey || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '' 
   });
 
-  // Cleanup on unmount
+  // Audio element'ini başlat (sadece 1 kere)
+  useEffect(() => {
+    const audio = new Audio();
+    audio.crossOrigin = 'anonymous';
+    
+    audio.addEventListener('ended', () => {
+      setIsPlaying(false);
+      setPlaybackTime(0);
+    });
+    audio.addEventListener('error', (e) => {
+      console.error("Audio playback error:", e);
+      setIsPlaying(false);
+    });
+    audio.addEventListener('pause', () => setIsPlaying(false));
+    audio.addEventListener('play', () => setIsPlaying(true));
+    audio.addEventListener('timeupdate', () => {
+      if (audio && Number.isFinite(audio.currentTime)) {
+        setPlaybackTime(audio.currentTime);
+      }
+    });
+    audio.addEventListener('loadedmetadata', () => {
+      if (audio && Number.isFinite(audio.duration)) {
+        setPlaybackDuration(audio.duration);
+      }
+    });
+    audio.addEventListener('canplaythrough', () => {
+      if (audio && Number.isFinite(audio.duration)) {
+        setPlaybackDuration(audio.duration);
+      }
+    });
+    
+    audioRef.current = audio;
+    
+    return () => {
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load();
+    };
+  }, []);
+
+  // Kayıtlı ses URL'si değişince audio element src'sini güncelle
+  useEffect(() => {
+    if (resolvedSavedUrl && audioRef.current) {
+      setFullAudioUrl(resolvedSavedUrl);
+      audioRef.current.src = resolvedSavedUrl;
+      audioRef.current.load();
+      isBlobUrlRef.current = false;
+    }
+  }, [resolvedSavedUrl]);
+
+  // Cleanup blob URL on unmount
   useEffect(() => {
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
-      }
       if (previewAudioRef.current) {
         previewAudioRef.current.pause();
-        previewAudioRef.current.src = '';
       }
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
-      if (fullAudioUrl) URL.revokeObjectURL(fullAudioUrl);
     };
-  }, [fullAudioUrl]);
-
-  const handleAudioEnded = useCallback(() => {
-    setIsPlaying(false);
-  }, []);
-
-  // Initialize audio element
-  useEffect(() => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio();
-      audioRef.current.onended = () => {
-        setIsPlaying(false);
-        setPlaybackTime(0);
-      };
-      audioRef.current.onerror = () => {
-        console.error("Audio playback error.");
-        setIsPlaying(false);
-      };
-      audioRef.current.onpause = () => setIsPlaying(false);
-      audioRef.current.onplay = () => setIsPlaying(true);
-      audioRef.current.ontimeupdate = () => {
-        if (audioRef.current) {
-          setPlaybackTime(audioRef.current.currentTime);
-        }
-      };
-      audioRef.current.onloadedmetadata = () => {
-        if (audioRef.current && Number.isFinite(audioRef.current.duration)) {
-          setPlaybackDuration(audioRef.current.duration);
-        }
-      };
-      audioRef.current.oncanplay = () => {
-        if (audioRef.current && Number.isFinite(audioRef.current.duration)) {
-          setPlaybackDuration(audioRef.current.duration);
-        }
-      }
-    }
   }, []);
 
   const previewVoice = async (selectedVoice: string = voice) => {
@@ -131,9 +142,17 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
         const audio = new Audio(url);
         previewAudioRef.current = audio;
         
-        audio.onended = () => setIsPreviewing(false);
-        audio.onerror = () => setIsPreviewing(false);
+        audio.onended = () => {
+          setIsPreviewing(false);
+          URL.revokeObjectURL(url);
+        };
+        audio.onerror = () => {
+          setIsPreviewing(false);
+          URL.revokeObjectURL(url);
+        };
         await audio.play();
+      } else {
+        setIsPreviewing(false);
       }
     } catch (error) {
       console.error("Preview error:", error);
@@ -151,19 +170,29 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
     setIsGenerating(true);
     setError(null);
     setIsPlaying(false);
-    if (fullAudioUrl) URL.revokeObjectURL(fullAudioUrl);
-    setFullAudioUrl(null);
+    setPlaybackTime(0);
+    setPlaybackDuration(0);
     
-    if (audioRef.current) audioRef.current.pause();
+    // Eski blob URL'sini temizle
+    if (fullAudioUrl && isBlobUrlRef.current) {
+      URL.revokeObjectURL(fullAudioUrl);
+    }
+    setFullAudioUrl(null);
+    isBlobUrlRef.current = false;
+    
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.removeAttribute('src');
+      audioRef.current.load();
+    }
     if (previewAudioRef.current) {
       previewAudioRef.current.pause();
       setIsPreviewing(false);
     }
     
-    // Chunk size increased to 4000 to keep most notes as a single block
     const textChunks = chunkText(text, 4000);
     setProgress({ current: 0, total: textChunks.length });
-    let fetchedPcm: Uint8Array[] = [];
+    const fetchedPcm: Uint8Array[] = [];
 
     for (let i = 0; i < textChunks.length; i++) {
       if (signal.aborted) break;
@@ -194,12 +223,7 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
           if (base64Audio) {
             const pcm = base64ToUint8Array(base64Audio);
             fetchedPcm.push(pcm);
-            
-            const wavBlob = createWavBlob(pcm, 24000);
-            const url = URL.createObjectURL(wavBlob);
-            
             setProgress(prev => ({ ...prev, current: i + 1 }));
-            
             chunkSuccess = true;
           } else {
             throw new Error("No audio data received.");
@@ -224,7 +248,9 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
 
     if (!signal.aborted) {
       setIsGenerating(false);
+      
       if (fetchedPcm.length > 0) {
+        // Tüm PCM verilerini birleştir
         const totalLen = fetchedPcm.reduce((acc, val) => acc + val.length, 0);
         const combined = new Uint8Array(totalLen);
         let offset = 0;
@@ -234,16 +260,28 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
         }
         const fullWav = createWavBlob(combined, 24000);
         const finalUrl = URL.createObjectURL(fullWav);
-        setFullAudioUrl(finalUrl);
         
-        // Auto-play instantly when generation completely finishes
+        // State güncelle
+        setFullAudioUrl(finalUrl);
+        isBlobUrlRef.current = true;
+        
+        // Audio elementine ata ve çal
         if (audioRef.current) {
           audioRef.current.src = finalUrl;
-          audioRef.current.play().catch(e => console.error("Auto-play combined failed:", e));
-          setIsPlaying(true);
+          audioRef.current.load();
+          
+          // Yüklenmesini bekle ve çal
+          const playWhenReady = () => {
+            audioRef.current?.play()
+              .then(() => setIsPlaying(true))
+              .catch(e => console.error("Auto-play failed:", e));
+          };
+          
+          // canplaythrough event ile bekle
+          audioRef.current.addEventListener('canplaythrough', playWhenReady, { once: true });
         }
 
-        // Upload to backend if noteId exists
+        // Backend'e kaydet (arka planda)
         if (noteId) {
           try {
             const formData = new FormData();
@@ -252,11 +290,11 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
             await api.post(`/api/notes/${noteId}/upload-audio`, formData, {
               headers: { 'Content-Type': 'multipart/form-data' }
             });
-            import('@/stores/noteStore').then(({ useNoteStore }) => {
-                useNoteStore.getState().fetchNotes();
-            }).catch(()=>{});
+            // Store'u güncelle
+            const { useNoteStore } = await import('@/stores/noteStore');
+            useNoteStore.getState().fetchNotes();
           } catch (e) {
-            console.error("Ses DB'ye kaydedilemedi", e);
+            console.error("Ses DB'ye kaydedilemedi:", e);
           }
         }
       }
@@ -266,17 +304,18 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
   const togglePlayPause = () => {
     if (!audioRef.current) return;
     
-    // Eğer fullAudioUrl varsa ve audio elementinde henüz src yoksa set edelim. (Özellikle saved audio için)
-    if (fullAudioUrl && !audioRef.current.src) {
-        audioRef.current.src = fullAudioUrl;
+    // Eğer fullAudioUrl varsa ve audio src'si boşsa, set et
+    if (fullAudioUrl && (!audioRef.current.src || audioRef.current.src === '' || audioRef.current.src === window.location.href)) {
+      audioRef.current.src = fullAudioUrl;
+      audioRef.current.load();
     }
     
     if (isPlaying) {
       audioRef.current.pause();
     } else {
-      if (fullAudioUrl || audioRef.current.src) {
-        audioRef.current.play();
-      }
+      audioRef.current.play()
+        .then(() => setIsPlaying(true))
+        .catch(e => console.error("Play failed:", e));
     }
   };
 
@@ -292,7 +331,7 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
   };
 
   const seekTo = (time: number) => {
-    if (audioRef.current) {
+    if (audioRef.current && Number.isFinite(time)) {
       audioRef.current.currentTime = time;
       setPlaybackTime(time);
     }
@@ -325,6 +364,7 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
     download,
     playbackTime,
     playbackDuration,
-    seekTo
+    seekTo,
+    hasSavedAudio: !!resolvedSavedUrl
   };
 }

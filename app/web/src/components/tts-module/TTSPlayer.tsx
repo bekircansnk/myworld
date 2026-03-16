@@ -5,8 +5,8 @@ import { useTTS } from './useTTS';
 interface TTSPlayerProps {
   text: string;
   noteId?: number;
-  savedAudioUrl?: string;
-  savedAudioText?: string;
+  savedAudioUrl?: string | null;
+  savedAudioText?: string | null;
   currentText?: string;
   apiKey?: string;
   className?: string;
@@ -30,10 +30,11 @@ export function TTSPlayer({ text, noteId, savedAudioUrl, savedAudioText, current
     download,
     playbackTime,
     playbackDuration,
-    seekTo
-  } = useTTS({ apiKey });
+    seekTo,
+    hasSavedAudio
+  } = useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentText });
 
-  // Zaman formatlama yardımcısı (01:23)
+  // Zaman formatlama yardımcısı (1:23)
   const formatTime = (time: number) => {
     if (!time || isNaN(time)) return "0:00";
     const m = Math.floor(time / 60);
@@ -41,8 +42,8 @@ export function TTSPlayer({ text, noteId, savedAudioUrl, savedAudioText, current
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  const hasStarted = progress.total > 0 || !!fullAudioUrl;
-  const isFinished = !isGenerating && hasStarted;
+  const hasAudio = !!fullAudioUrl;
+  const hasStarted = progress.total > 0 || hasAudio;
 
   return (
     <div className={`bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 flex flex-col gap-4 ${className}`}>
@@ -50,13 +51,13 @@ export function TTSPlayer({ text, noteId, savedAudioUrl, savedAudioText, current
       {/* Üst Kısım: Ses Seçimi ve Ana Buton */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         
-        {/* Ses Seçici */}
-        <div className={`flex items-center gap-2 bg-slate-900/50 border border-slate-700/50 rounded-lg p-1.5 w-full sm:w-auto ${fullAudioUrl ? 'opacity-50 pointer-events-none' : ''}`}>
+        {/* Ses Seçici - Ses hazırsa devre dışı */}
+        <div className={`flex items-center gap-2 bg-slate-900/50 border border-slate-700/50 rounded-lg p-1.5 w-full sm:w-auto ${hasAudio ? 'opacity-40 pointer-events-none' : ''}`}>
           <Volume2 className="w-4 h-4 text-slate-400 ml-2" />
           <select
             value={voice}
             onChange={(e) => setVoice(e.target.value)}
-            disabled={isGenerating || isPlaying || !!fullAudioUrl}
+            disabled={isGenerating || isPlaying || hasAudio}
             className="bg-transparent border-none text-sm text-slate-200 focus:ring-0 cursor-pointer outline-none w-full sm:w-auto"
           >
             {VOICES.map((v) => (
@@ -67,7 +68,7 @@ export function TTSPlayer({ text, noteId, savedAudioUrl, savedAudioText, current
           </select>
           <button
             onClick={() => previewVoice()}
-            disabled={isPreviewing || isGenerating || isPlaying || !!fullAudioUrl}
+            disabled={isPreviewing || isGenerating || isPlaying || hasAudio}
             className="p-1.5 rounded-md hover:bg-slate-700 text-slate-300 disabled:opacity-50 transition-colors"
             title="Sesi Önizle"
           >
@@ -75,8 +76,8 @@ export function TTSPlayer({ text, noteId, savedAudioUrl, savedAudioText, current
           </button>
         </div>
 
-        {/* Ana Aksiyon Butonu (Başlat/Durdur) */}
-        {!isGenerating && !fullAudioUrl ? (
+        {/* Ana Aksiyon Butonu */}
+        {!isGenerating && !hasAudio ? (
           <button
             onClick={() => generateAndPlay(text)}
             disabled={!text.trim() || isGenerating}
@@ -95,27 +96,29 @@ export function TTSPlayer({ text, noteId, savedAudioUrl, savedAudioText, current
               {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
               <span>{isGenerating ? 'Ses Hazırlanıyor...' : (isPlaying ? 'Duraklat' : 'Dinle')}</span>
             </button>
-            <button
-              onClick={stop}
-              className="p-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition-colors"
-              title={isGenerating ? "İşlemi İptal Et" : "Oynatıcıyı Yeniden Başlat (Ses Sıfırlanır)"}
-            >
-              <Square className="w-4 h-4 fill-current" />
-            </button>
+            {!hasSavedAudio && (
+              <button
+                onClick={stop}
+                className="p-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition-colors"
+                title={isGenerating ? "İşlemi İptal Et" : "Sesi Sıfırla"}
+              >
+                <Square className="w-4 h-4 fill-current" />
+              </button>
+            )}
           </div>
         )}
       </div>
 
-      {/* Alt Kısım: İlerleme ve Hata Durumu */}
+      {/* Alt Kısım: İlerleme / Oynatıcı */}
       {hasStarted && (
         <div className="flex flex-col gap-2">
           {isGenerating ? (
             <>
-              {/* Progress Bar Yükleme Aşaması */}
+              {/* Progress Bar - Yükleme */}
               <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
                 <div 
                   className="bg-indigo-500 h-1.5 rounded-full transition-all duration-300"
-                  style={{ width: `${(progress.current / progress.total) * 100}%` }}
+                  style={{ width: `${progress.total > 0 ? (progress.current / progress.total) * 100 : 0}%` }}
                 />
               </div>
               <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
@@ -124,9 +127,9 @@ export function TTSPlayer({ text, noteId, savedAudioUrl, savedAudioText, current
               </div>
             </>
           ) : (
-            fullAudioUrl && (
+            hasAudio && (
               <div className="flex flex-col gap-2 mt-1">
-                {/* Oynatma (Scrub Yüzeyi) Progress Bar */}
+                {/* Oynatma Progress Bar */}
                 <div className="flex items-center gap-2.5">
                   <span className="text-[10px] tabular-nums font-medium text-slate-400 w-7 text-right">
                     {formatTime(playbackTime)}
@@ -136,7 +139,7 @@ export function TTSPlayer({ text, noteId, savedAudioUrl, savedAudioText, current
                     <input
                       type="range"
                       min="0"
-                      max={playbackDuration || 100}
+                      max={playbackDuration || 1}
                       step="0.01"
                       value={playbackTime}
                       onChange={(e) => seekTo(Number(e.target.value))}
@@ -147,7 +150,6 @@ export function TTSPlayer({ text, noteId, savedAudioUrl, savedAudioText, current
                         className="bg-indigo-500 h-full rounded-full transition-all duration-75 relative"
                         style={{ width: `${playbackDuration > 0 ? (playbackTime / playbackDuration) * 100 : 0}%` }}
                       >
-                        {/* Dot indicator */}
                         <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full shadow-sm shadow-indigo-500/50 scale-0 group-hover:scale-100 transition-transform" />
                       </div>
                     </div>
@@ -158,10 +160,10 @@ export function TTSPlayer({ text, noteId, savedAudioUrl, savedAudioText, current
                   </span>
                 </div>
                 
-                {/* Durum & İndirme İkonu */}
+                {/* Durum & İndirme */}
                 <div className="flex items-center justify-between ml-1 text-xs">
                   <div className="text-[10px] text-emerald-400 font-bold tracking-wide">
-                    Ses Dosyası Hazır
+                    {hasSavedAudio ? '💾 Kayıtlı Ses' : 'Ses Dosyası Hazır'}
                   </div>
                   <button
                     onClick={download}
