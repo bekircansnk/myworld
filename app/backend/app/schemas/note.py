@@ -25,6 +25,8 @@ class NoteResponse(NoteBase):
     user_id: int
     ai_analysis: Optional[str] = None
     ai_analysis_history: Optional[List[Dict[str, Any]]] = None
+    tts_audio_url: Optional[str] = None
+    tts_text: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

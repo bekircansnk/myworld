@@ -17,6 +17,8 @@ class Note(Base):
     ai_analysis = Column(String, nullable=True)
     ai_analysis_history = Column(JSON, default=list)
     source = Column(String, default="web") # web, telegram, ai
+    tts_audio_url = Column(String, nullable=True)
+    tts_text = Column(String, nullable=True)
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 

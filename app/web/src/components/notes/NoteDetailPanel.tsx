@@ -272,7 +272,13 @@ export function NoteDetailPanel() {
                       {selectedNote.content}
                     </div>
                     <div onClick={(e) => e.stopPropagation()}>
-                      <TTSPlayer text={selectedNote.content || ""} />
+                      <TTSPlayer 
+                        text={selectedNote.content || ""} 
+                        noteId={selectedNote.id}
+                        savedAudioUrl={selectedNote.tts_audio_url}
+                        savedAudioText={selectedNote.tts_text}
+                        currentText={selectedNote.content || ""}
+                      />
                     </div>
                   </div>
                  )}

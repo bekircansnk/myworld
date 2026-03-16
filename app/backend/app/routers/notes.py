@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+import os
+import uuid
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List, Optional
@@ -242,3 +244,35 @@ KURALLAR:
         tasks_found=[],
         ideas=[]
     )
+
+@router.post("/{note_id}/upload-audio", response_model=NoteResponse)
+async def upload_note_audio(
+    note_id: int,
+    audio_file: UploadFile = File(...),
+    tts_text: str = Form(...),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    query = select(Note).where(Note.id == note_id, Note.user_id == current_user.id)
+    result = await db.execute(query)
+    db_note = result.scalars().first()
+    
+    if not db_note:
+        raise HTTPException(status_code=404, detail="Note not found")
+        
+    os.makedirs("static/audio", exist_ok=True)
+    ext = audio_file.filename.split('.')[-1] if '.' in audio_file.filename else 'wav'
+    filename = f"{uuid.uuid4()}.{ext}"
+    file_path = f"static/audio/{filename}"
+    
+    # Save the file
+    content = await audio_file.read()
+    with open(file_path, "wb") as f:
+        f.write(content)
+        
+    db_note.tts_audio_url = f"/{file_path}"
+    db_note.tts_text = tts_text
+    
+    await db.commit()
+    await db.refresh(db_note)
+    return db_note

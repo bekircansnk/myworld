@@ -42,6 +42,8 @@ export interface Note {
   ai_tags?: string[];
   ai_analysis?: string;
   ai_analysis_history?: any[];
+  tts_audio_url?: string;
+  tts_text?: string;
   source: string;
   created_at?: string;
   updated_at?: string;

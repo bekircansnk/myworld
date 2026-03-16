@@ -4,11 +4,15 @@ import { useTTS } from './useTTS';
 
 interface TTSPlayerProps {
   text: string;
+  noteId?: number;
+  savedAudioUrl?: string;
+  savedAudioText?: string;
+  currentText?: string;
   apiKey?: string;
   className?: string;
 }
 
-export function TTSPlayer({ text, apiKey, className = '' }: TTSPlayerProps) {
+export function TTSPlayer({ text, noteId, savedAudioUrl, savedAudioText, currentText, apiKey, className = '' }: TTSPlayerProps) {
   const {
     voice,
     setVoice,
@@ -37,7 +41,7 @@ export function TTSPlayer({ text, apiKey, className = '' }: TTSPlayerProps) {
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  const hasStarted = progress.total > 0;
+  const hasStarted = progress.total > 0 || !!fullAudioUrl;
   const isFinished = !isGenerating && hasStarted;
 
   return (
@@ -47,12 +51,12 @@ export function TTSPlayer({ text, apiKey, className = '' }: TTSPlayerProps) {
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         
         {/* Ses Seçici */}
-        <div className="flex items-center gap-2 bg-slate-900/50 border border-slate-700/50 rounded-lg p-1.5 w-full sm:w-auto">
+        <div className={`flex items-center gap-2 bg-slate-900/50 border border-slate-700/50 rounded-lg p-1.5 w-full sm:w-auto ${fullAudioUrl ? 'opacity-50 pointer-events-none' : ''}`}>
           <Volume2 className="w-4 h-4 text-slate-400 ml-2" />
           <select
             value={voice}
             onChange={(e) => setVoice(e.target.value)}
-            disabled={isGenerating || isPlaying}
+            disabled={isGenerating || isPlaying || !!fullAudioUrl}
             className="bg-transparent border-none text-sm text-slate-200 focus:ring-0 cursor-pointer outline-none w-full sm:w-auto"
           >
             {VOICES.map((v) => (
@@ -63,7 +67,7 @@ export function TTSPlayer({ text, apiKey, className = '' }: TTSPlayerProps) {
           </select>
           <button
             onClick={() => previewVoice()}
-            disabled={isPreviewing || isGenerating || isPlaying}
+            disabled={isPreviewing || isGenerating || isPlaying || !!fullAudioUrl}
             className="p-1.5 rounded-md hover:bg-slate-700 text-slate-300 disabled:opacity-50 transition-colors"
             title="Sesi Önizle"
           >
@@ -94,7 +98,7 @@ export function TTSPlayer({ text, apiKey, className = '' }: TTSPlayerProps) {
             <button
               onClick={stop}
               className="p-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition-colors"
-              title={isGenerating ? "İşlemi İptal Et" : "Oynatıcıyı Kapat"}
+              title={isGenerating ? "İşlemi İptal Et" : "Oynatıcıyı Yeniden Başlat (Ses Sıfırlanır)"}
             >
               <Square className="w-4 h-4 fill-current" />
             </button>

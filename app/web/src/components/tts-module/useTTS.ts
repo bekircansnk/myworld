@@ -12,9 +12,15 @@ export const VOICES = [
 
 interface UseTTSProps {
   apiKey?: string;
+  noteId?: number;
+  savedAudioUrl?: string;
+  savedAudioText?: string;
+  currentText?: string;
 }
 
-export function useTTS({ apiKey }: UseTTSProps = {}) {
+import { api } from '@/lib/api';
+
+export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentText }: UseTTSProps = {}) {
   const [voice, setVoice] = useState('Kore');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPreviewing, setIsPreviewing] = useState(false);
@@ -22,7 +28,14 @@ export function useTTS({ apiKey }: UseTTSProps = {}) {
   const [error, setError] = useState<string | null>(null);
   
   const [progress, setProgress] = useState({ current: 0, total: 0 });
-  const [fullAudioUrl, setFullAudioUrl] = useState<string | null>(null);
+  const [fullAudioUrl, setFullAudioUrl] = useState<string | null>(() => {
+    if (savedAudioUrl && savedAudioText && currentText && savedAudioText === currentText) {
+       // Backend'de statik dosya olduğu için public URL'e yönlendiriyoruz
+       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+       return `${baseUrl}${savedAudioUrl}`;
+    }
+    return null;
+  });
 
   // Playback tracking
   const [playbackTime, setPlaybackTime] = useState(0);
@@ -229,12 +242,35 @@ export function useTTS({ apiKey }: UseTTSProps = {}) {
           audioRef.current.play().catch(e => console.error("Auto-play combined failed:", e));
           setIsPlaying(true);
         }
+
+        // Upload to backend if noteId exists
+        if (noteId) {
+          try {
+            const formData = new FormData();
+            formData.append("audio_file", fullWav, "tts.wav");
+            formData.append("tts_text", text);
+            await api.post(`/api/notes/${noteId}/upload-audio`, formData, {
+              headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            import('@/stores/noteStore').then(({ useNoteStore }) => {
+                useNoteStore.getState().fetchNotes();
+            }).catch(()=>{});
+          } catch (e) {
+            console.error("Ses DB'ye kaydedilemedi", e);
+          }
+        }
       }
     }
   };
 
   const togglePlayPause = () => {
     if (!audioRef.current) return;
+    
+    // Eğer fullAudioUrl varsa ve audio elementinde henüz src yoksa set edelim. (Özellikle saved audio için)
+    if (fullAudioUrl && !audioRef.current.src) {
+        audioRef.current.src = fullAudioUrl;
+    }
+    
     if (isPlaying) {
       audioRef.current.pause();
     } else {
