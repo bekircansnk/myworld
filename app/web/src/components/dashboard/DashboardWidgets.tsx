@@ -367,25 +367,58 @@ export function DashboardWidgets() {
             <div className="relative z-10 flex items-center justify-center flex-1">
               <div className="relative w-36 h-36">
                 <div className="absolute inset-0 rounded-full bg-white/50 dark:bg-black/20 border border-brand-dark/5 dark:border-white/5 shadow-inner" />
-                {[...Array(12)].map((_, i) => (
-                  <div
-                    key={i}
-                    className={`absolute left-1/2 top-1/2 rounded-full origin-bottom ${i % 3 === 0 ? 'w-[3px] h-4 bg-brand-dark/25 dark:bg-white/35' : 'w-[2px] h-2 bg-brand-dark/10 dark:bg-white/12'}`}
-                    style={{ transform: `rotate(${i * 30}deg) translate(-50%, -62px)` }}
-                  />
-                ))}
+                {/* Saat işaretleri (12 adet) */}
+                {[...Array(12)].map((_, i) => {
+                  const angle = (i * 30) * (Math.PI / 180)
+                  const radius = 62
+                  const x = 50 + radius * Math.sin(angle)
+                  const y = 50 - radius * Math.cos(angle)
+                  return (
+                    <div
+                      key={i}
+                      className={`absolute rounded-full ${i % 3 === 0 ? 'w-[3px] h-4 bg-brand-dark/25 dark:bg-white/35' : 'w-[2px] h-2 bg-brand-dark/10 dark:bg-white/12'}`}
+                      style={{
+                        left: `${x}%`,
+                        top: `${y}%`,
+                        transform: `translate(-50%, -50%) rotate(${i * 30}deg)`,
+                      }}
+                    />
+                  )
+                })}
+                {/* Akrep (saat ibresi) */}
                 <div
-                  className="absolute left-1/2 top-1/2 w-[5px] h-10 bg-brand-dark dark:bg-white rounded-full origin-bottom shadow-sm"
-                  style={{ transform: `rotate(${(currentTime.getHours() % 12) * 30 + currentTime.getMinutes() * 0.5}deg) translate(-50%, -2px)` }}
+                  className="absolute w-[5px] bg-brand-dark dark:bg-white rounded-full shadow-sm"
+                  style={{
+                    height: '28%',
+                    left: '50%',
+                    top: '50%',
+                    transformOrigin: '50% 100%',
+                    transform: `translate(-50%, -100%) rotate(${(currentTime.getHours() % 12) * 30 + currentTime.getMinutes() * 0.5}deg)`,
+                  }}
                 />
+                {/* Yelkovan (dakika ibresi) */}
                 <div
-                  className="absolute left-1/2 top-1/2 w-[3px] h-14 bg-brand-dark/60 dark:bg-white/60 rounded-full origin-bottom"
-                  style={{ transform: `rotate(${currentTime.getMinutes() * 6}deg) translate(-50%, -2px)` }}
+                  className="absolute w-[3px] bg-brand-dark/60 dark:bg-white/60 rounded-full"
+                  style={{
+                    height: '36%',
+                    left: '50%',
+                    top: '50%',
+                    transformOrigin: '50% 100%',
+                    transform: `translate(-50%, -100%) rotate(${currentTime.getMinutes() * 6 + currentTime.getSeconds() * 0.1}deg)`,
+                  }}
                 />
+                {/* Saniye ibresi */}
                 <div
-                  className="absolute left-1/2 top-1/2 w-[2px] h-16 bg-brand-yellow rounded-full origin-bottom"
-                  style={{ transform: `rotate(${currentTime.getSeconds() * 6}deg) translate(-50%, -2px)` }}
+                  className="absolute w-[1.5px] bg-brand-yellow rounded-full"
+                  style={{
+                    height: '40%',
+                    left: '50%',
+                    top: '50%',
+                    transformOrigin: '50% 100%',
+                    transform: `translate(-50%, -100%) rotate(${currentTime.getSeconds() * 6}deg)`,
+                  }}
                 />
+                {/* Merkez noktası */}
                 <div className="absolute left-1/2 top-1/2 w-3 h-3 bg-brand-dark dark:bg-white rounded-full border-2 border-brand-yellow -translate-x-1/2 -translate-y-1/2 z-20 shadow-md" />
               </div>
             </div>

@@ -31,7 +31,9 @@ export function useTTS({ apiKey }: UseTTSProps = {}) {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Initialize AI client
-  const ai = new GoogleGenAI({ apiKey: apiKey || process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '' });
+  const ai = new GoogleGenAI({ 
+    apiKey: apiKey || process.env.NEXT_PUBLIC_GEMINI_API_KEY || 'AIzaSyD4yG67W0hkE-I62E2-DE2e6ERofjEQvaM' 
+  });
 
   // Cleanup on unmount
   useEffect(() => {
