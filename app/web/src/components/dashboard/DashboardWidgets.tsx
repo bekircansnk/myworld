@@ -351,24 +351,28 @@ export function DashboardWidgets() {
         {/* ========= SOL KOLON ========= */}
         <div className="col-span-12 lg:col-span-3 flex flex-col gap-4 min-h-0">
           {/* Dijital & Analog Saat */}
-          <div className="floating-card rounded-3xl p-8 flex flex-col items-center justify-between h-[280px] relative overflow-hidden group">
+          <div className="floating-card rounded-3xl p-6 flex flex-row items-center justify-between h-[300px] relative overflow-hidden group">
             {/* Background Decoration */}
             <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand-yellow/5 rounded-full blur-3xl group-hover:bg-brand-yellow/10 transition-colors" />
             <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
             
-            <div className="relative z-10 w-full flex flex-col items-center">
-              <div className="text-5xl font-light tracking-tighter text-brand-dark dark:text-white mb-1 tabular-nums drop-shadow-sm">
+            {/* Sol: Dijital Saat */}
+            <div className="relative z-10 flex flex-col items-start justify-center pl-2 flex-1">
+              <div className="text-4xl md:text-5xl font-light tracking-tighter text-brand-dark dark:text-white tabular-nums drop-shadow-sm leading-none">
                 {format(currentTime, 'HH:mm')}
-                <span className="text-xl ml-1 opacity-50 font-normal">{format(currentTime, ':ss')}</span>
               </div>
-              <div className="text-[10px] text-brand-gray dark:text-gray-400 uppercase tracking-[0.3em] font-bold">
-                {format(currentTime, 'dd MMMM EEEE', { locale: tr })}
+              <div className="text-lg opacity-40 font-medium text-brand-dark dark:text-white mt-1 mb-3">
+                {format(currentTime, ':ss')}
+              </div>
+              <div className="text-[10px] text-brand-gray dark:text-gray-400 uppercase tracking-[0.2em] font-bold leading-relaxed max-w-[120px]">
+                {format(currentTime, 'dd MMMM', { locale: tr })}<br/>
+                {format(currentTime, 'EEEE', { locale: tr })}
               </div>
             </div>
 
-            {/* Analog Clock SVG */}
-            <div className="relative z-10 flex items-center justify-center py-2">
-              <div className="relative w-32 h-32">
+            {/* Sağ: Analog Saat */}
+            <div className="relative z-10 flex items-center justify-center flex-1">
+              <div className="relative w-36 h-36 md:w-40 md:h-40">
                 {/* Clock Face base */}
                 <div className="absolute inset-0 rounded-full border border-brand-dark/5 dark:border-white/5 bg-white/50 dark:bg-black/20 shadow-inner" />
                 
@@ -377,23 +381,23 @@ export function DashboardWidgets() {
                   <div
                     key={i}
                     className={`absolute left-1/2 top-1/2 w-1 rounded-full origin-bottom -translate-x-1/2 -translate-y-full ${i % 3 === 0 ? 'h-3 bg-brand-dark/20 dark:bg-white/30' : 'h-1.5 bg-brand-dark/10 dark:bg-white/10'}`}
-                    style={{ transform: `rotate(${i * 30}deg) translateY(-54px) translateX(-50%)` }}
+                    style={{ transform: `rotate(${i * 30}deg) translateY(-64px) translateX(-50%)` }}
                   />
                 ))}
 
                 {/* Hour Hand */}
                 <div
-                  className="absolute left-1/2 top-1/2 w-1.5 h-10 bg-brand-dark dark:bg-white rounded-full origin-bottom -translate-x-1/2 -translate-y-full shadow-sm"
+                  className="absolute left-1/2 top-1/2 w-1.5 h-12 bg-brand-dark dark:bg-white rounded-full origin-bottom -translate-x-1/2 -translate-y-full shadow-sm"
                   style={{ transform: `rotate(${(currentTime.getHours() % 12) * 30 + currentTime.getMinutes() * 0.5}deg) translateY(-2px)` }}
                 />
                 {/* Minute Hand */}
                 <div
-                  className="absolute left-1/2 top-1/2 w-1 h-14 bg-brand-gray dark:bg-gray-400 rounded-full origin-bottom -translate-x-1/2 -translate-y-full shadow-sm"
+                  className="absolute left-1/2 top-1/2 w-1 h-16 bg-brand-gray dark:bg-gray-400 rounded-full origin-bottom -translate-x-1/2 -translate-y-full shadow-sm"
                   style={{ transform: `rotate(${currentTime.getMinutes() * 6}deg) translateY(-2px)` }}
                 />
                 {/* Second Hand */}
                 <div
-                  className="absolute left-1/2 top-1/2 w-0.5 h-16 bg-brand-yellow rounded-full origin-bottom -translate-x-1/2 -translate-y-full"
+                  className="absolute left-1/2 top-1/2 w-0.5 h-18 bg-brand-yellow rounded-full origin-bottom -translate-x-1/2 -translate-y-full"
                   style={{ transform: `rotate(${currentTime.getSeconds() * 6}deg) translateY(-2px)` }}
                 />
                 {/* Center dot */}
@@ -485,7 +489,7 @@ export function DashboardWidgets() {
 
         {/* ========= ORTA KOLON ========= */}
         <div className="col-span-12 lg:col-span-6 flex flex-col gap-4 min-h-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 shrink-0 h-[280px]">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 shrink-0 h-[300px]">
 
             {/* Gelişim Chart — SABİT, proje bazlı */}
             <div className="floating-card rounded-3xl p-6 relative flex flex-col">
@@ -680,7 +684,7 @@ export function DashboardWidgets() {
         <div className="col-span-12 lg:col-span-3 flex flex-col gap-4 min-h-0">
 
           {/* Durum Paneli (eski Oryantasyon) */}
-          <div className="floating-card rounded-3xl p-6 h-[280px] flex flex-col justify-between">
+          <div className="floating-card rounded-3xl p-6 h-[300px] flex flex-col justify-between">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold text-brand-dark dark:text-white">Durum Paneli</h3>
               <div className="flex bg-brand-bg dark:bg-slate-900 p-1 rounded-full">
