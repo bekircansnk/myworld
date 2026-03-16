@@ -76,12 +76,20 @@ export function splitByLength(text: string, length: number): string[] {
 }
 
 export function chunkText(text: string, maxLength: number = 400): string[] {
+  // Önce metni temizle
+  const cleanedText = text.trim();
+  if (!cleanedText) return [];
+
   const regex = /[^.!?\n]+[.!?\n]+/g;
-  const matches = text.match(regex);
+  const matches = cleanedText.match(regex);
   
   if (!matches) {
-    return splitByLength(text, maxLength);
+    return splitByLength(cleanedText, maxLength);
   }
+
+  // Regex ile eşleşmeyen son kısmı bul (noktalama olmadan biten metinler)
+  const matchedLength = matches.join('').length;
+  const trailingText = cleanedText.slice(matchedLength).trim();
 
   const chunks: string[] = [];
   let currentChunk = '';
@@ -103,8 +111,22 @@ export function chunkText(text: string, maxLength: number = 400): string[] {
       currentChunk = currentChunk ? `${currentChunk} ${sentence}` : sentence;
     }
   }
+
+  // Son kalan birleştirilmiş cümleyi ekle
   if (currentChunk) {
     chunks.push(currentChunk);
   }
+
+  // Regex ile yakalanmayan ama metnin sonunda kalan kısmı da ekle
+  if (trailingText) {
+    // Son chunk'a sığıyorsa ekle, sığmıyorsa yeni chunk yap
+    const lastChunk = chunks[chunks.length - 1];
+    if (lastChunk && lastChunk.length + trailingText.length + 1 <= maxLength) {
+      chunks[chunks.length - 1] = `${lastChunk} ${trailingText}`;
+    } else {
+      chunks.push(...splitByLength(trailingText, maxLength));
+    }
+  }
+
   return chunks;
 }

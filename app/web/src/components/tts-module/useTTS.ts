@@ -20,7 +20,7 @@ interface UseTTSProps {
 }
 
 export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentText }: UseTTSProps = {}) {
-  const [voice, setVoice] = useState('Kore');
+  const [voice, setVoice] = useState('Fenrir');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -196,7 +196,7 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
       setIsPreviewing(false);
     }
     
-    const textChunks = chunkText(text, 4000);
+    const textChunks = chunkText(text, 1200);
     setProgress({ current: 0, total: textChunks.length });
     const fetchedPcm: Uint8Array[] = [];
 
@@ -213,7 +213,7 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
         try {
           if (i > 0 || retries < 3) await new Promise(resolve => setTimeout(resolve, delay));
 
-          const prompt = `Yumuşak, güzel ve öğretici bir tonda oku:\n\n${textChunks[i]}`;
+          const prompt = textChunks[i];
           const response = await ai.models.generateContent({
             model: "gemini-2.5-flash-preview-tts",
             contents: [{ parts: [{ text: prompt }] }],
