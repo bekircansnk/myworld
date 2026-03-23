@@ -317,6 +317,12 @@ FORMAT:
 
 2. Mevcut Etkinliği Düzenleme: (Sistem bağlamındaki [ID: X] değerini kullan!)
 [ACTION:EDIT_EVENT|EventID|Alan1=Değer1|Alan2=Değer2]
+
+3. Görev Silme / İptal Etme (ÇOK ÖNEMLİ):
+Kullanıcı senden daha önce oluşturduğun bir görevi (veya tamamını) "sil", "iptal et" diyerek yok etmeni isterse, BAĞLAMDAKİ görev ID'lerini bulup şu komutu arka arkaya tetikle! Yalnızca "Sildim" diyerek geçiştirme. Ana Görevi silince alt görevleri de otomatik silinir, sadece ana görev ID'sini ver.
+[ACTION:DELETE_TASK|GörevID]
+Örnek: `[ACTION:DELETE_TASK|125]`
+Eğer kullanıcı sana 10 madde verdiğinde sildiğini beyan etmek için 10 tane ayrı komut bas!
 Kabul edilen alanlar: title, start, end, date, duration
 Örnek (Saati değiştirme): `[ACTION:EDIT_EVENT|45|start=14:30|end=15:30]`
 Örnek (Başlık ve süreyi değiştirme): `[ACTION:EDIT_EVENT|89|title=Yeni Başlık|duration=120]`

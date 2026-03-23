@@ -70,7 +70,9 @@ interface AIChatMessage {
 export function CalendarPage() {
   const { events, viewMode, currentDate, selectedDate, addEvent, deleteEvent, updateEvent,
     setViewMode, setCurrentDate, setSelectedDate, activeFilters, toggleFilter, clearFilters } = useCalendarStore()
-  const { tasks } = useTaskStore()
+  const { tasks, updateTask } = useTaskStore()
+  
+  const [contextMenuState, setContextMenuState] = React.useState<{ show: boolean, x: number, y: number, event: CalendarEvent | null }>({ show: false, x: 0, y: 0, event: null })
   
   const [isAddEventOpen, setIsAddEventOpen] = React.useState(false)
   const [isEventDetailOpen, setIsEventDetailOpen] = React.useState(false)
@@ -79,6 +81,47 @@ export function CalendarPage() {
   const [showFilters, setShowFilters] = React.useState(false)
 
   const current = React.useMemo(() => new Date(currentDate), [currentDate])
+
+  const closeContextMenu = () => {
+    setContextMenuState(prev => ({ ...prev, show: false }))
+  }
+
+  React.useEffect(() => {
+    const handleGlobalClick = () => closeContextMenu()
+    if (contextMenuState.show) {
+      document.addEventListener("click", handleGlobalClick)
+      document.addEventListener("contextmenu", handleGlobalClick)
+    }
+    return () => {
+      document.removeEventListener("click", handleGlobalClick)
+      document.removeEventListener("contextmenu", handleGlobalClick)
+    }
+  }, [contextMenuState.show])
+
+  const handleHardDeleteEvent = (eventOrId: CalendarEvent | string) => {
+    let evt: CalendarEvent | undefined;
+    if (typeof eventOrId === 'string') {
+       evt = allEvents.find(e => e.id === eventOrId)
+    } else {
+       evt = eventOrId
+    }
+    
+    if (!evt) return;
+
+    if (evt.taskId || evt.id.toString().startsWith('task_')) {
+      const taskId = evt.taskId || parseInt(evt.id.toString().substring(5))
+      updateTask(taskId, { due_date: null as unknown as string })
+      if (!evt.id.toString().startsWith('task_')) {
+         deleteEvent(evt.id)
+      }
+    } else {
+      deleteEvent(evt.id)
+    }
+    
+    setIsEventDetailOpen(false)
+    setDetailEvent(null)
+    closeContextMenu()
+  }
 
   React.useEffect(() => { setMounted(true) }, [])
 
@@ -139,6 +182,12 @@ export function CalendarPage() {
     setViewMode('day')
   }
 
+  const handleContextMenu = (e: React.MouseEvent, event: CalendarEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setContextMenuState({ show: true, x: e.clientX, y: e.clientY, event })
+  }
+
   const handleDropItem = (sourceType: string, id: string, date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd')
     if (sourceType === 'task') {
@@ -171,6 +220,22 @@ export function CalendarPage() {
 
   return (
     <div className="flex-1 flex h-full overflow-hidden">
+      {/* Context Menu Dropdown */}
+      {contextMenuState.show && contextMenuState.event && (
+        <div 
+          className="fixed animate-in fade-in zoom-in-95 duration-100 z-[9999] bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-white/10 py-1.5 min-w-[140px]"
+          style={{ top: contextMenuState.y, left: contextMenuState.x }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button 
+            onClick={() => handleHardDeleteEvent(contextMenuState.event!)}
+            className="w-full text-left px-4 py-2 text-sm text-red-600 font-medium flex items-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" /> Sil
+          </button>
+        </div>
+      )}
+
       {/* ======================= LEFT AI PANEL ======================= */}
       <div className="w-[320px] shrink-0 border-r border-[#e8e4d8]/30 dark:border-white/8 bg-white/60 dark:bg-[#151926]/85 backdrop-blur-sm flex flex-col overflow-hidden">
         {/* Aylık Özet */}
@@ -365,15 +430,15 @@ export function CalendarPage() {
 
         {/* Calendar Views */}
         <div className="flex-1 overflow-hidden">
-          {viewMode === 'month' && <MonthView current={current} events={allEvents} onDayClick={handleDayClick} onEventClick={handleEventClick} onDropItem={handleDropItem} />}
-          {viewMode === 'week' && <WeekView current={current} events={allEvents} onEventClick={handleEventClick} onDropItem={handleDropItem} />}
-          {viewMode === 'day' && <DayView current={current} events={allEvents} onEventClick={handleEventClick} onAddEvent={() => { setSelectedDate(format(current, 'yyyy-MM-dd')); setIsAddEventOpen(true) }} />}
+          {viewMode === 'month' && <MonthView current={current} events={allEvents} onDayClick={handleDayClick} onEventClick={handleEventClick} onDropItem={handleDropItem} onContextMenu={handleContextMenu} />}
+          {viewMode === 'week' && <WeekView current={current} events={allEvents} onEventClick={handleEventClick} onDropItem={handleDropItem} onContextMenu={handleContextMenu} />}
+          {viewMode === 'day' && <DayView current={current} events={allEvents} onEventClick={handleEventClick} onAddEvent={() => { setSelectedDate(format(current, 'yyyy-MM-dd')); setIsAddEventOpen(true) }} onContextMenu={handleContextMenu} />}
         </div>
       </div>
 
       {/* Dialogs */}
       <AddEventDialog open={isAddEventOpen} onClose={() => setIsAddEventOpen(false)} defaultDate={selectedDate || format(new Date(), 'yyyy-MM-dd')} onSave={(event) => { addEvent(event); setIsAddEventOpen(false) }} />
-      <EventDetailDialog event={detailEvent} open={isEventDetailOpen} onClose={() => { setIsEventDetailOpen(false); setDetailEvent(null) }} onDelete={(id) => { deleteEvent(id); setIsEventDetailOpen(false); setDetailEvent(null) }} onUpdate={(id, data) => { updateEvent(id, data); setDetailEvent(prev => prev ? { ...prev, ...data } : null) }} />
+      <EventDetailDialog event={detailEvent} open={isEventDetailOpen} onClose={() => { setIsEventDetailOpen(false); setDetailEvent(null) }} onDelete={(id) => handleHardDeleteEvent(id)} onUpdate={(id, data) => { updateEvent(id, data); setDetailEvent(prev => prev ? { ...prev, ...data } : null) }} />
     </div>
   )
 }
@@ -539,8 +604,8 @@ function AIChatPanel({ tasks, events, currentDate }: { tasks: any[], events: Cal
 // ============================
 // MONTH VIEW
 // ============================
-function MonthView({ current, events, onDayClick, onEventClick, onDropItem }: {
-  current: Date; events: CalendarEvent[]; onDayClick: (date: Date) => void; onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void; onDropItem: (sourceType: string, id: string, date: Date) => void
+function MonthView({ current, events, onDayClick, onEventClick, onDropItem, onContextMenu }: {
+  current: Date; events: CalendarEvent[]; onDayClick: (date: Date) => void; onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void; onDropItem: (sourceType: string, id: string, date: Date) => void; onContextMenu: (e: React.MouseEvent, event: CalendarEvent) => void
 }) {
   const days = getMonthDays(current)
   const weekDays = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz']
@@ -576,7 +641,7 @@ function MonthView({ current, events, onDayClick, onEventClick, onDropItem }: {
                 {dayEvents.map(event => {
                   const colors = EVENT_COLORS[event.color] || EVENT_COLORS.blue
                   return (
-                    <button key={event.id} onClick={(e) => onEventClick(event, e)}
+                    <button key={event.id} onClick={(e) => onEventClick(event, e)} onContextMenu={(e) => onContextMenu(e, event)}
                       draggable
                       onDragStart={(evt) => {
                          evt.stopPropagation();
@@ -606,8 +671,8 @@ function MonthView({ current, events, onDayClick, onEventClick, onDropItem }: {
 // ============================
 // WEEK VIEW
 // ============================
-function WeekView({ current, events, onEventClick, onDropItem }: {
-  current: Date; events: CalendarEvent[]; onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void; onDropItem: (sourceType: string, id: string, date: Date) => void
+function WeekView({ current, events, onEventClick, onDropItem, onContextMenu }: {
+  current: Date; events: CalendarEvent[]; onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void; onDropItem: (sourceType: string, id: string, date: Date) => void; onContextMenu: (e: React.MouseEvent, event: CalendarEvent) => void
 }) {
   const days = getWeekDays(current)
 
@@ -656,7 +721,7 @@ function WeekView({ current, events, onEventClick, onDropItem }: {
                     const colors = EVENT_COLORS[event.color] || EVENT_COLORS.blue
                     const duration = event.startTime && event.endTime ? (parseInt(event.endTime.split(':')[0]) - parseInt(event.startTime.split(':')[0])) : 1
                     return (
-                      <button key={event.id} onClick={(e) => onEventClick(event, e)}
+                      <button key={event.id} onClick={(e) => onEventClick(event, e)} onContextMenu={(e) => onContextMenu(e, event)}
                         draggable
                         onDragStart={(evt) => {
                            evt.stopPropagation();
@@ -686,8 +751,8 @@ function WeekView({ current, events, onEventClick, onDropItem }: {
 // ============================
 // DAY VIEW
 // ============================
-function DayView({ current, events, onEventClick, onAddEvent }: {
-  current: Date; events: CalendarEvent[]; onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void; onAddEvent: () => void
+function DayView({ current, events, onEventClick, onAddEvent, onContextMenu }: {
+  current: Date; events: CalendarEvent[]; onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void; onAddEvent: () => void; onContextMenu: (e: React.MouseEvent, event: CalendarEvent) => void
 }) {
   const dateStr = format(current, 'yyyy-MM-dd')
   const dayEvents = events.filter(e => e.date === dateStr)
@@ -702,7 +767,7 @@ function DayView({ current, events, onEventClick, onAddEvent }: {
           {allDayEvents.map(event => {
             const colors = EVENT_COLORS[event.color] || EVENT_COLORS.blue
             return (
-              <button key={event.id} onClick={(e) => onEventClick(event, e)}
+              <button key={event.id} onClick={(e) => onEventClick(event, e)} onContextMenu={(e) => onContextMenu(e, event)}
                 className={`${colors.bg} ${colors.text} rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm hover:shadow-md transition-shadow`}
               >
                 {event.title}
@@ -727,7 +792,7 @@ function DayView({ current, events, onEventClick, onAddEvent }: {
                   const colors = EVENT_COLORS[event.color] || EVENT_COLORS.blue
                   const duration = event.startTime && event.endTime ? (parseInt(event.endTime.split(':')[0]) - parseInt(event.startTime.split(':')[0])) : 1
                   return (
-                    <button key={event.id} onClick={(e) => onEventClick(event, e)}
+                    <button key={event.id} onClick={(e) => onEventClick(event, e)} onContextMenu={(e) => onContextMenu(e, event)}
                       className={`w-full text-left ${colors.bg} ${colors.text} rounded-xl p-3 border-l-4 ${colors.dot.replace('bg-', 'border-')} hover:shadow-md transition-all`}
                       style={{ minHeight: `${Math.max(duration, 1) * 60}px` }}
                     >
@@ -1017,7 +1082,7 @@ export function EventDetailDialog({ event, open, onClose, onDelete, onUpdate }: 
             {!event.isCompleted && (
               <Button size="sm" onClick={handleComplete} className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold"><Check className="w-4 h-4 mr-1" /> Tamamla</Button>
             )}
-            {!isTaskEvent && <Button variant="ghost" size="sm" onClick={() => onDelete(event.id)} className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl font-bold"><Trash2 className="w-4 h-4 mr-1" /> Sil</Button>}
+            <Button variant="ghost" size="sm" onClick={() => onDelete(event.id)} className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl font-bold"><Trash2 className="w-4 h-4 mr-1" /> Sil</Button>
             <Button variant="ghost" size="sm" onClick={onClose} className="rounded-xl font-bold">Kapat</Button>
           </div>
         </div>

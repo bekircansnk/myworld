@@ -54,6 +54,7 @@ PLAN_PATTERN = r"\[PLAN_START\]\s*(.*?)\s*\[PLAN_END\]"
 EVENT_PATTERN = r"\[ACTION:ADD_EVENT\|([^|\]]*)\|([^|\]]*)\|([^|\]]*)(?:\|([^\]]*))?\]"
 EDIT_EVENT_PATTERN = r"\[ACTION:EDIT_EVENT\|(\d+)\|([^\]]+)\]"
 DELETE_EVENT_PATTERN = r"\[ACTION:DELETE_EVENT\|(\d+)\]"
+DELETE_TASK_PATTERN = r"\[ACTION:DELETE_TASK\|(\d+)\]"
 TONE_PATTERN = r"\[TONE:([^\]]*)\]"
 
 
@@ -516,6 +517,48 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db),
                     actions_executed.append(ActionLog(action="DELETE_EVENT", details=f"Bulunamadı: ID {event_id}", success=False))
             except Exception as e:
                  actions_executed.append(ActionLog(action="DELETE_EVENT", details=f"Hata: {str(e)[:50]}", success=False))
+
+        # =============================================
+        # 5.8 GÖREV SİLME: [ACTION:DELETE_TASK|TaskID]
+        # =============================================
+        delete_task_matches = list(re.finditer(DELETE_TASK_PATTERN, ai_reply))
+        debug_info["delete_task_commands_found"] = len(delete_task_matches)
+        
+        for match in delete_task_matches:
+            task_id_to_del = int(match.group(1).strip())
+            try:
+                # 1. Fetch task
+                q = select(Task).where(Task.id == task_id_to_del, Task.user_id == MOCK_USER_ID)
+                res = await db.execute(q)
+                task_to_del = res.scalars().first()
+                if task_to_del:
+                    # Clear FKs
+                    from app.models.calendar_event import CalendarEvent
+                    from app.models.timer_session import TimerSession
+                    from app.models.note import Note
+                    from sqlalchemy import update
+                    await db.execute(update(CalendarEvent).where(CalendarEvent.task_id == task_id_to_del).values(task_id=None))
+                    await db.execute(update(TimerSession).where(TimerSession.task_id == task_id_to_del).values(task_id=None))
+                    await db.execute(update(Note).where(Note.task_id == task_id_to_del).values(task_id=None))
+                    
+                    # Delete subtasks
+                    sub_q = select(Task).where(Task.parent_task_id == task_id_to_del)
+                    sub_res = await db.execute(sub_q)
+                    subtasks = sub_res.scalars().all()
+                    for st in subtasks:
+                        await db.execute(update(CalendarEvent).where(CalendarEvent.task_id == st.id).values(task_id=None))
+                        await db.execute(update(TimerSession).where(TimerSession.task_id == st.id).values(task_id=None))
+                        await db.execute(update(Note).where(Note.task_id == st.id).values(task_id=None))
+                        await db.delete(st)
+
+                    await db.delete(task_to_del)
+                    await db.commit()
+                    actions_executed.append(ActionLog(action="DELETE_TASK", details=f"Silindi: Görev ID {task_id_to_del}", success=True))
+                else:
+                    actions_executed.append(ActionLog(action="DELETE_TASK", details=f"Bulunamadı: ID {task_id_to_del}", success=False))
+            except Exception as e:
+                logger.error(f"❌ Gorev silme hatasi: {e}")
+                actions_executed.append(ActionLog(action="DELETE_TASK", details=f"Hata: {str(e)[:50]}", success=False))
 
         # 5. TONE (RUH HALİ) ALGILAMA
         tone_match = re.search(TONE_PATTERN, ai_reply)
