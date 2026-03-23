@@ -69,10 +69,10 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
     return mainTasks
       .filter(t => t.status === status)
       .sort((a, b) => {
-        // Yeni görevler en üstte: created_at'e göre ters sıralama
+        // En eski görevler en üstte olacak şekilde sıralama
         const dateA = new Date(a.created_at).getTime()
         const dateB = new Date(b.created_at).getTime()
-        return dateB - dateA
+        return dateA - dateB
       })
   }
 
