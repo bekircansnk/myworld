@@ -79,7 +79,7 @@ async def read_tasks(
     if priority is not None:
         query = query.where(Task.priority == priority)
         
-    query = query.order_by(Task.sort_order.asc(), Task.due_date.asc().nulls_last(), Task.id.desc()).offset(skip).limit(limit)
+    query = query.order_by(Task.sort_order.asc(), Task.due_date.asc().nulls_last(), Task.id.asc()).offset(skip).limit(limit)
     
     result = await db.execute(query)
     # The models returned from selectinload need scalars().all()

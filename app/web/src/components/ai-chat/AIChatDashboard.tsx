@@ -220,7 +220,7 @@ export function AIChatDashboard() {
 
   const [inputValue, setInputValue] = React.useState("")
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
-  const inputRef = React.useRef<HTMLInputElement>(null)
+  const inputRef = React.useRef<HTMLTextAreaElement>(null)
 
   // Context Menu and Dialogue State
   const [contextMenuState, setContextMenuState] = React.useState<{ show: boolean, x: number, y: number, sessionId: number | null }>({ show: false, x: 0, y: 0, sessionId: null })
@@ -277,11 +277,12 @@ export function AIChatDashboard() {
     }
   }, [activeSessionId])
 
-  const handleSend = async (e?: React.FormEvent) => {
+  const handleSend = async (e?: React.FormEvent | React.KeyboardEvent) => {
     e?.preventDefault()
     if (!inputValue.trim() || isSending) return
     const msg = inputValue.trim()
     setInputValue("")
+    if (inputRef.current) inputRef.current.style.height = 'auto'
     await sendMessage(msg)
   }
 
@@ -535,23 +536,34 @@ export function AIChatDashboard() {
           </div>
 
           {/* Input Area */}
-          <div className="p-4 border-t border-slate-100 dark:border-white/5 shrink-0">
+          <div className="p-4 border-t border-slate-100 dark:border-white/5 shrink-0 bg-white dark:bg-slate-800">
             {/* Quick action pills removed */}
 
             {/* Input */}
-            <form onSubmit={handleSend} className="flex items-center gap-3">
+            <form onSubmit={handleSend} className="flex items-end gap-3">
               <div className="relative flex-1">
-                <input
+                <textarea
                   ref={inputRef}
                   value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
+                  rows={1}
+                  onChange={(e) => {
+                    setInputValue(e.target.value)
+                    e.target.style.height = 'auto'
+                    e.target.style.height = `${Math.min(e.target.scrollHeight, 250)}px`
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      handleSend(e)
+                    }
+                  }}
                   placeholder={
                     selectedCategory === 'gorev' ? 'Görev ekle: ne yapmak istiyorsun?' :
                     selectedCategory === 'takvim' ? 'Etkinlik ekle: ne zaman, ne için?' :
                     selectedCategory === 'not' ? 'Not oluştur: ne yazmak istiyorsun?' :
                     'Mesajını yaz... (görev ver, plan yap, not al)'
                   }
-                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-white/5 focus:ring-2 focus:ring-brand-yellow/40 focus:border-brand-yellow/40 rounded-2xl py-3.5 px-5 pr-12 text-sm placeholder:text-brand-gray/50 text-brand-dark dark:text-white outline-none transition-all"
+                  className="w-full block bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-white/5 focus:ring-2 focus:ring-brand-yellow/40 focus:border-brand-yellow/40 rounded-2xl py-3.5 px-5 pr-12 text-sm placeholder:text-brand-gray/50 text-brand-dark dark:text-white outline-none transition-all resize-none min-h-[48px] max-h-[250px] overflow-y-auto overflow-x-hidden leading-relaxed"
                   disabled={isSending}
                   autoFocus
                 />
@@ -559,7 +571,7 @@ export function AIChatDashboard() {
               <button
                 type="submit"
                 disabled={!inputValue.trim() || isSending}
-                className="w-12 h-12 bg-brand-dark dark:bg-white text-white dark:text-brand-dark rounded-2xl flex items-center justify-center hover:opacity-90 transition-all disabled:opacity-40 shadow-sm hover:shadow-md hover:scale-[1.02] shrink-0"
+                className="w-12 h-12 mb-0.5 shrink-0 bg-brand-dark dark:bg-white text-white dark:text-brand-dark rounded-2xl flex items-center justify-center hover:opacity-90 transition-all disabled:opacity-40 shadow-sm hover:shadow-md hover:scale-[1.02]"
               >
                 <Send className="w-5 h-5" />
               </button>

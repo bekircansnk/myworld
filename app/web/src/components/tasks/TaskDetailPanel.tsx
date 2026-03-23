@@ -98,6 +98,9 @@ export function TaskDetailPanel() {
   const [isAnalyzing, setIsAnalyzing] = React.useState(false)
   const [editingDueDate, setEditingDueDate] = React.useState(false)
   const [dueDateDraft, setDueDateDraft] = React.useState("")
+  const [editingSubtaskId, setEditingSubtaskId] = React.useState<number | null>(null)
+  const [subtaskEditTitle, setSubtaskEditTitle] = React.useState("")
+  const [subtaskEditDesc, setSubtaskEditDesc] = React.useState("")
   const [imagePreview, setImagePreview] = React.useState<string | null>(null)
   const [activityLog, setActivityLog] = React.useState<ActivityEvent[]>([])
   const [showPriorityMenu, setShowPriorityMenu] = React.useState(false)
@@ -174,6 +177,7 @@ export function TaskDetailPanel() {
       setImagePreview(null)
       setActivityLog([])
       hasFetchedAI.current = false
+      setEditingSubtaskId(null)
     }
   }, [selectedTask?.id, isDetailPanelOpen])
 
@@ -184,6 +188,7 @@ export function TaskDetailPanel() {
       if (e.key === 'Escape') {
         // Priority: close lightbox first
         if (imagePreview) { setImagePreview(null); return }
+        if (editingSubtaskId) { setEditingSubtaskId(null); return }
         // Don't close panel if user is editing
         if (isEditingDesc || isAddingSubtask || editingDueDate) return
         closeTaskDetail()
@@ -191,7 +196,7 @@ export function TaskDetailPanel() {
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isDetailPanelOpen, isEditingDesc, isAddingSubtask, editingDueDate, imagePreview, closeTaskDetail])
+  }, [isDetailPanelOpen, isEditingDesc, isAddingSubtask, editingDueDate, imagePreview, editingSubtaskId, closeTaskDetail])
 
   // Close priority menu on outside click
   React.useEffect(() => {
@@ -244,6 +249,24 @@ export function TaskDetailPanel() {
     await addSubtask(selectedTask.id, { title: newSubtaskTitle, status: 'todo' })
     setNewSubtaskTitle("")
     addActivityEvent('subtask_done', `"${newSubtaskTitle}" alt görevi eklendi`, 'teal')
+  }
+
+  const openSubtaskEdit = (st: Task) => {
+    setEditingSubtaskId(st.id)
+    setSubtaskEditTitle(st.title)
+    setSubtaskEditDesc(st.description || "")
+  }
+
+  const saveSubtaskEdit = async () => {
+    if (!editingSubtaskId || !subtaskEditTitle.trim()) return
+    await updateTask(editingSubtaskId, { title: subtaskEditTitle, description: subtaskEditDesc } as any)
+    setEditingSubtaskId(null)
+    await fetchTasks()
+    addActivityEvent('description_edit', `"${subtaskEditTitle}" alt görevi güncellendi`, 'blue')
+  }
+
+  const cancelSubtaskEdit = () => {
+    setEditingSubtaskId(null)
   }
 
   const handleSubtaskToggle = async (st: Task) => {
@@ -583,8 +606,18 @@ export function TaskDetailPanel() {
                 {/* Subtask List — referans tarzı: her satır ayrı, sağda tarih */}
                 <div className="space-y-1">
                   {subtasks.map((st) => (
-                    <div key={st.id} className="group flex items-center gap-3 py-3 px-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border border-transparent hover:border-slate-200/50 dark:hover:border-white/10">
-                      <button onClick={() => handleSubtaskToggle(st)} className="flex-shrink-0">
+                    editingSubtaskId === st.id ? (
+                      <div key={st.id} className="flex flex-col gap-2 p-3 rounded-xl bg-slate-50 dark:bg-black/20 border border-indigo-200 dark:border-indigo-500/30 shadow-sm animate-in fade-in">
+                        <Input value={subtaskEditTitle} onChange={e => setSubtaskEditTitle(e.target.value)} placeholder="Alt görev adı" className="h-8 text-sm font-semibold bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700" autoFocus />
+                        <Textarea value={subtaskEditDesc} onChange={e => setSubtaskEditDesc(e.target.value)} placeholder="Açıklama (opsiyonel)" className="min-h-[60px] text-xs resize-none bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700" />
+                        <div className="flex justify-end gap-2 mt-1">
+                           <Button size="sm" variant="ghost" onClick={cancelSubtaskEdit} className="h-7 text-[11px] px-3">İptal</Button>
+                           <Button size="sm" onClick={saveSubtaskEdit} className="h-7 text-[11px] px-4 bg-indigo-500 hover:bg-indigo-600 text-white">Kaydet</Button>
+                        </div>
+                      </div>
+                    ) : (
+                    <div key={st.id} className="group flex items-center gap-3 py-3 px-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border border-transparent hover:border-slate-200/50 dark:hover:border-white/10 cursor-pointer" onClick={() => openSubtaskEdit(st)}>
+                      <button onClick={(e) => { e.stopPropagation(); handleSubtaskToggle(st); }} className="flex-shrink-0">
                         {st.status === 'done'
                           ? <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                           : <Circle className="w-5 h-5 text-slate-300 hover:text-indigo-500 dark:text-white/20 dark:hover:text-indigo-400 transition-colors" />
@@ -606,11 +639,16 @@ export function TaskDetailPanel() {
                           {st.estimated_minutes}dk
                         </span>
                       )}
+                      <button onClick={(e) => { e.stopPropagation(); openSubtaskEdit(st); }}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-indigo-600 p-1 rounded-lg">
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
                       <button onClick={(e) => handleDeleteSubtask(st.id, e)}
                         className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-600 p-1 rounded-lg">
                         <X className="w-4 h-4" />
                       </button>
                     </div>
+                    )
                   ))}
                 </div>
 
