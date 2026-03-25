@@ -255,13 +255,6 @@ export function NoteDetailPanel() {
                       onChange={(e) => setContentDraft(e.target.value)}
                       className="flex-1 min-h-[300px] text-[14px] leading-relaxed bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-800 dark:text-white/90 focus-visible:ring-emerald-500/50 rounded-2xl shadow-inner p-5 resize-none"
                     />
-                    <div className="flex justify-end gap-2 mt-4 shrink-0">
-                      <Button variant="ghost" onClick={() => { setIsEditingContent(false); setContentDraft(selectedNote.content || "") }} disabled={isSaving} className="rounded-xl">İptal</Button>
-                      <Button onClick={handleSaveNote} disabled={isSaving} className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl gap-2 font-bold px-6 btn-3d">
-                        {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        Kaydet
-                      </Button>
-                    </div>
                   </div>
                  ) : (
                   <div className="flex flex-col gap-6">
@@ -271,18 +264,30 @@ export function NoteDetailPanel() {
                     >
                       {selectedNote.content}
                     </div>
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <TTSPlayer 
-                        text={selectedNote.content || ""} 
-                        noteId={selectedNote.id}
-                        savedAudioUrl={selectedNote.tts_audio_url}
-                        savedAudioText={selectedNote.tts_text}
-                        currentText={selectedNote.content || ""}
-                      />
-                    </div>
                   </div>
                  )}
                </div>
+               {/* Ses çalar — her zaman sabit (sticky) alt bölgede görünür */}
+               {!isEditingContent && (
+                 <div className="shrink-0 border-t border-slate-200/50 dark:border-white/5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm px-6 py-3" onClick={(e) => e.stopPropagation()}>
+                   <TTSPlayer 
+                     text={selectedNote.content || ""} 
+                     noteId={selectedNote.id}
+                     savedAudioUrl={selectedNote.tts_audio_url}
+                     savedAudioText={selectedNote.tts_text}
+                     currentText={selectedNote.content || ""}
+                   />
+                 </div>
+               )}
+               {isEditingContent && (
+                 <div className="p-4 px-6 border-t border-slate-200/50 dark:border-white/5 bg-slate-50/50 dark:bg-black/20 flex items-center justify-end gap-2 shrink-0 z-10">
+                    <Button variant="ghost" onClick={() => { setIsEditingContent(false); setContentDraft(selectedNote.content || "") }} disabled={isSaving} className="rounded-xl">İptal</Button>
+                    <Button onClick={handleSaveNote} disabled={isSaving} className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl gap-2 font-bold px-6 btn-3d">
+                      {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      Kaydet
+                    </Button>
+                 </div>
+               )}
             </div>
 
             <div className="w-full md:w-[400px] shrink-0 bg-slate-50/30 dark:bg-black/20 flex flex-col overflow-hidden max-h-[100%]">

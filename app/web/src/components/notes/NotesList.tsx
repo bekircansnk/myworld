@@ -411,7 +411,7 @@ export function NotesList() {
               Yeni Not Oluştur
             </DialogTitle>
           </DialogHeader>
-          <div className="p-6 space-y-5">
+          <div className="p-6 space-y-5 overflow-y-auto custom-scrollbar max-h-[60vh]">
             <div className="space-y-2">
               <Label htmlFor="title" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Başlık (Opsiyonel)</Label>
               <Input
@@ -447,15 +447,15 @@ export function NotesList() {
                 className="min-h-[160px] resize-none bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 rounded-xl leading-relaxed"
               />
             </div>
-            
-            <div className="flex justify-end gap-3 pt-2">
-              <Button variant="ghost" onClick={() => setIsAddModalOpen(false)} className="rounded-xl px-6">
-                İptal
-              </Button>
-              <Button onClick={handleAddExplicit} disabled={!addContent.trim() || isSaving} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-8 shadow-sm">
-                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Notu Kaydet"}
-              </Button>
-            </div>
+          </div>
+          
+          <div className="flex items-center justify-end gap-3 p-6 pt-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
+            <Button variant="ghost" onClick={() => setIsAddModalOpen(false)} className="rounded-xl px-6">
+              İptal
+            </Button>
+            <Button onClick={handleAddExplicit} disabled={!addContent.trim() || isSaving} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-8 shadow-sm">
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Notu Kaydet"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

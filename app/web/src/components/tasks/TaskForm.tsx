@@ -108,7 +108,8 @@ export function TaskForm() {
                </DialogTitle>
              </DialogHeader>
              
-             <form onSubmit={handleSubmit} className="grid gap-5">
+             <form onSubmit={handleSubmit} className="flex flex-col max-h-[75vh]">
+               <div className="grid gap-5 overflow-y-auto custom-scrollbar pr-2 pb-2">
                <div className="grid gap-2 outline-none">
                  <Label htmlFor="title" className="font-bold text-slate-700 dark:text-slate-300">Görev Adı</Label>
                  <Input 
@@ -203,8 +204,9 @@ export function TaskForm() {
                    </Select>
                  </div>
                </div>
+               </div>
                
-               <div className="pt-4 flex justify-end gap-3 mt-4">
+               <div className="pt-4 flex justify-end gap-3 mt-4 border-t border-slate-100 dark:border-slate-800 shrink-0">
                  <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="rounded-xl font-bold px-6">
                    Vazgeç
                  </Button>

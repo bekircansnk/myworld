@@ -528,13 +528,13 @@ export function TaskDetailPanel() {
                       placeholder="Açıklama, linkler, notlar ekleyin..."
                       className="min-h-[160px] text-sm bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-800 dark:text-white/90 resize-none focus:ring-2 focus:ring-indigo-500/50 rounded-xl shadow-inner font-medium"
                       autoFocus />
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" className="h-8 text-xs font-bold gap-1.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white px-5" onClick={saveDescription}>
-                        <Save className="w-3.5 h-3.5" /> Kaydet
-                      </Button>
-                      <Button size="sm" variant="ghost" className="h-8 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:text-white/50 rounded-xl px-4" onClick={() => setIsEditingDesc(false)}>
-                        İptal
-                      </Button>
+                    <div className="flex items-center justify-end gap-2 sticky bottom-0 z-10 backdrop-blur-md bg-white/80 dark:bg-slate-900/80 py-4 border-t border-slate-100 dark:border-white/5 -mx-7 px-7 mt-2">
+                       <Button size="sm" variant="ghost" className="h-8 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:text-white/50 rounded-xl px-4" onClick={() => setIsEditingDesc(false)}>
+                         İptal
+                       </Button>
+                       <Button size="sm" className="h-8 text-xs font-bold gap-1.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white px-5" onClick={saveDescription}>
+                         <Save className="w-3.5 h-3.5" /> Kaydet
+                       </Button>
                     </div>
                   </div>
                 ) : (

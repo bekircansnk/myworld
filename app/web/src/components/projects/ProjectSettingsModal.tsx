@@ -80,7 +80,7 @@ export function ProjectSettingsModal({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-4 py-4 overflow-y-auto custom-scrollbar max-h-[60vh] px-1">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="edit-name" className="text-right">İsim</Label>
             <Input 
