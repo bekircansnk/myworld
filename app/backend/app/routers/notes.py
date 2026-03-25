@@ -260,17 +260,13 @@ async def upload_note_audio(
     if not db_note:
         raise HTTPException(status_code=404, detail="Note not found")
         
-    os.makedirs("static/audio", exist_ok=True)
-    ext = audio_file.filename.split('.')[-1] if '.' in audio_file.filename else 'wav'
-    filename = f"{uuid.uuid4()}.{ext}"
-    file_path = f"static/audio/{filename}"
-    
-    # Save the file
     content = await audio_file.read()
-    with open(file_path, "wb") as f:
-        f.write(content)
-        
-    db_note.tts_audio_url = f"/{file_path}"
+    
+    import base64
+    encoded_audio = base64.b64encode(content).decode('ascii')
+    mime_type = audio_file.content_type or 'audio/wav'
+    
+    db_note.tts_audio_url = f"data:{mime_type};base64,{encoded_audio}"
     db_note.tts_text = tts_text
     
     await db.commit()

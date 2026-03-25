@@ -268,7 +268,7 @@ export function AdsReportCenter({ projectId }: { projectId: number | null }) {
                   </button>
                   <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     {report.status === 'completed' && (
-                      <button onClick={() => downloadAIPDF(report.id)} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-slate-700 dark:hover:text-white" title="PDF İndir">
+                      <button onClick={() => router.push(`/venus-ads/reports/ai/${report.id}?download=true`)} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-slate-700 dark:hover:text-white" title="PDF İndir (Dashboard Üzerinden)">
                         <Download className="w-3.5 h-3.5" />
                       </button>
                     )}

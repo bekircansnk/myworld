@@ -1,8 +1,10 @@
 "use client"
 
-import React, { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import React, { useEffect, useState, useRef } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import { VenusAIAnalysisReport } from '@/types/venus-ads';
 import { ArrowLeft, TrendingUp, TrendingDown, DollarSign, Target, MousePointerClick, ShieldCheck, AlertTriangle, Lightbulb, Activity, CheckCircle2, ChevronRight, Download } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
@@ -11,10 +13,14 @@ import { TopNavbar } from '@/components/layout/TopNavbar';
 export default function AIDashboardPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const autoDownload = searchParams.get('download') === 'true';
   const { isAuthenticated, checkAuth } = useAuthStore();
   
   const [report, setReport] = useState<VenusAIAnalysisReport | null>(null);
   const [loading, setLoading] = useState(true);
+  const reportRef = useRef<HTMLDivElement>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -25,6 +31,16 @@ export default function AIDashboardPage() {
       fetchReport(params.id as string);
     }
   }, [isAuthenticated, params.id]);
+
+  useEffect(() => {
+    if (autoDownload && report && report.analysis_result) {
+      const timer = setTimeout(() => {
+        downloadPDF();
+        router.replace(`/venus-ads/reports/ai/${params.id}`);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [autoDownload, report, params.id, router]);
 
   const fetchReport = async (id: string) => {
     try {
@@ -38,22 +54,47 @@ export default function AIDashboardPage() {
     }
   };
 
-  const downloadPDF = async () => {
-    if (!report) return;
+  const downloadPDF = React.useCallback(async () => {
+    if (!report || !reportRef.current) return;
     try {
-      const response = await api.get(`/api/venus/reports/download/${report.id}`, { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `AI_Analysis_${report.id}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      setIsGeneratingPDF(true);
+      const element = reportRef.current;
+      
+      const canvas = await html2canvas(element, { 
+        scale: 2,
+        useCORS: true,
+        backgroundColor: document.documentElement.classList.contains('dark') ? '#0a0c10' : '#f8fafc' 
+      });
+      
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      let heightLeft = pdfHeight;
+      let position = 0;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      // İlk sayfa
+      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+
+      // Kalan sayfalar
+      while (heightLeft > 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      pdf.save(`AI_Analiz_${report.title.replace(/\s+/g, '_')}.pdf`);
     } catch (error) {
-      console.error('Download failed', error);
-      alert("PDF indirilemedi veya henüz hazır değil.");
+      console.error('PDF oluşturulamadı', error);
+      alert("PDF dönüştürme sırasında bir hata oluştu.");
+    } finally {
+      setIsGeneratingPDF(false);
     }
-  };
+  }, [report, isGeneratingPDF]);
 
   if (!isAuthenticated || loading) {
     return (
@@ -84,10 +125,11 @@ export default function AIDashboardPage() {
       <TopNavbar />
       
       <div className="flex-1 overflow-y-auto px-4 py-6 lg:px-8 xl:px-12">
+        <div ref={reportRef} className="pb-4">
         {/* Header */}
         <div className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <button onClick={() => router.push('/')} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-colors">
+            <button onClick={() => router.push('/')} data-html2canvas-ignore className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-colors">
               <ArrowLeft className="w-6 h-6 text-slate-500 dark:text-slate-400" />
             </button>
             <div>
@@ -104,9 +146,13 @@ export default function AIDashboardPage() {
               </h1>
             </div>
           </div>
-          <button onClick={downloadPDF} className="px-5 py-2.5 bg-brand-dark text-white dark:bg-white dark:text-brand-dark rounded-xl font-medium transition-colors flex items-center gap-2 hover:opacity-90 shadow-lg shadow-black/5 dark:shadow-white/5">
-            <Download className="w-5 h-5" />
-            <span>PDF Olarak Al</span>
+          <button onClick={downloadPDF} disabled={isGeneratingPDF} data-html2canvas-ignore className="px-5 py-2.5 bg-brand-dark text-white dark:bg-white dark:text-brand-dark rounded-xl font-medium transition-colors flex items-center gap-2 hover:opacity-90 shadow-lg shadow-black/5 dark:shadow-white/5 disabled:opacity-50">
+            {isGeneratingPDF ? (
+               <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin dark:border-brand-dark dark:border-t-transparent" />
+            ) : (
+               <Download className="w-5 h-5" />
+            )}
+            <span>{isGeneratingPDF ? "Hazırlanıyor..." : "PDF Olarak Al"}</span>
           </button>
         </div>
 
@@ -352,6 +398,7 @@ export default function AIDashboardPage() {
 
           </div>
 
+        </div>
         </div>
       </div>
     </div>

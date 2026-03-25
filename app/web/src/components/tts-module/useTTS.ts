@@ -88,8 +88,12 @@ export function useTTS({ apiKey, noteId, savedAudioUrl, savedAudioText, currentT
   // Kayıtlı ses URL'si varsa yükle (not açıldığında veya props değiştiğinde)
   useEffect(() => {
     if (savedAudioUrl) {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      const url = `${baseUrl}${savedAudioUrl}`;
+      let url = savedAudioUrl;
+      // Eski /static/audio/... veya benzeri API sunucusu linkiyse URL'i tamamla
+      if (!savedAudioUrl.startsWith('data:')) {
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        url = savedAudioUrl.startsWith('/') ? `${baseUrl}${savedAudioUrl}` : `${baseUrl}/${savedAudioUrl}`;
+      }
       
       setFullAudioUrl(url);
       setHasSavedAudio(true);
