@@ -215,7 +215,7 @@ export function TopNavbar() {
   }
 
   return (
-    <header className="w-full bg-[#f5f2e8]/80 dark:bg-[#0f1117]/80 backdrop-blur-xl border-b border-[#e8e4d8]/40 dark:border-white/5 px-4 lg:px-8 py-3 shrink-0 z-30">
+    <header className="w-full bg-[#f5f2e8]/80 dark:bg-[#0f1117]/80 backdrop-blur-xl border-b border-[#e8e4d8]/40 dark:border-white/5 px-4 lg:px-8 py-3 shrink-0 z-30 print:hidden">
       <div className="flex items-center justify-between gap-4">
         {/* Sol: Navigation */}
         <nav className="flex items-center gap-1 overflow-visible">

@@ -58,13 +58,34 @@ export default function AIDashboardPage() {
     if (!report || !reportRef.current) return;
     try {
       setIsGeneratingPDF(true);
+      
+      // Fix for overflow-y scroll issues in html2canvas
       const element = reportRef.current;
+      const originalHeight = element.style.height;
+      const originalOverflow = element.style.overflow;
+      
+      // Force element to expand fully for capture
+      element.style.height = 'auto';
+      element.style.overflow = 'visible';
       
       const canvas = await html2canvas(element, { 
         scale: 2,
         useCORS: true,
-        backgroundColor: document.documentElement.classList.contains('dark') ? '#0a0c10' : '#f8fafc' 
+        allowTaint: true,
+        logging: false,
+        backgroundColor: document.documentElement.classList.contains('dark') ? '#0a0c10' : '#f8fafc',
+        onclone: (clonedDoc) => {
+          // Additional cleanup on cloned document if necessary
+          const elementsToHide = clonedDoc.querySelectorAll('[data-html2canvas-ignore]');
+          elementsToHide.forEach(el => {
+             (el as HTMLElement).style.display = 'none';
+          });
+        }
       });
+      
+      // Restore original styles
+      element.style.height = originalHeight;
+      element.style.overflow = originalOverflow;
       
       const imgData = canvas.toDataURL('image/jpeg', 1.0);
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -89,8 +110,11 @@ export default function AIDashboardPage() {
       
       pdf.save(`AI_Analiz_${report.title.replace(/\s+/g, '_')}.pdf`);
     } catch (error) {
-      console.error('PDF oluşturulamadı', error);
-      alert("PDF dönüştürme sırasında bir hata oluştu.");
+      console.warn('PDF oluşturulamadı (html2canvas), koruma moduna geçiliyor...', error);
+      // Fallback Korumalı Mod: Tarayıcının yerleşik yazdırma aracını çağır (PDF olarak kaydet destekli)
+      setTimeout(() => {
+        window.print();
+      }, 500);
     } finally {
       setIsGeneratingPDF(false);
     }
@@ -121,15 +145,15 @@ export default function AIDashboardPage() {
   const healthScore = data.SECTION_EXEC_SUMMARY?.overall_health_score || 0;
 
   return (
-    <div className="flex flex-col h-screen w-full overflow-hidden bg-slate-50 dark:bg-[#0a0c10]">
+    <div className="flex flex-col h-screen w-full overflow-hidden bg-slate-50 dark:bg-[#0a0c10] print:h-auto print:overflow-visible print:block">
       <TopNavbar />
       
-      <div className="flex-1 overflow-y-auto px-4 py-6 lg:px-8 xl:px-12">
+      <div className="flex-1 overflow-y-auto px-4 py-6 lg:px-8 xl:px-12 print:overflow-visible print:p-0 print:block">
         <div ref={reportRef} className="pb-4">
         {/* Header */}
         <div className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <button onClick={() => router.push('/')} data-html2canvas-ignore className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-colors">
+            <button onClick={() => router.push('/')} data-html2canvas-ignore className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-colors print:hidden">
               <ArrowLeft className="w-6 h-6 text-slate-500 dark:text-slate-400" />
             </button>
             <div>
@@ -146,7 +170,7 @@ export default function AIDashboardPage() {
               </h1>
             </div>
           </div>
-          <button onClick={downloadPDF} disabled={isGeneratingPDF} data-html2canvas-ignore className="px-5 py-2.5 bg-brand-dark text-white dark:bg-white dark:text-brand-dark rounded-xl font-medium transition-colors flex items-center gap-2 hover:opacity-90 shadow-lg shadow-black/5 dark:shadow-white/5 disabled:opacity-50">
+          <button onClick={downloadPDF} disabled={isGeneratingPDF} data-html2canvas-ignore className="px-5 py-2.5 bg-brand-dark text-white dark:bg-white dark:text-brand-dark rounded-xl font-medium transition-colors flex items-center gap-2 hover:opacity-90 shadow-lg shadow-black/5 dark:shadow-white/5 disabled:opacity-50 print:hidden">
             {isGeneratingPDF ? (
                <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin dark:border-brand-dark dark:border-t-transparent" />
             ) : (
