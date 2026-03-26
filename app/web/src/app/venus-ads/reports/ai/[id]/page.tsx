@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
-import html2canvas from 'html2canvas';
+import * as htmlToImage from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import { VenusAIAnalysisReport } from '@/types/venus-ads';
 import { ArrowLeft, TrendingUp, TrendingDown, DollarSign, Target, MousePointerClick, ShieldCheck, AlertTriangle, Lightbulb, Activity, CheckCircle2, ChevronRight, Download } from 'lucide-react';
@@ -68,17 +68,18 @@ export default function AIDashboardPage() {
       element.style.height = 'auto';
       element.style.overflow = 'visible';
       
-      const canvas = await html2canvas(element, { 
-        scale: 2,
-        useCORS: true,
-        logging: false,
+      const dataUrl = await htmlToImage.toJpeg(element, { 
+        quality: 0.98,
+        pixelRatio: 2,
         backgroundColor: document.documentElement.classList.contains('dark') ? '#0a0c10' : '#f8fafc',
-        onclone: (clonedDoc) => {
-          // Additional cleanup on cloned document if necessary
-          const elementsToHide = clonedDoc.querySelectorAll('[data-html2canvas-ignore]');
-          elementsToHide.forEach(el => {
-             (el as HTMLElement).style.display = 'none';
-          });
+        style: {
+          transform: 'none',
+        },
+        filter: (node: any) => {
+          if (node.tagName && node.hasAttribute && node.hasAttribute('data-html2canvas-ignore')) {
+            return false;
+          }
+          return true;
         }
       });
       
@@ -86,10 +87,13 @@ export default function AIDashboardPage() {
       element.style.height = originalHeight;
       element.style.overflow = originalOverflow;
       
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      const imgData = dataUrl;
+      const imgWidth = element.offsetWidth;
+      const imgHeight = element.offsetHeight;
+      
       const pdf = new jsPDF('l', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pdfHeight = (imgHeight * pdfWidth) / imgWidth;
       
       let heightLeft = pdfHeight;
       let position = 0;
