@@ -5,7 +5,6 @@ from app.schemas.venus.experiment import ExperimentCreate, ExperimentUpdate, Exp
 from app.schemas.venus.creative import CreativeCreate, CreativeUpdate, CreativeResponse
 from app.schemas.venus.ads_task import AdsTaskCreate, AdsTaskUpdate, AdsTaskResponse
 from app.schemas.venus.report_template import ReportTemplateCreate, ReportTemplateUpdate, ReportTemplateResponse
-from app.schemas.venus.competitor import CompetitorCreate, CompetitorUpdate, CompetitorResponse
 from app.schemas.venus.onboarding_checklist import OnboardingChecklistCreate, OnboardingChecklistUpdate, OnboardingChecklistResponse
 from app.schemas.venus.csv_import import CSVImportCreate, CSVImportUpdate, CSVImportResponse
 from app.schemas.venus.ai_observation import AIObservationCreate, AIObservationUpdate, AIObservationResponse

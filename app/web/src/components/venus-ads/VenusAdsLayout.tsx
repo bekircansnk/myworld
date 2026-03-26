@@ -7,7 +7,6 @@ import { TestCenter } from './tests/TestCenter';
 import { CreativeLibrary } from './creatives/CreativeLibrary';
 import { AdsTaskBoard } from './tasks/AdsTaskBoard';
 import { AdsReportCenter } from './reports/AdsReportCenter';
-import { BenchmarkDashboard } from './benchmark/BenchmarkDashboard';
 import { OnboardingChecklist } from './onboarding/OnboardingChecklist';
 import { CSVImporter } from './csv-import/CSVImporter';
 import { AIInsightsPanel } from './ai-insights/AIInsightsPanel';
@@ -34,7 +33,6 @@ export function VenusAdsLayout({ projectId }: VenusAdsLayoutProps) {
     { id: 'creatives', label: 'Kreatif Lab', icon: FileImage },
     { id: 'tasks', label: 'Operasyon', icon: CheckSquare },
     { id: 'reports', label: 'Raporlar', icon: FileText },
-    { id: 'benchmark', label: 'Rakip', icon: LineChart },
     { id: 'onboarding', label: 'Devralma', icon: ListChecks },
     { id: 'csv', label: 'Veri Yükleme', icon: Upload },
     { id: 'ai', label: 'AI Analiz', icon: Sparkles },
@@ -81,7 +79,6 @@ export function VenusAdsLayout({ projectId }: VenusAdsLayoutProps) {
         {viewMode === 'creatives' && <CreativeLibrary projectId={projectId} />}
         {viewMode === 'tasks' && <AdsTaskBoard projectId={projectId} />}
         {viewMode === 'reports' && <AdsReportCenter projectId={projectId} />}
-        {viewMode === 'benchmark' && <BenchmarkDashboard projectId={projectId} />}
         {viewMode === 'onboarding' && <OnboardingChecklist projectId={projectId} />}
         {viewMode === 'csv' && <CSVImporter projectId={projectId} />}
         {viewMode === 'ai' && <AIInsightsPanel projectId={projectId} />}

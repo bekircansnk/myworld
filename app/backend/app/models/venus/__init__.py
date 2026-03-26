@@ -5,7 +5,6 @@ from app.models.venus.experiment import VenusExperiment
 from app.models.venus.creative import VenusCreative
 from app.models.venus.ads_task import VenusAdsTask
 from app.models.venus.report_template import VenusReportTemplate
-from app.models.venus.competitor import VenusCompetitor
 from app.models.venus.onboarding_checklist import VenusOnboardingChecklist
 from app.models.venus.csv_import import VenusCSVImport
 from app.models.venus.ai_observation import VenusAIObservation

@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { api } from '@/lib/api';
-import { VenusCampaign, VenusExperiment, VenusCreative, VenusAdsTask, VenusCompetitor, VenusOnboardingChecklist, VenusAIObservation, VenusCSVImport, VenusReportTemplate, VenusAIAnalysisReport } from '@/types/venus-ads';
+import { VenusCampaign, VenusExperiment, VenusCreative, VenusAdsTask, VenusOnboardingChecklist, VenusAIObservation, VenusCSVImport, VenusReportTemplate, VenusAIAnalysisReport } from '@/types/venus-ads';
 
-export type VenusViewMode = 'overview' | 'campaigns' | 'tests' | 'creatives' | 'tasks' | 'reports' | 'benchmark' | 'onboarding' | 'csv' | 'ai';
+export type VenusViewMode = 'overview' | 'campaigns' | 'tests' | 'creatives' | 'tasks' | 'reports' | 'onboarding' | 'csv' | 'ai';
 export type VenusSelectedEntity = { type: VenusViewMode, id: number };
 
 interface VenusAdsState {
@@ -60,13 +60,6 @@ interface VenusAdsState {
   deleteTask: (id: number) => Promise<void>;
   getAITaskNotes: (title: string, description?: string, campaignName?: string, experimentName?: string, creativeName?: string) => Promise<string>;
 
-  // Competitors
-  competitors: VenusCompetitor[];
-  isLoadingCompetitors: boolean;
-  fetchCompetitors: (projectId?: number) => Promise<void>;
-  createCompetitor: (data: Partial<VenusCompetitor>) => Promise<VenusCompetitor>;
-  updateCompetitor: (id: number, data: Partial<VenusCompetitor>) => Promise<VenusCompetitor>;
-  deleteCompetitor: (id: number) => Promise<void>;
 
   // Onboarding
   checklists: VenusOnboardingChecklist[];
@@ -268,31 +261,6 @@ export const useVenusAdsStore = create<VenusAdsState>((set) => ({
     return res.data.ai_notes;
   },
 
-  // ── COMPETITORS ──
-  competitors: [],
-  isLoadingCompetitors: false,
-  fetchCompetitors: async (projectId) => {
-    set({ isLoadingCompetitors: true });
-    try {
-      const url = projectId ? `/api/venus/competitors?project_id=${projectId}` : '/api/venus/competitors';
-      const res = await api.get(url);
-      set({ competitors: res.data, isLoadingCompetitors: false });
-    } catch (e) { console.error("fetch competitors", e); set({ isLoadingCompetitors: false }); }
-  },
-  createCompetitor: async (data) => {
-    const res = await api.post('/api/venus/competitors', data);
-    set((s) => ({ competitors: [res.data, ...s.competitors] }));
-    return res.data;
-  },
-  updateCompetitor: async (id, data) => {
-    const res = await api.put(`/api/venus/competitors/${id}`, data);
-    set((s) => ({ competitors: s.competitors.map(c => c.id === id ? res.data : c) }));
-    return res.data;
-  },
-  deleteCompetitor: async (id) => {
-    await api.delete(`/api/venus/competitors/${id}`);
-    set((s) => ({ competitors: s.competitors.filter(c => c.id !== id) }));
-  },
 
   // ── ONBOARDING CHECKLISTS ──
   checklists: [],
