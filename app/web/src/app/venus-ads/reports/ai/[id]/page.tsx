@@ -71,7 +71,6 @@ export default function AIDashboardPage() {
       const canvas = await html2canvas(element, { 
         scale: 2,
         useCORS: true,
-        allowTaint: true,
         logging: false,
         backgroundColor: document.documentElement.classList.contains('dark') ? '#0a0c10' : '#f8fafc',
         onclone: (clonedDoc) => {
@@ -88,7 +87,7 @@ export default function AIDashboardPage() {
       element.style.overflow = originalOverflow;
       
       const imgData = canvas.toDataURL('image/jpeg', 1.0);
-      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdf = new jsPDF('l', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
@@ -110,11 +109,8 @@ export default function AIDashboardPage() {
       
       pdf.save(`AI_Analiz_${report.title.replace(/\s+/g, '_')}.pdf`);
     } catch (error) {
-      console.warn('PDF oluşturulamadı (html2canvas), koruma moduna geçiliyor...', error);
-      // Fallback Korumalı Mod: Tarayıcının yerleşik yazdırma aracını çağır (PDF olarak kaydet destekli)
-      setTimeout(() => {
-        window.print();
-      }, 500);
+      console.error('PDF oluşturulamadı:', error);
+      alert("PDF indirme işlemi başarısız oldu. Lütfen tekrar deneyin.");
     } finally {
       setIsGeneratingPDF(false);
     }
