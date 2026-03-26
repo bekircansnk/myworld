@@ -243,37 +243,39 @@ export function AdsReportCenter({ projectId }: { projectId: number | null }) {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {aiReports.map(report => (
-              <div key={report.id} className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-white/5 overflow-hidden group hover:shadow-md transition-all">
+              <div 
+                key={report.id} 
+                onClick={() => report.status === 'completed' && router.push(`/venus-ads/reports/ai/${report.id}`)}
+                className={`bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-white/5 overflow-hidden group transition-all relative ${
+                  report.status === 'completed' 
+                    ? 'cursor-pointer hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/80' 
+                    : 'cursor-not-allowed opacity-80'
+                }`}
+              >
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/40 transition-colors">
                       <BarChart3 className="w-6 h-6 text-indigo-500" />
                     </div>
                     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${report.status === 'completed' ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300'}`}>
                       AI {report.status === 'processing' ? 'İşleniyor' : 'Tamamlandı'}
                     </span>
                   </div>
-                  <h3 className="font-bold text-brand-dark dark:text-white text-base mb-2 line-clamp-2">{report.title}</h3>
+                  <h3 className="font-bold text-brand-dark dark:text-white text-base mb-2 line-clamp-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{report.title}</h3>
                   <p className="text-xs text-slate-400 flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     {report.created_at ? new Date(report.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
                   </p>
                 </div>
-                <div className="px-6 py-3 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/20 flex items-center justify-between">
-                  <button onClick={() => router.push(`/venus-ads/reports/ai/${report.id}`)}
-                    className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 hover:underline disabled:opacity-50"
-                    disabled={report.status !== 'completed'}>
-                    <Eye className="w-3.5 h-3.5" />
-                    Dashboard'u Gör
-                  </button>
+                <div className="px-6 py-3 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/20 flex items-center justify-end min-h-[48px]">
                   <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     {report.status === 'completed' && (
-                      <button onClick={() => router.push(`/venus-ads/reports/ai/${report.id}?download=true`)} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-slate-700 dark:hover:text-white" title="PDF İndir (Dashboard Üzerinden)">
+                      <button onClick={(e) => { e.stopPropagation(); router.push(`/venus-ads/reports/ai/${report.id}?download=true`) }} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors" title="PDF İndir (Ekrana Git)">
                         <Download className="w-3.5 h-3.5" />
                       </button>
                     )}
-                    <button onClick={() => { if(confirm('Emin misiniz?')) deleteAIReport(report.id) }}
-                      className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded text-slate-400 hover:text-red-500" title="Sil">
+                    <button onClick={(e) => { e.stopPropagation(); if(confirm('Emin misiniz?')) deleteAIReport(report.id) }}
+                      className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded text-slate-400 hover:text-red-500 transition-colors" title="Sil">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>

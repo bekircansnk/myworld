@@ -153,7 +153,7 @@ export default function AIDashboardPage() {
         {/* Header */}
         <div className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <button onClick={() => router.push('/')} data-html2canvas-ignore className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-colors print:hidden">
+            <button onClick={() => router.back()} data-html2canvas-ignore className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-colors print:hidden">
               <ArrowLeft className="w-6 h-6 text-slate-500 dark:text-slate-400" />
             </button>
             <div>
