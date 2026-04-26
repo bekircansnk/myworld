@@ -23,6 +23,9 @@ interface PhotoTrackingState {
   importLogs: PhotoExcelImportLog[];
   isLoadingImport: boolean;
   importExcel: (file: File, projectId?: number) => Promise<PhotoExcelImportLog>;
+  
+  isExporting: boolean;
+  exportExcel: (projectId?: number, month?: number, year?: number) => Promise<void>;
 }
 
 export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
@@ -140,6 +143,34 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
       console.error(e);
       set({ isLoadingImport: false });
       throw e;
+    }
+  },
+  
+  isExporting: false,
+  exportExcel: async (projectId, month, year) => {
+    set({ isExporting: true });
+    try {
+      const params = new URLSearchParams();
+      if (projectId) params.append('project_id', projectId.toString());
+      if (month) params.append('month', month.toString());
+      if (year) params.append('year', year.toString());
+      
+      const response = await api.get(`/api/venus/photo-tracking/export-excel?${params.toString()}`, {
+        responseType: 'blob',
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'fotograf_takip.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      set({ isExporting: false });
+    } catch (e) {
+      console.error(e);
+      set({ isExporting: false });
     }
   }
 }));

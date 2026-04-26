@@ -142,7 +142,12 @@ function ModelCard({ model, onUpdateColor, onModelStatusChange }: ModelCardProps
 }
 
 export function WeeklyBoard({ projectId }: { projectId: number | null }) {
-  const { models, isLoadingModels, updateColor, updateModel } = usePhotoTrackingStore();
+  const { models, isLoadingModels, updateColor, updateModel, createModel } = usePhotoTrackingStore();
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedWeek, setSelectedWeek] = useState<number>(1);
+  const [newModel, setNewModel] = useState({ model_name: '', sezon_kodu: '', notes: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const handleModelStatusChange = async (model: PhotoModel) => {
     const isCompleted = model.status === 'completed';
@@ -152,6 +157,29 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
     });
   };
 
+  const handleCreateModel = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newModel.model_name.trim()) return;
+    setIsSubmitting(true);
+    try {
+      await createModel({
+        project_id: projectId || null,
+        model_name: newModel.model_name.trim(),
+        sezon_kodu: newModel.sezon_kodu.trim() || undefined,
+        notes: newModel.notes.trim() || undefined,
+        week_number: selectedWeek,
+        month: new Date().getMonth() + 1,
+        year: new Date().getFullYear(),
+      });
+      setIsModalOpen(false);
+      setNewModel({ model_name: '', sezon_kodu: '', notes: '' });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const weeks = [1, 2, 3, 4];
 
   return (
@@ -159,10 +187,10 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
       <div>
         <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-brand-dark dark:text-white flex items-center gap-3">
            <CheckSquare className="w-6 h-6 text-brand-gray dark:text-gray-400" />
-          Haftalık İşler
+          Aylık Takvim
         </h1>
         <p className="text-muted-foreground text-sm mt-0.5">
-          Modelleri haftalara göre takip edin, renk varyantlarını tamamlayın.
+          Modelleri haftalara göre takvimlendirin, renk varyantlarını tamamlayın.
         </p>
       </div>
 
@@ -183,9 +211,17 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
                         <span className="w-6 h-6 rounded-md bg-brand-yellow/20 text-brand-yellow flex items-center justify-center text-sm">{weekNum}</span>
                         {weekNum}. Hafta
                      </h3>
-                     <span className="text-sm font-medium text-slate-500">
-                        {completedCount} / {weekModels.length} Tamamlandı
-                     </span>
+                     <div className="flex items-center gap-4">
+                       <span className="text-sm font-medium text-slate-500">
+                          {completedCount} / {weekModels.length} Tamamlandı
+                       </span>
+                       <button 
+                         onClick={() => { setSelectedWeek(weekNum); setIsModalOpen(true); }}
+                         className="text-xs flex items-center gap-1 font-bold text-brand-dark dark:text-white hover:text-brand-yellow dark:hover:text-brand-yellow transition-colors bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg"
+                       >
+                          <Plus className="w-3.5 h-3.5" /> Model Ekle
+                       </button>
+                     </div>
                   </div>
                   
                   {weekModels.length === 0 ? (
@@ -207,6 +243,71 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
                </div>
              )
            })}
+        </div>
+      )}
+
+      {/* Model Ekleme Modalı */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 w-full max-w-md overflow-hidden">
+             <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-700">
+                <h3 className="font-bold text-lg text-brand-dark dark:text-white">{selectedWeek}. Hafta İçin Model Ekle</h3>
+                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                  <Minus className="w-5 h-5 rotate-45" /> {/* Close icon as Plus rotated */}
+                </button>
+             </div>
+             
+             <form onSubmit={handleCreateModel} className="p-5 flex flex-col gap-4">
+                <div>
+                   <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Model Adı / Madde Açıklaması *</label>
+                   <input 
+                     type="text" 
+                     required 
+                     value={newModel.model_name}
+                     onChange={e => setNewModel({ ...newModel, model_name: e.target.value })}
+                     className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-dark/20 text-sm"
+                     placeholder="Örn: 2010728Y AYAKKABI"
+                   />
+                </div>
+                <div>
+                   <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Sezon Kodu</label>
+                   <input 
+                     type="text" 
+                     value={newModel.sezon_kodu}
+                     onChange={e => setNewModel({ ...newModel, sezon_kodu: e.target.value })}
+                     className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-dark/20 text-sm"
+                     placeholder="Örn: SS26"
+                   />
+                </div>
+                <div>
+                   <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Notlar (Opsiyonel)</label>
+                   <textarea 
+                     rows={3}
+                     value={newModel.notes}
+                     onChange={e => setNewModel({ ...newModel, notes: e.target.value })}
+                     className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-dark/20 text-sm resize-none"
+                     placeholder="Ek bilgiler..."
+                   />
+                </div>
+                
+                <div className="mt-4 flex items-center justify-end gap-3">
+                   <button 
+                     type="button" 
+                     onClick={() => setIsModalOpen(false)}
+                     className="px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 rounded-xl transition-colors"
+                   >
+                     İptal
+                   </button>
+                   <button 
+                     type="submit"
+                     disabled={isSubmitting || !newModel.model_name.trim()}
+                     className="px-5 py-2.5 text-sm font-bold bg-brand-dark text-white dark:bg-white dark:text-brand-dark hover:opacity-90 rounded-xl transition-opacity disabled:opacity-50"
+                   >
+                     {isSubmitting ? 'Ekleniyor...' : 'Modeli Ekle'}
+                   </button>
+                </div>
+             </form>
+          </div>
         </div>
       )}
     </div>

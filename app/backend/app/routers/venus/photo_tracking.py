@@ -7,6 +7,10 @@ from datetime import datetime
 import pandas as pd
 import io
 
+from fastapi.responses import StreamingResponse
+import io
+import pandas as pd
+
 from app.database import get_db
 from app.routers.auth import get_current_user
 from app.models.user import User
@@ -334,3 +338,74 @@ async def import_excel(
         await db.commit()
         await db.refresh(log)
         raise HTTPException(status_code=500, detail=f"Excel parse error: {str(e)}")
+
+@router.get("/export-excel")
+async def export_excel(
+    project_id: Optional[int] = None,
+    month: Optional[int] = None,
+    year: Optional[int] = None,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    query = select(PhotoModel).where(PhotoModel.user_id == current_user.id).options(selectinload(PhotoModel.colors), selectinload(PhotoModel.revisions))
+    if project_id:
+        query = query.where(PhotoModel.project_id == project_id)
+    if month:
+        query = query.where(PhotoModel.month == month)
+    if year:
+        query = query.where(PhotoModel.year == year)
+        
+    query = query.order_by(PhotoModel.created_at.desc())
+    result = await db.execute(query)
+    models = result.scalars().all()
+    
+    # Format according to user's Excel structure
+    # 'SEZON KODU', 'MADDE AÇIKLAMASI', 'RENK', 'Unnamed: 3', 'Sosyal Medya ', 'WEB SİTESİ 16:9', 'TESLİM EDİLEN', 'REVİZE', 'TESLİM EDİLME TARİHİ'
+    
+    data = []
+    for model in models:
+        for i, color in enumerate(model.colors):
+            row = {
+                'SEZON KODU': model.sezon_kodu if i == 0 else '',
+                'MADDE AÇIKLAMASI': model.model_name if i == 0 else '',
+                'RENK': color.color_name,
+                'Unnamed: 3': '',
+                'Sosyal Medya ': 'X' if color.ig_required else '',
+                'WEB SİTESİ 16:9': 'X' if color.banner_required else '',
+                'TESLİM EDİLEN': 'TAMAMLANDI' if model.status == 'completed' else '',
+                'REVİZE': ', '.join([r.description for r in model.revisions]) if i == 0 else '',
+                'TESLİM EDİLME TARİHİ': model.delivery_date.strftime('%Y-%m-%d') if model.delivery_date and i == 0 else ''
+            }
+            data.append(row)
+            
+        if not model.colors:
+            row = {
+                'SEZON KODU': model.sezon_kodu,
+                'MADDE AÇIKLAMASI': model.model_name,
+                'RENK': '',
+                'Unnamed: 3': '',
+                'Sosyal Medya ': '',
+                'WEB SİTESİ 16:9': '',
+                'TESLİM EDİLEN': 'TAMAMLANDI' if model.status == 'completed' else '',
+                'REVİZE': ', '.join([r.description for r in model.revisions]),
+                'TESLİM EDİLME TARİHİ': model.delivery_date.strftime('%Y-%m-%d') if model.delivery_date else ''
+            }
+            data.append(row)
+
+    df = pd.DataFrame(data)
+    output = io.BytesIO()
+    
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Fotoğraf Takip')
+        
+    output.seek(0)
+    
+    headers = {
+        'Content-Disposition': 'attachment; filename="fotograf_takip.xlsx"'
+    }
+    
+    return StreamingResponse(
+        output,
+        headers=headers,
+        media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )

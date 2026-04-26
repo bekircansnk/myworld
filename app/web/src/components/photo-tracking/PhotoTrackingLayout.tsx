@@ -26,8 +26,7 @@ export function PhotoTrackingLayout({ projectId }: PhotoTrackingLayoutProps) {
 
   const menuItems: { id: PhotoTrackingViewMode; label: string; icon: React.FC<any> }[] = [
     { id: 'overview', label: 'Genel Bakış', icon: LayoutDashboard },
-    { id: 'calendar', label: 'Aylık Takvim', icon: Calendar },
-    { id: 'weekly', label: 'Haftalık İşler', icon: CheckSquare },
+    { id: 'weekly', label: 'Aylık Takvim', icon: Calendar },
     { id: 'models', label: 'Model Yönetimi', icon: Layers },
     { id: 'excel', label: 'İçe/Dışa Aktar', icon: Upload },
     { id: 'revisions', label: 'Revize Merkezi', icon: FileImage },
@@ -69,7 +68,6 @@ export function PhotoTrackingLayout({ projectId }: PhotoTrackingLayoutProps) {
       {/* Ana İçerik Alanı */}
       <div className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden p-5 lg:p-8 bg-slate-50/50 dark:bg-[#0f1117]/30">
         {viewMode === 'overview' && <PhotoOverview projectId={projectId} />}
-        {viewMode === 'calendar' && <PhotoCalendar projectId={projectId} />}
         {viewMode === 'weekly' && <WeeklyBoard projectId={projectId} />}
         {viewMode === 'models' && <ModelExplorer projectId={projectId} />}
         {viewMode === 'excel' && <ExcelCenter projectId={projectId} />}

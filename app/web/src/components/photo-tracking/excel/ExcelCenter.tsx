@@ -10,7 +10,7 @@ interface ExcelCenterProps {
 }
 
 export function ExcelCenter({ projectId }: ExcelCenterProps) {
-  const { importExcel, isLoadingImport, importLogs, fetchModels } = usePhotoTrackingStore();
+  const { importExcel, isLoadingImport, importLogs, fetchModels, exportExcel, isExporting } = usePhotoTrackingStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -153,9 +153,19 @@ export function ExcelCenter({ projectId }: ExcelCenterProps) {
           )}
         </div>
 
-        {/* Sağ: İçe Aktarma Geçmişi (Şimdilik Boş / Yapılacak) */}
+        {/* Sağ: İçe Aktarma Geçmişi ve Dışa Aktarma */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-white/5 p-6 flex flex-col h-[400px]">
-          <h3 className="font-bold text-brand-dark dark:text-white mb-4">Son İçe Aktarmalar</h3>
+          <div className="flex items-center justify-between mb-4">
+             <h3 className="font-bold text-brand-dark dark:text-white">Son İçe Aktarmalar</h3>
+             <button 
+                onClick={() => exportExcel(projectId || undefined, new Date().getMonth() + 1, new Date().getFullYear())}
+                disabled={isExporting}
+                className="px-4 py-1.5 bg-brand-yellow/20 text-brand-yellow hover:bg-brand-yellow hover:text-white rounded-lg text-xs font-bold transition-colors disabled:opacity-50"
+             >
+                {isExporting ? 'Aktarılıyor...' : 'Mevcut Durumu Dışa Aktar'}
+             </button>
+          </div>
+          
           <div className="flex-1 overflow-y-auto">
             {importLogs.length === 0 ? (
                <div className="h-full flex items-center justify-center text-sm text-brand-gray dark:text-gray-500">
