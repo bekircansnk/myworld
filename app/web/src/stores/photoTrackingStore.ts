@@ -59,8 +59,6 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
   },
   
   updateModel: async (id, data) => {
-    // Önceki state'i sakla (rollback için)
-    const previousModels = get().models;
     // Optimistic UI
     set(state => ({
       models: state.models.map(m => m.id === id ? { ...m, ...data } : m)
@@ -72,9 +70,9 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
       }));
       return res.data;
     } catch(e) {
-      // Hata durumunda önceki state'e geri dön
-      console.error('[updateModel] API hatası, state geri alınıyor:', e);
-      set({ models: previousModels });
+      console.error('[updateModel] API hatası:', e);
+      // Sunucu state'i ile senkronize ol (sessiz yenileme)
+      get().fetchModels();
       throw e;
     }
   },

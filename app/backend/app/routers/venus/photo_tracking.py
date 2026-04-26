@@ -78,28 +78,29 @@ async def update_model(
     import logging
     logger = logging.getLogger(__name__)
     
-    query = select(PhotoModel).where(PhotoModel.id == model_id, PhotoModel.user_id == current_user.id)
-    result = await db.execute(query)
-    target = result.scalar_one_or_none()
-    
-    if not target:
-        raise HTTPException(status_code=404, detail="Model not found")
-        
     update_data = data.model_dump(exclude_unset=True)
     logger.info(f"[UPDATE MODEL] id={model_id}, update_data={update_data}")
     
-    for key, value in update_data.items():
-        setattr(target, key, value)
-        
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No data to update")
+    
+    # Doğrudan SQL UPDATE — identity map sorunlarını tamamen bypass eder
+    stmt = (
+        update(PhotoModel)
+        .where(PhotoModel.id == model_id, PhotoModel.user_id == current_user.id)
+        .values(**update_data)
+    )
+    result = await db.execute(stmt)
+    
+    if result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Model not found")
+    
     await db.commit()
     
-    # expire_on_commit=False olduğu için manuel olarak expire et
-    db.expire(target)
-    
-    # Taze veri ile yeniden yükle
+    # Taze veri ile yeniden yükle (identity map'te bu obje yok, temiz gelecek)
     query = select(PhotoModel).where(PhotoModel.id == model_id).options(selectinload(PhotoModel.colors), selectinload(PhotoModel.revisions))
-    result = await db.execute(query)
-    updated = result.scalar_one()
+    fresh_result = await db.execute(query)
+    updated = fresh_result.scalar_one()
     
     logger.info(f"[UPDATE MODEL] Sonuç: id={updated.id}, status={updated.status}, delivery_date={updated.delivery_date}")
     
