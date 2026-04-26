@@ -96,14 +96,23 @@ export function NotesList() {
     }
   }
 
-  const handleDelete = async (e: React.MouseEvent, id: number) => {
-    e.stopPropagation()
-    try {
-      if (contextMenu) setContextMenu(null)
-      await deleteNoteAction(id)
-    } catch (e) {
-      console.error(e)
+  const [noteToDelete, setNoteToDelete] = React.useState<number | null>(null)
+
+  const confirmDelete = async () => {
+    if (noteToDelete !== null) {
+      try {
+        await deleteNoteAction(noteToDelete)
+        setNoteToDelete(null)
+      } catch (e) {
+        console.error(e)
+      }
     }
+  }
+
+  const handleDelete = (e: React.MouseEvent, id: number) => {
+    e.stopPropagation()
+    if (contextMenu) setContextMenu(null)
+    setNoteToDelete(id)
   }
 
   const handleRightClick = (e: React.MouseEvent, note: Note) => {
@@ -455,6 +464,29 @@ export function NotesList() {
             </Button>
             <Button onClick={handleAddExplicit} disabled={!addContent.trim() || isSaving} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-8 shadow-sm">
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Notu Kaydet"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Silme Onay Modali */}
+      <Dialog open={noteToDelete !== null} onOpenChange={(open) => !open && setNoteToDelete(null)}>
+        <DialogContent className="sm:max-w-md p-6 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-xl font-bold flex items-center gap-2 text-red-600">
+              <Trash2 className="w-5 h-5" />
+              Notu Sil
+            </DialogTitle>
+          </DialogHeader>
+          <div className="text-sm text-slate-600 dark:text-slate-300">
+            Bu notu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.
+          </div>
+          <div className="flex items-center justify-end gap-3 mt-6">
+            <Button variant="ghost" onClick={() => setNoteToDelete(null)} className="rounded-xl px-6">
+              İptal
+            </Button>
+            <Button onClick={confirmDelete} className="bg-red-600 hover:bg-red-700 text-white rounded-xl px-8 shadow-sm">
+              Sil
             </Button>
           </div>
         </DialogContent>

@@ -17,7 +17,7 @@ interface NoteStore {
   setSelectedNote: (note: Note | null) => void;
 }
 
-export const useNoteStore = create<NoteStore>((set) => ({
+export const useNoteStore = create<NoteStore>((set, get) => ({
   notes: [],
   selectedNote: null,
   isDetailPanelOpen: false,
@@ -44,10 +44,17 @@ export const useNoteStore = create<NoteStore>((set) => ({
   },
 
   deleteNoteAction: async(id) => {
+    set(state => ({ 
+      notes: state.notes.filter(n => n.id !== id),
+      selectedNote: state.selectedNote?.id === id ? null : state.selectedNote,
+      isDetailPanelOpen: state.selectedNote?.id === id ? false : state.isDetailPanelOpen
+    }))
     try {
       await api.delete(`/api/notes/${id}`)
-      set(state => ({ notes: state.notes.filter(n => n.id !== id)}))
-    } catch(e) {console.error(e)}
+    } catch(e) {
+      console.error(e)
+      get().fetchNotes()
+    }
   },
 
   updateNoteInList: (updatedNote) => set(state => ({

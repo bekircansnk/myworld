@@ -85,8 +85,8 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
 
   deleteEvents: async (ids) => {
     set((state) => ({
-      events: state.events.filter((e) => !ids.includes(e.id)),
-      selectedEvent: state.selectedEvent && ids.includes(state.selectedEvent.id) ? null : state.selectedEvent,
+      events: state.events.filter((e) => !ids.includes(e.id.toString())),
+      selectedEvent: state.selectedEvent && ids.includes(state.selectedEvent.id.toString()) ? null : state.selectedEvent,
     }));
     try {
        await Promise.all(ids.map(id => api.delete(`/api/calendar/events/${id}`)));
