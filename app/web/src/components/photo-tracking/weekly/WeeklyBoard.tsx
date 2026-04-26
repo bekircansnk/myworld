@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePhotoTrackingStore } from '@/stores/photoTrackingStore';
 import { PhotoModel, PhotoModelColor } from '@/types/photo-tracking';
-import { CheckCircle2, Circle, ChevronDown, ChevronUp, Image as ImageIcon, MessageSquare, Plus, Minus, CheckSquare, Edit2, Trash2 } from 'lucide-react';
+import { CheckCircle2, Circle, ChevronDown, ChevronUp, Image as ImageIcon, MessageSquare, Plus, Minus, CheckSquare, Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { useContextMenuStore } from '@/stores/contextMenuStore';
@@ -355,10 +355,14 @@ function ModelCard({ model, onUpdateColor, onModelStatusChange }: ModelCardProps
 }
 
 export function WeeklyBoard({ projectId }: { projectId: number | null }) {
-  const { models, isLoadingModels, updateColor, updateModel, createModel } = usePhotoTrackingStore();
+  const { models, isLoadingModels, updateColor, updateModel, createModel, fetchModels } = usePhotoTrackingStore();
+  
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState<number>(1);
+  const [expandedWeeks, setExpandedWeeks] = useState<number[]>([]); // Default closed
   const [newModel, setNewModel] = useState({ 
     model_name: '', 
     sezon_kodu: '', 
@@ -367,7 +371,24 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
     ig_required: true,
     banner_required: true
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  useEffect(() => {
+    fetchModels(projectId || undefined, currentMonth, currentYear);
+  }, [projectId, currentMonth, currentYear, fetchModels]);
+
+  const handlePrevMonth = () => {
+    if (currentMonth === 1) { setCurrentMonth(12); setCurrentYear(currentYear - 1); }
+    else setCurrentMonth(currentMonth - 1);
+  };
+  
+  const handleNextMonth = () => {
+    if (currentMonth === 12) { setCurrentMonth(1); setCurrentYear(currentYear + 1); }
+    else setCurrentMonth(currentMonth + 1);
+  };
+  
+  const toggleWeek = (week: number) => {
+    setExpandedWeeks(prev => prev.includes(week) ? prev.filter(w => w !== week) : [...prev, week]);
+  };
   
   const handleModelStatusChange = async (model: PhotoModel) => {
     const isCompleted = model.status === 'completed';
@@ -462,17 +483,33 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
   };
 
   const weeks = [1, 2, 3, 4];
+  const monthName = format(new Date(currentYear, currentMonth - 1), 'MMMM yyyy', { locale: tr });
 
   return (
     <div className="flex flex-col h-full gap-6">
-      <div>
-        <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-brand-dark dark:text-white flex items-center gap-3">
-           <CheckSquare className="w-6 h-6 text-brand-gray dark:text-gray-400" />
-          Aylık Takvim
-        </h1>
-        <p className="text-muted-foreground text-sm mt-0.5">
-          Modelleri haftalara göre takvimlendirin, renk varyantlarını tamamlayın.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-brand-dark dark:text-white flex items-center gap-3">
+             <CheckSquare className="w-6 h-6 text-brand-gray dark:text-gray-400" />
+            Aylık Takvim
+          </h1>
+          <p className="text-muted-foreground text-sm mt-0.5">
+            Modelleri haftalara göre takvimlendirin, renk varyantlarını tamamlayın.
+          </p>
+        </div>
+        
+        {/* Month Picker */}
+        <div className="flex items-center gap-4 bg-white dark:bg-slate-800 px-4 py-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+          <button onClick={handlePrevMonth} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors">
+            <ChevronLeft className="w-5 h-5 text-slate-500" />
+          </button>
+          <div className="font-bold text-brand-dark dark:text-white min-w-[120px] text-center capitalize">
+            {monthName}
+          </div>
+          <button onClick={handleNextMonth} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors">
+            <ChevronRight className="w-5 h-5 text-slate-500" />
+          </button>
+        </div>
       </div>
 
       {isLoadingModels ? (
@@ -487,17 +524,21 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
              
              return (
                <div key={weekNum} className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-700">
-                     <h3 className="font-bold text-lg text-brand-dark dark:text-white flex items-center gap-2">
+                  <div 
+                    className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-700 cursor-pointer group"
+                    onClick={() => toggleWeek(weekNum)}
+                  >
+                     <h3 className="font-bold text-lg text-brand-dark dark:text-white flex items-center gap-2 group-hover:opacity-80 transition-opacity">
                         <span className="w-6 h-6 rounded-md bg-brand-yellow/20 text-brand-yellow flex items-center justify-center text-sm">{weekNum}</span>
                         {weekNum}. Hafta
+                        {expandedWeeks.includes(weekNum) ? <ChevronUp className="w-4 h-4 ml-2 text-slate-400" /> : <ChevronDown className="w-4 h-4 ml-2 text-slate-400" />}
                      </h3>
                      <div className="flex items-center gap-4">
                        <span className="text-sm font-medium text-slate-500">
                           {completedCount} / {weekModels.length} Tamamlandı
                        </span>
                        <button 
-                         onClick={() => { setSelectedWeek(weekNum); setIsModalOpen(true); }}
+                         onClick={(e) => { e.stopPropagation(); setSelectedWeek(weekNum); setIsModalOpen(true); }}
                          className="text-xs flex items-center gap-1 font-bold text-brand-dark dark:text-white hover:text-brand-yellow dark:hover:text-brand-yellow transition-colors bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg"
                        >
                           <Plus className="w-3.5 h-3.5" /> Model Ekle
@@ -505,21 +546,25 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
                      </div>
                   </div>
                   
-                  {weekModels.length === 0 ? (
-                    <div className="py-6 text-center text-sm text-slate-400 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
-                      Bu hafta için atanmış model yok.
-                    </div>
-                  ) : (
-                    <div className="flex flex-col gap-3">
-                      {weekModels.map(m => (
-                        <ModelCard 
-                          key={m.id} 
-                          model={m} 
-                          onUpdateColor={updateColor} 
-                          onModelStatusChange={handleModelStatusChange} 
-                        />
-                      ))}
-                    </div>
+                  {expandedWeeks.includes(weekNum) && (
+                    <>
+                      {weekModels.length === 0 ? (
+                        <div className="py-6 text-center text-sm text-slate-400 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
+                          Bu hafta için atanmış model yok.
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-3 animate-in slide-in-from-top-2 duration-200">
+                          {weekModels.map(m => (
+                            <ModelCard 
+                              key={m.id} 
+                              model={m} 
+                              onUpdateColor={updateColor} 
+                              onModelStatusChange={handleModelStatusChange} 
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </>
                   )}
                </div>
              )
