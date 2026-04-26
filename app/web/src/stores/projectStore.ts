@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { api } from '@/lib/api';
 import { Project } from '@/types';
 
-export type ViewMode = 'dashboard' | 'all_tasks' | 'project' | 'notes' | 'calendar' | 'ai_chat' | 'venus_ads';
+export type ViewMode = 'dashboard' | 'all_tasks' | 'project' | 'notes' | 'calendar' | 'ai_chat' | 'venus_ads' | 'photo_tracking';
 
 interface ProjectState {
   projects: Project[];

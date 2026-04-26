@@ -18,6 +18,7 @@ import { TopNavbar } from "@/components/layout/TopNavbar"
 import { useAuthStore } from "@/store/authStore"
 import { LoginOverlay } from "@/components/auth/LoginOverlay"
 import { VenusAdsLayout } from "@/components/venus-ads/VenusAdsLayout"
+import { PhotoTrackingLayout } from "@/components/photo-tracking/PhotoTrackingLayout"
 
 export default function DashboardPage() {
   const { isAuthenticated, isLoading: authLoading, checkAuth } = useAuthStore()
@@ -90,12 +91,16 @@ export default function DashboardPage() {
   } else if (viewMode === 'project' && currentProject) {
     pageTitle = currentProject.name
     pageDescription = "Bu firmaya ait görevleri aşağıdaki panolarda yönetin."
+  } else if (viewMode === 'photo_tracking') {
+    pageTitle = currentProject ? `${currentProject.name} Fotoğraf Takip` : "Fotoğraf Takip"
+    pageDescription = "Fotoğraf üretim operasyonlarını yönetin ve raporlayın."
   }
 
   const isDashboard = viewMode === 'dashboard'
   const isCalendar = viewMode === 'calendar'
   const isAIChat = viewMode === 'ai_chat'
   const isVenusAds = viewMode === 'venus_ads'
+  const isPhotoTracking = viewMode === 'photo_tracking'
 
   return (
     <div className="flex flex-col h-screen w-full overflow-hidden">
@@ -113,6 +118,8 @@ export default function DashboardPage() {
         </div>
       ) : isVenusAds ? (
         <VenusAdsLayout projectId={selectedProjectId} />
+      ) : isPhotoTracking ? (
+        <PhotoTrackingLayout projectId={selectedProjectId} />
       ) : (
         <div className={`flex-1 flex flex-col ${isDashboard ? 'overflow-hidden p-5 lg:p-8' : 'overflow-y-auto overflow-x-hidden p-5 lg:p-8'}`}>
 

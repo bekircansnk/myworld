@@ -71,6 +71,7 @@ from app.routers.venus.reports import router as venus_reports_router
 from app.routers.venus.onboarding import router as venus_onboarding_router
 from app.routers.venus.csv_imports import router as venus_csv_imports_router
 from app.routers.venus.ai_observations import router as venus_ai_observations_router
+from app.routers.venus.photo_tracking import router as venus_photo_tracking_router
 
 app.include_router(venus_accounts_router, prefix="/api/venus/ad-accounts")
 app.include_router(venus_campaigns_router, prefix="/api/venus/campaigns")
@@ -82,6 +83,7 @@ app.include_router(venus_reports_router, prefix="/api/venus/reports")
 app.include_router(venus_onboarding_router, prefix="/api/venus/onboarding")
 app.include_router(venus_csv_imports_router, prefix="/api/venus/csv-imports")
 app.include_router(venus_ai_observations_router, prefix="/api/venus/ai-observations")
+app.include_router(venus_photo_tracking_router, prefix="/api/venus")
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc: Exception):
