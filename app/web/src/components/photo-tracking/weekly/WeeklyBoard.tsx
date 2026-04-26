@@ -348,7 +348,7 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [importingWeek, setImportingWeek] = useState<number | null>(null);
+  const importingWeekRef = React.useRef<number | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<number>(1);
   
   const getCurrentWeekNumber = () => {
@@ -410,9 +410,10 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
 
   const handleExcelImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && importingWeek) {
+    const week = importingWeekRef.current;
+    if (file && week) {
       try {
-        await importExcel(file, projectId || undefined, importingWeek, currentMonth, currentYear);
+        await importExcel(file, projectId || undefined, week, currentMonth, currentYear);
       } catch (err) {
         alert("Excel yüklenirken bir hata oluştu.");
       }
@@ -420,7 +421,7 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-    setImportingWeek(null);
+    importingWeekRef.current = null;
   };
 
   const handleCreateModel = async (e: React.FormEvent) => {
@@ -574,7 +575,7 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
                           {completedCount} / {weekModels.length} Tamamlandı
                        </span>
                        <button 
-                         onClick={(e) => { e.stopPropagation(); setImportingWeek(weekNum); fileInputRef.current?.click(); }}
+                         onClick={(e) => { e.stopPropagation(); importingWeekRef.current = weekNum; fileInputRef.current?.click(); }}
                          className="text-xs flex items-center gap-1 font-bold text-brand-dark dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors bg-slate-100 dark:bg-slate-800 px-2 sm:px-3 py-1.5 rounded-lg"
                          title="Bu Haftaya Excel İçeri Aktar"
                        >
@@ -713,6 +714,15 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
           </div>
         </div>
       )}
+      
+      {/* Hidden file input for Excel */}
+      <input 
+        type="file" 
+        accept=".xlsx" 
+        ref={fileInputRef} 
+        onChange={handleExcelImport} 
+        className="hidden" 
+      />
     </div>
   );
 }

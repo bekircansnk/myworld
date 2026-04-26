@@ -257,8 +257,8 @@ async def import_excel(
     file: UploadFile = File(...),
     project_id: Optional[int] = Form(None),
     week_number: int = Form(1),
-    month: int = Form(None),
-    year: int = Form(None),
+    month: Optional[int] = Form(None),
+    year: Optional[int] = Form(None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
