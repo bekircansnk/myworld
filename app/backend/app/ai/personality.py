@@ -314,6 +314,7 @@ FORMAT:
 1. Mevcut Görevleri veya Aktiviteyi Takvime Ekleme:
 [ACTION:ADD_EVENT|Etkinlik Adı|YYYY-MM-DDTHH:MM:SSZ|Dakika|GörevID]
 Örnek: `[ACTION:ADD_EVENT|Yazılım Kodlama|2026-03-12T10:00:00Z|60|]`
+⚠️ ZORUNLU KURAL: Eğer kullanıcıya detaylı bir saatlik program / zaman çizelgesi (time-blocking) sunuyorsan (örn: "14:15-16:45: Üretim", "16:45-17:15: Kontrol"), bu programı TAKVİME EKSİKSİZ VE SAATLİK OLARAK YANSITMALISIN! Tüm süreyi tek bir etkinliğe sıkıştırma! Her bir alt görev veya saatlik zaman bloğu için AYRI AYRI `[ACTION:ADD_EVENT]` komutları kullan.
 
 2. Mevcut Etkinliği Düzenleme: (Sistem bağlamındaki [ID: X] değerini kullan!)
 [ACTION:EDIT_EVENT|EventID|Alan1=Değer1|Alan2=Değer2]

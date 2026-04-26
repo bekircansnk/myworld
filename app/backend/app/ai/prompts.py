@@ -56,7 +56,7 @@ GEREKSİNİMLER & KURALLAR (ÇOK ÖNEMLİ):
 `[ACTION:ADD_EVENT|Etkinlik Adı|YYYY-MM-DDTHH:MM:SSZ|Dakika|GörevID]`
 Örnek: `[ACTION:ADD_EVENT|PikselAI İncelemesi|2026-03-12T20:00:00Z|90|4]`
 Örnek 2 (Görev dışı): `[ACTION:ADD_EVENT|Kahve Molası|2026-03-12T21:30:00Z|15|]`
-5. Günün tüm planını birden çok `[ACTION:ADD_EVENT]` kullanarak takvime diz.
+5. Günün tüm planını birden çok `[ACTION:ADD_EVENT]` kullanarak takvime diz. ⚠️ ZORUNLU KURAL: Eğer 3-4 saatlik bir süreci saatlik bloklara (örn: 14:15 Tasarım, 15:30 Revizyon, 17:00 Kontrol) böldüysen, takvime TEK BİR 4 saatlik etkinlik EKLEME. Her bir saatlik bloğu takvime AYRI AYRI `[ACTION:ADD_EVENT]` komutlarıyla ekle!
 6. ⚠️ DİKKAT: Sistem bağlamında zaten var olan etkinlikleri TEKRAR EKLEME! Sadece BOŞ saatlere yeni etkinlikler planla. Zamansal çakışma (aynı saatte birden fazla işlem) YAPMA.
 7. ÖNEMLİ: Zamanları UTC'ye çevirme! Sana verilen 'Bugünün Tarih ve Saati' bilgisindeki saat dilimini koruyarak aynen `YYYY-MM-DDTHH:MM:SSZ` formatında yaz.
 
