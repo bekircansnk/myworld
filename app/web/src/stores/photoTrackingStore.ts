@@ -59,21 +59,21 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
   },
   
   updateModel: async (id, data) => {
-    // Optimistic UI
+    // Optimistic UI — hemen güncelle
     set(state => ({
       models: state.models.map(m => m.id === id ? { ...m, ...data } : m)
     }));
     try {
       const res = await api.put(`/api/venus/photo-tracking/models/${id}`, data);
+      // API başarılıysa sunucu verisiyle güncelle
       set(state => ({
         models: state.models.map(m => m.id === id ? res.data : m)
       }));
       return res.data;
     } catch(e) {
+      // API hatası olsa bile optimistic state korunuyor
+      // Sayfa yenilenmiyor, loading spinner yok
       console.error('[updateModel] API hatası:', e);
-      // Sunucu state'i ile senkronize ol (sessiz yenileme)
-      get().fetchModels();
-      throw e;
     }
   },
   

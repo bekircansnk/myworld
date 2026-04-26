@@ -78,33 +78,46 @@ async def update_model(
     import logging
     logger = logging.getLogger(__name__)
     
-    update_data = data.model_dump(exclude_unset=True)
-    logger.info(f"[UPDATE MODEL] id={model_id}, update_data={update_data}")
-    
-    if not update_data:
-        raise HTTPException(status_code=400, detail="No data to update")
-    
-    # Doğrudan SQL UPDATE — identity map sorunlarını tamamen bypass eder
-    stmt = (
-        update(PhotoModel)
-        .where(PhotoModel.id == model_id, PhotoModel.user_id == current_user.id)
-        .values(**update_data)
-    )
-    result = await db.execute(stmt)
-    
-    if result.rowcount == 0:
-        raise HTTPException(status_code=404, detail="Model not found")
-    
-    await db.commit()
-    
-    # Taze veri ile yeniden yükle (identity map'te bu obje yok, temiz gelecek)
-    query = select(PhotoModel).where(PhotoModel.id == model_id).options(selectinload(PhotoModel.colors), selectinload(PhotoModel.revisions))
-    fresh_result = await db.execute(query)
-    updated = fresh_result.scalar_one()
-    
-    logger.info(f"[UPDATE MODEL] Sonuç: id={updated.id}, status={updated.status}, delivery_date={updated.delivery_date}")
-    
-    return updated
+    try:
+        update_data = data.model_dump(exclude_unset=True)
+        logger.info(f"[UPDATE MODEL] id={model_id}, gelen_data={update_data}")
+        
+        if not update_data:
+            raise HTTPException(status_code=400, detail="No data to update")
+        
+        # SQL UPDATE — identity map bypass
+        stmt = (
+            update(PhotoModel)
+            .where(PhotoModel.id == model_id, PhotoModel.user_id == current_user.id)
+            .values(**update_data)
+        )
+        result = await db.execute(stmt)
+        
+        if result.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Model not found")
+        
+        await db.commit()
+        
+        # Tüm cached objeleri temizle
+        db.expire_all()
+        
+        # Taze veri çek
+        query = select(PhotoModel).where(PhotoModel.id == model_id).options(
+            selectinload(PhotoModel.colors), 
+            selectinload(PhotoModel.revisions)
+        )
+        fresh_result = await db.execute(query)
+        updated = fresh_result.scalar_one()
+        
+        logger.info(f"[UPDATE MODEL] OK: id={updated.id}, status={updated.status}, delivery={updated.delivery_date}")
+        return updated
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[UPDATE MODEL] HATA: {str(e)}", exc_info=True)
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Model güncelleme hatası: {str(e)}")
 
 @router.delete("/models/{model_id}")
 async def delete_model(
