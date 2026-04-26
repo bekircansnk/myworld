@@ -19,7 +19,6 @@ __all__ = [
     "VenusCreative",
     "VenusAdsTask",
     "VenusReportTemplate",
-    "VenusCompetitor",
     "VenusOnboardingChecklist",
     "VenusCSVImport",
     "VenusAIObservation",
