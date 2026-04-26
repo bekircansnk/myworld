@@ -2,31 +2,52 @@
 
 Bu belge, **Fotoğraf Takip Paneli** içerisinde bulunan "İçe / Dışa Aktar" Excel süreçlerinin nasıl çalıştığını ve hangi sütunların sistemde nereye denk geldiğini açıklamaktadır.
 
+## 🔄 Çift Yönlü Senkronizasyon (Bidirectional Sync)
+
+Sistem, Excel dosyasını hem **dışa aktarma (export)** hem de **içe aktarma (import)** için **aynı sütun formatını** kullanır. Bu sayede dışarı aktardığınız Excel dosyasını düzenleyip tekrar içeri aktarabilirsiniz. Excel bir nevi **yedekleme ve toplu düzenleme aracı** olarak kullanılabilir.
+
+## 📊 Sütun Eşleştirme Tablosu
+
+| Excel Sütun Başlığı | Sistemdeki Karşılığı | Import | Export | Açıklama |
+| :--- | :--- | :---: | :---: | :--- |
+| **SEZON KOD** | `PhotoModel.sezon_kodu` | ✅ | ✅ | Modelin ait olduğu sezon (Örn: SS26). Opsiyonel. |
+| **MADDE AÇIKLAMASI** | `PhotoModel.model_name` | ✅ | ✅ | Model adı. Tüm renk satırlarında tekrarlanır. |
+| **RENK** | `PhotoModelColor.color_name` | ✅ | ✅ | Modele ait renk varyantı. |
+| **Sosyal Medya** | `PhotoModelColor.ig_required` + `ig_photo_count` | ✅ | ✅ | Boş = gerekli değil, "X" = gerekli ama adet yok, Sayı = üretilen fotoğraf adedi. |
+| **WEB SİTESİ 1** | `PhotoModelColor.banner_required` + `banner_photo_count` | ✅ | ✅ | Boş = gerekli değil, "X" = gerekli ama adet yok, Sayı = üretilen fotoğraf adedi. |
+| **TESLİM EDİLEN** | Hesaplanır: `ig_photo_count + banner_photo_count` | ✅ | ✅ | Model "Bitti" ise her renk için toplam üretilen fotoğraf sayısı. Import sırasında model completed olarak işaretlenir. |
+| **REVİZE** | `PhotoRevision.description` | ✅ | ✅ | Revize açıklamaları virgülle ayrılmış şekilde. |
+| **TESLİM EDİLME TARİHİ** | `PhotoModel.delivery_date` | ✅ | ✅ | Model "Bitti" olarak işaretlendiğinde atanan tarih. Format: GG.AA.YYYY |
+
 ## 📥 İçe Aktarma (Import) Mantığı
 
-Sistem, yüklediğiniz Excel dosyasını satır satır okur. Her satırın sütun başlıklarına göre eşleştirme yapar. Sütun isimleri **BİREBİR AYNISI** olmak zorundadır.
-
-| Excel Sütun Başlığı | Sistemdeki Karşılığı | Ne İşe Yarar? |
-| :--- | :--- | :--- |
-| **SEZON KODU** | `PhotoModel.sezon_kodu` | Modelin ait olduğu sezonu (Örn: SS26) belirtir. Opsiyoneldir. |
-| **MADDE AÇIKLAMASI** | `PhotoModel.model_name` | Modelin adıdır. Eğer sistemde o ay içinde bu isimde bir model yoksa, **1. Hafta** olacak şekilde yeni bir model oluşturur. Aynı isimde model varsa, yeni renkleri o modele ekler. |
-| **RENK** | `PhotoModelColor.color_name` | İlgili modele ait renk varyantıdır. Bir modelin birden çok rengi olabilir, bu nedenle Excel'deki alt alta olan aynı model ismindeki satırlar, o modele "yeni bir renk" olarak eklenir. |
-| **Sosyal Medya** | `PhotoModelColor.ig_required` | Eğer bu hücre boş değilse (herhangi bir şey, örn "x" yazıyorsa), bu renk için Instagram fotoğrafı çekilmesi **ZORUNLU** olarak işaretlenir. |
-| **WEB SİTESİ 16:9**| `PhotoModelColor.banner_required`| Eğer bu hücre boş değilse, bu renk için 16:9 Banner fotoğrafı çekilmesi **ZORUNLU** olarak işaretlenir. |
-
-*Sistem `Unnamed: 3`, `TESLİM EDİLEN`, `REVİZE` ve `TESLİM EDİLME TARİHİ` sütunlarını **içe aktarırken (yeni model/renk oluştururken) görmezden gelir**. Bu değerler sistem içerisinde (Haftalık İşler/Aylık Takvim bölümünde) manuel yönetilir ve sadece **Dışa Aktarma (Export)** işleminde doldurulur.*
+1. Sistem Excel dosyasını satır satır okur.
+2. `MADDE AÇIKLAMASI` sütunundaki model adına göre, o ay/yıl içinde aynı isimde model **varsa günceller**, **yoksa yeni oluşturur**.
+3. `RENK` sütunundaki renk adına göre, modelin altında aynı isimde renk **varsa günceller (adetler dahil)**, **yoksa yeni ekler**.
+4. `Sosyal Medya` ve `WEB SİTESİ 1` alanları akıllı ayrıştırma ile okunur:
+   - Boş / "0" / "yok" → Gerekli değil, adet 0
+   - "X" / "v" / "var" → Gerekli, adet 0 (henüz çekilmemiş)
+   - Sayı (örn: 4) → Gerekli, adet 4 (çekilmiş)
+5. `TESLİM EDİLEN` dolu ise model otomatik "completed" olarak işaretlenir.
+6. `TESLİM EDİLME TARİHİ` GG.AA.YYYY formatında okunur ve `delivery_date` olarak kaydedilir.
+7. Eski format sütun başlıkları da desteklenir (SEZON KODU, Sosyal Medya , WEB SİTESİ 16:9).
 
 ## 📤 Dışa Aktarma (Export) Mantığı
 
-Sistemdeki verileri dışarı aktardığınızda, aynı şablon formatı korunarak sizin için otomatik doldurulur:
-
-1. **SEZON KODU** ve **MADDE AÇIKLAMASI**: Sadece modelin ilk rengi yazılırken doldurulur (Excel'deki görünümü sadeleştirmek için alt satırlarda boş bırakılır).
+1. **SEZON KOD** ve **MADDE AÇIKLAMASI**: Tüm renk satırlarında dolu olarak yazılır (filtreleme kolaylığı için).
 2. **RENK**: Modelin tüm renkleri alt alta sıralanır.
-3. **Sosyal Medya / WEB SİTESİ 16:9**: Sistemde "İstendi" olarak işaretlenmişse bu hücrelere otomatik "X" atılır.
-4. **TESLİM EDİLEN**: Model eğer "Tamamlandı" olarak işaretlenmişse, otomatik `TAMAMLANDI` yazar.
-5. **REVİZE**: "Revize Merkezi"ne girdiğiniz tüm revize açıklamaları aralarına virgül konularak listelenir.
-6. **TESLİM EDİLME TARİHİ**: Sistemin tamamlandı olarak işaretlediği tarih YYYY-MM-DD formatında yazılır.
+3. **Sosyal Medya / WEB SİTESİ 1**: 
+   - Adet > 0 ise sayı yazılır (örn: 4)
+   - Adet 0 ama gerekli ise "X" yazılır
+   - Gerekli değilse boş bırakılır
+4. **TESLİM EDİLEN**: Model "Bitti" ise, o renk için `Sosyal Medya + WEB SİTESİ 1` adetlerinin toplamı yazılır.
+5. **REVİZE**: Revize Merkezi'ne girilen tüm açıklamalar virgülle ayrılarak listelenir.
+6. **TESLİM EDİLME TARİHİ**: Model "Bitti" olarak işaretlendiğindeki tarih GG.AA.YYYY formatında yazılır.
 
-## Olası "Not Found" Hatasının Sebebi
+## ⚠️ Önemli Notlar
 
-Eğer Vercel üzerinden (canlı site) Excel yüklemeye çalışıp `Not Found` (404) hatası aldıysanız, bunun sebebi **Backend** sunucunuza (FastAPI/Render vb.) yeni yazdığımız uçların henüz deploy edilmemiş (yüklenmemiş) olmasıdır. Excel import uçları `/api/venus/photo-tracking/import-excel` adresindedir. Kodunuz güncellendiği an bu hata ortadan kalkacaktır.
+- Excel dosyası **.xlsx** formatında olmalıdır.
+- Sütun başlıkları **ilk satırda** ve **tam eşleşme** ile okunur.
+- Bir modeli panel üzerinden "Bitti" olarak işaretlediğinizde, `delivery_date` otomatik atanır.
+- Export sırasında modeller **hafta numarasına** göre sıralanır.
+- Import/Export aynı formatı kullandığı için, dışarı aktardığınız dosyayı düzenleyip tekrar içeri aktarabilirsiniz.

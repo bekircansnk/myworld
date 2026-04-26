@@ -421,6 +421,9 @@ async def export_excel(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    import logging
+    logger = logging.getLogger(__name__)
+    
     query = select(PhotoModel).where(PhotoModel.user_id == current_user.id).options(selectinload(PhotoModel.colors), selectinload(PhotoModel.revisions))
     if project_id:
         query = query.where(PhotoModel.project_id == project_id)
@@ -429,38 +432,69 @@ async def export_excel(
     if year:
         query = query.where(PhotoModel.year == year)
         
-    query = query.order_by(PhotoModel.created_at.desc())
+    query = query.order_by(PhotoModel.week_number.asc(), PhotoModel.created_at.asc())
     result = await db.execute(query)
     models = result.scalars().all()
     
-    # Format according to user's Excel structure
-    # 'SEZON KOD', 'MADDE AÇIKLAMASI', 'RENK', 'Sosyal Medya', 'WEB SİTESİ 1', 'TESLİM EDİLEN', 'REVİZE', 'TESLİM EDİLME TARİHİ'
+    logger.info(f"[EXCEL EXPORT] Toplam {len(models)} model bulundu.")
     
+    def safe_format_date(dt_val) -> str:
+        """delivery_date SQLite'da string veya datetime olabilir, güvenli şekilde formatla"""
+        if dt_val is None:
+            return ''
+        try:
+            if isinstance(dt_val, str):
+                # ISO format string -> parse et
+                from dateutil import parser as dateutil_parser
+                dt_obj = dateutil_parser.parse(dt_val)
+                return dt_obj.strftime('%d.%m.%Y')
+            elif hasattr(dt_val, 'strftime'):
+                return dt_val.strftime('%d.%m.%Y')
+            else:
+                return str(dt_val)
+        except Exception as e:
+            logger.warning(f"[EXCEL EXPORT] Tarih formatlama hatası: {dt_val} -> {e}")
+            return str(dt_val) if dt_val else ''
+    
+    # Sütun adları: Import ile AYNI isimler (çift yönlü uyumluluk)
     data = []
     for model in models:
-        for i, color in enumerate(model.colors):
-            row = {
-                'SEZON KOD': model.sezon_kodu or '',
-                'MADDE AÇIKLAMASI': model.model_name or '',
-                'RENK': color.color_name or '',
-                'Sosyal Medya': color.ig_photo_count if color.ig_photo_count > 0 else ('X' if color.ig_required else ''),
-                'WEB SİTESİ 1': color.banner_photo_count if color.banner_photo_count > 0 else ('X' if color.banner_required else ''),
-                'TESLİM EDİLEN': (color.ig_photo_count + color.banner_photo_count) if model.status == 'completed' else '',
-                'REVİZE': ', '.join([r.description for r in model.revisions]),
-                'TESLİM EDİLME TARİHİ': model.delivery_date.strftime('%d.%m.%Y') if model.delivery_date else ''
-            }
-            data.append(row)
-            
-        if not model.colors:
+        is_completed = str(model.status).strip().lower() == 'completed'
+        delivery_str = safe_format_date(model.delivery_date)
+        revize_str = ', '.join([r.description for r in model.revisions]) if model.revisions else ''
+        
+        logger.info(f"[EXCEL EXPORT] Model: {model.model_name}, status={model.status}, is_completed={is_completed}, delivery_date={model.delivery_date}, colors={len(model.colors)}")
+        
+        if model.colors:
+            for color in model.colors:
+                ig_val = color.ig_photo_count if (color.ig_photo_count and color.ig_photo_count > 0) else ('X' if color.ig_required else '')
+                banner_val = color.banner_photo_count if (color.banner_photo_count and color.banner_photo_count > 0) else ('X' if color.banner_required else '')
+                
+                ig_count = color.ig_photo_count or 0
+                banner_count = color.banner_photo_count or 0
+                teslim_edilen = (ig_count + banner_count) if is_completed else ''
+                
+                row = {
+                    'SEZON KOD': model.sezon_kodu or '',
+                    'MADDE AÇIKLAMASI': model.model_name or '',
+                    'RENK': color.color_name or '',
+                    'Sosyal Medya': ig_val,
+                    'WEB SİTESİ 1': banner_val,
+                    'TESLİM EDİLEN': teslim_edilen,
+                    'REVİZE': revize_str,
+                    'TESLİM EDİLME TARİHİ': delivery_str
+                }
+                data.append(row)
+        else:
             row = {
                 'SEZON KOD': model.sezon_kodu or '',
                 'MADDE AÇIKLAMASI': model.model_name or '',
                 'RENK': '',
                 'Sosyal Medya': '',
                 'WEB SİTESİ 1': '',
-                'TESLİM EDİLEN': 0 if model.status == 'completed' else '',
-                'REVİZE': ', '.join([r.description for r in model.revisions]),
-                'TESLİM EDİLME TARİHİ': model.delivery_date.strftime('%d.%m.%Y') if model.delivery_date else ''
+                'TESLİM EDİLEN': 0 if is_completed else '',
+                'REVİZE': revize_str,
+                'TESLİM EDİLME TARİHİ': delivery_str
             }
             data.append(row)
 
@@ -481,3 +515,4 @@ async def export_excel(
         headers=headers,
         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
+
