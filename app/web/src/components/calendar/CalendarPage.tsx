@@ -5,7 +5,7 @@ import { useCalendarStore } from "@/stores/calendarStore"
 import { useTaskStore } from "@/stores/taskStore"
 import { CalendarEvent, EVENT_COLORS, CATEGORY_LABELS } from "@/types/calendar"
 import { 
-  ChevronLeft, ChevronRight, Plus, Filter, Calendar as CalendarIcon, 
+  ChevronLeft, ChevronRight, ChevronDown, Plus, Filter, Calendar as CalendarIcon, 
   Clock, X, Check, Trash2, Sun, Coffee, Briefcase, Book, 
   Heart, Users, Dumbbell, Sparkles, Send, Bot, Loader2, 
   ListTodo, BarChart3, MessageCircle
@@ -81,6 +81,12 @@ export function CalendarPage() {
   const [detailEvent, setDetailEvent] = React.useState<CalendarEvent | null>(null)
   const [mounted, setMounted] = React.useState(false)
   const [showFilters, setShowFilters] = React.useState(false)
+
+  // Collapse/Expand state for left sidebar
+  const [isAylikOzetOpen, setIsAylikOzetOpen] = React.useState(true)
+  const [isBugunProgramiOpen, setIsBugunProgramiOpen] = React.useState(true)
+  const [isBekleyenGorevlerOpen, setIsBekleyenGorevlerOpen] = React.useState(true)
+  const [isTumEtkinliklerimOpen, setIsTumEtkinliklerimOpen] = React.useState(true)
 
   const current = React.useMemo(() => new Date(currentDate), [currentDate])
 
@@ -242,119 +248,155 @@ export function CalendarPage() {
       <div className="w-[320px] shrink-0 border-r border-[#e8e4d8]/30 dark:border-white/8 bg-white/60 dark:bg-[#151926]/85 backdrop-blur-sm flex flex-col overflow-hidden">
         {/* Aylık Özet */}
         <div className="p-5 border-b border-gray-100 dark:border-white/8">
-          <h2 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-            <BarChart3 className="w-3 h-3" />
-            Aylık Özet
-          </h2>
-          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/20 p-4 rounded-xl border border-indigo-100 dark:border-indigo-700/30">
-            <p className="text-xs leading-relaxed text-gray-600 dark:text-gray-300">
-              {format(current, 'MMMM', { locale: tr })} ayında toplam <span className="font-bold text-gray-900 dark:text-white">{monthEvents.length} etkinlik</span> planlandı.
-              {todayTasks.length > 0 && <> Şu anda <span className="font-bold text-indigo-600 dark:text-indigo-400">{todayTasks.length} aktif görev</span> bulunuyor.</>}
-            </p>
-            <div className="flex gap-3 mt-3">
-              <div className="flex-1 bg-white/80 dark:bg-slate-800/60 rounded-lg p-2 text-center">
-                <p className="text-lg font-black text-indigo-600 dark:text-indigo-400">{monthEvents.length}</p>
-                <p className="text-[9px] font-semibold text-gray-400 uppercase">Etkinlik</p>
-              </div>
-              <div className="flex-1 bg-white/80 dark:bg-slate-800/60 rounded-lg p-2 text-center">
-                <p className="text-lg font-black text-purple-600 dark:text-purple-400">{todayTasks.length}</p>
-                <p className="text-[9px] font-semibold text-gray-400 uppercase">Görev</p>
+          <button 
+            onClick={() => setIsAylikOzetOpen(!isAylikOzetOpen)}
+            className="w-full flex items-center justify-between text-left cursor-pointer mb-3"
+          >
+            <h2 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+              <BarChart3 className="w-3 h-3" />
+              Aylık Özet
+            </h2>
+            {isAylikOzetOpen ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
+          </button>
+          
+          {isAylikOzetOpen && (
+            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/20 p-4 rounded-xl border border-indigo-100 dark:border-indigo-700/30">
+              <p className="text-xs leading-relaxed text-gray-600 dark:text-gray-300">
+                {format(current, 'MMMM', { locale: tr })} ayında toplam <span className="font-bold text-gray-900 dark:text-white">{monthEvents.length} etkinlik</span> planlandı.
+                {todayTasks.length > 0 && <> Şu anda <span className="font-bold text-indigo-600 dark:text-indigo-400">{todayTasks.length} aktif görev</span> bulunuyor.</>}
+              </p>
+              <div className="flex gap-3 mt-3">
+                <div className="flex-1 bg-white/80 dark:bg-slate-800/60 rounded-lg p-2 text-center">
+                  <p className="text-lg font-black text-indigo-600 dark:text-indigo-400">{monthEvents.length}</p>
+                  <p className="text-[9px] font-semibold text-gray-400 uppercase">Etkinlik</p>
+                </div>
+                <div className="flex-1 bg-white/80 dark:bg-slate-800/60 rounded-lg p-2 text-center">
+                  <p className="text-lg font-black text-purple-600 dark:text-purple-400">{todayTasks.length}</p>
+                  <p className="text-[9px] font-semibold text-gray-400 uppercase">Görev</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Günlük Özet */}
         <div className="p-5 border-b border-gray-100 dark:border-white/8">
-          <h2 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-            <CalendarIcon className="w-3 h-3" />
-            Bugünün Programı
-          </h2>
-          <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-3 font-medium">
-            {format(new Date(), 'dd MMMM yyyy, EEEE', { locale: tr })}
-          </p>
-          <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
-            {todayEvents.length === 0 ? (
-              <div className="text-center py-4">
-                <Sparkles className="w-6 h-6 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-                <p className="text-[11px] text-gray-400 font-medium">Bugün için plan yok</p>
+          <button 
+            onClick={() => setIsBugunProgramiOpen(!isBugunProgramiOpen)}
+            className="w-full flex items-center justify-between text-left cursor-pointer mb-3"
+          >
+            <h2 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+              <CalendarIcon className="w-3 h-3" />
+              Bugünün Programı
+            </h2>
+            {isBugunProgramiOpen ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
+          </button>
+          
+          {isBugunProgramiOpen && (
+            <>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-3 font-medium">
+                {format(new Date(), 'dd MMMM yyyy, EEEE', { locale: tr })}
+              </p>
+              <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
+                {todayEvents.length === 0 ? (
+                  <div className="text-center py-4">
+                    <Sparkles className="w-6 h-6 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                    <p className="text-[11px] text-gray-400 font-medium">Bugün için plan yok</p>
+                  </div>
+                ) : (
+                  todayEvents.sort((a, b) => (a.startTime || '00:00').localeCompare(b.startTime || '00:00')).map(event => {
+                    const colors = EVENT_COLORS[event.color] || EVENT_COLORS.blue
+                    return (
+                      <button
+                        key={event.id}
+                        onClick={(e) => handleEventClick(event, e)}
+                        className={`w-full text-left p-2.5 rounded-lg ${colors.bg} border ${colors.border} hover:shadow-md transition-all`}
+                      >
+                        <div className="flex items-start gap-2">
+                          <div className={`w-1 min-h-[24px] rounded-full ${colors.dot} shrink-0 mt-0.5`} />
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-[11px] font-bold ${colors.text} truncate`}>{event.title}</p>
+                            {event.startTime && (
+                              <p className={`text-[10px] ${colors.text} opacity-70 flex items-center gap-1`}>
+                                <Clock className="w-2.5 h-2.5" />
+                                {event.startTime}{event.endTime && ` - ${event.endTime}`}
+                              </p>
+                            )}
+                            {event.allDay && <p className={`text-[10px] ${colors.text} opacity-70`}>Tüm gün</p>}
+                          </div>
+                        </div>
+                      </button>
+                    )
+                  })
+                )}
               </div>
-            ) : (
-              todayEvents.sort((a, b) => (a.startTime || '00:00').localeCompare(b.startTime || '00:00')).map(event => {
-                const colors = EVENT_COLORS[event.color] || EVENT_COLORS.blue
-                return (
-                  <button
-                    key={event.id}
-                    onClick={(e) => handleEventClick(event, e)}
-                    className={`w-full text-left p-2.5 rounded-lg ${colors.bg} border ${colors.border} hover:shadow-md transition-all`}
-                  >
-                    <div className="flex items-start gap-2">
-                      <div className={`w-1 min-h-[24px] rounded-full ${colors.dot} shrink-0 mt-0.5`} />
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-[11px] font-bold ${colors.text} truncate`}>{event.title}</p>
-                        {event.startTime && (
-                          <p className={`text-[10px] ${colors.text} opacity-70 flex items-center gap-1`}>
-                            <Clock className="w-2.5 h-2.5" />
-                            {event.startTime}{event.endTime && ` - ${event.endTime}`}
-                          </p>
-                        )}
-                        {event.allDay && <p className={`text-[10px] ${colors.text} opacity-70`}>Tüm gün</p>}
-                      </div>
-                    </div>
-                  </button>
-                )
-              })
-            )}
-          </div>
+            </>
+          )}
         </div>
 
         {/* Bekleyen Görevler */}
-        {/* Beklayan Görevler */}
-        <div className="p-5 border-b border-gray-100 dark:border-white/8 flex flex-col flex-1 min-h-0">
-          <div className="flex items-center justify-between mb-3 shrink-0">
-            <h2 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
-              <ListTodo className="w-3 h-3" />
-              Bekleyen Görevler
-            </h2>
-            <span className="text-[10px] font-bold bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400 px-2 py-0.5 rounded-full">
-              {pendingTasksToShow.length}
-            </span>
-          </div>
-          <div className="space-y-1.5 overflow-y-auto pr-1 flex-1 custom-scrollbar">
-            {pendingTasksToShow
-              .sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-              .map(t => (
-              <div key={t.id} 
-                draggable
-                onDragStart={(e) => { 
-                  e.dataTransfer.setData('sourceType', 'task'); 
-                  e.dataTransfer.setData('id', t.id.toString()); 
-                  e.dataTransfer.effectAllowed = 'move'; 
-                }}
-                onClick={() => useTaskStore.getState().openTaskDetail(t)}
-                className="flex items-center gap-2.5 p-2 bg-white dark:bg-white/5 rounded-lg border border-gray-100 dark:border-white/8 group hover:border-indigo-200 dark:hover:border-indigo-700 transition-colors cursor-pointer active:cursor-grabbing hover:shadow-sm"
-              >
-                <div className={`w-2 h-2 rounded-full shrink-0 ${t.priority === 'urgent' ? 'bg-rose-500' : t.priority === 'low' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                <span className="text-[11px] text-gray-700 dark:text-gray-200 font-medium truncate flex-1">{t.title}</span>
-              </div>
-            ))}
-          </div>
+        <div className={`p-5 border-b border-gray-100 dark:border-white/8 flex flex-col ${isBekleyenGorevlerOpen ? 'flex-1 min-h-0' : 'shrink-0'}`}>
+          <button 
+            onClick={() => setIsBekleyenGorevlerOpen(!isBekleyenGorevlerOpen)}
+            className={`w-full flex items-center justify-between text-left cursor-pointer shrink-0 ${isBekleyenGorevlerOpen ? 'mb-3' : ''}`}
+          >
+            <div className="flex items-center gap-2">
+              <h2 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+                <ListTodo className="w-3 h-3" />
+                Bekleyen Görevler
+              </h2>
+              <span className="text-[10px] font-bold bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400 px-2 py-0.5 rounded-full">
+                {pendingTasksToShow.length}
+              </span>
+            </div>
+            {isBekleyenGorevlerOpen ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
+          </button>
+          
+          {isBekleyenGorevlerOpen && (
+            <div className="space-y-1.5 overflow-y-auto pr-1 flex-1 custom-scrollbar">
+              {pendingTasksToShow
+                .sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                .map(t => (
+                <div key={t.id} 
+                  draggable
+                  onDragStart={(e) => { 
+                    e.dataTransfer.setData('sourceType', 'task'); 
+                    e.dataTransfer.setData('id', t.id.toString()); 
+                    e.dataTransfer.effectAllowed = 'move'; 
+                  }}
+                  onClick={() => useTaskStore.getState().openTaskDetail(t)}
+                  className="flex items-center gap-2.5 p-2 bg-white dark:bg-white/5 rounded-lg border border-gray-100 dark:border-white/8 group hover:border-indigo-200 dark:hover:border-indigo-700 transition-colors cursor-pointer active:cursor-grabbing hover:shadow-sm"
+                >
+                  <div className={`w-2 h-2 rounded-full shrink-0 ${t.priority === 'urgent' ? 'bg-rose-500' : t.priority === 'low' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                  <span className="text-[11px] text-gray-700 dark:text-gray-200 font-medium truncate flex-1">{t.title}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Tüm Etkinliklerim */}
         <div 
-          className="p-5 flex flex-col h-[220px] shrink-0 border-t border-gray-100 dark:border-white/8"
+          className={`p-5 flex flex-col shrink-0 border-t border-gray-100 dark:border-white/8 ${isTumEtkinliklerimOpen ? 'h-[220px]' : ''}`}
           onContextMenu={(e) => {
             e.preventDefault();
             setIsSelectionMode(true);
           }}
         >
-           <div className="flex items-center justify-between mb-3 shrink-0">
-            <h2 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
-              <CalendarIcon className="w-3 h-3" />
-              Tüm Etkinliklerim
-            </h2>
-            <div className="flex gap-1">
+           <div className={`flex items-center justify-between shrink-0 ${isTumEtkinliklerimOpen ? 'mb-3' : ''}`}>
+            <button 
+              onClick={() => setIsTumEtkinliklerimOpen(!isTumEtkinliklerimOpen)}
+              className="flex items-center justify-between flex-1 text-left cursor-pointer"
+            >
+              <h2 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+                <CalendarIcon className="w-3 h-3" />
+                Tüm Etkinliklerim
+              </h2>
+              <div className="flex items-center gap-2">
+                {isTumEtkinliklerimOpen ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
+              </div>
+            </button>
+            <div className="flex gap-1 ml-3 shrink-0">
               {isSelectionMode ? (
                  <>
                    <button onClick={() => { setIsSelectionMode(false); setSelectedIds([]) }} className="text-[10px] text-gray-500 font-semibold hover:bg-gray-100 px-2 py-1 rounded-md">İptal</button>
@@ -364,7 +406,7 @@ export function CalendarPage() {
                  </>
               ) : (
                  <button 
-                   onClick={() => { setSelectedDate(format(new Date(), 'yyyy-MM-dd')); setIsAddEventOpen(true) }}
+                   onClick={(e) => { e.stopPropagation(); setSelectedDate(format(new Date(), 'yyyy-MM-dd')); setIsAddEventOpen(true) }}
                    className="text-[10px] text-indigo-500 font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-900/20 px-2 py-1 rounded-md transition-colors flex items-center gap-1"
                 >
                   <Plus className="w-3 h-3" /> Ekle
@@ -372,47 +414,50 @@ export function CalendarPage() {
               )}
             </div>
           </div>
-          <div className="space-y-2 overflow-y-auto pr-1 flex-1 custom-scrollbar">
-             {events.slice().sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(e => {
-                const colors = EVENT_COLORS[e.color] || EVENT_COLORS.blue;
-                return (
-                 <button 
-                  key={e.id}
-                  draggable={!isSelectionMode}
-                  onDragStart={(evt) => {
-                    if (isSelectionMode) return;
-                    evt.dataTransfer.setData('sourceType', 'event');
-                    evt.dataTransfer.setData('id', e.id.toString());
-                    evt.dataTransfer.effectAllowed = 'move';
-                  }}
-                  onClick={(evt) => {
-                     if (isSelectionMode) {
-                        evt.stopPropagation();
-                        setSelectedIds(prev => prev.includes(e.id.toString()) ? prev.filter(id => id !== e.id.toString()) : [...prev, e.id.toString()]);
-                     } else {
-                        setCurrentDate(new Date(e.date).toISOString());
-                        setSelectedDate(e.date);
-                        setViewMode('day');
-                     }
-                  }}
-                  className={`w-full text-left p-2.5 rounded-xl border border-gray-100 dark:border-slate-800 hover:shadow-sm transition-all ${!isSelectionMode ? 'cursor-grab active:cursor-grabbing' : ''} ${colors.bg} ${selectedIds.includes(e.id.toString()) ? 'ring-2 ring-indigo-500' : ''}`}
-                 >
-                    <div className="flex justify-between items-start">
-                      <div className="min-w-0 flex-1">
-                        <p className={`text-[12px] font-bold ${colors.text} truncate`}>{e.title}</p>
-                        <p className={`text-[10px] ${colors.text} opacity-70 mt-1`}>{format(new Date(e.date), 'dd MMMM yyyy, EEEE', { locale: tr })}</p>
-                      </div>
-                      {isSelectionMode && (
-                        <div className={`w-4 h-4 rounded-sm border shrink-0 flex items-center justify-center ${selectedIds.includes(e.id.toString()) ? 'bg-indigo-500 border-indigo-500' : 'border-gray-300'}`}>
-                           {selectedIds.includes(e.id.toString()) && <Check className="w-3 h-3 text-white" />}
+          
+          {isTumEtkinliklerimOpen && (
+            <div className="space-y-2 overflow-y-auto pr-1 flex-1 custom-scrollbar">
+               {events.slice().sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(e => {
+                  const colors = EVENT_COLORS[e.color] || EVENT_COLORS.blue;
+                  return (
+                   <button 
+                    key={e.id}
+                    draggable={!isSelectionMode}
+                    onDragStart={(evt) => {
+                      if (isSelectionMode) return;
+                      evt.dataTransfer.setData('sourceType', 'event');
+                      evt.dataTransfer.setData('id', e.id.toString());
+                      evt.dataTransfer.effectAllowed = 'move';
+                    }}
+                    onClick={(evt) => {
+                       if (isSelectionMode) {
+                          evt.stopPropagation();
+                          setSelectedIds(prev => prev.includes(e.id.toString()) ? prev.filter(id => id !== e.id.toString()) : [...prev, e.id.toString()]);
+                       } else {
+                          setCurrentDate(new Date(e.date).toISOString());
+                          setSelectedDate(e.date);
+                          setViewMode('day');
+                       }
+                    }}
+                    className={`w-full text-left p-2.5 rounded-xl border border-gray-100 dark:border-slate-800 hover:shadow-sm transition-all ${!isSelectionMode ? 'cursor-grab active:cursor-grabbing' : ''} ${colors.bg} ${selectedIds.includes(e.id.toString()) ? 'ring-2 ring-indigo-500' : ''}`}
+                   >
+                      <div className="flex justify-between items-start">
+                        <div className="min-w-0 flex-1">
+                          <p className={`text-[12px] font-bold ${colors.text} truncate`}>{e.title}</p>
+                          <p className={`text-[10px] ${colors.text} opacity-70 mt-1`}>{format(new Date(e.date), 'dd MMMM yyyy, EEEE', { locale: tr })}</p>
                         </div>
-                      )}
-                    </div>
-                 </button>
-                )
-             })}
-             {events.length === 0 && <p className="text-[11px] text-gray-400 text-center mt-4 border-2 border-dashed border-gray-100 dark:border-slate-800 rounded-xl p-4">Henüz etkinlik yok.</p>}
-          </div>
+                        {isSelectionMode && (
+                          <div className={`w-4 h-4 rounded-sm border shrink-0 flex items-center justify-center ${selectedIds.includes(e.id.toString()) ? 'bg-indigo-500 border-indigo-500' : 'border-gray-300'}`}>
+                             {selectedIds.includes(e.id.toString()) && <Check className="w-3 h-3 text-white" />}
+                          </div>
+                        )}
+                      </div>
+                   </button>
+                  )
+               })}
+               {events.length === 0 && <p className="text-[11px] text-gray-400 text-center mt-4 border-2 border-dashed border-gray-100 dark:border-slate-800 rounded-xl p-4">Henüz etkinlik yok.</p>}
+            </div>
+          )}
         </div>
       </div>
 
