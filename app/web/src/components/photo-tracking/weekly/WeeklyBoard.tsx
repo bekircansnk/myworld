@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { usePhotoTrackingStore } from '@/stores/photoTrackingStore';
 import { PhotoModel, PhotoModelColor } from '@/types/photo-tracking';
-import { CheckCircle2, Circle, ChevronDown, ChevronUp, Image as ImageIcon, MessageSquare, Plus, Minus, CheckSquare } from 'lucide-react';
+import { CheckCircle2, Circle, ChevronDown, ChevronUp, Image as ImageIcon, MessageSquare, Plus, Minus, CheckSquare, Edit2, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
+import { useContextMenuStore } from '@/stores/contextMenuStore';
 
 interface ModelCardProps {
   model: PhotoModel;
@@ -14,6 +15,10 @@ interface ModelCardProps {
 function ColorRow({ color, onUpdateColor }: { color: PhotoModelColor, onUpdateColor: (id: number, data: any) => Promise<any> }) {
   const [localIgCount, setLocalIgCount] = React.useState(color.ig_photo_count);
   const [localBannerCount, setLocalBannerCount] = React.useState(color.banner_photo_count);
+  const [isEditingName, setIsEditingName] = React.useState(false);
+  const [editName, setEditName] = React.useState(color.color_name);
+  const openMenu = useContextMenuStore(s => s.openMenu);
+  const deleteColor = usePhotoTrackingStore(s => s.deleteColor);
 
   React.useEffect(() => {
     setLocalIgCount(color.ig_photo_count);
@@ -63,10 +68,51 @@ function ColorRow({ color, onUpdateColor }: { color: PhotoModelColor, onUpdateCo
     }
   };
 
+  const saveName = async () => {
+    if (editName.trim() && editName !== color.color_name) {
+       await onUpdateColor(color.id, { color_name: editName.trim() });
+    } else {
+       setEditName(color.color_name);
+    }
+    setIsEditingName(false);
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openMenu(e.clientX, e.clientY, [
+      {
+        label: 'Yeniden Adlandır',
+        icon: <Edit2 className="w-4 h-4" />,
+        onClick: () => setIsEditingName(true)
+      },
+      {
+        label: 'Rengi Sil',
+        icon: <Trash2 className="w-4 h-4" />,
+        destructive: true,
+        onClick: async () => {
+          if (window.confirm(`"${color.color_name}" rengini silmek istediğinize emin misiniz?`)) {
+             try { await deleteColor(color.model_id, color.id); } catch(e) {}
+          }
+        }
+      }
+    ]);
+  };
+
   return (
-    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700 shadow-sm">
+    <div onContextMenu={handleContextMenu} className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700 shadow-sm transition-all hover:border-brand-dark/20 cursor-default">
       <div className="font-semibold text-sm text-brand-dark dark:text-white min-w-[120px]">
-        {color.color_name}
+        {isEditingName ? (
+           <input 
+              type="text" 
+              value={editName} 
+              onChange={e => setEditName(e.target.value)} 
+              onBlur={saveName} 
+              onKeyDown={e => { if(e.key === 'Enter') saveName(); else if(e.key === 'Escape') { setEditName(color.color_name); setIsEditingName(false); } }}
+              autoFocus 
+              className="bg-transparent border-b border-brand-dark focus:outline-none w-full max-w-[100px] text-brand-dark dark:text-white"
+           />
+        ) : color.color_name}
       </div>
       
       <div className="flex flex-col sm:flex-row gap-4 xl:gap-8 flex-1">
@@ -126,47 +172,104 @@ function ModelCard({ model, onUpdateColor, onModelStatusChange }: ModelCardProps
   const [isExpanded, setIsExpanded] = useState(false);
   const [isAddingColor, setIsAddingColor] = useState(false);
   const [newColorName, setNewColorName] = useState('');
+  
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editName, setEditName] = useState(model.model_name);
+
   const createColor = usePhotoTrackingStore(s => s.createColor);
+  const deleteModel = usePhotoTrackingStore(s => s.deleteModel);
+  const updateModel = usePhotoTrackingStore(s => s.updateModel);
+  const openMenu = useContextMenuStore(s => s.openMenu);
   
   const allColorsDone = model.colors.length > 0 && model.colors.every(c => 
     (!c.ig_required || c.ig_completed) && (!c.banner_required || c.banner_completed)
   );
 
-  const toggleColorStatus = async (color: PhotoModelColor, type: 'ig' | 'banner') => {
-    if (type === 'ig') {
-      await onUpdateColor(color.id, { ig_completed: !color.ig_completed });
+  const saveName = async () => {
+    if (editName.trim() && editName !== model.model_name) {
+       await updateModel(model.id, { model_name: editName.trim() });
     } else {
-      await onUpdateColor(color.id, { banner_completed: !color.banner_completed });
+       setEditName(model.model_name);
     }
+    setIsEditingName(false);
   };
 
-  const adjustPhotoCount = async (color: PhotoModelColor, type: 'ig' | 'banner', delta: number) => {
-    if (type === 'ig') {
-      const newCount = Math.max(0, color.ig_photo_count + delta);
-      await onUpdateColor(color.id, { ig_photo_count: newCount });
-    } else {
-      const newCount = Math.max(0, color.banner_photo_count + delta);
-      await onUpdateColor(color.id, { banner_photo_count: newCount });
-    }
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openMenu(e.clientX, e.clientY, [
+      {
+        label: 'Yeniden Adlandır',
+        icon: <Edit2 className="w-4 h-4" />,
+        onClick: () => setIsEditingName(true)
+      },
+      {
+        label: 'Modeli Sil',
+        icon: <Trash2 className="w-4 h-4" />,
+        destructive: true,
+        onClick: async () => {
+          if (window.confirm(`"${model.model_name}" modelini silmek istediğinize emin misiniz?`)) {
+             try { await deleteModel(model.id); } catch(e) {}
+          }
+        }
+      }
+    ]);
   };
 
   const handleAddColor = async () => {
     if(!newColorName.trim()) return;
+    const colorName = newColorName.trim();
+    setNewColorName('');
+    setIsAddingColor(false);
+    
+    // Optimistic Update directly in store state
+    const tempId = Date.now();
+    usePhotoTrackingStore.setState(state => ({
+       models: state.models.map(m => {
+          if (m.id === model.id) {
+             return { ...m, colors: [...m.colors, {
+                id: tempId, model_id: model.id, color_name: colorName,
+                ig_required: true, banner_required: true,
+                ig_completed: false, ig_completed_at: undefined, ig_photo_count: 0,
+                banner_completed: false, banner_completed_at: undefined, banner_photo_count: 0,
+                created_at: new Date().toISOString()
+             }]};
+          }
+          return m;
+       })
+    }));
+
     try {
-        await createColor(model.id, {
-            color_name: newColorName.trim(),
+        const newColor = await createColor(model.id, {
+            color_name: colorName,
             ig_required: true,
             banner_required: true
         });
-        setNewColorName('');
-        setIsAddingColor(false);
+        // We replace tempId with real ID silently to not cause unmount
+        usePhotoTrackingStore.setState(state => ({
+           models: state.models.map(m => {
+              if (m.id === model.id) {
+                 return { ...m, colors: m.colors.map(c => c.id === tempId ? newColor : c) };
+              }
+              return m;
+           })
+       }));
     } catch(e) {
         console.error(e);
+        // revert optimistic
+        usePhotoTrackingStore.setState(state => ({
+           models: state.models.map(m => {
+              if (m.id === model.id) {
+                 return { ...m, colors: m.colors.filter(c => c.id !== tempId) };
+              }
+              return m;
+           })
+        }));
     }
   };
 
   return (
-    <div className={`bg-white dark:bg-slate-800 rounded-xl shadow-sm border transition-colors ${allColorsDone || model.status === 'completed' ? 'border-emerald-200 dark:border-emerald-900/50' : 'border-slate-200 dark:border-white/5'}`}>
+    <div onContextMenu={handleContextMenu} className={`bg-white dark:bg-slate-800 rounded-xl shadow-sm border transition-colors hover:border-brand-dark/30 ${allColorsDone || model.status === 'completed' ? 'border-emerald-200 dark:border-emerald-900/50' : 'border-slate-200 dark:border-white/5'}`}>
       <div 
         className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
@@ -175,9 +278,21 @@ function ModelCard({ model, onUpdateColor, onModelStatusChange }: ModelCardProps
           <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${model.status === 'completed' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
              <ImageIcon className="w-5 h-5" />
           </div>
-          <div>
+          <div onClick={(e) => isEditingName && e.stopPropagation()}>
              <div className="flex items-center gap-2">
-                <h4 className="font-bold text-brand-dark dark:text-white">{model.model_name}</h4>
+                {isEditingName ? (
+                   <input 
+                      type="text" 
+                      value={editName} 
+                      onChange={e => setEditName(e.target.value)} 
+                      onBlur={saveName} 
+                      onKeyDown={e => { if(e.key === 'Enter') saveName(); else if(e.key === 'Escape') { setEditName(model.model_name); setIsEditingName(false); } }}
+                      autoFocus 
+                      className="font-bold bg-transparent border-b border-brand-dark focus:outline-none text-brand-dark dark:text-white"
+                   />
+                ) : (
+                   <h4 className="font-bold text-brand-dark dark:text-white">{model.model_name}</h4>
+                )}
                 {model.sezon_kodu && <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500">{model.sezon_kodu}</span>}
              </div>
              <p className="text-xs text-slate-500 mt-0.5">
@@ -265,32 +380,84 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
   const handleCreateModel = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newModel.model_name.trim()) return;
-    setIsSubmitting(true);
+    
+    const tempId = Date.now();
+    const optimisticModel: PhotoModel = {
+      id: tempId,
+      user_id: 0,
+      project_id: projectId || undefined,
+      model_name: newModel.model_name.trim(),
+      sezon_kodu: newModel.sezon_kodu.trim() || undefined,
+      week_number: selectedWeek,
+      month: new Date().getMonth() + 1,
+      year: new Date().getFullYear(),
+      status: 'active',
+      delivery_date: undefined,
+      notes: newModel.notes.trim() || undefined,
+      total_photos: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      colors: [],
+      revisions: []
+    };
+
+    if (newModel.color_name.trim()) {
+      optimisticModel.colors.push({
+        id: tempId + 1,
+        model_id: tempId,
+        color_name: newModel.color_name.trim(),
+        ig_required: newModel.ig_required,
+        banner_required: newModel.banner_required,
+        ig_completed: false,
+        ig_completed_at: undefined,
+        ig_photo_count: 0,
+        banner_completed: false,
+        banner_completed_at: undefined,
+        banner_photo_count: 0,
+        created_at: new Date().toISOString()
+      });
+    }
+
+    usePhotoTrackingStore.setState(state => ({
+      models: [optimisticModel, ...state.models]
+    }));
+
+    setIsModalOpen(false);
+    setNewModel({ model_name: '', sezon_kodu: '', notes: '', color_name: '', ig_required: true, banner_required: true });
+
     try {
       const createdModel = await createModel({
         project_id: projectId || null,
-        model_name: newModel.model_name.trim(),
-        sezon_kodu: newModel.sezon_kodu.trim() || undefined,
-        notes: newModel.notes.trim() || undefined,
+        model_name: optimisticModel.model_name,
+        sezon_kodu: optimisticModel.sezon_kodu || undefined,
+        notes: optimisticModel.notes || undefined,
         week_number: selectedWeek,
-        month: new Date().getMonth() + 1,
-        year: new Date().getFullYear(),
+        month: optimisticModel.month,
+        year: optimisticModel.year,
       });
       
       if (newModel.color_name.trim()) {
-        await usePhotoTrackingStore.getState().createColor(createdModel.id, {
-            color_name: newModel.color_name.trim(),
-            ig_required: newModel.ig_required,
-            banner_required: newModel.banner_required
+        const newColor = await usePhotoTrackingStore.getState().createColor(createdModel.id, {
+            color_name: optimisticModel.colors[0].color_name,
+            ig_required: optimisticModel.colors[0].ig_required,
+            banner_required: optimisticModel.colors[0].banner_required
         });
+        
+        // Remove temp model, we let the actual creation populate it
+        usePhotoTrackingStore.setState(state => ({
+           models: state.models.filter(m => m.id !== tempId)
+        }));
+      } else {
+        usePhotoTrackingStore.setState(state => ({
+           models: state.models.filter(m => m.id !== tempId)
+        }));
       }
-      
-      setIsModalOpen(false);
-      setNewModel({ model_name: '', sezon_kodu: '', notes: '', color_name: '', ig_required: true, banner_required: true });
     } catch (err) {
       console.error(err);
-    } finally {
-      setIsSubmitting(false);
+      // Revert optimism
+      usePhotoTrackingStore.setState(state => ({
+         models: state.models.filter(m => m.id !== tempId)
+      }));
     }
   };
 
@@ -448,10 +615,10 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
                    </button>
                    <button 
                      type="submit"
-                     disabled={isSubmitting || !newModel.model_name.trim()}
+                     disabled={!newModel.model_name.trim()}
                      className="px-5 py-2.5 text-sm font-bold bg-brand-dark text-white dark:bg-white dark:text-brand-dark hover:opacity-90 rounded-xl transition-opacity disabled:opacity-50"
                    >
-                     {isSubmitting ? 'Ekleniyor...' : 'Modeli Ekle'}
+                     Modeli Ekle
                    </button>
                 </div>
              </form>

@@ -15,6 +15,7 @@ interface PhotoTrackingState {
   
   createColor: (modelId: number, data: any) => Promise<any>;
   updateColor: (id: number, data: any) => Promise<any>;
+  deleteColor: (modelId: number, colorId: number) => Promise<void>;
   addRevision: (modelId: number, data: any) => Promise<any>;
   
   overviewStats: PhotoOverviewStats | null;
@@ -101,6 +102,20 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
       })
     }));
     return color;
+  },
+  
+  deleteColor: async (modelId, colorId) => {
+    await api.delete(`/api/venus/photo-tracking/colors/${colorId}`);
+    set(state => ({
+      models: state.models.map(m => {
+        if (m.id === modelId) {
+          const newColors = m.colors.filter(c => c.id !== colorId);
+          const newTotal = newColors.reduce((acc, c) => acc + c.ig_photo_count + c.banner_photo_count, 0);
+          return { ...m, colors: newColors, total_photos: newTotal };
+        }
+        return m;
+      })
+    }));
   },
   
   addRevision: async (modelId, data) => {

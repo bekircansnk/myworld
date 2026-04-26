@@ -174,6 +174,32 @@ async def update_color(
     await db.refresh(color)
     return color
 
+@router.delete("/colors/{color_id}")
+async def delete_color(
+    color_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    query = select(PhotoModelColor).join(PhotoModel).where(PhotoModelColor.id == color_id, PhotoModel.user_id == current_user.id)
+    result = await db.execute(query)
+    color = result.scalar_one_or_none()
+    
+    if not color:
+        raise HTTPException(status_code=404, detail="Color not found")
+        
+    model_id = color.model_id
+    await db.delete(color)
+    await db.commit()
+    
+    # Recalculate total photos
+    model_query = select(PhotoModel).where(PhotoModel.id == model_id).options(selectinload(PhotoModel.colors))
+    model_res = await db.execute(model_query)
+    model = model_res.scalar_one()
+    model.total_photos = sum(c.ig_photo_count + c.banner_photo_count for c in model.colors)
+    await db.commit()
+    
+    return {"message": "Color deleted successfully"}
+
 # Revisions
 @router.post("/models/{model_id}/revisions", response_model=PhotoRevisionResponse)
 async def add_revision(
