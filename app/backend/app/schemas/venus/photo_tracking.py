@@ -27,6 +27,7 @@ class PhotoModelColorCreate(PhotoModelColorBase):
     pass
 
 class PhotoModelColorUpdate(BaseModel):
+    color_name: Optional[str] = None
     ig_required: Optional[bool] = None
     ig_completed: Optional[bool] = None
     ig_photo_count: Optional[int] = None

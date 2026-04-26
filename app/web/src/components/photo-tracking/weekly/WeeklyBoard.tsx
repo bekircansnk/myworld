@@ -403,10 +403,14 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
   const handleModelStatusChange = async (model: PhotoModel) => {
     const isCompleted = model.status === 'completed';
     
-    await updateModel(model.id, { 
-      status: isCompleted ? 'active' : 'completed',
-      delivery_date: isCompleted ? null : new Date().toISOString()
-    });
+    try {
+      await updateModel(model.id, { 
+        status: isCompleted ? 'active' : 'completed',
+        delivery_date: isCompleted ? null : new Date().toISOString()
+      });
+    } catch (err) {
+      console.error('[handleModelStatusChange] Durum güncellenemedi:', err);
+    }
   };
 
   const handleExcelImport = async (e: React.ChangeEvent<HTMLInputElement>) => {

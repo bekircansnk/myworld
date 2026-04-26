@@ -75,6 +75,9 @@ async def update_model(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    import logging
+    logger = logging.getLogger(__name__)
+    
     query = select(PhotoModel).where(PhotoModel.id == model_id, PhotoModel.user_id == current_user.id)
     result = await db.execute(query)
     target = result.scalar_one_or_none()
@@ -83,15 +86,24 @@ async def update_model(
         raise HTTPException(status_code=404, detail="Model not found")
         
     update_data = data.model_dump(exclude_unset=True)
+    logger.info(f"[UPDATE MODEL] id={model_id}, update_data={update_data}")
+    
     for key, value in update_data.items():
         setattr(target, key, value)
         
     await db.commit()
     
-    # Reload relationships
+    # expire_on_commit=False olduğu için manuel olarak expire et
+    db.expire(target)
+    
+    # Taze veri ile yeniden yükle
     query = select(PhotoModel).where(PhotoModel.id == model_id).options(selectinload(PhotoModel.colors), selectinload(PhotoModel.revisions))
     result = await db.execute(query)
-    return result.scalar_one()
+    updated = result.scalar_one()
+    
+    logger.info(f"[UPDATE MODEL] Sonuç: id={updated.id}, status={updated.status}, delivery_date={updated.delivery_date}")
+    
+    return updated
 
 @router.delete("/models/{model_id}")
 async def delete_model(

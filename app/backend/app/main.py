@@ -91,9 +91,21 @@ async def global_exception_handler(request, exc: Exception):
                  error=str(exc), 
                  url=str(request.url),
                  trace=traceback.format_exc())
+    # CORS header'larını hata yanıtlarına da ekle
+    origin = request.headers.get("origin", "")
+    allowed_origins = [
+        settings.frontend_url,
+        "https://pikselai-dashboard.vercel.app",
+        "http://localhost:3000"
+    ]
+    headers = {}
+    if origin in allowed_origins:
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
     return JSONResponse(
         status_code=500,
         content={"message": "Beklenmeyen bir sunucu hatası oluştu.", "details": str(exc)},
+        headers=headers,
     )
 
 @app.get("/api/health")
