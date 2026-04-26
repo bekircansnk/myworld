@@ -93,6 +93,8 @@ export function TaskDetailPanel() {
   // Local States
   const [isEditingDesc, setIsEditingDesc] = React.useState(false)
   const [descriptionDraft, setDescriptionDraft] = React.useState("")
+  const [isEditingTitle, setIsEditingTitle] = React.useState(false)
+  const [titleDraft, setTitleDraft] = React.useState("")
   const [isAddingSubtask, setIsAddingSubtask] = React.useState(false)
   const [newSubtaskTitle, setNewSubtaskTitle] = React.useState("")
   const [isAnalyzing, setIsAnalyzing] = React.useState(false)
@@ -151,6 +153,7 @@ export function TaskDetailPanel() {
         fetchAIAnalysis()
       }
       setDueDateDraft(selectedTask.due_date ? selectedTask.due_date.split('T')[0] : "")
+      setTitleDraft(selectedTask.title || "")
       
       // Initialize activity log with creation event
       const initLogs: ActivityEvent[] = [{
@@ -237,18 +240,38 @@ export function TaskDetailPanel() {
   }
 
   // ---- Handlers ----
+  const saveTitle = async () => {
+    if (!titleDraft.trim() || titleDraft === selectedTask.title) {
+      setIsEditingTitle(false)
+      return
+    }
+    const newTitle = titleDraft
+    setIsEditingTitle(false)
+    try {
+      await updateTask(selectedTask.id, { title: newTitle } as any)
+      await fetchTasks()
+      addActivityEvent('description_edit', 'Başlık güncellendi', 'blue')
+    } catch (e) { console.error(e) }
+  }
+
   const saveDescription = async () => {
-    await updateTask(selectedTask.id, { description: descriptionDraft })
+    const draft = descriptionDraft
     setIsEditingDesc(false)
-    await fetchTasks()
-    addActivityEvent('description_edit', 'Açıklama güncellendi', 'blue')
+    try {
+      await updateTask(selectedTask.id, { description: draft })
+      await fetchTasks()
+      addActivityEvent('description_edit', 'Açıklama güncellendi', 'blue')
+    } catch (e) { console.error(e) }
   }
 
   const handleAddSubtask = async () => {
     if (!newSubtaskTitle.trim()) return
-    await addSubtask(selectedTask.id, { title: newSubtaskTitle, status: 'todo' })
+    const title = newSubtaskTitle
     setNewSubtaskTitle("")
-    addActivityEvent('subtask_done', `"${newSubtaskTitle}" alt görevi eklendi`, 'teal')
+    try {
+      await addSubtask(selectedTask.id, { title, status: 'todo' })
+      addActivityEvent('subtask_done', `"${title}" alt görevi eklendi`, 'teal')
+    } catch (e) { console.error(e) }
   }
 
   const openSubtaskEdit = (st: Task) => {
@@ -259,10 +282,15 @@ export function TaskDetailPanel() {
 
   const saveSubtaskEdit = async () => {
     if (!editingSubtaskId || !subtaskEditTitle.trim()) return
-    await updateTask(editingSubtaskId, { title: subtaskEditTitle, description: subtaskEditDesc } as any)
+    const idToUpdate = editingSubtaskId
+    const newTitle = subtaskEditTitle
+    const newDesc = subtaskEditDesc
     setEditingSubtaskId(null)
-    await fetchTasks()
-    addActivityEvent('description_edit', `"${subtaskEditTitle}" alt görevi güncellendi`, 'blue')
+    try {
+      await updateTask(idToUpdate, { title: newTitle, description: newDesc } as any)
+      await fetchTasks()
+      addActivityEvent('description_edit', `"${newTitle}" alt görevi güncellendi`, 'blue')
+    } catch (e) { console.error(e) }
   }
 
   const cancelSubtaskEdit = () => {
@@ -280,10 +308,13 @@ export function TaskDetailPanel() {
 
   const saveDueDate = async () => {
     const dueDate = dueDateDraft ? new Date(dueDateDraft).toISOString() : null
-    await updateTask(selectedTask.id, { due_date: dueDate } as any)
+    const draftText = dueDateDraft
     setEditingDueDate(false)
-    await fetchTasks()
-    addActivityEvent('date_change', `Hedef tarih ${dueDateDraft ? format(new Date(dueDateDraft), 'dd MMM yyyy', { locale: tr }) : 'kaldırıldı'}`, 'amber')
+    try {
+      await updateTask(selectedTask.id, { due_date: dueDate } as any)
+      await fetchTasks()
+      addActivityEvent('date_change', `Hedef tarih ${draftText ? format(new Date(draftText), 'dd MMM yyyy', { locale: tr }) : 'kaldırıldı'}`, 'amber')
+    } catch (e) { console.error(e) }
   }
 
   const handleDeleteSubtask = async (id: number, e: React.MouseEvent) => {
@@ -431,7 +462,21 @@ export function TaskDetailPanel() {
                 </div>
 
                 {/* Title */}
-                <h2 className="text-2xl font-black text-slate-800 dark:text-white/95 leading-tight">{selectedTask.title}</h2>
+                {isEditingTitle ? (
+                  <div className="flex items-center gap-2 mt-1 mb-2">
+                    <Input value={titleDraft} onChange={e => setTitleDraft(e.target.value)}
+                           className="text-xl md:text-2xl font-black text-slate-800 dark:text-white/95 h-12 bg-white dark:bg-black/20"
+                           autoFocus
+                           onKeyDown={e => { if (e.key === 'Enter') saveTitle(); if (e.key === 'Escape') { setIsEditingTitle(false); setTitleDraft(selectedTask.title); } }} />
+                    <Button onClick={saveTitle} size="sm" className="bg-indigo-500 hover:bg-indigo-600 text-white shrink-0">Kaydet</Button>
+                    <button onClick={() => { setIsEditingTitle(false); setTitleDraft(selectedTask.title); }} className="p-2 text-slate-400 hover:text-slate-600 shrink-0"><X className="w-5 h-5"/></button>
+                  </div>
+                ) : (
+                  <h2 className="text-2xl font-black text-slate-800 dark:text-white/95 leading-tight group flex items-center gap-2 cursor-pointer transition-colors hover:text-indigo-600 dark:hover:text-indigo-400" onClick={() => setIsEditingTitle(true)}>
+                    {selectedTask.title}
+                    <Pencil className="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </h2>
+                )}
 
                 {/* Meta Row */}
                 <div className="flex flex-wrap items-center gap-4 mt-3 text-xs font-semibold text-slate-500 dark:text-white/40">
