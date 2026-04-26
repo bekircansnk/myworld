@@ -13,7 +13,7 @@ interface PhotoTrackingState {
   updateModel: (id: number, data: any) => Promise<PhotoModel>;
   deleteModel: (id: number) => Promise<void>;
   
-  createColor: (modelId: number, data: any) => Promise<any>;
+  createColor: (modelId: number, data: any, tempColor?: any) => Promise<any>;
   updateColor: (id: number, data: any) => Promise<any>;
   deleteColor: (modelId: number, colorId: number) => Promise<void>;
   addRevision: (modelId: number, data: any) => Promise<any>;
@@ -24,7 +24,7 @@ interface PhotoTrackingState {
   
   importLogs: PhotoExcelImportLog[];
   isLoadingImport: boolean;
-  importExcel: (file: File, projectId?: number) => Promise<PhotoExcelImportLog>;
+  importExcel: (file: File, projectId?: number, weekNumber?: number, month?: number, year?: number) => Promise<PhotoExcelImportLog>;
   
   isExporting: boolean;
   exportExcel: (projectId?: number, month?: number, year?: number) => Promise<void>;
@@ -59,11 +59,20 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
   },
   
   updateModel: async (id, data) => {
-    const res = await api.put(`/api/venus/photo-tracking/models/${id}`, data);
+    // Optimistic UI
     set(state => ({
-      models: state.models.map(m => m.id === id ? res.data : m)
+      models: state.models.map(m => m.id === id ? { ...m, ...data } : m)
     }));
-    return res.data;
+    try {
+      const res = await api.put(`/api/venus/photo-tracking/models/${id}`, data);
+      set(state => ({
+        models: state.models.map(m => m.id === id ? res.data : m)
+      }));
+      return res.data;
+    } catch(e) {
+      console.error(e);
+      throw e;
+    }
   },
   
   deleteModel: async (id) => {
@@ -73,35 +82,70 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
     }));
   },
   
-  createColor: async (modelId, data) => {
-    const res = await api.post(`/api/venus/photo-tracking/models/${modelId}/colors`, data);
-    const newColor = res.data;
-    set(state => ({
-      models: state.models.map(m => {
-        if (m.id === modelId) {
-          return { ...m, colors: [...m.colors, newColor] };
-        }
-        return m;
-      })
-    }));
-    return newColor;
+  createColor: async (modelId, data, tempColor) => {
+    if (tempColor) {
+      set(state => ({
+        models: state.models.map(m => m.id === modelId ? { ...m, colors: [...m.colors, tempColor] } : m)
+      }));
+    }
+    
+    try {
+      const res = await api.post(`/api/venus/photo-tracking/models/${modelId}/colors`, data);
+      const color = res.data;
+      set(state => ({
+        models: state.models.map(m => {
+          if (m.id === modelId) {
+            const newColors = tempColor 
+              ? m.colors.map(c => c.id === tempColor.id ? color : c) 
+              : [...m.colors, color];
+            return { ...m, colors: newColors };
+          }
+          return m;
+        })
+      }));
+      return color;
+    } catch(e) {
+      if (tempColor) {
+        set(state => ({
+          models: state.models.map(m => m.id === modelId ? { ...m, colors: m.colors.filter(c => c.id !== tempColor.id) } : m)
+        }));
+      }
+      console.error(e);
+      throw e;
+    }
   },
   
   updateColor: async (id, data) => {
-    const res = await api.put(`/api/venus/photo-tracking/colors/${id}`, data);
-    // update in models array
-    const color = res.data;
+    // Optimistic UI update
     set(state => ({
       models: state.models.map(m => {
-        if (m.id === color.model_id) {
-          const newColors = m.colors.map(c => c.id === color.id ? color : c);
+        if (m.colors.some(c => c.id === id)) {
+          const newColors = m.colors.map(c => c.id === id ? { ...c, ...data } : c);
           const newTotal = newColors.reduce((acc, c) => acc + c.ig_photo_count + c.banner_photo_count, 0);
           return { ...m, colors: newColors, total_photos: newTotal };
         }
         return m;
       })
     }));
-    return color;
+    
+    try {
+      const res = await api.put(`/api/venus/photo-tracking/colors/${id}`, data);
+      const color = res.data;
+      set(state => ({
+        models: state.models.map(m => {
+          if (m.id === color.model_id) {
+            const newColors = m.colors.map(c => c.id === color.id ? color : c);
+            const newTotal = newColors.reduce((acc, c) => acc + c.ig_photo_count + c.banner_photo_count, 0);
+            return { ...m, colors: newColors, total_photos: newTotal };
+          }
+          return m;
+        })
+      }));
+      return color;
+    } catch(e) {
+      console.error(e);
+      throw e;
+    }
   },
   
   deleteColor: async (modelId, colorId) => {
@@ -152,12 +196,15 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
   
   importLogs: [],
   isLoadingImport: false,
-  importExcel: async (file, projectId) => {
+  importExcel: async (file, projectId, weekNumber, month, year) => {
     set({ isLoadingImport: true });
     try {
       const formData = new FormData();
       formData.append('file', file);
       if (projectId) formData.append('project_id', projectId.toString());
+      if (weekNumber) formData.append('week_number', weekNumber.toString());
+      if (month) formData.append('month', month.toString());
+      if (year) formData.append('year', year.toString());
       
       const res = await api.post('/api/venus/photo-tracking/import-excel', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -167,7 +214,7 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
         isLoadingImport: false
       }));
       // re-fetch models after import
-      get().fetchModels(projectId, new Date().getMonth() + 1, new Date().getFullYear());
+      get().fetchModels(projectId, month || new Date().getMonth() + 1, year || new Date().getFullYear());
       return res.data;
     } catch (e) {
       console.error(e);

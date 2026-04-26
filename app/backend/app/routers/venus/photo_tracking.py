@@ -256,11 +256,19 @@ async def get_overview(
 async def import_excel(
     file: UploadFile = File(...),
     project_id: Optional[int] = Form(None),
+    week_number: int = Form(1),
+    month: int = Form(None),
+    year: int = Form(None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     if not file.filename.endswith('.xlsx'):
         raise HTTPException(status_code=400, detail="Sadece .xlsx dosyaları kabul edilir")
+        
+    if month is None:
+        month = datetime.utcnow().month
+    if year is None:
+        year = datetime.utcnow().year
         
     content = await file.read()
     
@@ -286,13 +294,12 @@ async def import_excel(
                 if pd.notna(sezon):
                     current_season = str(sezon).strip()
                 
-                # Check if model exists for this month/year (let's assume current month)
-                now = datetime.utcnow()
+                # Check if model exists for this month/year
                 m_q = select(PhotoModel).where(
                     PhotoModel.model_name == current_model_name,
                     PhotoModel.user_id == current_user.id,
-                    PhotoModel.month == now.month,
-                    PhotoModel.year == now.year
+                    PhotoModel.month == month,
+                    PhotoModel.year == year
                 )
                 m_res = await db.execute(m_q)
                 model = m_res.scalar_one_or_none()
@@ -303,9 +310,9 @@ async def import_excel(
                         project_id=project_id,
                         model_name=current_model_name,
                         sezon_kodu=current_season,
-                        month=now.month,
-                        year=now.year,
-                        week_number=1 # default to week 1, user can change later
+                        month=month,
+                        year=year,
+                        week_number=week_number
                     )
                     db.add(model)
                     await db.commit()
@@ -327,8 +334,14 @@ async def import_excel(
                 
                 if not color:
                     # ig required logic
-                    ig_req = str(row.get('Sosyal Medya ', '')).strip() != ''
-                    banner_req = str(row.get('WEB SİTESİ 16:9', '')).strip() != ''
+                    def is_req(val):
+                        s = str(val).strip().lower()
+                        if not s or s == 'nan' or s == 'nat' or s == 'none': return False
+                        if s in ['x', '-', 'çarpı', 'false', '0', 'yok', 'hayır']: return False
+                        return True
+                        
+                    ig_req = is_req(row.get('Sosyal Medya ', ''))
+                    banner_req = is_req(row.get('WEB SİTESİ 16:9', ''))
                     
                     color = PhotoModelColor(
                         model_id=current_model_id,

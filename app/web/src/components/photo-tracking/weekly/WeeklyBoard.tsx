@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePhotoTrackingStore } from '@/stores/photoTrackingStore';
 import { PhotoModel, PhotoModelColor } from '@/types/photo-tracking';
-import { CheckCircle2, Circle, ChevronDown, ChevronUp, Image as ImageIcon, MessageSquare, Plus, Minus, CheckSquare, Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CheckCircle2, Circle, ChevronDown, ChevronUp, Image as ImageIcon, MessageSquare, Plus, Minus, CheckSquare, Edit2, Trash2, ChevronLeft, ChevronRight, Upload, FileDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { useContextMenuStore } from '@/stores/contextMenuStore';
@@ -13,20 +13,10 @@ interface ModelCardProps {
 }
 
 function ColorRow({ color, onUpdateColor }: { color: PhotoModelColor, onUpdateColor: (id: number, data: any) => Promise<any> }) {
-  const [localIgCount, setLocalIgCount] = React.useState(color.ig_photo_count);
-  const [localBannerCount, setLocalBannerCount] = React.useState(color.banner_photo_count);
   const [isEditingName, setIsEditingName] = React.useState(false);
   const [editName, setEditName] = React.useState(color.color_name);
   const openMenu = useContextMenuStore(s => s.openMenu);
   const deleteColor = usePhotoTrackingStore(s => s.deleteColor);
-
-  React.useEffect(() => {
-    setLocalIgCount(color.ig_photo_count);
-  }, [color.ig_photo_count]);
-
-  React.useEffect(() => {
-    setLocalBannerCount(color.banner_photo_count);
-  }, [color.banner_photo_count]);
 
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
@@ -39,23 +29,17 @@ function ColorRow({ color, onUpdateColor }: { color: PhotoModelColor, onUpdateCo
 
   const adjustPhotoCount = (type: 'ig' | 'banner', delta: number) => {
     if (type === 'ig') {
-      const newCount = Math.max(0, localIgCount + delta);
-      setLocalIgCount(newCount);
-      debouncedUpdate({ ig_photo_count: newCount });
+      debouncedUpdate({ ig_photo_count: Math.max(0, color.ig_photo_count + delta) });
     } else {
-      const newCount = Math.max(0, localBannerCount + delta);
-      setLocalBannerCount(newCount);
-      debouncedUpdate({ banner_photo_count: newCount });
+      debouncedUpdate({ banner_photo_count: Math.max(0, color.banner_photo_count + delta) });
     }
   };
 
   const handleInputChange = (type: 'ig' | 'banner', value: string) => {
     const newCount = Math.max(0, parseInt(value) || 0);
     if (type === 'ig') {
-      setLocalIgCount(newCount);
       debouncedUpdate({ ig_photo_count: newCount });
     } else {
-      setLocalBannerCount(newCount);
       debouncedUpdate({ banner_photo_count: newCount });
     }
   };
@@ -85,6 +69,16 @@ function ColorRow({ color, onUpdateColor }: { color: PhotoModelColor, onUpdateCo
         label: 'Yeniden Adlandır',
         icon: <Edit2 className="w-4 h-4" />,
         onClick: () => setIsEditingName(true)
+      },
+      {
+        label: color.ig_required ? 'Instagram Kapat' : 'Instagram Aç',
+        icon: <Circle className="w-4 h-4" />,
+        onClick: async () => onUpdateColor(color.id, { ig_required: !color.ig_required })
+      },
+      {
+        label: color.banner_required ? 'Banner Kapat' : 'Banner Aç',
+        icon: <Circle className="w-4 h-4" />,
+        onClick: async () => onUpdateColor(color.id, { banner_required: !color.banner_required })
       },
       {
         label: 'Rengi Sil',
@@ -117,52 +111,56 @@ function ColorRow({ color, onUpdateColor }: { color: PhotoModelColor, onUpdateCo
       
       <div className="flex flex-col sm:flex-row gap-4 xl:gap-8 flex-1">
         {/* IG Section */}
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => toggleStatus('ig')}
-            className={`flex items-center gap-2 text-sm font-medium transition-colors ${color.ig_completed ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-600'}`}
-          >
-            {color.ig_completed ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
-            Instagram
-          </button>
-          {color.ig_completed_at && (
-            <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{format(new Date(color.ig_completed_at), 'dd.MM')}</span>
-          )}
-          <div className="flex items-center bg-slate-100 dark:bg-slate-700 rounded-md overflow-hidden group">
-            <button onClick={() => adjustPhotoCount('ig', -1)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity"><Minus className="w-3 h-3" /></button>
-            <input 
-              type="number"
-              value={localIgCount}
-              onChange={(e) => handleInputChange('ig', e.target.value)}
-              className="w-10 text-center text-xs font-bold bg-transparent border-none focus:outline-none focus:ring-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-            <button onClick={() => adjustPhotoCount('ig', 1)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity"><Plus className="w-3 h-3" /></button>
+        {color.ig_required && (
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => toggleStatus('ig')}
+              className={`flex items-center gap-2 text-sm font-medium transition-colors ${color.ig_completed ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              {color.ig_completed ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
+              Instagram
+            </button>
+            {color.ig_completed_at && (
+              <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{format(new Date(color.ig_completed_at), 'dd.MM')}</span>
+            )}
+            <div className="flex items-center bg-slate-100 dark:bg-slate-700 rounded-md overflow-hidden group">
+              <button onClick={() => adjustPhotoCount('ig', -1)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity"><Minus className="w-3 h-3" /></button>
+              <input 
+                type="number"
+                value={color.ig_photo_count}
+                onChange={(e) => handleInputChange('ig', e.target.value)}
+                className="w-10 text-center text-xs font-bold bg-transparent border-none focus:outline-none focus:ring-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <button onClick={() => adjustPhotoCount('ig', 1)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity"><Plus className="w-3 h-3" /></button>
+            </div>
           </div>
-        </div>
+        )}
         
         {/* Banner Section */}
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => toggleStatus('banner')}
-            className={`flex items-center gap-2 text-sm font-medium transition-colors ${color.banner_completed ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-600'}`}
-          >
-            {color.banner_completed ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
-            Banner (16:9)
-          </button>
-          {color.banner_completed_at && (
-            <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{format(new Date(color.banner_completed_at), 'dd.MM')}</span>
-          )}
-          <div className="flex items-center bg-slate-100 dark:bg-slate-700 rounded-md overflow-hidden group">
-            <button onClick={() => adjustPhotoCount('banner', -1)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity"><Minus className="w-3 h-3" /></button>
-            <input 
-              type="number"
-              value={localBannerCount}
-              onChange={(e) => handleInputChange('banner', e.target.value)}
-              className="w-10 text-center text-xs font-bold bg-transparent border-none focus:outline-none focus:ring-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-            <button onClick={() => adjustPhotoCount('banner', 1)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity"><Plus className="w-3 h-3" /></button>
+        {color.banner_required && (
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => toggleStatus('banner')}
+              className={`flex items-center gap-2 text-sm font-medium transition-colors ${color.banner_completed ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              {color.banner_completed ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
+              Banner (16:9)
+            </button>
+            {color.banner_completed_at && (
+              <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{format(new Date(color.banner_completed_at), 'dd.MM')}</span>
+            )}
+            <div className="flex items-center bg-slate-100 dark:bg-slate-700 rounded-md overflow-hidden group">
+              <button onClick={() => adjustPhotoCount('banner', -1)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity"><Minus className="w-3 h-3" /></button>
+              <input 
+                type="number"
+                value={color.banner_photo_count}
+                onChange={(e) => handleInputChange('banner', e.target.value)}
+                className="w-10 text-center text-xs font-bold bg-transparent border-none focus:outline-none focus:ring-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <button onClick={() => adjustPhotoCount('banner', 1)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity"><Plus className="w-3 h-3" /></button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -222,49 +220,22 @@ function ModelCard({ model, onUpdateColor, onModelStatusChange }: ModelCardProps
     setNewColorName('');
     setIsAddingColor(false);
     
-    // Optimistic Update directly in store state
     const tempId = Date.now();
-    usePhotoTrackingStore.setState(state => ({
-       models: state.models.map(m => {
-          if (m.id === model.id) {
-             return { ...m, colors: [...m.colors, {
-                id: tempId, model_id: model.id, color_name: colorName,
-                ig_required: true, banner_required: true,
-                ig_completed: false, ig_completed_at: undefined, ig_photo_count: 0,
-                banner_completed: false, banner_completed_at: undefined, banner_photo_count: 0,
-                created_at: new Date().toISOString()
-             }]};
-          }
-          return m;
-       })
-    }));
-
+    // Optimistic Update directly in store state
     try {
-        const newColor = await createColor(model.id, {
+        await createColor(model.id, {
             color_name: colorName,
             ig_required: true,
             banner_required: true
+        }, {
+            id: tempId, model_id: model.id, color_name: colorName,
+            ig_required: true, banner_required: true,
+            ig_completed: false, ig_completed_at: undefined, ig_photo_count: 0,
+            banner_completed: false, banner_completed_at: undefined, banner_photo_count: 0,
+            created_at: new Date().toISOString()
         });
-        // We replace tempId with real ID silently to not cause unmount
-        usePhotoTrackingStore.setState(state => ({
-           models: state.models.map(m => {
-              if (m.id === model.id) {
-                 return { ...m, colors: m.colors.map(c => c.id === tempId ? newColor : c) };
-              }
-              return m;
-           })
-       }));
     } catch(e) {
         console.error(e);
-        // revert optimistic
-        usePhotoTrackingStore.setState(state => ({
-           models: state.models.map(m => {
-              if (m.id === model.id) {
-                 return { ...m, colors: m.colors.filter(c => c.id !== tempId) };
-              }
-              return m;
-           })
-        }));
     }
   };
 
@@ -312,7 +283,7 @@ function ModelCard({ model, onUpdateColor, onModelStatusChange }: ModelCardProps
              }}
              className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-colors ${model.status === 'completed' ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300'}`}
            >
-              {model.status === 'completed' ? <><CheckCircle2 className="w-3.5 h-3.5" /> Bitti</> : <><Circle className="w-3.5 h-3.5" /> İşaretle</>}
+              {model.status === 'completed' ? <><CheckCircle2 className="w-3.5 h-3.5" /> Bitti</> : <><CheckCircle2 className="w-3.5 h-3.5" /> İşaretle</>}
            </button>
            {isExpanded ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
         </div>
@@ -355,12 +326,14 @@ function ModelCard({ model, onUpdateColor, onModelStatusChange }: ModelCardProps
 }
 
 export function WeeklyBoard({ projectId }: { projectId: number | null }) {
-  const { models, isLoadingModels, updateColor, updateModel, createModel, fetchModels } = usePhotoTrackingStore();
+  const { models, isLoadingModels, updateColor, updateModel, createModel, fetchModels, importExcel, exportExcel, isExporting, isLoadingImport } = usePhotoTrackingStore();
   
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [importingWeek, setImportingWeek] = useState<number | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<number>(1);
   const [expandedWeeks, setExpandedWeeks] = useState<number[]>([]); // Default closed
   const [newModel, setNewModel] = useState({ 
@@ -392,10 +365,39 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
   
   const handleModelStatusChange = async (model: PhotoModel) => {
     const isCompleted = model.status === 'completed';
+    // If we mark it completed, also mark all its colors as completed
+    if (!isCompleted) {
+       for (const color of model.colors) {
+          if (!color.ig_completed || !color.banner_completed) {
+             updateColor(color.id, { 
+                ig_completed: true, 
+                banner_completed: true, 
+                ig_completed_at: new Date().toISOString(), 
+                banner_completed_at: new Date().toISOString() 
+             });
+          }
+       }
+    }
+    
     await updateModel(model.id, { 
       status: isCompleted ? 'active' : 'completed',
       delivery_date: isCompleted ? null : new Date().toISOString()
     });
+  };
+
+  const handleExcelImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && importingWeek) {
+      try {
+        await importExcel(file, projectId || undefined, importingWeek, currentMonth, currentYear);
+      } catch (err) {
+        alert("Excel yüklenirken bir hata oluştu.");
+      }
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    setImportingWeek(null);
   };
 
   const handleCreateModel = async (e: React.FormEvent) => {
@@ -498,16 +500,27 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
           </p>
         </div>
         
-        {/* Month Picker */}
-        <div className="flex items-center gap-4 bg-white dark:bg-slate-800 px-4 py-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
-          <button onClick={handlePrevMonth} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors">
-            <ChevronLeft className="w-5 h-5 text-slate-500" />
-          </button>
-          <div className="font-bold text-brand-dark dark:text-white min-w-[120px] text-center capitalize">
-            {monthName}
+        {/* Month Picker and Export */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-white dark:bg-slate-800 px-4 py-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+            <button onClick={handlePrevMonth} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors">
+              <ChevronLeft className="w-5 h-5 text-slate-500" />
+            </button>
+            <div className="font-bold text-brand-dark dark:text-white min-w-[120px] text-center capitalize">
+              {monthName}
+            </div>
+            <button onClick={handleNextMonth} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors">
+              <ChevronRight className="w-5 h-5 text-slate-500" />
+            </button>
           </div>
-          <button onClick={handleNextMonth} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors">
-            <ChevronRight className="w-5 h-5 text-slate-500" />
+          
+          <button 
+             onClick={() => exportExcel(projectId || undefined, currentMonth, currentYear)}
+             disabled={isExporting}
+             className="flex items-center gap-2 px-4 py-2 bg-brand-dark hover:bg-brand-dark/90 text-white rounded-xl shadow-sm transition-colors text-sm font-semibold disabled:opacity-50"
+          >
+             <FileDown className="w-4 h-4" />
+             {isExporting ? 'Dışa Aktarılıyor...' : "Excel'e Aktar"}
           </button>
         </div>
       </div>
@@ -533,15 +546,22 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
                         {weekNum}. Hafta
                         {expandedWeeks.includes(weekNum) ? <ChevronUp className="w-4 h-4 ml-2 text-slate-400" /> : <ChevronDown className="w-4 h-4 ml-2 text-slate-400" />}
                      </h3>
-                     <div className="flex items-center gap-4">
-                       <span className="text-sm font-medium text-slate-500">
+                     <div className="flex items-center gap-2 sm:gap-4">
+                       <span className="text-xs sm:text-sm font-medium text-slate-500 hidden sm:inline-block">
                           {completedCount} / {weekModels.length} Tamamlandı
                        </span>
                        <button 
-                         onClick={(e) => { e.stopPropagation(); setSelectedWeek(weekNum); setIsModalOpen(true); }}
-                         className="text-xs flex items-center gap-1 font-bold text-brand-dark dark:text-white hover:text-brand-yellow dark:hover:text-brand-yellow transition-colors bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg"
+                         onClick={(e) => { e.stopPropagation(); setImportingWeek(weekNum); fileInputRef.current?.click(); }}
+                         className="text-xs flex items-center gap-1 font-bold text-brand-dark dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors bg-slate-100 dark:bg-slate-800 px-2 sm:px-3 py-1.5 rounded-lg"
+                         title="Bu Haftaya Excel İçeri Aktar"
                        >
-                          <Plus className="w-3.5 h-3.5" /> Model Ekle
+                          <Upload className="w-3.5 h-3.5" /> <span className="hidden sm:inline-block">Excel Aktar</span>
+                       </button>
+                       <button 
+                         onClick={(e) => { e.stopPropagation(); setSelectedWeek(weekNum); setIsModalOpen(true); }}
+                         className="text-xs flex items-center gap-1 font-bold text-brand-dark dark:text-white hover:text-brand-yellow dark:hover:text-brand-yellow transition-colors bg-slate-100 dark:bg-slate-800 px-2 sm:px-3 py-1.5 rounded-lg"
+                       >
+                          <Plus className="w-3.5 h-3.5" /> <span className="hidden sm:inline-block">Model Ekle</span>
                        </button>
                      </div>
                   </div>
