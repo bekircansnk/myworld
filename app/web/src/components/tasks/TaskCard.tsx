@@ -96,13 +96,12 @@ function DotProgress({ percent, accentColor, isDark = false }: { percent: number
   const filledDots = Math.round((percent / 100) * totalDots)
 
   return (
-    <div className="flex items-center gap-[3px]">
+    <div className="flex items-center gap-1 w-full">
       {Array.from({ length: totalDots }).map((_, i) => (
         <div
           key={i}
-          className="h-[4px] rounded-full transition-all duration-500"
+          className="h-[4px] rounded-full transition-all duration-500 flex-1"
           style={{
-            width: i < filledDots ? '14px' : '4px',
             backgroundColor: i < filledDots ? accentColor : (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)'),
             opacity: i < filledDots ? (0.5 + (i / totalDots) * 0.5) : 0.4,
           }}

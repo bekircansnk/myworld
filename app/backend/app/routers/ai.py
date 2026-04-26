@@ -15,6 +15,7 @@ from app.models.note import Note
 from app.models.user import User
 from app.models.calendar_event import CalendarEvent
 from app.models.chat_session import ChatSession
+from app.models.timer_session import TimerSession
 from app.schemas.task import TaskResponse
 from app.schemas.chat_session import ChatSessionCreate, ChatSessionResponse, ChatSessionListResponse
 from app.services.gemini import generate_chat_response, breakdown_task_with_ai, get_dynamic_motivation
@@ -22,6 +23,7 @@ from app.ai.context import build_system_context
 from app.ai.memory import optimize_context_tokens
 from app.models.chat_message import ChatMessage
 from app.services.location_service import local_to_utc, get_user_timezone, get_current_time_for_user
+from sqlalchemy import update
 
 logger = logging.getLogger("myworld.ai")
 
@@ -533,10 +535,6 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db),
                 task_to_del = res.scalars().first()
                 if task_to_del:
                     # Clear FKs
-                    from app.models.calendar_event import CalendarEvent
-                    from app.models.timer_session import TimerSession
-                    from app.models.note import Note
-                    from sqlalchemy import update
                     await db.execute(update(CalendarEvent).where(CalendarEvent.task_id == task_id_to_del).values(task_id=None))
                     await db.execute(update(TimerSession).where(TimerSession.task_id == task_id_to_del).values(task_id=None))
                     await db.execute(update(Note).where(Note.task_id == task_id_to_del).values(task_id=None))
