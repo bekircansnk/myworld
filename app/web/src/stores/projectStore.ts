@@ -39,41 +39,50 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   addProject: async (data) => {
-    set({ isLoading: true, error: null });
+    const tempId = Date.now();
+    const tempProject = { ...data, id: tempId, status: data.status || 'active', created_at: new Date().toISOString() } as Project;
+    set((state) => ({
+      projects: [...state.projects, tempProject],
+    }));
     try {
       const response = await api.post('/api/projects', data);
       set((state) => ({
-        projects: [...state.projects, response.data],
-        isLoading: false,
+        projects: state.projects.map(p => p.id === tempId ? response.data : p),
       }));
     } catch (error: any) {
-      set({ error: error.message, isLoading: false });
+      set((state) => ({
+        projects: state.projects.filter(p => p.id !== tempId),
+        error: error.message
+      }));
     }
   },
 
   updateProject: async (id, data) => {
-    set({ isLoading: true, error: null });
+    const previousProjects = get().projects;
+    set((state) => ({
+      projects: state.projects.map((p) => (p.id === id ? { ...p, ...data } : p)),
+    }));
     try {
       const response = await api.put(`/api/projects/${id}`, data);
       set((state) => ({
         projects: state.projects.map((p) => (p.id === id ? response.data : p)),
-        isLoading: false,
       }));
     } catch (error: any) {
-      set({ error: error.message, isLoading: false });
+      set({ projects: previousProjects, error: error.message });
     }
   },
 
   deleteProject: async (id) => {
-    set({ isLoading: true, error: null });
+    set((state) => ({
+      projects: state.projects.filter((p) => p.id !== id),
+      selectedProjectId: state.selectedProjectId === id ? null : state.selectedProjectId,
+      viewMode: state.selectedProjectId === id ? 'dashboard' : state.viewMode
+    }));
     try {
       await api.delete(`/api/projects/${id}`);
-      set((state) => ({
-        projects: state.projects.filter((p) => p.id !== id),
-        isLoading: false,
-      }));
     } catch (error: any) {
-      set({ error: error.message, isLoading: false });
+      set({ error: error.message });
+      get().fetchProjects();
     }
   },
 }));
