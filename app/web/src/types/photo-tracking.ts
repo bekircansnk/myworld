@@ -36,6 +36,7 @@ export interface PhotoModel {
   year: number;
   status: string;
   delivery_date?: string;
+  completed_at?: string;
   total_photos: number;
   notes?: string;
   created_at: string;

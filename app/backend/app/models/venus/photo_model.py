@@ -18,6 +18,7 @@ class PhotoModel(Base):
     
     status = Column(String, default="active") # active, completed, revision_pending
     delivery_date = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True) # Tamamlanma anı (saat:dk:sn)
     total_photos = Column(Integer, default=0)
     notes = Column(Text, nullable=True)
     
@@ -27,3 +28,4 @@ class PhotoModel(Base):
     # Relationships
     colors = relationship("PhotoModelColor", back_populates="model", cascade="all, delete-orphan")
     revisions = relationship("PhotoRevision", back_populates="model", cascade="all, delete-orphan")
+

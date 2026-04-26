@@ -78,46 +78,50 @@ async def update_model(
     import logging
     logger = logging.getLogger(__name__)
     
-    try:
-        update_data = data.model_dump(exclude_unset=True)
-        logger.info(f"[UPDATE MODEL] id={model_id}, gelen_data={update_data}")
-        
-        if not update_data:
-            raise HTTPException(status_code=400, detail="No data to update")
-        
-        # SQL UPDATE — identity map bypass
-        stmt = (
-            update(PhotoModel)
-            .where(PhotoModel.id == model_id, PhotoModel.user_id == current_user.id)
-            .values(**update_data)
-        )
-        result = await db.execute(stmt)
-        
-        if result.rowcount == 0:
-            raise HTTPException(status_code=404, detail="Model not found")
-        
-        await db.commit()
-        
-        # Tüm cached objeleri temizle
-        db.expire_all()
-        
-        # Taze veri çek
-        query = select(PhotoModel).where(PhotoModel.id == model_id).options(
-            selectinload(PhotoModel.colors), 
-            selectinload(PhotoModel.revisions)
-        )
-        fresh_result = await db.execute(query)
-        updated = fresh_result.scalar_one()
-        
-        logger.info(f"[UPDATE MODEL] OK: id={updated.id}, status={updated.status}, delivery={updated.delivery_date}")
-        return updated
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"[UPDATE MODEL] HATA: {str(e)}", exc_info=True)
-        await db.rollback()
-        raise HTTPException(status_code=500, detail=f"Model güncelleme hatası: {str(e)}")
+    # 1. Model'i bul
+    query = select(PhotoModel).where(
+        PhotoModel.id == model_id, 
+        PhotoModel.user_id == current_user.id
+    )
+    result = await db.execute(query)
+    target = result.scalar_one_or_none()
+    
+    if not target:
+        raise HTTPException(status_code=404, detail="Model not found")
+    
+    # 2. Güncelleme verilerini al
+    update_data = data.model_dump(exclude_unset=True)
+    logger.info(f"[UPDATE MODEL] id={model_id}, data={update_data}")
+    
+    # 3. Status 'completed' yapılıyorsa, tarihler otomatik eklensin
+    if update_data.get('status') == 'completed':
+        now = datetime.utcnow()
+        update_data['completed_at'] = now
+        if 'delivery_date' not in update_data or update_data.get('delivery_date') is None:
+            update_data['delivery_date'] = now
+    elif update_data.get('status') == 'active':
+        update_data['completed_at'] = None
+        update_data['delivery_date'] = None
+    
+    # 4. Alanları güncelle
+    for key, value in update_data.items():
+        setattr(target, key, value)
+    
+    # 5. Veritabanına yaz — flush + commit
+    await db.flush()
+    await db.commit()
+    
+    logger.info(f"[UPDATE MODEL] COMMIT OK: id={target.id}, status={target.status}, "
+                f"completed_at={target.completed_at}, delivery={target.delivery_date}")
+    
+    # 6. İlişkileri yükleyerek döndür
+    await db.refresh(target)
+    query = select(PhotoModel).where(PhotoModel.id == model_id).options(
+        selectinload(PhotoModel.colors),
+        selectinload(PhotoModel.revisions)
+    )
+    fresh = await db.execute(query)
+    return fresh.scalar_one()
 
 @router.delete("/models/{model_id}")
 async def delete_model(
@@ -486,10 +490,12 @@ async def export_excel(
     data = []
     for model in models:
         is_completed = str(model.status).strip().lower() == 'completed'
-        delivery_str = safe_format_date(model.delivery_date)
+        # completed_at varsa onu, yoksa delivery_date kullan
+        teslim_tarihi = model.completed_at or model.delivery_date
+        delivery_str = safe_format_date(teslim_tarihi)
         revize_str = ', '.join([r.description for r in model.revisions]) if model.revisions else ''
         
-        logger.info(f"[EXCEL EXPORT] Model: {model.model_name}, status={model.status}, is_completed={is_completed}, delivery_date={model.delivery_date}, colors={len(model.colors)}")
+        logger.info(f"[EXCEL EXPORT] Model: {model.model_name}, status={model.status}, completed_at={model.completed_at}, delivery={model.delivery_date}")
         
         if model.colors:
             for color in model.colors:

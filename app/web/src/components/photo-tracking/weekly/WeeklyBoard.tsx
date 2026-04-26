@@ -285,8 +285,8 @@ function ModelCard({ model, onUpdateColor, onModelStatusChange }: ModelCardProps
         )}
         
         <div className="flex items-center gap-4 text-sm font-medium shrink-0">
-           {model.delivery_date && (
-             <span className="text-emerald-600 text-xs hidden sm:inline-block">Teslim: {format(new Date(model.delivery_date), 'dd MMM yyyy', { locale: tr })}</span>
+           {(model.completed_at || model.delivery_date) && (
+             <span className="text-emerald-600 text-xs hidden sm:inline-block">Teslim: {format(new Date(model.completed_at || model.delivery_date!), 'dd MMM yyyy', { locale: tr })}</span>
            )}
            <button 
              onClick={(e) => {
@@ -401,15 +401,13 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
   };
   
   const handleModelStatusChange = async (model: PhotoModel) => {
-    const isCompleted = model.status === 'completed';
+    const newStatus = model.status === 'completed' ? 'active' : 'completed';
     
     try {
-      await updateModel(model.id, { 
-        status: isCompleted ? 'active' : 'completed',
-        delivery_date: isCompleted ? null : new Date().toISOString()
-      });
+      // Sadece status gönder — tarihler backend tarafından otomatik eklenir
+      await updateModel(model.id, { status: newStatus });
     } catch (err) {
-      console.error('[handleModelStatusChange] Durum güncellenemedi:', err);
+      console.error('[handleModelStatusChange] Hata:', err);
     }
   };
 

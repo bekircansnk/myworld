@@ -68,6 +68,7 @@ class PhotoModelUpdate(BaseModel):
     status: Optional[str] = None
     notes: Optional[str] = None
     delivery_date: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
 
 class PhotoModelResponse(PhotoModelBase):
     id: int
@@ -75,6 +76,7 @@ class PhotoModelResponse(PhotoModelBase):
     project_id: Optional[int]
     status: str
     delivery_date: Optional[datetime]
+    completed_at: Optional[datetime]
     total_photos: int
     created_at: datetime
     updated_at: datetime
