@@ -271,13 +271,20 @@ function ModelCard({ model, onUpdateColor, onModelStatusChange }: ModelCardProps
                 )}
                 {model.sezon_kodu && <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500">{model.sezon_kodu}</span>}
              </div>
-             <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                {model.colors.length} Renk • {model.total_photos} Fotoğraf • {model.revisions.length} Revize
              </p>
           </div>
         </div>
         
-        <div className="flex items-center gap-4 text-sm font-medium">
+        {model.notes && (
+          <div className="hidden lg:flex flex-1 px-4 py-2 mx-4 max-w-lg bg-brand-yellow/5 dark:bg-brand-yellow/10 border border-brand-yellow/20 dark:border-brand-yellow/20 rounded-xl text-xs text-brand-dark/70 dark:text-brand-yellow/70 italic relative overflow-hidden">
+             <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-yellow/50"></div>
+             <span className="line-clamp-2">"{model.notes}"</span>
+          </div>
+        )}
+        
+        <div className="flex items-center gap-4 text-sm font-medium shrink-0">
            {model.delivery_date && (
              <span className="text-emerald-600 text-xs hidden sm:inline-block">Teslim: {format(new Date(model.delivery_date), 'dd MMM yyyy', { locale: tr })}</span>
            )}
@@ -388,19 +395,6 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
   
   const handleModelStatusChange = async (model: PhotoModel) => {
     const isCompleted = model.status === 'completed';
-    // If we mark it completed, also mark all its colors as completed
-    if (!isCompleted) {
-       for (const color of model.colors) {
-          if (!color.ig_completed || !color.banner_completed) {
-             updateColor(color.id, { 
-                ig_completed: true, 
-                banner_completed: true, 
-                ig_completed_at: new Date().toISOString(), 
-                banner_completed_at: new Date().toISOString() 
-             });
-          }
-       }
-    }
     
     await updateModel(model.id, { 
       status: isCompleted ? 'active' : 'completed',
