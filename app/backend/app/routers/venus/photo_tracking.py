@@ -287,11 +287,11 @@ async def import_excel(
         
         for index, row in df.iterrows():
             model_name = row.get('MADDE AÇIKLAMASI')
-            sezon = row.get('SEZON KODU')
+            sezon = row.get('SEZON KOD', row.get('SEZON KODU'))
             
-            if pd.notna(model_name):
+            if pd.notna(model_name) and str(model_name).strip() != '':
                 current_model_name = str(model_name).strip()
-                if pd.notna(sezon):
+                if pd.notna(sezon) and str(sezon).strip() != '':
                     current_season = str(sezon).strip()
                 
                 # Check if model exists for this month/year
@@ -318,11 +318,32 @@ async def import_excel(
                     await db.commit()
                     await db.refresh(model)
                     models_imported += 1
+                else:
+                    if current_season:
+                        model.sezon_kodu = current_season
+                        db.add(model)
                 
                 current_model_id = model.id
                 
+                # Update status if "TESLİM EDİLEN" is checked
+                teslim_edilen = row.get('TESLİM EDİLEN')
+                if pd.notna(teslim_edilen):
+                    t_str = str(teslim_edilen).strip().upper()
+                    if t_str != '' and t_str not in ['NAN', 'NAT', 'NONE', '0', 'FALSE']:
+                        model.status = 'completed'
+                
+                teslim_tarihi = row.get('TESLİM EDİLME TARİHİ')
+                if pd.notna(teslim_tarihi):
+                    try:
+                        if isinstance(teslim_tarihi, str):
+                            model.delivery_date = datetime.strptime(str(teslim_tarihi).strip(), '%d.%m.%Y')
+                        else:
+                            model.delivery_date = pd.to_datetime(teslim_tarihi).to_pydatetime()
+                    except Exception:
+                        pass
+                
             color_name = row.get('RENK')
-            if pd.notna(color_name) and current_model_id:
+            if pd.notna(color_name) and str(color_name).strip() != '' and current_model_id:
                 c_name = str(color_name).strip()
                 
                 c_q = select(PhotoModelColor).where(
@@ -332,23 +353,37 @@ async def import_excel(
                 c_res = await db.execute(c_q)
                 color = c_res.scalar_one_or_none()
                 
-                if not color:
-                    # ig required logic
-                    def is_req(val):
-                        s = str(val).strip().lower()
-                        if not s or s == 'nan' or s == 'nat' or s == 'none': return False
-                        if s in ['x', '-', 'çarpı', 'false', '0', 'yok', 'hayır']: return False
-                        return True
+                def parse_social(val):
+                    s = str(val).strip().lower()
+                    if not s or s in ['nan', 'nat', 'none', '-', '0', 'yok', 'hayır', 'false']:
+                        return False, 0
+                    if s in ['x', 'çarpı', 'true', 'v', 'var']:
+                        return True, 0
+                    try:
+                        num = int(float(s))
+                        return True, num
+                    except:
+                        return True, 0
                         
-                    ig_req = is_req(row.get('Sosyal Medya ', ''))
-                    banner_req = is_req(row.get('WEB SİTESİ 16:9', ''))
-                    
+                ig_req, ig_count = parse_social(row.get('Sosyal Medya', row.get('Sosyal Medya ')))
+                banner_req, banner_count = parse_social(row.get('WEB SİTESİ 1', row.get('WEB SİTESİ 16:9')))
+                
+                if not color:
                     color = PhotoModelColor(
                         model_id=current_model_id,
                         color_name=c_name,
                         ig_required=ig_req,
-                        banner_required=banner_req
+                        ig_photo_count=ig_count,
+                        banner_required=banner_req,
+                        banner_photo_count=banner_count
                     )
+                    db.add(color)
+                    colors_imported += 1
+                else:
+                    color.ig_required = ig_req
+                    color.ig_photo_count = ig_count
+                    color.banner_required = banner_req
+                    color.banner_photo_count = banner_count
                     db.add(color)
                     colors_imported += 1
         
