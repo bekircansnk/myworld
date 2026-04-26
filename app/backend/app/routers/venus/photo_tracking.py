@@ -399,35 +399,35 @@ async def export_excel(
     models = result.scalars().all()
     
     # Format according to user's Excel structure
-    # 'SEZON KODU', 'MADDE AÇIKLAMASI', 'RENK', 'Unnamed: 3', 'Sosyal Medya ', 'WEB SİTESİ 16:9', 'TESLİM EDİLEN', 'REVİZE', 'TESLİM EDİLME TARİHİ'
+    # 'SEZON KOD', 'MADDE AÇIKLAMASI', 'RENK', 'Unnamed: 3', 'Sosyal Medya', 'WEB SİTESİ 1', 'TESLİM EDİLEN', 'REVİZE', 'TESLİM EDİLME TARİHİ'
     
     data = []
     for model in models:
         for i, color in enumerate(model.colors):
             row = {
-                'SEZON KODU': model.sezon_kodu if i == 0 else '',
+                'SEZON KOD': model.sezon_kodu if i == 0 else '',
                 'MADDE AÇIKLAMASI': model.model_name if i == 0 else '',
                 'RENK': color.color_name,
                 'Unnamed: 3': '',
-                'Sosyal Medya ': 'X' if color.ig_required else '',
-                'WEB SİTESİ 16:9': 'X' if color.banner_required else '',
-                'TESLİM EDİLEN': 'TAMAMLANDI' if model.status == 'completed' else '',
+                'Sosyal Medya': color.ig_photo_count if color.ig_photo_count > 0 else ('X' if color.ig_required else ''),
+                'WEB SİTESİ 1': color.banner_photo_count if color.banner_photo_count > 0 else ('X' if color.banner_required else ''),
+                'TESLİM EDİLEN': 'X' if model.status == 'completed' else '',
                 'REVİZE': ', '.join([r.description for r in model.revisions]) if i == 0 else '',
-                'TESLİM EDİLME TARİHİ': model.delivery_date.strftime('%Y-%m-%d') if model.delivery_date and i == 0 else ''
+                'TESLİM EDİLME TARİHİ': model.delivery_date.strftime('%d.%m.%Y') if model.delivery_date and i == 0 else ''
             }
             data.append(row)
             
         if not model.colors:
             row = {
-                'SEZON KODU': model.sezon_kodu,
+                'SEZON KOD': model.sezon_kodu,
                 'MADDE AÇIKLAMASI': model.model_name,
                 'RENK': '',
                 'Unnamed: 3': '',
-                'Sosyal Medya ': '',
-                'WEB SİTESİ 16:9': '',
-                'TESLİM EDİLEN': 'TAMAMLANDI' if model.status == 'completed' else '',
+                'Sosyal Medya': '',
+                'WEB SİTESİ 1': '',
+                'TESLİM EDİLEN': 'X' if model.status == 'completed' else '',
                 'REVİZE': ', '.join([r.description for r in model.revisions]),
-                'TESLİM EDİLME TARİHİ': model.delivery_date.strftime('%Y-%m-%d') if model.delivery_date else ''
+                'TESLİM EDİLME TARİHİ': model.delivery_date.strftime('%d.%m.%Y') if model.delivery_date else ''
             }
             data.append(row)
 
