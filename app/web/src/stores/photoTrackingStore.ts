@@ -13,6 +13,7 @@ interface PhotoTrackingState {
   updateModel: (id: number, data: any) => Promise<PhotoModel>;
   deleteModel: (id: number) => Promise<void>;
   
+  createColor: (modelId: number, data: any) => Promise<any>;
   updateColor: (id: number, data: any) => Promise<any>;
   addRevision: (modelId: number, data: any) => Promise<any>;
   
@@ -69,6 +70,20 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
     set(state => ({
       models: state.models.filter(m => m.id !== id)
     }));
+  },
+  
+  createColor: async (modelId, data) => {
+    const res = await api.post(`/api/venus/photo-tracking/models/${modelId}/colors`, data);
+    const newColor = res.data;
+    set(state => ({
+      models: state.models.map(m => {
+        if (m.id === modelId) {
+          return { ...m, colors: [...m.colors, newColor] };
+        }
+        return m;
+      })
+    }));
+    return newColor;
   },
   
   updateColor: async (id, data) => {

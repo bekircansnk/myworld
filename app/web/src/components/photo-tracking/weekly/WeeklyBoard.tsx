@@ -11,8 +11,122 @@ interface ModelCardProps {
   onModelStatusChange: (model: PhotoModel) => Promise<void>;
 }
 
+function ColorRow({ color, onUpdateColor }: { color: PhotoModelColor, onUpdateColor: (id: number, data: any) => Promise<any> }) {
+  const [localIgCount, setLocalIgCount] = React.useState(color.ig_photo_count);
+  const [localBannerCount, setLocalBannerCount] = React.useState(color.banner_photo_count);
+
+  React.useEffect(() => {
+    setLocalIgCount(color.ig_photo_count);
+  }, [color.ig_photo_count]);
+
+  React.useEffect(() => {
+    setLocalBannerCount(color.banner_photo_count);
+  }, [color.banner_photo_count]);
+
+  const timeoutRef = React.useRef<NodeJS.Timeout>();
+
+  const debouncedUpdate = (data: any) => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      onUpdateColor(color.id, data);
+    }, 500);
+  };
+
+  const adjustPhotoCount = (type: 'ig' | 'banner', delta: number) => {
+    if (type === 'ig') {
+      const newCount = Math.max(0, localIgCount + delta);
+      setLocalIgCount(newCount);
+      debouncedUpdate({ ig_photo_count: newCount });
+    } else {
+      const newCount = Math.max(0, localBannerCount + delta);
+      setLocalBannerCount(newCount);
+      debouncedUpdate({ banner_photo_count: newCount });
+    }
+  };
+
+  const handleInputChange = (type: 'ig' | 'banner', value: string) => {
+    const newCount = Math.max(0, parseInt(value) || 0);
+    if (type === 'ig') {
+      setLocalIgCount(newCount);
+      debouncedUpdate({ ig_photo_count: newCount });
+    } else {
+      setLocalBannerCount(newCount);
+      debouncedUpdate({ banner_photo_count: newCount });
+    }
+  };
+
+  const toggleStatus = (type: 'ig' | 'banner') => {
+    if (type === 'ig') {
+      onUpdateColor(color.id, { ig_completed: !color.ig_completed });
+    } else {
+      onUpdateColor(color.id, { banner_completed: !color.banner_completed });
+    }
+  };
+
+  return (
+    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700 shadow-sm">
+      <div className="font-semibold text-sm text-brand-dark dark:text-white min-w-[120px]">
+        {color.color_name}
+      </div>
+      
+      <div className="flex flex-col sm:flex-row gap-4 xl:gap-8 flex-1">
+        {/* IG Section */}
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => toggleStatus('ig')}
+            className={`flex items-center gap-2 text-sm font-medium transition-colors ${color.ig_completed ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-600'}`}
+          >
+            {color.ig_completed ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
+            Instagram
+          </button>
+          {color.ig_completed_at && (
+            <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{format(new Date(color.ig_completed_at), 'dd.MM')}</span>
+          )}
+          <div className="flex items-center bg-slate-100 dark:bg-slate-700 rounded-md overflow-hidden group">
+            <button onClick={() => adjustPhotoCount('ig', -1)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity"><Minus className="w-3 h-3" /></button>
+            <input 
+              type="number"
+              value={localIgCount}
+              onChange={(e) => handleInputChange('ig', e.target.value)}
+              className="w-10 text-center text-xs font-bold bg-transparent border-none focus:outline-none focus:ring-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            <button onClick={() => adjustPhotoCount('ig', 1)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity"><Plus className="w-3 h-3" /></button>
+          </div>
+        </div>
+        
+        {/* Banner Section */}
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => toggleStatus('banner')}
+            className={`flex items-center gap-2 text-sm font-medium transition-colors ${color.banner_completed ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-600'}`}
+          >
+            {color.banner_completed ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
+            Banner (16:9)
+          </button>
+          {color.banner_completed_at && (
+            <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{format(new Date(color.banner_completed_at), 'dd.MM')}</span>
+          )}
+          <div className="flex items-center bg-slate-100 dark:bg-slate-700 rounded-md overflow-hidden group">
+            <button onClick={() => adjustPhotoCount('banner', -1)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity"><Minus className="w-3 h-3" /></button>
+            <input 
+              type="number"
+              value={localBannerCount}
+              onChange={(e) => handleInputChange('banner', e.target.value)}
+              className="w-10 text-center text-xs font-bold bg-transparent border-none focus:outline-none focus:ring-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            <button onClick={() => adjustPhotoCount('banner', 1)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity"><Plus className="w-3 h-3" /></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ModelCard({ model, onUpdateColor, onModelStatusChange }: ModelCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isAddingColor, setIsAddingColor] = useState(false);
+  const [newColorName, setNewColorName] = useState('');
+  const createColor = usePhotoTrackingStore(s => s.createColor);
   
   const allColorsDone = model.colors.length > 0 && model.colors.every(c => 
     (!c.ig_required || c.ig_completed) && (!c.banner_required || c.banner_completed)
@@ -33,6 +147,21 @@ function ModelCard({ model, onUpdateColor, onModelStatusChange }: ModelCardProps
     } else {
       const newCount = Math.max(0, color.banner_photo_count + delta);
       await onUpdateColor(color.id, { banner_photo_count: newCount });
+    }
+  };
+
+  const handleAddColor = async () => {
+    if(!newColorName.trim()) return;
+    try {
+        await createColor(model.id, {
+            color_name: newColorName.trim(),
+            ig_required: true,
+            banner_required: true
+        });
+        setNewColorName('');
+        setIsAddingColor(false);
+    } catch(e) {
+        console.error(e);
     }
   };
 
@@ -78,62 +207,31 @@ function ModelCard({ model, onUpdateColor, onModelStatusChange }: ModelCardProps
         <div className="border-t border-slate-100 dark:border-white/5 p-4 bg-slate-50/50 dark:bg-slate-900/20">
            <div className="space-y-2">
              {model.colors.map(color => (
-               <div key={color.id} className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700 shadow-sm">
-                  <div className="font-semibold text-sm text-brand-dark dark:text-white min-w-[120px]">
-                     {color.color_name}
-                  </div>
-                  
-                  <div className="flex flex-col sm:flex-row gap-4 xl:gap-8 flex-1">
-                     {/* IG Section */}
-                     <div className="flex items-center gap-3">
-                       <button 
-                         onClick={() => toggleColorStatus(color, 'ig')}
-                         className={`flex items-center gap-2 text-sm font-medium transition-colors ${color.ig_completed ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-600'}`}
-                       >
-                         {color.ig_completed ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
-                         Instagram
-                       </button>
-                       {color.ig_completed_at && (
-                         <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{format(new Date(color.ig_completed_at), 'dd.MM')}</span>
-                       )}
-                       <div className="flex items-center bg-slate-100 dark:bg-slate-700 rounded-md overflow-hidden">
-                         <button onClick={() => adjustPhotoCount(color, 'ig', -1)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600"><Minus className="w-3 h-3" /></button>
-                         <input 
-                           type="number"
-                           value={color.ig_photo_count}
-                           onChange={(e) => onUpdateColor(color.id, { ig_photo_count: Math.max(0, parseInt(e.target.value) || 0) })}
-                           className="w-10 text-center text-xs font-bold bg-transparent border-none focus:outline-none focus:ring-0 p-0"
-                         />
-                         <button onClick={() => adjustPhotoCount(color, 'ig', 1)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600"><Plus className="w-3 h-3" /></button>
-                       </div>
-                     </div>
-                     
-                     {/* Banner Section */}
-                     <div className="flex items-center gap-3">
-                       <button 
-                         onClick={() => toggleColorStatus(color, 'banner')}
-                         className={`flex items-center gap-2 text-sm font-medium transition-colors ${color.banner_completed ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-600'}`}
-                       >
-                         {color.banner_completed ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
-                         Banner (16:9)
-                       </button>
-                       {color.banner_completed_at && (
-                         <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{format(new Date(color.banner_completed_at), 'dd.MM')}</span>
-                       )}
-                       <div className="flex items-center bg-slate-100 dark:bg-slate-700 rounded-md overflow-hidden">
-                         <button onClick={() => adjustPhotoCount(color, 'banner', -1)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600"><Minus className="w-3 h-3" /></button>
-                         <input 
-                           type="number"
-                           value={color.banner_photo_count}
-                           onChange={(e) => onUpdateColor(color.id, { banner_photo_count: Math.max(0, parseInt(e.target.value) || 0) })}
-                           className="w-10 text-center text-xs font-bold bg-transparent border-none focus:outline-none focus:ring-0 p-0"
-                         />
-                         <button onClick={() => adjustPhotoCount(color, 'banner', 1)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600"><Plus className="w-3 h-3" /></button>
-                       </div>
-                     </div>
-                  </div>
-               </div>
+               <ColorRow key={color.id} color={color} onUpdateColor={onUpdateColor} />
              ))}
+             
+             {isAddingColor ? (
+               <div className="flex items-center gap-3 mt-3 p-2 bg-white dark:bg-slate-800 rounded-lg border border-brand-dark/20 shadow-sm">
+                 <input 
+                   type="text" 
+                   value={newColorName} 
+                   onChange={e => setNewColorName(e.target.value)} 
+                   placeholder="Renk Adı..." 
+                   className="flex-1 bg-transparent border-none text-sm focus:outline-none focus:ring-0"
+                   autoFocus
+                   onKeyDown={e => e.key === 'Enter' && handleAddColor()}
+                 />
+                 <button onClick={handleAddColor} disabled={!newColorName.trim()} className="px-3 py-1.5 text-xs font-bold bg-brand-dark text-white rounded-md disabled:opacity-50">Ekle</button>
+                 <button onClick={() => setIsAddingColor(false)} className="px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">İptal</button>
+               </div>
+             ) : (
+               <button 
+                 onClick={() => setIsAddingColor(true)} 
+                 className="flex items-center gap-1.5 mt-3 text-xs font-bold text-brand-dark dark:text-brand-yellow hover:opacity-80 transition-opacity px-2"
+               >
+                 <Plus className="w-3.5 h-3.5" /> Renk Ekle
+               </button>
+             )}
            </div>
         </div>
       )}
@@ -146,7 +244,14 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState<number>(1);
-  const [newModel, setNewModel] = useState({ model_name: '', sezon_kodu: '', notes: '' });
+  const [newModel, setNewModel] = useState({ 
+    model_name: '', 
+    sezon_kodu: '', 
+    notes: '',
+    color_name: '',
+    ig_required: true,
+    banner_required: true
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const handleModelStatusChange = async (model: PhotoModel) => {
@@ -162,7 +267,7 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
     if (!newModel.model_name.trim()) return;
     setIsSubmitting(true);
     try {
-      await createModel({
+      const createdModel = await createModel({
         project_id: projectId || null,
         model_name: newModel.model_name.trim(),
         sezon_kodu: newModel.sezon_kodu.trim() || undefined,
@@ -171,8 +276,17 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
         month: new Date().getMonth() + 1,
         year: new Date().getFullYear(),
       });
+      
+      if (newModel.color_name.trim()) {
+        await usePhotoTrackingStore.getState().createColor(createdModel.id, {
+            color_name: newModel.color_name.trim(),
+            ig_required: newModel.ig_required,
+            banner_required: newModel.banner_required
+        });
+      }
+      
       setIsModalOpen(false);
-      setNewModel({ model_name: '', sezon_kodu: '', notes: '' });
+      setNewModel({ model_name: '', sezon_kodu: '', notes: '', color_name: '', ig_required: true, banner_required: true });
     } catch (err) {
       console.error(err);
     } finally {
@@ -288,6 +402,40 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
                      className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-dark/20 text-sm resize-none"
                      placeholder="Ek bilgiler..."
                    />
+                </div>
+
+                <div className="pt-4 mt-2 border-t border-slate-100 dark:border-slate-700">
+                   <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Renk Bilgisi (Opsiyonel)</label>
+                   <div className="flex flex-col gap-3">
+                       <input 
+                         type="text" 
+                         value={newModel.color_name}
+                         onChange={e => setNewModel({ ...newModel, color_name: e.target.value })}
+                         className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-dark/20 text-sm"
+                         placeholder="Örn: Siyah"
+                       />
+                       
+                       <div className="flex items-center gap-4 px-1">
+                          <label className="flex items-center gap-2 text-sm cursor-pointer">
+                             <input 
+                               type="checkbox" 
+                               checked={newModel.ig_required}
+                               onChange={e => setNewModel({ ...newModel, ig_required: e.target.checked })}
+                               className="rounded border-slate-300 text-brand-dark focus:ring-brand-dark"
+                             />
+                             <span className="text-slate-600 dark:text-slate-300 font-medium">Instagram</span>
+                          </label>
+                          <label className="flex items-center gap-2 text-sm cursor-pointer">
+                             <input 
+                               type="checkbox" 
+                               checked={newModel.banner_required}
+                               onChange={e => setNewModel({ ...newModel, banner_required: e.target.checked })}
+                               className="rounded border-slate-300 text-brand-dark focus:ring-brand-dark"
+                             />
+                             <span className="text-slate-600 dark:text-slate-300 font-medium">Banner (16:9)</span>
+                          </label>
+                       </div>
+                   </div>
                 </div>
                 
                 <div className="mt-4 flex items-center justify-end gap-3">
