@@ -40,7 +40,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   addProject: async (data) => {
     const tempId = Date.now();
-    const tempProject = { ...data, id: tempId, status: data.status || 'active', created_at: new Date().toISOString() } as Project;
+    const tempProject = { ...data, id: tempId, is_active: data.is_active ?? true, created_at: new Date().toISOString() } as Project;
     set((state) => ({
       projects: [...state.projects, tempProject],
     }));
