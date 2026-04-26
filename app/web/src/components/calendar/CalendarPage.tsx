@@ -71,8 +71,10 @@ export function CalendarPage() {
   const { events, viewMode, currentDate, selectedDate, addEvent, deleteEvent, updateEvent,
     setViewMode, setCurrentDate, setSelectedDate, activeFilters, toggleFilter, clearFilters } = useCalendarStore()
   const { tasks, updateTask } = useTaskStore()
-  
   const [contextMenuState, setContextMenuState] = React.useState<{ show: boolean, x: number, y: number, event: CalendarEvent | null }>({ show: false, x: 0, y: 0, event: null })
+  
+  const [isSelectionMode, setIsSelectionMode] = React.useState(false)
+  const [selectedIds, setSelectedIds] = React.useState<string[]>([])
   
   const [isAddEventOpen, setIsAddEventOpen] = React.useState(false)
   const [isEventDetailOpen, setIsEventDetailOpen] = React.useState(false)
@@ -340,18 +342,35 @@ export function CalendarPage() {
         </div>
 
         {/* Tüm Etkinliklerim */}
-        <div className="p-5 flex flex-col h-[220px] shrink-0 border-t border-gray-100 dark:border-white/8">
+        <div 
+          className="p-5 flex flex-col h-[220px] shrink-0 border-t border-gray-100 dark:border-white/8"
+          onContextMenu={(e) => {
+            e.preventDefault();
+            setIsSelectionMode(true);
+          }}
+        >
            <div className="flex items-center justify-between mb-3 shrink-0">
             <h2 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
               <CalendarIcon className="w-3 h-3" />
               Tüm Etkinliklerim
             </h2>
-            <button 
-               onClick={() => { setSelectedDate(format(new Date(), 'yyyy-MM-dd')); setIsAddEventOpen(true) }}
-               className="text-[10px] text-indigo-500 font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-900/20 px-2 py-1 rounded-md transition-colors flex items-center gap-1"
-            >
-              <Plus className="w-3 h-3" /> Ekle
-            </button>
+            <div className="flex gap-1">
+              {isSelectionMode ? (
+                 <>
+                   <button onClick={() => { setIsSelectionMode(false); setSelectedIds([]) }} className="text-[10px] text-gray-500 font-semibold hover:bg-gray-100 px-2 py-1 rounded-md">İptal</button>
+                   {selectedIds.length > 0 && (
+                     <button onClick={() => { useCalendarStore.getState().deleteEvents(selectedIds); setIsSelectionMode(false); setSelectedIds([]); }} className="text-[10px] text-red-500 font-semibold hover:bg-red-50 px-2 py-1 rounded-md flex items-center gap-1"><Trash2 className="w-3 h-3"/> Sil</button>
+                   )}
+                 </>
+              ) : (
+                 <button 
+                   onClick={() => { setSelectedDate(format(new Date(), 'yyyy-MM-dd')); setIsAddEventOpen(true) }}
+                   className="text-[10px] text-indigo-500 font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-900/20 px-2 py-1 rounded-md transition-colors flex items-center gap-1"
+                >
+                  <Plus className="w-3 h-3" /> Ekle
+                </button>
+              )}
+            </div>
           </div>
           <div className="space-y-2 overflow-y-auto pr-1 flex-1 custom-scrollbar">
              {events.slice().sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(e => {
@@ -359,21 +378,36 @@ export function CalendarPage() {
                 return (
                  <button 
                   key={e.id}
-                  draggable
+                  draggable={!isSelectionMode}
                   onDragStart={(evt) => {
+                    if (isSelectionMode) return;
                     evt.dataTransfer.setData('sourceType', 'event');
                     evt.dataTransfer.setData('id', e.id.toString());
                     evt.dataTransfer.effectAllowed = 'move';
                   }}
-                  onClick={() => {
-                     setCurrentDate(new Date(e.date).toISOString());
-                     setSelectedDate(e.date);
-                     setViewMode('day');
+                  onClick={(evt) => {
+                     if (isSelectionMode) {
+                        evt.stopPropagation();
+                        setSelectedIds(prev => prev.includes(e.id.toString()) ? prev.filter(id => id !== e.id.toString()) : [...prev, e.id.toString()]);
+                     } else {
+                        setCurrentDate(new Date(e.date).toISOString());
+                        setSelectedDate(e.date);
+                        setViewMode('day');
+                     }
                   }}
-                  className={`w-full text-left p-2.5 rounded-xl border border-gray-100 dark:border-slate-800 hover:shadow-sm transition-all cursor-grab active:cursor-grabbing ${colors.bg}`}
+                  className={`w-full text-left p-2.5 rounded-xl border border-gray-100 dark:border-slate-800 hover:shadow-sm transition-all ${!isSelectionMode ? 'cursor-grab active:cursor-grabbing' : ''} ${colors.bg} ${selectedIds.includes(e.id.toString()) ? 'ring-2 ring-indigo-500' : ''}`}
                  >
-                    <p className={`text-[12px] font-bold ${colors.text} truncate`}>{e.title}</p>
-                    <p className={`text-[10px] ${colors.text} opacity-70 mt-1`}>{format(new Date(e.date), 'dd MMMM yyyy, EEEE', { locale: tr })}</p>
+                    <div className="flex justify-between items-start">
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-[12px] font-bold ${colors.text} truncate`}>{e.title}</p>
+                        <p className={`text-[10px] ${colors.text} opacity-70 mt-1`}>{format(new Date(e.date), 'dd MMMM yyyy, EEEE', { locale: tr })}</p>
+                      </div>
+                      {isSelectionMode && (
+                        <div className={`w-4 h-4 rounded-sm border shrink-0 flex items-center justify-center ${selectedIds.includes(e.id.toString()) ? 'bg-indigo-500 border-indigo-500' : 'border-gray-300'}`}>
+                           {selectedIds.includes(e.id.toString()) && <Check className="w-3 h-3 text-white" />}
+                        </div>
+                      )}
+                    </div>
                  </button>
                 )
              })}

@@ -20,6 +20,7 @@ interface CalendarState {
   addEvent: (event: CalendarEvent) => void;
   updateEvent: (id: string, data: Partial<CalendarEvent>) => void;
   deleteEvent: (id: string) => void;
+  deleteEvents: (ids: string[]) => void;
   toggleFilter: (category: string) => void;
   clearFilters: () => void;
 }
@@ -70,13 +71,29 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
   },
 
   deleteEvent: async (id) => {
+    set((state) => ({
+      events: state.events.filter((e) => e.id !== id),
+      selectedEvent: state.selectedEvent?.id === id ? null : state.selectedEvent,
+    }));
     try {
        await api.delete(`/api/calendar/events/${id}`);
-       set((state) => ({
-         events: state.events.filter((e) => e.id !== id),
-         selectedEvent: state.selectedEvent?.id === id ? null : state.selectedEvent,
-       }));
-    } catch(err) { console.error(err); }
+    } catch(err) { 
+       console.error(err); 
+       get().fetchEvents();
+    }
+  },
+
+  deleteEvents: async (ids) => {
+    set((state) => ({
+      events: state.events.filter((e) => !ids.includes(e.id)),
+      selectedEvent: state.selectedEvent && ids.includes(state.selectedEvent.id) ? null : state.selectedEvent,
+    }));
+    try {
+       await Promise.all(ids.map(id => api.delete(`/api/calendar/events/${id}`)));
+    } catch(err) {
+       console.error(err);
+       get().fetchEvents();
+    }
   },
 
   toggleFilter: (category) => set((state) => ({
