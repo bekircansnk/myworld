@@ -62,11 +62,13 @@ const CATEGORY_TABS: { key: CategoryFilter; label: string; icon: React.ReactNode
 
 function MessageBubble({ msg }: { msg: SessionMessage }) {
   if (msg.role === 'system') {
+    const cleanContent = msg.content.split('\n').filter(line => !line.includes('DETECT_TONE')).join('\n').trim();
+    if (!cleanContent) return null;
     return (
       <div className="flex w-full justify-center my-2 animate-in fade-in duration-300">
         <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl px-4 py-2.5 text-xs max-w-[90%]">
           <span className="font-semibold text-emerald-700 dark:text-emerald-300 block mb-1">🤖 Sistem Aksiyonları:</span>
-          <pre className="whitespace-pre-wrap text-emerald-600 dark:text-emerald-400 font-mono">{msg.content}</pre>
+          <pre className="whitespace-pre-wrap text-emerald-600 dark:text-emerald-400 font-mono">{cleanContent}</pre>
         </div>
       </div>
     )
@@ -96,9 +98,9 @@ function MessageBubble({ msg }: { msg: SessionMessage }) {
           </div>
 
           {/* Action badges */}
-          {!isUser && msg.actions && msg.actions.length > 0 && (
+          {!isUser && msg.actions && msg.actions.filter((a: any) => !a.action.includes('DETECT_TONE')).length > 0 && (
             <div className="flex flex-wrap gap-1 px-1">
-              {msg.actions.map((action: any, i: number) => (
+              {msg.actions.filter((a: any) => !a.action.includes('DETECT_TONE')).map((action: any, i: number) => (
                 <span
                   key={i}
                   className={`text-[10px] px-2.5 py-1 rounded-full font-bold ${
