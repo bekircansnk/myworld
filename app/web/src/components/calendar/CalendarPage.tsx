@@ -280,10 +280,10 @@ export function CalendarPage() {
         </div>
 
         {/* Günlük Özet */}
-        <div className="p-5 border-b border-gray-100 dark:border-white/8">
+        <div className={`p-5 border-b border-gray-100 dark:border-white/8 flex flex-col ${isBugunProgramiOpen ? 'flex-1 min-h-0' : 'shrink-0'}`}>
           <button 
             onClick={() => setIsBugunProgramiOpen(!isBugunProgramiOpen)}
-            className="w-full flex items-center justify-between text-left cursor-pointer mb-3"
+            className={`w-full flex items-center justify-between text-left cursor-pointer shrink-0 ${isBugunProgramiOpen ? 'mb-3' : ''}`}
           >
             <h2 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
               <CalendarIcon className="w-3 h-3" />
@@ -294,10 +294,10 @@ export function CalendarPage() {
           
           {isBugunProgramiOpen && (
             <>
-              <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-3 font-medium">
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-3 font-medium shrink-0">
                 {format(new Date(), 'dd MMMM yyyy, EEEE', { locale: tr })}
               </p>
-              <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
+              <div className="space-y-2 overflow-y-auto pr-1 flex-1 custom-scrollbar">
                 {todayEvents.length === 0 ? (
                   <div className="text-center py-4">
                     <Sparkles className="w-6 h-6 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
@@ -377,7 +377,7 @@ export function CalendarPage() {
 
         {/* Tüm Etkinliklerim */}
         <div 
-          className={`p-5 flex flex-col shrink-0 border-t border-gray-100 dark:border-white/8 ${isTumEtkinliklerimOpen ? 'h-[220px]' : ''}`}
+          className={`p-5 flex flex-col shrink-0 border-t border-gray-100 dark:border-white/8 ${isTumEtkinliklerimOpen ? 'flex-1 min-h-0' : ''}`}
           onContextMenu={(e) => {
             e.preventDefault();
             setIsSelectionMode(true);
