@@ -23,7 +23,7 @@ function ColorRow({ color, onUpdateColor }: { color: PhotoModelColor, onUpdateCo
     setLocalBannerCount(color.banner_photo_count);
   }, [color.banner_photo_count]);
 
-  const timeoutRef = React.useRef<NodeJS.Timeout>();
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const debouncedUpdate = (data: any) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
