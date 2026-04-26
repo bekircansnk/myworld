@@ -226,7 +226,8 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db),
                 actions_executed.append(ActionLog(
                     action="CREATE_PLAN",
                     details=f"📋 {main_title} → {project_name or 'Genel'} ({final_priority})",
-                    success=True
+                    success=True,
+                    payload={"id": main_task_id, "type": "task"}
                 ))
                 
                 # ALT GÖREVLER oluştur
@@ -300,7 +301,8 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db),
                 actions_executed.append(ActionLog(
                     action="ADD_TASK",
                     details=f"{task_title} → {project_name or 'Genel'}",
-                    success=True
+                    success=True,
+                    payload={"id": new_task.id, "type": "task"}
                 ))
         
         # =============================================
@@ -339,7 +341,8 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db),
             actions_executed.append(ActionLog(
                 action="ADD_NOTE",
                 details=note_content[:80],
-                success=True
+                success=True,
+                payload={"id": new_note.id, "type": "note"}
             ))
             
         # =============================================
@@ -512,9 +515,9 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db),
                 result = await db.execute(select(CalendarEvent).where(CalendarEvent.id == event_id, CalendarEvent.user_id == MOCK_USER_ID))
                 event_to_del = result.scalars().first()
                 if event_to_del:
-                    await db.delete(event_to_del)
+                    event_to_del.is_deleted = True
                     await db.commit()
-                    actions_executed.append(ActionLog(action="DELETE_EVENT", details=f"Silindi: ID {event_id}", success=True))
+                    actions_executed.append(ActionLog(action="DELETE_EVENT", details=f"Silindi: ID {event_id}", success=True, payload={"id": event_id, "type": "event"}))
                 else:
                     actions_executed.append(ActionLog(action="DELETE_EVENT", details=f"Bulunamadı: ID {event_id}", success=False))
             except Exception as e:
@@ -534,24 +537,14 @@ async def chat_with_ai(request: ChatRequest, db: AsyncSession = Depends(get_db),
                 res = await db.execute(q)
                 task_to_del = res.scalars().first()
                 if task_to_del:
-                    # Clear FKs
-                    await db.execute(update(CalendarEvent).where(CalendarEvent.task_id == task_id_to_del).values(task_id=None))
-                    await db.execute(update(TimerSession).where(TimerSession.task_id == task_id_to_del).values(task_id=None))
-                    await db.execute(update(Note).where(Note.task_id == task_id_to_del).values(task_id=None))
+                    # Soft Delete
+                    task_to_del.is_deleted = True
                     
-                    # Delete subtasks
-                    sub_q = select(Task).where(Task.parent_task_id == task_id_to_del)
-                    sub_res = await db.execute(sub_q)
-                    subtasks = sub_res.scalars().all()
-                    for st in subtasks:
-                        await db.execute(update(CalendarEvent).where(CalendarEvent.task_id == st.id).values(task_id=None))
-                        await db.execute(update(TimerSession).where(TimerSession.task_id == st.id).values(task_id=None))
-                        await db.execute(update(Note).where(Note.task_id == st.id).values(task_id=None))
-                        await db.delete(st)
-
-                    await db.delete(task_to_del)
+                    # Soft delete subtasks
+                    await db.execute(update(Task).where(Task.parent_task_id == task_id_to_del).values(is_deleted=True))
+                    
                     await db.commit()
-                    actions_executed.append(ActionLog(action="DELETE_TASK", details=f"Silindi: Görev ID {task_id_to_del}", success=True))
+                    actions_executed.append(ActionLog(action="DELETE_TASK", details=f"Silindi: Görev ID {task_id_to_del}", success=True, payload={"id": task_id_to_del, "type": "task"}))
                 else:
                     actions_executed.append(ActionLog(action="DELETE_TASK", details=f"Bulunamadı: ID {task_id_to_del}", success=False))
             except Exception as e:
@@ -911,3 +904,76 @@ async def delete_all_chat_sessions(
     )
     await db.commit()
     return {"status": "success", "message": "Tüm sohbet oturumları silindi."}
+
+@router.post("/chat/undo/{message_id}")
+async def undo_chat_message_actions(
+    message_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Undo all actions associated with a specific chat message."""
+    MOCK_USER_ID = current_user.id
+    
+    # 1. Mesajı bul
+    query = select(ChatMessage).where(
+        ChatMessage.id == message_id,
+        ChatMessage.user_id == MOCK_USER_ID
+    )
+    result = await db.execute(query)
+    message = result.scalars().first()
+    
+    if not message or not message.actions:
+        raise HTTPException(status_code=404, detail="Geri alınacak aksiyon bulunamadı.")
+        
+    actions = message.actions
+    undone_count = 0
+    
+    for action in actions:
+        if not action.get("success"):
+            continue
+            
+        action_type = action.get("action")
+        payload = action.get("payload")
+        
+        if not payload or "id" not in payload:
+            # Fallback to parsing details if no payload (for old messages)
+            details = action.get("details", "")
+            match = re.search(r"ID (\d+)", details)
+            if match:
+                payload = {"id": int(match.group(1))}
+            else:
+                continue
+
+        item_id = payload.get("id")
+        
+        try:
+            if action_type in ("CREATE_PLAN", "ADD_TASK"):
+                await db.execute(update(Task).where(Task.id == item_id, Task.user_id == MOCK_USER_ID).values(is_deleted=True))
+                undone_count += 1
+            elif action_type == "DELETE_TASK":
+                await db.execute(update(Task).where(Task.id == item_id, Task.user_id == MOCK_USER_ID).values(is_deleted=False))
+                await db.execute(update(Task).where(Task.parent_task_id == item_id, Task.user_id == MOCK_USER_ID).values(is_deleted=False))
+                undone_count += 1
+            elif action_type == "ADD_EVENT":
+                await db.execute(update(CalendarEvent).where(CalendarEvent.id == item_id, CalendarEvent.user_id == MOCK_USER_ID).values(is_deleted=True))
+                undone_count += 1
+            elif action_type == "DELETE_EVENT":
+                await db.execute(update(CalendarEvent).where(CalendarEvent.id == item_id, CalendarEvent.user_id == MOCK_USER_ID).values(is_deleted=False))
+                undone_count += 1
+            elif action_type == "ADD_NOTE":
+                await db.execute(update(Note).where(Note.id == item_id, Note.user_id == MOCK_USER_ID).values(is_deleted=True))
+                undone_count += 1
+        except Exception as e:
+            logger.error(f"Undo action error: {e}")
+
+    # Mark actions as undone
+    updated_actions = []
+    for a in actions:
+        a["undone"] = True
+        updated_actions.append(a)
+    
+    # SQLAlchemy'ye JSON alanının güncellendiğini bildirmek için atama yapıyoruz
+    message.actions = updated_actions
+    await db.commit()
+    
+    return {"status": "success", "undone_count": undone_count}

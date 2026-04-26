@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, JSON
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, JSON, Boolean
 from sqlalchemy.orm import relationship
 from app.models.base import Base
 
@@ -22,6 +22,7 @@ class Task(Base):
     parent_task_id = Column(Integer, ForeignKey("tasks.id"), nullable=True)
     sort_order = Column(Integer, default=0)
     completed_at = Column(DateTime(timezone=True), nullable=True)
+    is_deleted = Column(Boolean, default=False)
 
     user = relationship("User", back_populates="tasks")
     project = relationship("Project", back_populates="tasks")

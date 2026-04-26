@@ -5,7 +5,7 @@ import { useAIChatStore, ChatSession, SessionMessage, CategoryFilter } from "@/s
 import {
   MessageCircle, Send, Plus, Sparkles, StickyNote, ListPlus,
   CalendarDays, Clock, ChevronRight, Search, Bot, User,
-  CheckCircle2, ArrowUpRight, FileText, Layers, Brain, Trash2
+  CheckCircle2, ArrowUpRight, FileText, Layers, Brain, Trash2, History
 } from "lucide-react"
 import { format, formatDistanceToNow } from "date-fns"
 import { tr } from "date-fns/locale"
@@ -13,6 +13,10 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator,
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { MiniRobot } from "@/components/chat/MiniRobot"
 import { useAuthStore } from "@/store/authStore"
+import { api } from "@/lib/api"
+import { useTaskStore } from "@/stores/taskStore"
+import { useCalendarStore } from "@/stores/calendarStore"
+import { useNoteStore } from "@/stores/noteStore"
 
 // ============ CATEGORY CONFIG ============
 
@@ -64,11 +68,42 @@ function MessageBubble({ msg }: { msg: SessionMessage }) {
   if (msg.role === 'system') {
     const cleanContent = msg.content.split('\n').filter(line => !line.includes('DETECT_TONE')).join('\n').trim();
     if (!cleanContent) return null;
+    const handleUndo = async () => {
+      try {
+        await api.post(`/api/ai/undo/${msg.id}`)
+        // Refresh stores to reflect changes
+        useTaskStore.getState().fetchTasks()
+        useCalendarStore.getState().fetchEvents()
+        useNoteStore.getState().fetchNotes()
+        useAIChatStore.getState().fetchSessions() // Message status might change
+      } catch (err) {
+        console.error("Geri alma hatası:", err)
+      }
+    }
+
+    const isUndone = msg.actions?.some((a: any) => a.undone);
+
     return (
       <div className="flex w-full justify-center my-2 animate-in fade-in duration-300">
-        <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl px-4 py-2.5 text-xs max-w-[90%]">
-          <span className="font-semibold text-emerald-700 dark:text-emerald-300 block mb-1">🤖 Sistem Aksiyonları:</span>
-          <pre className="whitespace-pre-wrap text-emerald-600 dark:text-emerald-400 font-mono">{cleanContent}</pre>
+        <div className={`relative bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl px-4 py-2.5 text-xs max-w-[90%] ${isUndone ? 'opacity-50' : ''}`}>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <span className="font-semibold text-emerald-700 dark:text-emerald-300 block mb-1">🤖 Sistem Aksiyonları:</span>
+              <pre className="whitespace-pre-wrap text-emerald-600 dark:text-emerald-400 font-mono">{cleanContent}</pre>
+            </div>
+            {!isUndone && (
+              <button
+                onClick={handleUndo}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700 hover:bg-emerald-100 transition-all font-bold shrink-0 shadow-sm"
+              >
+                <History className="w-3.5 h-3.5" />
+                Geri Al
+              </button>
+            )}
+            {isUndone && (
+              <span className="text-[10px] font-bold text-slate-400 italic shrink-0">Geri Alındı</span>
+            )}
+          </div>
         </div>
       </div>
     )
@@ -97,23 +132,7 @@ function MessageBubble({ msg }: { msg: SessionMessage }) {
             <div className="whitespace-pre-wrap break-words">{msg.content}</div>
           </div>
 
-          {/* Action badges */}
-          {!isUser && msg.actions && msg.actions.filter((a: any) => !a.action.includes('DETECT_TONE')).length > 0 && (
-            <div className="flex flex-wrap gap-1 px-1">
-              {msg.actions.filter((a: any) => !a.action.includes('DETECT_TONE')).map((action: any, i: number) => (
-                <span
-                  key={i}
-                  className={`text-[10px] px-2.5 py-1 rounded-full font-bold ${
-                    action.success
-                      ? 'bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-300'
-                      : 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300'
-                  }`}
-                >
-                  {action.success ? '✅' : '❌'} {action.action}
-                </span>
-              ))}
-            </div>
-          )}
+          {/* Action badges removed as per user request */}
 
           <span className="text-[10px] text-brand-gray dark:text-gray-500 px-1">
             {format(new Date(msg.created_at), 'HH:mm', { locale: tr })}

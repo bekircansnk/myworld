@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, JSON, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, JSON, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from app.models.base import Base
 from datetime import datetime, timezone
@@ -21,6 +21,7 @@ class Note(Base):
     tts_text = Column(String, nullable=True)
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    is_deleted = Column(Boolean, default=False)
 
     user = relationship("User", back_populates="notes")
     project = relationship("Project", back_populates="notes")
