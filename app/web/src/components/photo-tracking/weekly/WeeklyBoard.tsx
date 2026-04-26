@@ -5,6 +5,7 @@ import { CheckCircle2, Circle, ChevronDown, ChevronUp, Image as ImageIcon, Messa
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { useContextMenuStore } from '@/stores/contextMenuStore';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 interface ModelCardProps {
   model: PhotoModel;
@@ -17,6 +18,7 @@ function ColorRow({ color, onUpdateColor }: { color: PhotoModelColor, onUpdateCo
   const [editName, setEditName] = React.useState(color.color_name);
   const openMenu = useContextMenuStore(s => s.openMenu);
   const deleteColor = usePhotoTrackingStore(s => s.deleteColor);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
 
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
@@ -84,16 +86,13 @@ function ColorRow({ color, onUpdateColor }: { color: PhotoModelColor, onUpdateCo
         label: 'Rengi Sil',
         icon: <Trash2 className="w-4 h-4" />,
         destructive: true,
-        onClick: async () => {
-          if (window.confirm(`"${color.color_name}" rengini silmek istediğinize emin misiniz?`)) {
-             try { await deleteColor(color.model_id, color.id); } catch(e) {}
-          }
-        }
+        onClick: () => setDeleteConfirmOpen(true)
       }
     ]);
   };
 
   return (
+    <>
     <div onContextMenu={handleContextMenu} className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700 shadow-sm transition-all hover:border-brand-dark/20 cursor-default">
       <div className="font-semibold text-sm text-brand-dark dark:text-white min-w-[120px]">
         {isEditingName ? (
@@ -163,6 +162,16 @@ function ColorRow({ color, onUpdateColor }: { color: PhotoModelColor, onUpdateCo
         )}
       </div>
     </div>
+    <ConfirmDialog 
+      isOpen={deleteConfirmOpen}
+      onOpenChange={setDeleteConfirmOpen}
+      title="Rengi Sil"
+      description={`"${color.color_name}" rengini silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`}
+      onConfirm={async () => {
+        try { await deleteColor(color.model_id, color.id); } catch(e) {}
+      }}
+    />
+    </>
   );
 }
 
@@ -173,10 +182,9 @@ function ModelCard({ model, onUpdateColor, onModelStatusChange }: ModelCardProps
   
   const [isEditingName, setIsEditingName] = useState(false);
   const [editName, setEditName] = useState(model.model_name);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
 
-  const createColor = usePhotoTrackingStore(s => s.createColor);
-  const deleteModel = usePhotoTrackingStore(s => s.deleteModel);
-  const updateModel = usePhotoTrackingStore(s => s.updateModel);
+  const { deleteModel, createColor, updateModel } = usePhotoTrackingStore();
   const openMenu = useContextMenuStore(s => s.openMenu);
   
   const allColorsDone = model.colors.length > 0 && model.colors.every(c => 
@@ -205,11 +213,7 @@ function ModelCard({ model, onUpdateColor, onModelStatusChange }: ModelCardProps
         label: 'Modeli Sil',
         icon: <Trash2 className="w-4 h-4" />,
         destructive: true,
-        onClick: async () => {
-          if (window.confirm(`"${model.model_name}" modelini silmek istediğinize emin misiniz?`)) {
-             try { await deleteModel(model.id); } catch(e) {}
-          }
-        }
+        onClick: () => setDeleteConfirmOpen(true)
       }
     ]);
   };
@@ -240,6 +244,7 @@ function ModelCard({ model, onUpdateColor, onModelStatusChange }: ModelCardProps
   };
 
   return (
+    <>
     <div onContextMenu={handleContextMenu} className={`bg-white dark:bg-slate-800 rounded-xl shadow-sm border transition-colors hover:border-brand-dark/30 ${allColorsDone || model.status === 'completed' ? 'border-emerald-200 dark:border-emerald-900/50' : 'border-slate-200 dark:border-white/5'}`}>
       <div 
         className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer"
@@ -322,6 +327,16 @@ function ModelCard({ model, onUpdateColor, onModelStatusChange }: ModelCardProps
         </div>
       )}
     </div>
+    <ConfirmDialog 
+      isOpen={deleteConfirmOpen}
+      onOpenChange={setDeleteConfirmOpen}
+      title="Modeli Sil"
+      description={`"${model.model_name}" modelini silmek istediğinize emin misiniz? Altındaki tüm renkler de silinecektir.`}
+      onConfirm={async () => {
+        try { await deleteModel(model.id); } catch(e) {}
+      }}
+    />
+    </>
   );
 }
 
@@ -335,7 +350,15 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [importingWeek, setImportingWeek] = useState<number | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<number>(1);
-  const [expandedWeeks, setExpandedWeeks] = useState<number[]>([]); // Default closed
+  
+  const getCurrentWeekNumber = () => {
+    const day = new Date().getDate();
+    const week = Math.ceil(day / 7);
+    return week > 4 ? 4 : week;
+  };
+  
+  const [expandedWeeks, setExpandedWeeks] = useState<number[]>([getCurrentWeekNumber()]); 
+  
   const [newModel, setNewModel] = useState({ 
     model_name: '', 
     sezon_kodu: '', 
