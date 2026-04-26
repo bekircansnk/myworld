@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePhotoTrackingStore } from '@/stores/photoTrackingStore';
 import { PhotoModel, PhotoModelColor } from '@/types/photo-tracking';
-import { CheckCircle2, Circle, ChevronDown, ChevronUp, Image as ImageIcon, MessageSquare, Plus, Minus, CheckSquare, Edit2, Trash2, ChevronLeft, ChevronRight, Upload, FileDown } from 'lucide-react';
+import { CheckCircle2, Circle, ChevronDown, ChevronUp, Image as ImageIcon, MessageSquare, Plus, Minus, CheckSquare, Edit2, Trash2, ChevronLeft, ChevronRight, Upload, FileDown, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { useContextMenuStore } from '@/stores/contextMenuStore';
@@ -358,6 +358,13 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
   const importingWeekRef = React.useRef<number | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<number>(1);
   
+  const [importResult, setImportResult] = useState<{
+    isOpen: boolean;
+    status: 'loading' | 'success' | 'error';
+    message: string;
+    details?: { models_imported: number; colors_imported: number };
+  }>({ isOpen: false, status: 'loading', message: '' });
+  
   const getCurrentWeekNumber = () => {
     const day = new Date().getDate();
     const week = Math.ceil(day / 7);
@@ -407,9 +414,20 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
     const week = importingWeekRef.current;
     if (file && week) {
       try {
-        await importExcel(file, projectId || undefined, week, currentMonth, currentYear);
-      } catch (err) {
-        alert("Excel yüklenirken bir hata oluştu.");
+        setImportResult({ isOpen: true, status: 'loading', message: 'Excel dosyası işleniyor, lütfen bekleyin...' });
+        const res = await importExcel(file, projectId || undefined, week, currentMonth, currentYear);
+        setImportResult({ 
+           isOpen: true, 
+           status: 'success', 
+           message: 'Excel başarıyla içe aktarıldı!',
+           details: { models_imported: res.models_imported, colors_imported: res.colors_imported }
+        });
+      } catch (err: any) {
+        setImportResult({ 
+           isOpen: true, 
+           status: 'error', 
+           message: err.response?.data?.detail || 'Excel yüklenirken bir hata oluştu. Lütfen dosya formatını kontrol edin.' 
+        });
       }
     }
     if (fileInputRef.current) {
@@ -709,6 +727,48 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
         </div>
       )}
       
+      {/* Import Result Modal */}
+      {importResult.isOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm p-6 text-center flex flex-col items-center">
+              {importResult.status === 'loading' && (
+                 <div className="w-12 h-12 rounded-full border-4 border-slate-200 border-t-brand-dark animate-spin mb-4" />
+              )}
+              {importResult.status === 'success' && (
+                 <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4">
+                    <CheckCircle2 className="w-6 h-6" />
+                 </div>
+              )}
+              {importResult.status === 'error' && (
+                 <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-4">
+                    <XCircle className="w-6 h-6" />
+                 </div>
+              )}
+              
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                 {importResult.status === 'loading' ? 'İşleniyor...' : importResult.status === 'success' ? 'Başarılı!' : 'Hata!'}
+              </h3>
+              <p className="text-sm text-slate-500 mb-6">
+                 {importResult.message}
+                 {importResult.status === 'success' && importResult.details && (
+                    <span className="block mt-2 font-medium text-slate-700 dark:text-slate-300">
+                       {importResult.details.models_imported} Model, {importResult.details.colors_imported} Renk güncellendi.
+                    </span>
+                 )}
+              </p>
+              
+              {importResult.status !== 'loading' && (
+                 <button 
+                   onClick={() => setImportResult(prev => ({ ...prev, isOpen: false }))}
+                   className="w-full py-2.5 rounded-xl font-bold text-white bg-brand-dark hover:opacity-90 transition-opacity"
+                 >
+                   Tamam
+                 </button>
+              )}
+           </div>
+        </div>
+      )}
+
       {/* Hidden file input for Excel */}
       <input 
         type="file" 
