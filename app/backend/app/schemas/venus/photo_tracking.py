@@ -42,15 +42,15 @@ class PhotoModelColorUpdate(BaseModel):
 class PhotoModelColorResponse(PhotoModelColorBase):
     id: int
     model_id: int
-    ig_completed: bool
-    ig_completed_at: Optional[datetime]
-    ig_photo_count: int
-    banner_completed: bool
-    banner_completed_at: Optional[datetime]
-    banner_photo_count: int
-    revision_completed: bool
-    revision_completed_at: Optional[datetime]
-    revision_photo_count: int
+    ig_completed: bool = False
+    ig_completed_at: Optional[datetime] = None
+    ig_photo_count: int = 0
+    banner_completed: bool = False
+    banner_completed_at: Optional[datetime] = None
+    banner_photo_count: int = 0
+    revision_completed: bool = False
+    revision_completed_at: Optional[datetime] = None
+    revision_photo_count: int = 0
     created_at: datetime
     
     model_config = ConfigDict(from_attributes=True)
