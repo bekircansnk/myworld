@@ -24,6 +24,7 @@ class PhotoModelColor(Base):
     revision_completed = Column(Boolean, default=False)
     revision_completed_at = Column(DateTime, nullable=True)
     revision_photo_count = Column(Integer, default=0)
+    revision_note = Column(String, nullable=True)
     
     created_at = Column(DateTime, default=datetime.utcnow)
     

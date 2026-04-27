@@ -195,6 +195,14 @@ function ColorRow({ color, onUpdateColor }: { color: PhotoModelColor, onUpdateCo
               />
               <button onClick={() => adjustPhotoCount('revision', 1)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity"><Plus className="w-3 h-3" /></button>
             </div>
+            
+            <input 
+              type="text"
+              placeholder="Revize notu..."
+              value={color.revision_note || ''}
+              onChange={(e) => onUpdateColor(color.id, { revision_note: e.target.value })}
+              className="flex-1 min-w-[100px] text-xs bg-slate-100 dark:bg-slate-700 border-none rounded-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-brand-dark/20"
+            />
           </div>
         )}
       </div>

@@ -23,6 +23,7 @@ class PhotoModelColorBase(BaseModel):
     ig_required: bool = True
     banner_required: bool = True
     revision_required: bool = True
+    revision_note: Optional[str] = None
 
 class PhotoModelColorCreate(PhotoModelColorBase):
     pass
@@ -38,6 +39,7 @@ class PhotoModelColorUpdate(BaseModel):
     revision_required: Optional[bool] = None
     revision_completed: Optional[bool] = None
     revision_photo_count: Optional[int] = None
+    revision_note: Optional[str] = None
 
 class PhotoModelColorResponse(PhotoModelColorBase):
     id: int

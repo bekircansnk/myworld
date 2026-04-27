@@ -26,6 +26,7 @@ export interface PhotoModelColor {
   revision_completed: boolean;
   revision_completed_at?: string;
   revision_photo_count: number;
+  revision_note?: string;
   created_at: string;
 }
 

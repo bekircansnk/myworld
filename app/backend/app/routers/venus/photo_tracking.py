@@ -397,8 +397,21 @@ async def import_excel(
                         
                 ig_req, ig_count = parse_social(row.get('Sosyal Medya', row.get('Sosyal Medya ')))
                 banner_req, banner_count = parse_social(row.get('WEB SİTESİ 1', row.get('WEB SİTESİ 16:9')))
-                revision_req, revision_count = parse_social(row.get('REVİZE', ''))
                 
+                # REVİZE ADET veya eski REVİZE sütunundan sayısal değeri al
+                rev_val_raw = row.get('REVİZE ADET', row.get('REVİZE', ''))
+                revision_req, revision_count = parse_social(rev_val_raw)
+                
+                # REVİZE NOTU sütunundan metin değerini al
+                # Eğer REVİZE hücresinde metin varsa (parse_social 0 dönerse ama hücre doluysa) onu da alabiliriz
+                rev_note_raw = str(row.get('REVİZE NOTU', '')).strip()
+                if rev_note_raw.lower() in ['nan', 'none', 'nat']:
+                    rev_note_raw = ""
+                
+                # Fallback: Eğer REVİZE sütununda metin varsa ve REVİZE NOTU boşsa
+                if not rev_note_raw and str(rev_val_raw).strip() and revision_count == 0 and str(rev_val_raw).strip().lower() not in ['x', 'v', 'çarpı']:
+                     rev_note_raw = str(rev_val_raw).strip()
+
                 if not color:
                     color = PhotoModelColor(
                         model_id=current_model_id,
@@ -408,7 +421,8 @@ async def import_excel(
                         banner_required=banner_req,
                         banner_photo_count=banner_count,
                         revision_required=revision_req,
-                        revision_photo_count=revision_count
+                        revision_photo_count=revision_count,
+                        revision_note=rev_note_raw if rev_note_raw else None
                     )
                     db.add(color)
                     colors_imported += 1
@@ -419,6 +433,8 @@ async def import_excel(
                     color.banner_photo_count = banner_count
                     color.revision_required = revision_req
                     color.revision_photo_count = revision_count
+                    if rev_note_raw:
+                        color.revision_note = rev_note_raw
                     db.add(color)
                     colors_imported += 1
         
@@ -514,15 +530,21 @@ async def export_excel(
             for color in model.colors:
                 ig_val = color.ig_photo_count if (color.ig_photo_count and color.ig_photo_count > 0) else ('X' if color.ig_required else '')
                 banner_val = color.banner_photo_count if (color.banner_photo_count and color.banner_photo_count > 0) else ('X' if color.banner_required else '')
-                revize_val = color.revision_photo_count if (color.revision_photo_count and color.revision_photo_count > 0) else ('X' if color.revision_required else '')
+                revize_adet = color.revision_photo_count if (color.revision_photo_count and color.revision_photo_count > 0) else ('X' if color.revision_required else '')
                 
                 ig_count = color.ig_photo_count or 0
                 banner_count = color.banner_photo_count or 0
                 revize_count = color.revision_photo_count or 0
                 teslim_edilen = (ig_count + banner_count + revize_count) if is_completed else ''
                 
-                # Model level revisions string as fallback
+                # Model level revisions string combined with color note
                 model_revize = ', '.join([r.description for r in model.revisions]) if model.revisions else ''
+                color_note = color.revision_note or ''
+                
+                total_note = color_note
+                if model_revize:
+                    if total_note: total_note += " | " + model_revize
+                    else: total_note = model_revize
                 
                 row = {
                     'SEZON KOD': model.sezon_kodu or '',
@@ -531,7 +553,8 @@ async def export_excel(
                     'Sosyal Medya': ig_val,
                     'WEB SİTESİ 1': banner_val,
                     'TESLİM EDİLEN': teslim_edilen,
-                    'REVİZE': revize_val or model_revize,
+                    'REVİZE ADET': revize_adet,
+                    'REVİZE NOTU': total_note,
                     'TESLİM EDİLME TARİHİ': delivery_str
                 }
                 data.append(row)
@@ -543,7 +566,8 @@ async def export_excel(
                 'Sosyal Medya': '',
                 'WEB SİTESİ 1': '',
                 'TESLİM EDİLEN': 0 if is_completed else '',
-                'REVİZE': revize_str,
+                'REVİZE ADET': '',
+                'REVİZE NOTU': revize_str,
                 'TESLİM EDİLME TARİHİ': delivery_str
             }
             data.append(row)
