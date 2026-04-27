@@ -73,7 +73,7 @@ function ColorRow({ color, onUpdateColor }: { color: PhotoModelColor, onUpdateCo
         onClick: () => setIsEditingName(true)
       },
       {
-        label: color.ig_required ? 'Instagram Kapat' : 'Instagram Aç',
+        label: color.ig_required ? 'Sosyal Medya Kapat' : 'Sosyal Medya Aç',
         icon: <Circle className="w-4 h-4" />,
         onClick: async () => onUpdateColor(color.id, { ig_required: !color.ig_required })
       },
@@ -117,7 +117,7 @@ function ColorRow({ color, onUpdateColor }: { color: PhotoModelColor, onUpdateCo
               className={`flex items-center gap-2 text-sm font-medium transition-colors ${color.ig_completed ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-600'}`}
             >
               {color.ig_completed ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
-              Instagram
+              Sosyal Medya
             </button>
             {color.ig_completed_at && (
               <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{format(new Date(color.ig_completed_at), 'dd.MM')}</span>
@@ -693,7 +693,7 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
                                onChange={e => setNewModel({ ...newModel, ig_required: e.target.checked })}
                                className="rounded border-slate-300 text-brand-dark focus:ring-brand-dark"
                              />
-                             <span className="text-slate-600 dark:text-slate-300 font-medium">Instagram</span>
+                             <span className="text-slate-600 dark:text-slate-300 font-medium">Sosyal Medya</span>
                           </label>
                           <label className="flex items-center gap-2 text-sm cursor-pointer">
                              <input 
