@@ -69,7 +69,7 @@ async def read_tasks(
     limit: int = 100,
     current_user: User = Depends(get_current_user)
 ):
-    query = select(Task).options(selectinload(Task.project)).where(Task.user_id == current_user.id, Task.is_deleted == False)
+    query = select(Task).options(selectinload(Task.project)).where(Task.user_id == current_user.id, (Task.is_deleted == False) | (Task.is_deleted == None))
     
     # Filtreleme
     if project_id is not None:

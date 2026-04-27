@@ -26,7 +26,7 @@ async def build_system_context(db: AsyncSession, user_id: int) -> str:
     
     # TÜM görevler (tamamlanmış dahil — AI tam resmi görsün)
     all_tasks_result = await db.execute(
-        select(Task).filter(Task.user_id == user_id, Task.is_deleted == False).order_by(Task.created_at.desc())
+        select(Task).filter(Task.user_id == user_id, (Task.is_deleted == False) | (Task.is_deleted == None)).order_by(Task.created_at.desc())
     )
     all_tasks = all_tasks_result.scalars().all()
     
@@ -37,7 +37,7 @@ async def build_system_context(db: AsyncSession, user_id: int) -> str:
     
     # Notlar
     note_result = await db.execute(
-        select(Note).filter(Note.user_id == user_id, Note.is_deleted == False).order_by(Note.created_at.desc()).limit(15)
+        select(Note).filter(Note.user_id == user_id, (Note.is_deleted == False) | (Note.is_deleted == None)).order_by(Note.created_at.desc()).limit(15)
     )
     notes = note_result.scalars().all()
     
@@ -96,7 +96,7 @@ async def build_system_context(db: AsyncSession, user_id: int) -> str:
     event_result = await db.execute(
         select(CalendarEvent)
         .filter(CalendarEvent.user_id == user_id,
-                CalendarEvent.is_deleted == False,
+                (CalendarEvent.is_deleted == False) | (CalendarEvent.is_deleted == None),
                 CalendarEvent.start_time >= period_start,
                 CalendarEvent.start_time <= period_end)
         .order_by(CalendarEvent.start_time)
