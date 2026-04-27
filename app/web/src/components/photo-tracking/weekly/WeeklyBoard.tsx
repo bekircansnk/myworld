@@ -418,7 +418,8 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
     notes: '',
     color_name: '',
     ig_required: true,
-    banner_required: true
+    banner_required: true,
+    revision_required: true
   });
   
   useEffect(() => {
@@ -527,7 +528,7 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
     }));
 
     setIsModalOpen(false);
-    setNewModel({ model_name: '', sezon_kodu: '', notes: '', color_name: '', ig_required: true, banner_required: true });
+    setNewModel({ model_name: '', sezon_kodu: '', notes: '', color_name: '', ig_required: true, banner_required: true, revision_required: true });
 
     try {
       const createdModel = await createModel({
@@ -746,6 +747,15 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
                                className="rounded border-slate-300 text-brand-dark focus:ring-brand-dark"
                              />
                              <span className="text-slate-600 dark:text-slate-300 font-medium">Banner (16:9)</span>
+                          </label>
+                          <label className="flex items-center gap-2 text-sm cursor-pointer">
+                             <input 
+                               type="checkbox" 
+                               checked={newModel.revision_required}
+                               onChange={e => setNewModel({ ...newModel, revision_required: e.target.checked })}
+                               className="rounded border-slate-300 text-brand-dark focus:ring-brand-dark"
+                             />
+                             <span className="text-slate-600 dark:text-slate-300 font-medium">Revize</span>
                           </label>
                        </div>
                    </div>
