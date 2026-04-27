@@ -22,6 +22,10 @@ export interface PhotoModelColor {
   banner_completed: boolean;
   banner_completed_at?: string;
   banner_photo_count: number;
+  revision_required: boolean;
+  revision_completed: boolean;
+  revision_completed_at?: string;
+  revision_photo_count: number;
   created_at: string;
 }
 

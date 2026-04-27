@@ -123,7 +123,7 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
       models: state.models.map(m => {
         if (m.colors.some(c => c.id === id)) {
           const newColors = m.colors.map(c => c.id === id ? { ...c, ...data } : c);
-          const newTotal = newColors.reduce((acc, c) => acc + c.ig_photo_count + c.banner_photo_count, 0);
+          const newTotal = newColors.reduce((acc, c) => acc + c.ig_photo_count + c.banner_photo_count + (c.revision_photo_count || 0), 0);
           return { ...m, colors: newColors, total_photos: newTotal };
         }
         return m;
@@ -137,7 +137,7 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
         models: state.models.map(m => {
           if (m.id === color.model_id) {
             const newColors = m.colors.map(c => c.id === color.id ? color : c);
-            const newTotal = newColors.reduce((acc, c) => acc + c.ig_photo_count + c.banner_photo_count, 0);
+            const newTotal = newColors.reduce((acc, c) => acc + c.ig_photo_count + c.banner_photo_count + (c.revision_photo_count || 0), 0);
             return { ...m, colors: newColors, total_photos: newTotal };
           }
           return m;
@@ -156,7 +156,7 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
       models: state.models.map(m => {
         if (m.id === modelId) {
           const newColors = m.colors.filter(c => c.id !== colorId);
-          const newTotal = newColors.reduce((acc, c) => acc + c.ig_photo_count + c.banner_photo_count, 0);
+          const newTotal = newColors.reduce((acc, c) => acc + c.ig_photo_count + c.banner_photo_count + (c.revision_photo_count || 0), 0);
           return { ...m, colors: newColors, total_photos: newTotal };
         }
         return m;

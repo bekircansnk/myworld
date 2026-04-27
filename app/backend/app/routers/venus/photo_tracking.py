@@ -198,7 +198,7 @@ async def update_color(
     model_query = select(PhotoModel).where(PhotoModel.id == color.model_id).options(selectinload(PhotoModel.colors))
     model_res = await db.execute(model_query)
     model = model_res.scalar_one()
-    model.total_photos = sum(c.ig_photo_count + c.banner_photo_count for c in model.colors)
+    model.total_photos = sum(c.ig_photo_count + c.banner_photo_count + (c.revision_photo_count or 0) for c in model.colors)
     await db.commit()
     
     await db.refresh(color)
@@ -225,7 +225,7 @@ async def delete_color(
     model_query = select(PhotoModel).where(PhotoModel.id == model_id).options(selectinload(PhotoModel.colors))
     model_res = await db.execute(model_query)
     model = model_res.scalar_one()
-    model.total_photos = sum(c.ig_photo_count + c.banner_photo_count for c in model.colors)
+    model.total_photos = sum(c.ig_photo_count + c.banner_photo_count + (c.revision_photo_count or 0) for c in model.colors)
     await db.commit()
     
     return {"message": "Color deleted successfully"}
@@ -397,6 +397,7 @@ async def import_excel(
                         
                 ig_req, ig_count = parse_social(row.get('Sosyal Medya', row.get('Sosyal Medya ')))
                 banner_req, banner_count = parse_social(row.get('WEB SİTESİ 1', row.get('WEB SİTESİ 16:9')))
+                revision_req, revision_count = parse_social(row.get('REVİZE', ''))
                 
                 if not color:
                     color = PhotoModelColor(
@@ -405,7 +406,9 @@ async def import_excel(
                         ig_required=ig_req,
                         ig_photo_count=ig_count,
                         banner_required=banner_req,
-                        banner_photo_count=banner_count
+                        banner_photo_count=banner_count,
+                        revision_required=revision_req,
+                        revision_photo_count=revision_count
                     )
                     db.add(color)
                     colors_imported += 1
@@ -414,9 +417,19 @@ async def import_excel(
                     color.ig_photo_count = ig_count
                     color.banner_required = banner_req
                     color.banner_photo_count = banner_count
+                    color.revision_required = revision_req
+                    color.revision_photo_count = revision_count
                     db.add(color)
                     colors_imported += 1
         
+        await db.commit()
+        
+        # Recalculate total_photos for the imported models
+        q = select(PhotoModel).where(PhotoModel.user_id == current_user.id, PhotoModel.month == month, PhotoModel.year == year).options(selectinload(PhotoModel.colors))
+        res = await db.execute(q)
+        for m in res.scalars().all():
+            m.total_photos = sum((c.ig_photo_count or 0) + (c.banner_photo_count or 0) + (c.revision_photo_count or 0) for c in m.colors)
+            db.add(m)
         await db.commit()
         
         log = PhotoExcelImport(
@@ -501,10 +514,15 @@ async def export_excel(
             for color in model.colors:
                 ig_val = color.ig_photo_count if (color.ig_photo_count and color.ig_photo_count > 0) else ('X' if color.ig_required else '')
                 banner_val = color.banner_photo_count if (color.banner_photo_count and color.banner_photo_count > 0) else ('X' if color.banner_required else '')
+                revize_val = color.revision_photo_count if (color.revision_photo_count and color.revision_photo_count > 0) else ('X' if color.revision_required else '')
                 
                 ig_count = color.ig_photo_count or 0
                 banner_count = color.banner_photo_count or 0
-                teslim_edilen = (ig_count + banner_count) if is_completed else ''
+                revize_count = color.revision_photo_count or 0
+                teslim_edilen = (ig_count + banner_count + revize_count) if is_completed else ''
+                
+                # Model level revisions string as fallback
+                model_revize = ', '.join([r.description for r in model.revisions]) if model.revisions else ''
                 
                 row = {
                     'SEZON KOD': model.sezon_kodu or '',
@@ -513,7 +531,7 @@ async def export_excel(
                     'Sosyal Medya': ig_val,
                     'WEB SİTESİ 1': banner_val,
                     'TESLİM EDİLEN': teslim_edilen,
-                    'REVİZE': revize_str,
+                    'REVİZE': revize_val or model_revize,
                     'TESLİM EDİLME TARİHİ': delivery_str
                 }
                 data.append(row)

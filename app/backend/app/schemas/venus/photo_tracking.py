@@ -22,6 +22,7 @@ class PhotoModelColorBase(BaseModel):
     color_name: str
     ig_required: bool = True
     banner_required: bool = True
+    revision_required: bool = True
 
 class PhotoModelColorCreate(PhotoModelColorBase):
     pass
@@ -34,6 +35,9 @@ class PhotoModelColorUpdate(BaseModel):
     banner_required: Optional[bool] = None
     banner_completed: Optional[bool] = None
     banner_photo_count: Optional[int] = None
+    revision_required: Optional[bool] = None
+    revision_completed: Optional[bool] = None
+    revision_photo_count: Optional[int] = None
 
 class PhotoModelColorResponse(PhotoModelColorBase):
     id: int
@@ -44,6 +48,9 @@ class PhotoModelColorResponse(PhotoModelColorBase):
     banner_completed: bool
     banner_completed_at: Optional[datetime]
     banner_photo_count: int
+    revision_completed: bool
+    revision_completed_at: Optional[datetime]
+    revision_photo_count: int
     created_at: datetime
     
     model_config = ConfigDict(from_attributes=True)

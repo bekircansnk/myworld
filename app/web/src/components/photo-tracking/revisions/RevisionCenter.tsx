@@ -12,7 +12,6 @@ export function RevisionCenter({ projectId }: RevisionCenterProps) {
   const { models, addRevision } = usePhotoTrackingStore();
   const [selectedModelId, setSelectedModelId] = useState<number | ''>('');
   const [description, setDescription] = useState('');
-  const [revisedCount, setRevisedCount] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Flatten all revisions
@@ -28,10 +27,9 @@ export function RevisionCenter({ projectId }: RevisionCenterProps) {
     try {
       await addRevision(Number(selectedModelId), {
         description: description.trim(),
-        revised_count: revisedCount
+        revised_count: 0
       });
       setDescription('');
-      setRevisedCount(1);
       setSelectedModelId('');
     } catch (error) {
       console.error(error);
@@ -89,18 +87,6 @@ export function RevisionCenter({ projectId }: RevisionCenterProps) {
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-dark/20 text-sm resize-none"
                 />
               </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">Revize Edilen Foto Sayısı</label>
-                <input 
-                  type="number"
-                  min="1"
-                  value={revisedCount}
-                  onChange={(e) => setRevisedCount(Math.max(1, parseInt(e.target.value) || 1))}
-                  required
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-dark/20 text-sm"
-                />
-              </div>
               
               <button 
                 type="submit"
@@ -132,9 +118,6 @@ export function RevisionCenter({ projectId }: RevisionCenterProps) {
                           <span className="text-xs text-slate-400 ml-auto">{format(new Date(rev.created_at), 'dd MMM yyyy HH:mm', { locale: tr })}</span>
                        </div>
                        <p className="text-sm text-brand-gray dark:text-gray-300 mb-2">{rev.description}</p>
-                       <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-bold border border-amber-200 dark:border-amber-900/50">
-                          {rev.revised_count} Fotoğraf Revize Edildi
-                       </div>
                     </div>
                   ))}
                </div>

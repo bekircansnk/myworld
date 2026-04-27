@@ -29,28 +29,34 @@ function ColorRow({ color, onUpdateColor }: { color: PhotoModelColor, onUpdateCo
     }, 500);
   };
 
-  const adjustPhotoCount = (type: 'ig' | 'banner', delta: number) => {
+  const adjustPhotoCount = (type: 'ig' | 'banner' | 'revision', delta: number) => {
     if (type === 'ig') {
       debouncedUpdate({ ig_photo_count: Math.max(0, color.ig_photo_count + delta) });
-    } else {
+    } else if (type === 'banner') {
       debouncedUpdate({ banner_photo_count: Math.max(0, color.banner_photo_count + delta) });
+    } else if (type === 'revision') {
+      debouncedUpdate({ revision_photo_count: Math.max(0, color.revision_photo_count + delta) });
     }
   };
 
-  const handleInputChange = (type: 'ig' | 'banner', value: string) => {
+  const handleInputChange = (type: 'ig' | 'banner' | 'revision', value: string) => {
     const newCount = Math.max(0, parseInt(value) || 0);
     if (type === 'ig') {
       debouncedUpdate({ ig_photo_count: newCount });
-    } else {
+    } else if (type === 'banner') {
       debouncedUpdate({ banner_photo_count: newCount });
+    } else if (type === 'revision') {
+      debouncedUpdate({ revision_photo_count: newCount });
     }
   };
 
-  const toggleStatus = (type: 'ig' | 'banner') => {
+  const toggleStatus = (type: 'ig' | 'banner' | 'revision') => {
     if (type === 'ig') {
       onUpdateColor(color.id, { ig_completed: !color.ig_completed });
-    } else {
+    } else if (type === 'banner') {
       onUpdateColor(color.id, { banner_completed: !color.banner_completed });
+    } else if (type === 'revision') {
+      onUpdateColor(color.id, { revision_completed: !color.revision_completed });
     }
   };
 
@@ -81,6 +87,11 @@ function ColorRow({ color, onUpdateColor }: { color: PhotoModelColor, onUpdateCo
         label: color.banner_required ? 'Banner Kapat' : 'Banner Aç',
         icon: <Circle className="w-4 h-4" />,
         onClick: async () => onUpdateColor(color.id, { banner_required: !color.banner_required })
+      },
+      {
+        label: color.revision_required ? 'Revize Kapat' : 'Revize Aç',
+        icon: <Circle className="w-4 h-4" />,
+        onClick: async () => onUpdateColor(color.id, { revision_required: !color.revision_required })
       },
       {
         label: 'Rengi Sil',
@@ -160,6 +171,32 @@ function ColorRow({ color, onUpdateColor }: { color: PhotoModelColor, onUpdateCo
             </div>
           </div>
         )}
+        
+        {/* Revision Section */}
+        {color.revision_required && (
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => toggleStatus('revision')}
+              className={`flex items-center gap-2 text-sm font-medium transition-colors ${color.revision_completed ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              {color.revision_completed ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
+              Revize
+            </button>
+            {color.revision_completed_at && (
+              <span className="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{format(new Date(color.revision_completed_at), 'dd.MM')}</span>
+            )}
+            <div className="flex items-center bg-slate-100 dark:bg-slate-700 rounded-md overflow-hidden group">
+              <button onClick={() => adjustPhotoCount('revision', -1)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity"><Minus className="w-3 h-3" /></button>
+              <input 
+                type="number"
+                value={color.revision_photo_count}
+                onChange={(e) => handleInputChange('revision', e.target.value)}
+                className="w-10 text-center text-xs font-bold bg-transparent border-none focus:outline-none focus:ring-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <button onClick={() => adjustPhotoCount('revision', 1)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity"><Plus className="w-3 h-3" /></button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
     <ConfirmDialog 
@@ -230,12 +267,14 @@ function ModelCard({ model, onUpdateColor, onModelStatusChange }: ModelCardProps
         await createColor(model.id, {
             color_name: colorName,
             ig_required: true,
-            banner_required: true
+            banner_required: true,
+            revision_required: true
         }, {
             id: tempId, model_id: model.id, color_name: colorName,
-            ig_required: true, banner_required: true,
+            ig_required: true, banner_required: true, revision_required: true,
             ig_completed: false, ig_completed_at: undefined, ig_photo_count: 0,
             banner_completed: false, banner_completed_at: undefined, banner_photo_count: 0,
+            revision_completed: false, revision_completed_at: undefined, revision_photo_count: 0,
             created_at: new Date().toISOString()
         });
     } catch(e) {
@@ -469,12 +508,16 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
         color_name: newModel.color_name.trim(),
         ig_required: newModel.ig_required,
         banner_required: newModel.banner_required,
+        revision_required: true,
         ig_completed: false,
         ig_completed_at: undefined,
         ig_photo_count: 0,
         banner_completed: false,
         banner_completed_at: undefined,
         banner_photo_count: 0,
+        revision_completed: false,
+        revision_completed_at: undefined,
+        revision_photo_count: 0,
         created_at: new Date().toISOString()
       });
     }
