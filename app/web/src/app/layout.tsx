@@ -32,6 +32,7 @@ export const metadata: Metadata = {
 
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import { ClientOnly } from "@/components/providers/ClientOnly";
+import { CapacitorNativeProvider } from "@/components/providers/CapacitorNativeProvider";
 
 export default function RootLayout({
   children,
@@ -40,7 +41,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased h-screen w-full bg-transparent text-foreground flex overflow-hidden transition-colors duration-500`} suppressHydrationWarning>
+      <body className={`${inter.className} antialiased h-[100dvh] w-full bg-transparent text-foreground flex overflow-hidden transition-colors duration-500`} suppressHydrationWarning>
         {/* Animated Background Patterns */}
         <div className="fixed inset-0 -z-50 pointer-events-none" suppressHydrationWarning>
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 via-white to-sky-50/50 dark:from-[#080B14] dark:via-[#0F1423] dark:to-[#0A0D18] transition-colors duration-700" suppressHydrationWarning />
@@ -64,6 +65,7 @@ export default function RootLayout({
             
             {/* Global Widgets */}
             <ChatWidget />
+            <CapacitorNativeProvider />
           </ClientOnly>
         </ThemeProvider>
       </body>
