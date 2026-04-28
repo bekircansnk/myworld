@@ -11,7 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd"
 
 interface KanbanColumn {
-  id: 'todo' | 'in_progress' | 'in_review' | 'done'
+  id: 'todo' | 'in_progress' | 'done'
   title: string
   icon: React.ReactNode
   dotColor: string
@@ -29,12 +29,6 @@ const COLUMNS: KanbanColumn[] = [
     title: 'Devam Edenler',
     icon: <Zap className="w-3.5 h-3.5" />,
     dotColor: 'bg-blue-400',
-  },
-  {
-    id: 'in_review',
-    title: 'İncelemede',
-    icon: <Eye className="w-3.5 h-3.5" />,
-    dotColor: 'bg-purple-400',
   },
   {
     id: 'done',
@@ -55,10 +49,10 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
   const [newCardTitle, setNewCardTitle] = React.useState("")
   const [collapsedColumns, setCollapsedColumns] = React.useState<Record<string, boolean>>({})
   const inputRef = React.useRef<HTMLInputElement>(null)
-  // Mobil sekmeli görünüm için aktif kolon
   const [mobileActiveColumn, setMobileActiveColumn] = React.useState<string>('todo')
+  const containerRef = React.useRef<HTMLDivElement>(null)
 
-  // Sadece ana görevleri göster (alt görevler buraya gelmez)
+  // Alt görev sayısını hesapla
   const mainTasks = React.useMemo(() => {
     return tasks.filter(t => {
       const isMainTask = !t.parent_task_id
@@ -106,6 +100,33 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
     return tasks.filter(t => t.parent_task_id === taskId && t.status === 'done').length
   }
 
+  const scrollToColumn = (id: string) => {
+    setMobileActiveColumn(id)
+    if (containerRef.current) {
+      const colEl = document.getElementById(`kanban-col-${id}`)
+      if (colEl) {
+        containerRef.current.scrollTo({ left: colEl.offsetLeft, behavior: 'smooth' })
+      }
+    }
+  }
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      if (!containerRef.current) return
+      const scrollLeft = containerRef.current.scrollLeft
+      const itemWidth = containerRef.current.clientWidth
+      const currentIndex = Math.round(scrollLeft / itemWidth)
+      if (COLUMNS[currentIndex] && mobileActiveColumn !== COLUMNS[currentIndex].id) {
+        setMobileActiveColumn(COLUMNS[currentIndex].id)
+      }
+    }
+    const el = containerRef.current
+    if (el) {
+      el.addEventListener('scroll', handleScroll, { passive: true })
+      return () => el.removeEventListener('scroll', handleScroll)
+    }
+  }, [mobileActiveColumn])
+
   const toggleColumn = (colId: string) => {
     setCollapsedColumns(prev => ({ ...prev, [colId]: !prev[colId] }))
   }
@@ -138,7 +159,7 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
           return (
             <button
               key={col.id}
-              onClick={() => setMobileActiveColumn(col.id)}
+              onClick={() => scrollToColumn(col.id)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex-1 justify-center ${
                 isActive
                   ? 'bg-brand-dark dark:bg-white text-white dark:text-brand-dark shadow-sm'
@@ -154,18 +175,16 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 h-full">
+        <div ref={containerRef} className="flex flex-row md:grid md:grid-cols-3 gap-4 md:gap-6 h-full overflow-x-auto snap-x snap-mandatory kanban-scroll-area pb-4">
           {COLUMNS.map(column => {
             const columnTasks = getColumnTasks(column.id)
             const isCollapsed = collapsedColumns[column.id]
 
-            // Mobilde sadece aktif kolonu göster
-            const isHiddenOnMobile = mobileActiveColumn !== column.id
-
             return (
               <div
                 key={column.id}
-                className={`flex flex-col transition-all duration-300 ${isHiddenOnMobile ? 'hidden md:flex' : 'flex'} ${isCollapsed ? 'h-auto' : 'md:h-[calc(100vh-140px)]'}`}
+                id={`kanban-col-${column.id}`}
+                className={`flex flex-col transition-all duration-300 min-w-[85vw] md:min-w-0 snap-center ${isCollapsed ? 'h-auto' : 'md:h-[calc(100vh-140px)]'}`}
               >
                 {/* Column Header — minimal, flush with background */}
                 <div className="flex items-center justify-between mb-3">

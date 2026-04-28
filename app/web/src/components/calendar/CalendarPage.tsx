@@ -212,6 +212,11 @@ export function CalendarPage() {
   }
 
   const handleDropItem = (sourceType: string, id: string, date: Date) => {
+    // Mobil Safari vs için global fallback kontrolü
+    if (!sourceType && (window as any).__draggedItem) {
+      sourceType = (window as any).__draggedItem.sourceType
+      id = (window as any).__draggedItem.id
+    }
     const dateStr = format(date, 'yyyy-MM-dd')
     if (sourceType === 'task') {
       const taskId = parseInt(id)
@@ -387,6 +392,7 @@ export function CalendarPage() {
                     e.dataTransfer.setData('sourceType', 'task'); 
                     e.dataTransfer.setData('id', t.id.toString()); 
                     e.dataTransfer.effectAllowed = 'move'; 
+                    (window as any).__draggedItem = { sourceType: 'task', id: t.id.toString() };
                   }}
                   onClick={() => useTaskStore.getState().openTaskDetail(t)}
                   className="flex items-center gap-2.5 p-2 bg-white dark:bg-white/5 rounded-lg border border-gray-100 dark:border-white/8 group hover:border-indigo-200 dark:hover:border-indigo-700 transition-colors cursor-pointer active:cursor-grabbing hover:shadow-sm"
@@ -452,6 +458,7 @@ export function CalendarPage() {
                       evt.dataTransfer.setData('sourceType', 'event');
                       evt.dataTransfer.setData('id', e.id.toString());
                       evt.dataTransfer.effectAllowed = 'move';
+                      (window as any).__draggedItem = { sourceType: 'event', id: e.id.toString() };
                     }}
                     onClick={(evt) => {
                        if (isSelectionMode) {
@@ -621,7 +628,7 @@ function AIChatPanel({ tasks, events, currentDate }: { tasks: any[], events: Cal
       } else if (lowerInput.includes('görev') || lowerInput.includes('task')) {
         aiText = `📌 Aktif Görevlerin (${activeTasks.length}):\n\n`
         activeTasks.slice(0, 5).forEach((t, i) => {
-          aiText += `${i + 1}. ${t.title} → ${t.status === 'in_progress' ? '🔄 Devam Ediyor' : t.status === 'in_review' ? '👀 İncelemede' : '📝 Yapılacak'}\n`
+          aiText += `${i + 1}. ${t.title} → ${t.status === 'in_progress' ? '🔄 Devam Ediyor' : '📝 Yapılacak'}\n`
         })
         if (activeTasks.length > 5) aiText += `\n...ve ${activeTasks.length - 5} görev daha.`
       } else {
@@ -738,8 +745,12 @@ function MonthView({ current, events, onDayClick, onEventClick, onDropItem, onCo
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => {
                  e.preventDefault();
-                 const sourceType = e.dataTransfer.getData('sourceType');
-                 const id = e.dataTransfer.getData('id');
+                 let sourceType = e.dataTransfer.getData('sourceType');
+                 let id = e.dataTransfer.getData('id');
+                 if (!sourceType && (window as any).__draggedItem) {
+                    sourceType = (window as any).__draggedItem.sourceType;
+                    id = (window as any).__draggedItem.id;
+                 }
                  if(sourceType && id) onDropItem(sourceType, id, day);
               }}
               className={`border-r border-b border-gray-100 dark:border-white/6 p-2 min-h-[110px] cursor-pointer transition-colors hover:bg-gray-50/50 dark:hover:bg-white/3 flex flex-col ${!isCurrentMonth ? 'bg-gray-50/30 dark:bg-black/10' : ''} ${today ? 'bg-indigo-50/40 dark:bg-amber-900/10 ring-1 ring-inset ring-indigo-200/50 dark:ring-amber-700/30' : ''}`}
@@ -759,6 +770,7 @@ function MonthView({ current, events, onDayClick, onEventClick, onDropItem, onCo
                          const dragId = event.category === 'task' ? event.taskId!.toString() : event.id.toString();
                          evt.dataTransfer.setData('id', dragId);
                          evt.dataTransfer.effectAllowed = 'move';
+                         (window as any).__draggedItem = { sourceType: event.category === 'task' ? 'task' : 'event', id: dragId };
                       }}
                       className={`w-full text-left ${event.isCompleted ? 'opacity-60 bg-gray-100 dark:bg-gray-800 text-gray-500 border-gray-200 line-through' : `${colors.bg} ${colors.text} border-${colors.dot.replace('bg-', '')} border-opacity-30`} rounded px-1.5 py-1 text-[10px] font-semibold leading-tight hover:shadow-sm transition-shadow block cursor-grab active:cursor-grabbing border relative`}
                     >
@@ -795,8 +807,12 @@ function WeekView({ current, events, onEventClick, onDropItem, onContextMenu }: 
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => {
                  e.preventDefault();
-                 const sourceType = e.dataTransfer.getData('sourceType');
-                 const id = e.dataTransfer.getData('id');
+                 let sourceType = e.dataTransfer.getData('sourceType');
+                 let id = e.dataTransfer.getData('id');
+                 if (!sourceType && (window as any).__draggedItem) {
+                    sourceType = (window as any).__draggedItem.sourceType;
+                    id = (window as any).__draggedItem.id;
+                 }
                  if(sourceType && id) onDropItem(sourceType, id, day);
               }}
               className={`py-2 text-center border-r border-gray-100 dark:border-white/6 ${isToday(day) ? 'bg-amber-50/50 dark:bg-amber-900/10' : ''}`}>

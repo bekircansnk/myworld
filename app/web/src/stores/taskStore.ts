@@ -9,7 +9,7 @@ interface TaskState {
   fetchTasks: (projectId?: number, status?: string) => Promise<void>;
   addTask: (data: Partial<Task>) => Promise<void>;
   updateTask: (id: number, data: Partial<Task>) => Promise<void>;
-  updateTaskStatus: (id: number, status: 'todo' | 'in_progress' | 'in_review' | 'done') => Promise<void>;
+  updateTaskStatus: (id: number, status: 'todo' | 'in_progress' | 'done') => Promise<void>;
   deleteTask: (id: number) => Promise<void>;
   selectedTask: Task | null;
   isDetailPanelOpen: boolean;
@@ -91,7 +91,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     }
   },
 
-  updateTaskStatus: async (id: number, status: 'todo' | 'in_progress' | 'in_review' | 'done') => {
+  updateTaskStatus: async (id: number, status: 'todo' | 'in_progress' | 'done') => {
     const previousTasks = get().tasks;
     // Optimistic update
     set((state) => ({

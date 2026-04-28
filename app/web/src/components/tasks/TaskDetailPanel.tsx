@@ -324,7 +324,7 @@ export function TaskDetailPanel() {
     await deleteTask(id)
   }
 
-  const handleStatusChange = (status: 'todo' | 'in_progress' | 'in_review' | 'done') => {
+  const handleStatusChange = (status: 'todo' | 'in_progress' | 'done') => {
     updateTaskStatus(selectedTask.id, status)
     const label = statusConfig[status]?.label || status
     addActivityEvent('status_change', `Durum "${label}" olarak değiştirildi`, 'indigo')
@@ -351,8 +351,7 @@ export function TaskDetailPanel() {
   const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
     todo: { label: 'Bekliyor', color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-400' },
     in_progress: { label: 'Devam Ediyor', color: 'text-blue-500 dark:text-blue-400', bg: 'bg-blue-500' },
-    in_review: { label: 'İncelemede', color: 'text-orange-500 dark:text-orange-400', bg: 'bg-orange-500' },
-    done: { label: 'Tamamlandı', color: 'text-emerald-500 dark:text-emerald-400', bg: 'bg-emerald-500' },
+    done: { label: 'Tamamlandı', color: 'text-emerald-500 dark:text-emerald-400', bg: 'bg-emerald-500' }
   }
 
   const pConfig = priorityConfig[selectedTask.priority] || priorityConfig['medium']
@@ -508,7 +507,7 @@ export function TaskDetailPanel() {
 
             {/* Status + Due Date */}
             <div className="flex items-center gap-1.5 md:gap-2 mt-3 md:mt-4 overflow-x-auto pb-1 scrollbar-none">
-              {(['todo', 'in_progress', 'in_review', 'done'] as const).map(s => (
+              {(['todo', 'in_progress', 'done'] as const).map(s => (
                 <button key={s} onClick={() => handleStatusChange(s)}
                   className={`px-3 md:px-4 py-1.5 md:py-2 text-[10px] md:text-xs font-bold rounded-lg md:rounded-xl whitespace-nowrap transition-all shadow-sm ${
                     selectedTask.status === s
