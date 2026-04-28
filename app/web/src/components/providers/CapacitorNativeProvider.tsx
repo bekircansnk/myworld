@@ -6,6 +6,7 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
 import { App } from '@capacitor/app';
 import { useProjectStore } from '@/stores/projectStore';
+import { useTaskStore } from '@/stores/taskStore';
 
 export function CapacitorNativeProvider() {
   const backPressTimeRef = useRef(0);
@@ -21,14 +22,21 @@ export function CapacitorNativeProvider() {
       } catch (e) { console.warn('StatusBar error:', e); }
       
       try {
-        await Keyboard.setResizeMode({ mode: KeyboardResize.Body });
+        await Keyboard.setResizeMode({ mode: KeyboardResize.Native });
       } catch (e) { console.warn('Keyboard error:', e); }
     };
     initNative();
     
     // 2. Android Geri Tuşu Davranışı
     const backButtonListener = App.addListener('backButton', () => {
-      // 2.1. Modal var mı kontrol et (shadcn dialog veya drawer)
+      // 2.1. Görev Detay Paneli var mı kontrol et (Global Store)
+      const isTaskDetailOpen = useTaskStore.getState().isDetailPanelOpen;
+      if (isTaskDetailOpen) {
+        useTaskStore.getState().closeTaskDetail();
+        return;
+      }
+
+      // 2.2. Modal var mı kontrol et (shadcn dialog veya drawer)
       const openModal = document.querySelector('[role="dialog"]') || 
                         document.querySelector('[data-state="open"]');
                         
