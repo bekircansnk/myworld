@@ -284,7 +284,7 @@ export function DashboardWidgets() {
   greeting = hour < 12 ? "Günaydın" : hour < 18 ? "İyi öğlenler" : "İyi akşamlar"
 
   return (
-    <div className="flex flex-col w-full min-h-0 overflow-y-auto lg:overflow-hidden lg:h-full gap-4">
+    <div className="flex flex-col w-full gap-4 lg:h-full lg:overflow-hidden">
       <ConfirmDialog
         isOpen={isClearHistoryConfirmOpen}
         onOpenChange={setIsClearHistoryConfirmOpen}
@@ -346,13 +346,13 @@ export function DashboardWidgets() {
       </div>
 
       {/* === MAIN GRID === */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 min-h-0">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:flex-1 lg:min-h-0 pb-10 lg:pb-0">
 
         {/* ========= SOL KOLON ========= */}
-        <div className="col-span-1 lg:col-span-3 flex flex-col gap-4 min-h-0">
+        <div className="col-span-1 lg:col-span-3 flex flex-col gap-4 lg:min-h-0">
 
           {/* Dijital & Analog Saat */}
-          <div className="floating-card rounded-2xl md:rounded-3xl p-4 md:p-6 flex flex-row items-center justify-between shrink-0 relative overflow-hidden group" style={{minHeight: '140px'}}>
+          <div className="floating-card rounded-2xl md:rounded-3xl p-4 md:p-6 flex flex-row items-center justify-between shrink-0 relative overflow-hidden group min-h-[140px]">
             <div className="absolute -top-12 -right-12 w-48 h-48 bg-brand-yellow/5 rounded-full blur-3xl group-hover:bg-brand-yellow/8 transition-colors" />
             <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-slate-500/5 rounded-full blur-3xl" />
             <div className="relative z-10 flex flex-col items-start justify-center pl-1 md:pl-2 flex-1 gap-2 md:gap-4">
@@ -506,11 +506,11 @@ export function DashboardWidgets() {
         </div>
 
         {/* ========= ORTA KOLON ========= */}
-        <div className="col-span-1 lg:col-span-6 flex flex-col gap-4 min-h-0">
+        <div className="col-span-1 lg:col-span-6 flex flex-col gap-4 lg:min-h-0">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 shrink-0">
 
             {/* Gelişim Chart */}
-            <div className="floating-card rounded-3xl p-5 flex flex-col relative overflow-hidden" style={{minHeight: '220px'}}>
+            <div className="floating-card rounded-3xl p-5 flex flex-col relative overflow-hidden min-h-[220px]">
               <button className="absolute top-5 right-5 w-8 h-8 bg-brand-bg dark:bg-slate-900 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-slate-700 transition shrink-0">
                 <ArrowUpRight className="w-3.5 h-3.5 text-brand-gray dark:text-gray-400" />
               </button>
@@ -544,8 +544,8 @@ export function DashboardWidgets() {
             </div>
 
             {/* Çalışma Sayacı & Aktif Etkinlik */}
-            <div className="floating-card rounded-3xl p-5 flex flex-row relative overflow-hidden" style={{minHeight: '220px'}}>
-              <div className="w-[50%] flex flex-col items-center justify-between border-r border-slate-100 dark:border-white/5 pr-4 relative">
+            <div className="floating-card rounded-3xl p-5 flex flex-col 2xl:flex-row relative overflow-hidden gap-4 min-h-[220px]">
+              <div className="w-full 2xl:w-[50%] flex flex-col items-center justify-between 2xl:border-r border-b 2xl:border-b-0 border-slate-100 dark:border-white/5 pb-4 2xl:pb-0 2xl:pr-4 relative gap-3">
                 <h3 className="text-[10px] font-bold text-brand-dark dark:text-white self-start uppercase tracking-widest">Çalışma Sayacı</h3>
                 <div className="relative w-24 h-24 flex items-center justify-center">
                   <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
@@ -575,9 +575,9 @@ export function DashboardWidgets() {
                 </div>
                 {elapsedSeconds >= 3600 && <div className="absolute top-0 right-3 text-[8px] font-bold text-amber-500">⚠️ {Math.floor(elapsedSeconds / 3600)}s!</div>}
               </div>
-              <div className="w-[50%] flex flex-col pl-4 justify-center relative min-w-0">
+              <div className="w-full 2xl:w-[50%] flex flex-col 2xl:pl-4 justify-center relative min-w-0">
                 {activeCalendarEvent && eventProgress ? (
-                  <div className="flex flex-col flex-1 justify-center min-h-0">
+                  <div className="flex flex-col flex-1 justify-center lg:min-h-0">
                     <div className="flex items-center gap-1.5 mb-2 shrink-0">
                       <CalendarDays className="w-3 h-3 text-brand-yellow shrink-0" />
                       <span className="text-[9px] font-bold text-brand-gray dark:text-gray-400 uppercase tracking-wider truncate">Şu Anki Etkinlik</span>
@@ -622,7 +622,7 @@ export function DashboardWidgets() {
           </div>
 
           {/* Takvim */}
-          <div className="floating-card rounded-3xl p-5 flex flex-col relative overflow-hidden" style={{minHeight: '320px'}}>
+          <div className="floating-card rounded-3xl p-5 flex flex-col relative overflow-hidden lg:flex-grow lg:min-h-0 min-h-[320px]">
             <div className="flex justify-between items-center mb-3 shrink-0">
               <h3 className="text-sm font-semibold text-brand-dark dark:text-white flex items-center gap-2">
                 <CalendarDays className="w-4 h-4 text-brand-yellow" />
@@ -637,7 +637,7 @@ export function DashboardWidgets() {
                 <div key={d} className="text-center text-[9px] font-bold uppercase text-brand-gray dark:text-gray-500 pb-1">{d}</div>
               ))}
             </div>
-            <div className="grid grid-cols-7 gap-0.5 flex-1 auto-rows-fr min-h-0">
+            <div className="grid grid-cols-7 gap-0.5 flex-1 auto-rows-fr lg:min-h-0">
               {calendarDays.map((cd, i) => (
                 <div
                   key={i}
@@ -672,10 +672,10 @@ export function DashboardWidgets() {
         </div>
 
         {/* ========= SAG KOLON ========= */}
-        <div className="col-span-1 lg:col-span-3 flex flex-col gap-4 min-h-0">
+        <div className="col-span-1 lg:col-span-3 flex flex-col gap-4 lg:min-h-0">
 
           {/* Durum Paneli */}
-          <div className="floating-card rounded-3xl p-6 shrink-0 flex flex-col relative overflow-hidden" style={{minHeight: '260px'}}>
+          <div className="floating-card rounded-3xl p-6 shrink-0 flex flex-col relative overflow-hidden min-h-[260px]">
             <div className="flex justify-between items-center shrink-0 mb-4">
               <h3 className="text-base font-semibold text-brand-dark dark:text-white">Durum Paneli</h3>
               <div className="flex bg-brand-bg dark:bg-slate-900 p-1 rounded-full">
@@ -720,13 +720,13 @@ export function DashboardWidgets() {
           </div>
 
           {/* Görevler */}
-          <div className="floating-card rounded-3xl p-6 flex flex-col relative overflow-hidden" style={{minHeight: '300px'}}>
+          <div className="floating-card rounded-3xl p-6 flex flex-col relative overflow-hidden lg:flex-grow lg:min-h-0 min-h-[300px]">
             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-3/4 h-8 bg-brand-yellow/5 dark:bg-white/5 blur-xl rounded-full" />
             <div className="flex justify-between items-center mb-4 relative z-10 shrink-0">
               <h3 className="text-sm font-semibold text-brand-dark dark:text-white">Görevler</h3>
               <span className="text-2xl font-light text-brand-dark dark:text-white leading-none">{doneTasks.length}<span className="text-sm text-brand-gray dark:text-gray-400 ml-1">/{totalTasks}</span></span>
             </div>
-            <div className="space-y-2 relative z-10 flex-grow overflow-y-auto scrollbar-hide pr-1 min-h-0">
+            <div className="space-y-2 relative z-10 lg:flex-grow overflow-y-auto scrollbar-hide pr-1 lg:min-h-0">
               {recentTasks.map((task) => {
                 const project = task.project || projects.find(p => p.id === task.project_id)
                 return (
