@@ -1,4 +1,4 @@
-# Son Güncelleme: 2026-03-15T17:55+03:00
+# Son Güncelleme: 2026-04-28T22:00+03:00
 
 > **KRİTİK:** Bu dosya tüm sistemin TEK KAYNAĞI (Single Source of Truth) olarak tasarlanmıştır.
 > Herhangi bir AI ajanı bu projeye ilk kez girdiğinde **sadece bu dosyayı** okumalıdır.
@@ -135,7 +135,7 @@
 │   │   │
 │   │   └── alembic/              # DB Migration
 │   │
-│   └── frontend/
+│   └── web/
 │       └── src/
 │           ├── app/
 │           │   ├── layout.tsx    # Root layout (ThemeProvider, ChatWidget)
@@ -526,8 +526,9 @@ AI bu verileri ham JSON olarak değil, `context.py` tarafından üretilen anlaml
 |----------------|---------------|----------|
 | Bekleyenler    | todo          | Gri      |
 | Devam Edenler  | in_progress   | Mavi     |
-| İncelemede     | in_review     | Turuncu  |
 | Tamamlananlar  | done          | Yeşil    |
+
+> **Mobil Notu:** Mobil cihazlarda görev kartları ve sütunlar sağa/sola kaydırılabilir (swipeable) yapıdadır. "İncelemede" sütunu kaldırılarak mobil akış sadeleştirilmiştir.
 
 - Her sütunun altında "Kart ekle" butonu
 - Kartlar: proje etiketi, başlık, oluşturulma tarihi, due_date (gecikmiş=kırmızı, bugün=turuncu), alt görev sayısı, ilerleme çubuğu
@@ -654,7 +655,7 @@ source venv/bin/activate
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # 3. Frontend başlat
-cd app/frontend
+cd app/web
 npm run dev   # localhost:3000
 
 # VEYA tek tıkla:
@@ -738,9 +739,9 @@ npm run dev   # localhost:3000
 - **Yeni API endpoint:** `app/backend/app/routers/` altına ekle, `main.py`'de register et
 - **Yeni DB modeli:** `app/backend/app/models/` altına ekle, `__init__.py`'de import, migration yap
 - **Yeni schema:** `app/backend/app/schemas/` altına ekle
-- **Frontend bileşeni:** `app/frontend/src/components/` altına ekle
-- **State değişikliği:** `app/frontend/src/stores/` altındaki ilgili store'u güncelle
-- **Tip tanımı:** `app/frontend/src/types/index.ts` veya `calendar.ts` güncelle
+- **Frontend bileşeni:** `app/web/src/components/` altına ekle
+- **State değişikliği:** `app/web/src/stores/` altındaki ilgili store'u güncelle
+- **Tip tanımı:** `app/web/src/types/index.ts` veya `calendar.ts` güncelle
 - **AI davranışı:** `app/backend/app/ai/` altındaki dosyaları düzenle
 - **Yeni sayfa/view:** `projectStore.ts`'de `ViewMode` tipine ekle, `page.tsx`'de route et
 

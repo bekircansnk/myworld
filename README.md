@@ -1,31 +1,20 @@
 # 🌍 My World — PikselAI Dashboard
 
-**Yapay Zeka Destekli Kişisel Yaşam ve İş Yönetim Sistemi**
+**Yapay Zeka Destekli Kişisel Yaşam, İş ve Fotoğraf Takip Yönetim Sistemi**
 
-> Sadece bir "yapılacaklar listesi" değil — seni tanıyan, yönlendiren ve motive eden akıllı bir yaşam orkestratörü. Çoklu kullanıcı (SaaS) desteği ile her yerden erişilebilir.
-
----
-
-## 🔗 Canlı Uygulama
-
-**➜ [https://pikselai-dashboard.vercel.app](https://pikselai-dashboard.vercel.app)**
+> Sadece bir "yapılacaklar listesi" değil — seni tanıyan, yönlendiren ve motive eden akıllı bir yaşam orkestratörü. Çoklu kullanıcı (SaaS) desteği ve tam mobil uyumluluk ile her yerden erişilebilir.
 
 ---
 
-## ✨ Özellikler
+## ✨ Öne Çıkan Özellikler & Yenilikler
 
-- **🔐 Güvenli Erişim** — JWT tabanlı üyelik, profil ve avatar yönetimi
-- **🛡️ Veri İzolasyonu** — Her kullanıcı için tamamen izole proje, görev ve notlar
-- **📋 Kanban Görev Yönetimi** — AI destekli alt görev oluşturma ve durum takibi
-- **📅 Takvim** — Bulut senkronizasyonlu, sürükle-bırak ve görev entegrasyonlu
-- **📝 Akıllı Notlar** — AI ile otomatik başlık ve kategori atama
-- **📈 Venus Ads v2** — Reklam KPI takibi, CSV veri yükleme ve **Optimistic UI (Işık Hızında Güncelleme)**
-- **🔗 Akıllı Bağlantılar** — Kampanyalar, Testler ve Kreatifler arası tek tıkla navigasyon
-- **🤖 Proaktif AI Asistan** — Sabah/öğle/akşam zamanlamalı bildirimler ve koçluk
-- **⏱️ Pomodoro Timer** — Odaklanma sürelerini kaydeden zamanlayıcı
-- **📊 AI Rapor Merkezi (v1)** — YapaySK destekli veri ve dosya analizi, PDF rapor oluşturma ve İnteraktif Dashboard (Faz 1 & 2)
-- **⏱️ Pomodoro Timer** — Odaklanma sürelerini kaydeden zamanlayıcı
-- **🌓 Dark / Light Mode** — Glassmorphism tasarım dili
+- **📱 Tam Mobil Uyumluluk (Responsive & PWA)** — Tüm uygulama (Dashboard, Kanban, Takvim, Notlar, Chat, Venus Ads, Photo Tracking) mobil ekranlara özel optimize edildi. Alt navigasyon (Bottom Nav) eklendi.
+- **📋 Mobil Uyumlu Kanban** — 3 Sütunlu (Yapılacak, Devam Eden, Tamamlanan) swipeable (kaydırılabilir) görev yönetimi. "İncelemede" durumu kaldırılarak akış sadeleştirildi.
+- **📅 Gelişmiş Takvim** — Dokunmatik ekranlarda veri kaybı yaşatmayan akıllı sürükle-bırak desteği.
+- **📊 Photo Tracking & Model Yönetimi** — Fotoğraf modellerinin durumları, renk şemaları, revizeleri ve tamamlanma süreçlerinin takibi.
+- **📈 Venus Ads v2 & AI Rapor Merkezi** — Reklam KPI takibi, CSV/XLSX veri yükleme, Optimistic UI ve YapaySK destekli otomatik PDF rapor üretimi.
+- **🔄 Çift Yönlü Excel Senkronizasyonu** — Veri kaybı olmadan Excel import/export işlemleri.
+- **🤖 Proaktif AI Asistan** — Sabah/öğle/akşam zamanlamalı bildirimler ve koçluk.
 
 ---
 
@@ -33,11 +22,10 @@
 
 | Katman | Teknoloji |
 |--------|-----------|
-| **Frontend** | Next.js 15 (App Router) · TypeScript · Zustand · shadcn/ui |
-| **Backend** | FastAPI · SQLAlchemy 2.0 Async · Pydantic v2 · JWT |
-| **Veritabanı** | PostgreSQL (Neon — serverless) |
-| **AI** | Google Gemini Flash Lite |
-| **Deploy** | Vercel (frontend) · Render (backend) |
+| **Frontend** | Next.js 15 (App Router) · TypeScript · Zustand · shadcn/ui · Tailwind CSS |
+| **Backend** | FastAPI · SQLAlchemy 2.0 · Python 3.14 · SQLite (`venus.db`, `myworld.db`) |
+| **AI** | Google Gemini API (Flash Lite) |
+| **Excel** | openpyxl (Çift yönlü senkronizasyon) |
 
 ---
 
@@ -46,29 +34,40 @@
 ```
 2-My-World/
 ├── ARCHITECTURE.md     # Sistem mimarisi ve karar kaydı
+├── AGENTS.md           # Projeye özel AI kuralları (GEMINI.md tabanlı)
 ├── app/
 │   ├── web/            # Next.js 15 frontend
-│   └── backend/        # FastAPI REST API & WebSocket
-├── data/
-│   └── seed/           # AI kişilik ve koçluk çerçevesi
-└── docs/               # Proje analizleri ve planlar
+│   └── backend/        # FastAPI backend & SQLite DB
+├── docs/               # Proje analizleri ve planlar
 ```
 
 ---
 
-## ✅ Mevcut Durum
+## 📜 Versiyon & Güncelleme Geçmişi
 
-| Bileşen | Durum |
-|---------|-------|
-| SaaS Auth & Veri İzolasyonu | ✅ Canlıda |
-| Kanban Board + AI Breakdown | ✅ Canlıda |
-| Takvim Gezgini | ✅ Canlıda |
-| Not Sistemi | ✅ Canlıda |
-| Proaktif AI Asistan | ✅ Canlıda |
-| Avatar (Base64 / DB) | ✅ Canlıda |
-| Rapor & Analiz (AI Rapor Merkezi) | ✅ Canlıda (Faz 1 & 2) |
-| Telegram Bot | 🔄 Geliştirmede |
+### v2.5.0 - Mobil ve Stabilizasyon Çağı (Son Güncellemeler)
+- **Mobil Kanban Dönüşümü:** "İncelemede" durumu kaldırıldı, 3 sütunlu kaydırılabilir yapıya geçildi.
+- **Mobil Arayüz Fixleri:** Dashboard widget çakışmaları giderildi, robot simgesi sağa gizlendi.
+- **PWA & Bottom Nav:** Mobil kullanıcılar için uygulama deneyimi artırıldı.
+- **Takvim Fixleri:** Dokunmatik ekranlarda veri kaybına yol açan drop event sorunları çözüldü.
+
+### v2.0.0 - Excel & Veri Güvenliği
+- **Çift Yönlü Excel:** Openpyxl ile veri kaybı yaşanmayan import/export altyapısı.
+- **Veri Şeması Güçlendirme:** NULL boolean değerlerin handle edilmesi, model tamamlama sistemi.
+- **Sosyal Medya & Revizeler:** Checkbox gecikmeleri giderildi, mükerrer renk ekleme sorunları çözüldü.
 
 ---
 
-© 2026 My World Project. Tüm hakları saklıdır.
+## ✅ Sistem Durumu
+
+| Bileşen | Durum |
+|---------|-------|
+| SaaS Auth & İzolasyon | ✅ Yayında |
+| Mobil Uyumlu Kanban | ✅ Yayında |
+| Dokunmatik Takvim | ✅ Yayında |
+| PWA & Mobil Navigasyon| ✅ Yayında |
+| AI Rapor Merkezi | ✅ Yayında |
+| Photo Tracking | ✅ Yayında |
+
+---
+© 2026 My World Project.

@@ -14,3 +14,11 @@
 ✓ Compiled in 7.6s
 ✓ Compiled in 1491ms
 ✓ Finished writing to filesystem cache in 42s
+⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.5:3000
+- Environments: .env.local
+
+✓ Starting...
+✓ Ready in 1212ms
