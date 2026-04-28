@@ -211,6 +211,8 @@ export function CalendarPage() {
     }
   }
 
+  const [showMobileSidebar, setShowMobileSidebar] = React.useState(false)
+
   if (!mounted) return null
 
   // Stats for AI sidebar
@@ -227,7 +229,7 @@ export function CalendarPage() {
   })
 
   // Mobil sol panel toggle
-  const [showMobileSidebar, setShowMobileSidebar] = React.useState(false)
+
 
   return (
     <div className="flex-1 flex h-full overflow-hidden mobile-content-area">

@@ -208,7 +208,6 @@ export function NotesList() {
     <div className="flex flex-col h-full bg-[#FDFBF4] dark:bg-[#15181d] rounded-3xl overflow-hidden shadow-2xl relative">
       
       {/* Top Header & Tabs */}
-      {/* Top Header & Tabs */}
       <header className="min-h-[60px] md:min-h-[88px] flex flex-col md:flex-row md:items-center justify-between px-3 md:px-6 lg:px-10 py-2 md:py-0 gap-2 md:gap-0 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/30 dark:bg-slate-900/30 backdrop-blur-md shrink-0">
         <nav className="scroll-tab-bar mr-0 md:mr-4">
           {CATEGORIES.map(cat => (
