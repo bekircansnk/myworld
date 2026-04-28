@@ -169,12 +169,14 @@ export function ChatWidget() {
     <>
       {/* Floating Button / Robot Indicator */}
       {!isOpen && (
-        <div className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 flex flex-col items-center gap-2 pointer-events-none">
-          {/* Obal bubbles will take care of their own pointer events and positioning natively */}
-          <SpeechBubbles />
+        <div className="fixed bottom-20 md:bottom-6 right-0 md:right-6 translate-x-8 md:translate-x-0 opacity-50 md:opacity-100 hover:translate-x-0 hover:opacity-100 transition-all duration-300 z-50 flex flex-col items-center gap-2 pointer-events-none">
+          {/* Mobilde konuşma balonları yer kaplamasın */}
+          <div className="hidden md:block">
+            <SpeechBubbles />
+          </div>
           
-          <div className="pointer-events-auto">
-            <MiniRobot onClick={toggleChat} className="w-16 h-16" />
+          <div className="pointer-events-auto cursor-pointer">
+            <MiniRobot onClick={toggleChat} className="w-14 h-14 md:w-16 md:h-16" />
           </div>
         </div>
       )}
