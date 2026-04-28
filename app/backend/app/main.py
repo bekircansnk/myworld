@@ -42,7 +42,11 @@ app.add_middleware(
     allow_origins=[
         settings.frontend_url,
         "https://pikselai-dashboard.vercel.app",
-        "http://localhost:3000"
+        "http://localhost:3000",
+        "https://localhost",
+        "http://localhost",
+        "capacitor://localhost",
+        "ionic://localhost"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -96,7 +100,11 @@ async def global_exception_handler(request, exc: Exception):
     allowed_origins = [
         settings.frontend_url,
         "https://pikselai-dashboard.vercel.app",
-        "http://localhost:3000"
+        "http://localhost:3000",
+        "https://localhost",
+        "http://localhost",
+        "capacitor://localhost",
+        "ionic://localhost"
     ]
     headers = {}
     if origin in allowed_origins:
