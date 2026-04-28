@@ -30,3 +30,6 @@ app/backend/uploads/*
 *.command
 .env.production
 data/backups/
+
+# Android / Capacitor
+app/web/android/
