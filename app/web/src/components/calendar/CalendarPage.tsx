@@ -226,8 +226,11 @@ export function CalendarPage() {
     return d >= monthStart && d <= monthEnd
   })
 
+  // Mobil sol panel toggle
+  const [showMobileSidebar, setShowMobileSidebar] = React.useState(false)
+
   return (
-    <div className="flex-1 flex h-full overflow-hidden">
+    <div className="flex-1 flex h-full overflow-hidden mobile-content-area">
       {/* Context Menu Dropdown */}
       {contextMenuState.show && contextMenuState.event && (
         <div 
@@ -245,7 +248,11 @@ export function CalendarPage() {
       )}
 
       {/* ======================= LEFT AI PANEL ======================= */}
-      <div className="w-[320px] shrink-0 border-r border-[#e8e4d8]/30 dark:border-white/8 bg-white/60 dark:bg-[#151926]/85 backdrop-blur-sm flex flex-col overflow-hidden">
+      {/* Mobil overlay */}
+      {showMobileSidebar && (
+        <div className="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm md:hidden" onClick={() => setShowMobileSidebar(false)} />
+      )}
+      <div className={`${showMobileSidebar ? 'fixed inset-y-0 left-0 z-40 w-[300px]' : 'hidden'} md:relative md:block md:w-[320px] shrink-0 border-r border-[#e8e4d8]/30 dark:border-white/8 bg-white/95 dark:bg-[#151926]/95 md:bg-white/60 md:dark:bg-[#151926]/85 backdrop-blur-sm flex flex-col overflow-hidden`}>
         {/* Aylık Özet */}
         <div className="p-5 border-b border-gray-100 dark:border-white/8">
           <button 
@@ -464,10 +471,17 @@ export function CalendarPage() {
       {/* ======================= MAIN CALENDAR AREA ======================= */}
       <div className="flex-1 flex flex-col overflow-hidden bg-white/80 dark:bg-[#151926]/90 backdrop-blur-sm">
         {/* Header */}
-        <div className="shrink-0 px-6 py-4 border-b border-gray-100 dark:border-white/8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 capitalize">
+        <div className="shrink-0 px-3 md:px-6 py-3 md:py-4 border-b border-gray-100 dark:border-white/8">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2 md:gap-4">
+              {/* Mobil sidebar toggle */}
+              <button 
+                onClick={() => setShowMobileSidebar(prev => !prev)}
+                className="md:hidden w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300"
+              >
+                <BarChart3 className="w-4 h-4" />
+              </button>
+              <h1 className="text-base md:text-xl font-bold text-gray-900 dark:text-gray-100 capitalize">
                 {viewMode === 'month' && format(current, 'MMMM yyyy', { locale: tr })}
                 {viewMode === 'week' && `${format(startOfWeek(current, { weekStartsOn: 1 }), 'dd MMM', { locale: tr })} - ${format(endOfWeek(current, { weekStartsOn: 1 }), 'dd MMM yyyy', { locale: tr })}`}
                 {viewMode === 'day' && format(current, 'dd MMMM yyyy, EEEE', { locale: tr })}
@@ -476,7 +490,7 @@ export function CalendarPage() {
                 <button onClick={goPrev} className="p-1.5 rounded-md hover:bg-white dark:hover:bg-slate-700 transition-colors">
                   <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                 </button>
-                <button onClick={goToday} className="px-3 py-1 text-[11px] font-bold text-gray-700 dark:text-gray-200 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors">
+                <button onClick={goToday} className="px-2 md:px-3 py-1 text-[11px] font-bold text-gray-700 dark:text-gray-200 hover:bg-white dark:hover:bg-white/10 rounded-md transition-colors">
                   Bugün
                 </button>
                 <button onClick={goNext} className="p-1.5 rounded-md hover:bg-white dark:hover:bg-slate-700 transition-colors">
@@ -485,12 +499,12 @@ export function CalendarPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 md:gap-3">
               {/* View Switcher */}
               <div className="flex items-center bg-gray-100 dark:bg-white/5 rounded-full p-0.5 text-xs font-medium">
                 {(['month', 'week', 'day'] as const).map(mode => (
                   <button key={mode} onClick={() => setViewMode(mode)}
-                    className={`px-3.5 py-1.5 rounded-full transition-all ${viewMode === mode ? 'bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm font-bold' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                    className={`px-2.5 md:px-3.5 py-1.5 rounded-full transition-all ${viewMode === mode ? 'bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm font-bold' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
                   >
                     {mode === 'month' ? 'Ay' : mode === 'week' ? 'Hafta' : 'Gün'}
                   </button>
@@ -498,7 +512,7 @@ export function CalendarPage() {
               </div>
 
               <button onClick={() => setIsAddEventOpen(true)}
-                className="flex items-center gap-1.5 text-sm font-semibold text-white bg-gray-900 dark:bg-indigo-600 px-4 py-2 rounded-full hover:bg-gray-800 dark:hover:bg-indigo-700 transition-colors shadow-sm"
+                className="flex items-center gap-1.5 text-sm font-semibold text-white bg-gray-900 dark:bg-indigo-600 px-3 md:px-4 py-2 rounded-full hover:bg-gray-800 dark:hover:bg-indigo-700 transition-colors shadow-sm"
               >
                 <Plus className="w-4 h-4" />
                 Etkinlik Ekle

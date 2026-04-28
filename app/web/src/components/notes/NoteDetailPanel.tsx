@@ -136,12 +136,12 @@ export function NoteDetailPanel() {
         onClick={closeNoteDetail}
       />
 
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 pointer-events-none">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4 lg:p-8 pointer-events-none">
         <div
-          className="pointer-events-auto w-full max-w-[1100px] max-h-[90vh] rounded-[2rem] overflow-hidden animate-in zoom-in-95 fade-in duration-300 border border-slate-200/60 dark:border-white/10 shadow-2xl shadow-emerald-500/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl supports-[backdrop-filter]:bg-opacity-80 flex flex-col"
+          className="pointer-events-auto w-full max-w-full md:max-w-[1100px] max-h-full md:max-h-[90vh] rounded-none md:rounded-[2rem] overflow-hidden animate-in zoom-in-95 fade-in duration-300 border-0 md:border border-slate-200/60 dark:border-white/10 shadow-2xl shadow-emerald-500/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl supports-[backdrop-filter]:bg-opacity-80 flex flex-col"
           onClick={e => e.stopPropagation()}
         >
-          <div className="relative px-8 pt-6 pb-5 border-b border-slate-200/50 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 shrink-0">
+          <div className="relative px-4 md:px-8 pt-4 md:pt-6 pb-3 md:pb-5 border-b border-slate-200/50 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 shrink-0">
              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-400 to-teal-500" />
              
              <div className="flex items-start justify-between gap-4">

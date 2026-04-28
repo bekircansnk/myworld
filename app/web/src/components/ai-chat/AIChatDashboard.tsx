@@ -428,10 +428,11 @@ export function AIChatDashboard() {
       </div>
 
       {/* === MAIN CONTENT: TWO PANELS === */}
-      <div className="flex-1 grid grid-cols-12 gap-4 min-h-0 overflow-hidden">
+      {/* === MAIN CONTENT: TWO PANELS === */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 md:gap-4 min-h-0 overflow-hidden">
 
         {/* ========= LEFT PANEL: AI CHAT ========= */}
-        <div className="col-span-12 lg:col-span-7 xl:col-span-8 flex flex-col floating-card rounded-2xl overflow-hidden relative">
+        <div className="col-span-1 lg:col-span-7 xl:col-span-8 flex flex-col floating-card rounded-2xl overflow-hidden relative">
           
           {/* Decorative top gradient */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-yellow via-amber-400 to-brand-yellow rounded-t-2xl" />
@@ -601,7 +602,7 @@ export function AIChatDashboard() {
         </div>
 
         {/* ========= RIGHT PANEL: PERSISTENT MEMORY ========= */}
-        <div className="col-span-12 lg:col-span-5 xl:col-span-4 flex flex-col floating-card rounded-2xl overflow-hidden">
+        <div className="hidden lg:flex col-span-1 lg:col-span-5 xl:col-span-4 flex-col floating-card rounded-2xl overflow-hidden">
           
           {/* Header */}
           <div className="p-5 border-b border-slate-100 dark:border-white/5 shrink-0">

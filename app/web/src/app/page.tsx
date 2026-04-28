@@ -15,6 +15,7 @@ import { MorningScreen } from "@/components/dashboard/MorningScreen"
 import { CalendarPage } from "@/components/calendar/CalendarPage"
 import { AIChatDashboard } from "@/components/ai-chat/AIChatDashboard"
 import { TopNavbar } from "@/components/layout/TopNavbar"
+import { MobileBottomNav } from "@/components/layout/MobileBottomNav"
 import { useAuthStore } from "@/store/authStore"
 import { LoginOverlay } from "@/components/auth/LoginOverlay"
 import { VenusAdsLayout } from "@/components/venus-ads/VenusAdsLayout"
@@ -103,7 +104,7 @@ export default function DashboardPage() {
   const isPhotoTracking = viewMode === 'photo_tracking'
 
   return (
-    <div className="flex flex-col h-screen w-full overflow-hidden">
+    <div className="flex flex-col h-screen w-full overflow-hidden" id="app-root">
       {/* ÜST NAVBAR — Yatay, tüm ekranlarda */}
       <TopNavbar />
 
@@ -113,7 +114,7 @@ export default function DashboardPage() {
       {isCalendar ? (
         <CalendarPage />
       ) : isAIChat ? (
-        <div className="flex-1 overflow-hidden p-5 lg:p-8">
+        <div className="flex-1 overflow-hidden p-3 md:p-5 lg:p-8 mobile-content-area">
           <AIChatDashboard />
         </div>
       ) : isVenusAds ? (
@@ -121,7 +122,7 @@ export default function DashboardPage() {
       ) : isPhotoTracking ? (
         <PhotoTrackingLayout projectId={selectedProjectId} />
       ) : (
-        <div className={`flex-1 flex flex-col ${isDashboard ? 'overflow-hidden p-5 lg:p-8' : 'overflow-y-auto overflow-x-hidden p-5 lg:p-8'}`}>
+        <div className={`flex-1 flex flex-col mobile-content-area ${isDashboard ? 'overflow-hidden p-3 md:p-5 lg:p-8' : 'overflow-y-auto overflow-x-hidden p-3 md:p-5 lg:p-8'}`}>
 
           {/* Dashboard — Header DashboardWidgets içinde */}
           {isDashboard ? (
@@ -148,6 +149,9 @@ export default function DashboardPage() {
       {/* Görev Detay Paneli (Her yerde açılabilir) */}
       <TaskDetailPanel />
       <NoteDetailPanel />
+
+      {/* Mobil Alt Navigasyon */}
+      <MobileBottomNav />
     </div>
   )
 }

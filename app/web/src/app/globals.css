@@ -252,3 +252,150 @@
     transform: translateY(0);
   }
 }
+
+/* ===== MOBİL RESPONSIVE ALTYAPI ===== */
+
+/* iOS safe area padding'leri */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* Mobil bottom-nav boşluğu — ana içerik alanına eklenir */
+@media (max-width: 767px) {
+  .mobile-content-area {
+    padding-bottom: 5rem !important; /* Bottom nav yüksekliği */
+  }
+}
+
+/* Mobil tam ekran modal */
+@media (max-width: 767px) {
+  .mobile-full-modal {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    inset: 0 !important;
+  }
+}
+
+/* Mobil bottom sheet animasyonu */
+@keyframes slideUpSheet {
+  from {
+    transform: translateY(100%);
+    opacity: 0.5;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.bottom-sheet-enter {
+  animation: slideUpSheet 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+/* Mobil scrollbar gizleme (temiz görünüm) */
+@media (max-width: 767px) {
+  .mobile-hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .mobile-hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Dokunmatik etkileşim optimizasyonları */
+@media (hover: none) and (pointer: coarse) {
+  /* Hover efektlerini mobilde kaldır, active ile değiştir */
+  .floating-card:hover {
+    transform: none;
+  }
+  .floating-card:active {
+    transform: scale(0.98);
+  }
+  .glass-card:hover {
+    transform: none;
+  }
+  .glass-card:active {
+    transform: scale(0.98);
+  }
+  
+  /* Minimum dokunma hedefi boyutu */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Tap highlight kaldır */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Mobil yatay scroll önleyici (güvenlik ağı) */
+@media (max-width: 767px) {
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+}
+
+/* Yatay scrollable tab bar */
+.scroll-tab-bar {
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  gap: 0.25rem;
+}
+.scroll-tab-bar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobil bottom navigation */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Bottom sheet giriş animasyonu */
+.bottom-sheet-enter {
+  animation: bottomSheetSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes bottomSheetSlideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Mobil dokunma geri bildirimi */
+@media (max-width: 767px) {
+  button, a, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Mobilde aktif basılı efekti */
+  .touch-active:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+  }
+}

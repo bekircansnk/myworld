@@ -1,13 +1,33 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f1e6" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f1117" },
+  ],
+};
+
 export const metadata: Metadata = {
   title: "My World",
   description: "Kişisel Yapay Zeka Destekli Yaşam ve İş Yönetim Sistemi",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "My World",
+  },
+  icons: {
+    apple: "/icons/icon-192x192.png",
+  },
 };
 
 import { ChatWidget } from "@/components/chat/ChatWidget";

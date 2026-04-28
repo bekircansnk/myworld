@@ -408,19 +408,19 @@ export function TaskDetailPanel() {
       />
 
       {/* Modal Container — BÜYÜTÜLMÜŞ */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-5 pointer-events-none">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-5 pointer-events-none">
         <div
-          className="pointer-events-auto w-full max-w-[1280px] h-[92vh] rounded-3xl overflow-hidden animate-in zoom-in-95 fade-in duration-300 border border-slate-200/60 dark:border-white/10 shadow-2xl shadow-indigo-500/10 bg-white dark:bg-slate-900 flex flex-col"
+          className="pointer-events-auto w-full max-w-full md:max-w-[1280px] h-full md:h-[92vh] rounded-none md:rounded-3xl overflow-hidden animate-in zoom-in-95 fade-in duration-300 border-0 md:border border-slate-200/60 dark:border-white/10 shadow-2xl shadow-indigo-500/10 bg-white dark:bg-slate-900 flex flex-col"
           onClick={e => e.stopPropagation()}
         >
           {/* ============ HEADER ============ */}
-          <div className="relative px-8 pt-6 pb-5 border-b border-slate-200/50 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 shrink-0">
+          <div className="relative px-4 md:px-8 pt-4 md:pt-6 pb-3 md:pb-5 border-b border-slate-200/50 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 shrink-0">
             <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${pConfig.gradient}`} />
 
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
                 {/* Badges */}
-                <div className="flex items-center gap-2 mb-3">
+                <div className="flex flex-wrap items-center gap-2 mb-3">
                   {project && (
                     <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white shadow-sm"
                       style={{ backgroundColor: project.color || '#6366f1' }}>
@@ -550,13 +550,13 @@ export function TaskDetailPanel() {
           </div>
 
           {/* ============ BODY — SOL / SAĞ LAYOUT ============ */}
-          <div className="flex-1 flex overflow-hidden min-h-0">
+          <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
             
             {/* ===== SOL PANEL — BÜYÜK ===== */}
-            <div className="flex-1 flex flex-col overflow-y-auto border-r border-slate-200/50 dark:border-white/5">
+            <div className="flex-1 flex flex-col overflow-y-auto md:border-r border-slate-200/50 dark:border-white/5">
               
               {/* AÇIKLAMA */}
-              <div className="p-7 border-b border-slate-100 dark:border-white/5">
+              <div className="p-4 md:p-7 border-b border-slate-100 dark:border-white/5">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-base font-bold text-slate-800 dark:text-white/90">Görev Açıklaması</h3>
                   {!isEditingDesc && (
@@ -723,7 +723,7 @@ export function TaskDetailPanel() {
             </div>
 
             {/* ===== SAĞ PANEL — YENİDEN DÜZENLENDİ ===== */}
-            <div className="w-[400px] shrink-0 flex flex-col overflow-hidden bg-slate-50/30 dark:bg-black/10">
+            <div className="w-full md:w-[400px] shrink-0 flex flex-col overflow-hidden bg-slate-50/30 dark:bg-black/10">
               
               {/* ÜST: İLERLEME ÖZETİ + SÜRE */}
               <div className="p-5 border-b border-slate-100 dark:border-white/5 shrink-0">

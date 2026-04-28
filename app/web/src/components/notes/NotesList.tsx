@@ -208,13 +208,14 @@ export function NotesList() {
     <div className="flex flex-col h-full bg-[#FDFBF4] dark:bg-[#15181d] rounded-3xl overflow-hidden shadow-2xl relative">
       
       {/* Top Header & Tabs */}
-      <header className="h-[88px] flex items-center justify-between px-6 md:px-10 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/30 dark:bg-slate-900/30 backdrop-blur-md shrink-0">
-        <nav className="flex gap-4 md:gap-8 overflow-x-auto hide-scrollbar mr-4">
+      {/* Top Header & Tabs */}
+      <header className="min-h-[60px] md:min-h-[88px] flex flex-col md:flex-row md:items-center justify-between px-3 md:px-6 lg:px-10 py-2 md:py-0 gap-2 md:gap-0 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/30 dark:bg-slate-900/30 backdrop-blur-md shrink-0">
+        <nav className="scroll-tab-bar mr-0 md:mr-4">
           {CATEGORIES.map(cat => (
              <button
                 key={cat}
                 onClick={() => setActiveTab(cat)}
-                className={`relative py-4 text-sm whitespace-nowrap transition-colors font-bold ${
+                className={`relative py-2 md:py-4 text-xs md:text-sm whitespace-nowrap transition-colors font-bold ${
                   activeTab === cat 
                     ? 'text-slate-900 dark:text-white border-b-2 border-slate-900 dark:border-white' 
                     : 'text-slate-500 hover:text-slate-900 dark:hover:text-white font-medium'
@@ -225,7 +226,7 @@ export function NotesList() {
           ))}
         </nav>
         
-        <div className="flex items-center gap-4 shrink-0">
+        <div className="flex items-center gap-2 md:gap-4 shrink-0">
           <div className="relative hidden md:block">
              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
              <input 
@@ -240,8 +241,8 @@ export function NotesList() {
                <input 
                  value={newNoteContent}
                  onChange={e => setNewNoteContent(e.target.value)}
-                 placeholder="Hızlı Not Ekle..."
-                 className="bg-transparent border-none text-sm px-3 focus:outline-none w-32 md:w-48 text-slate-800 dark:text-slate-200"
+                 placeholder="Hızlı Not..."
+                 className="bg-transparent border-none text-sm px-2 md:px-3 focus:outline-none w-24 sm:w-32 md:w-48 text-slate-800 dark:text-slate-200"
                  onKeyDown={e => e.key === 'Enter' && handleCreateNote()}
                />
                <Button 
@@ -255,7 +256,7 @@ export function NotesList() {
              
              <Button
                 onClick={openAddModal}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl h-10 px-4 flex items-center gap-2 shadow-sm whitespace-nowrap"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl h-9 md:h-10 px-3 md:px-4 flex items-center gap-2 shadow-sm whitespace-nowrap"
              >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">Yeni Not</span>
@@ -265,7 +266,7 @@ export function NotesList() {
       </header>
 
       {/* Grid Area */}
-      <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-3 md:p-6 lg:p-10 custom-scrollbar">
         {isLoading ? (
            <div className="flex items-center justify-center h-40"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>
         ) : filteredNotes.length === 0 ? (

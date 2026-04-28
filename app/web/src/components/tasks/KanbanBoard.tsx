@@ -55,6 +55,8 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
   const [newCardTitle, setNewCardTitle] = React.useState("")
   const [collapsedColumns, setCollapsedColumns] = React.useState<Record<string, boolean>>({})
   const inputRef = React.useRef<HTMLInputElement>(null)
+  // Mobil sekmeli görünüm için aktif kolon
+  const [mobileActiveColumn, setMobileActiveColumn] = React.useState<string>('todo')
 
   // Sadece ana görevleri göster (alt görevler buraya gelmez)
   const mainTasks = React.useMemo(() => {
@@ -127,17 +129,43 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
   }
 
   return (
-    <div className="flex-1 overflow-x-auto overflow-y-hidden pb-4 kanban-scroll-area">
+    <div className="flex-1 overflow-x-hidden overflow-y-auto md:overflow-x-auto md:overflow-y-hidden pb-4 kanban-scroll-area">
+      {/* Mobil sekmeli tab bar */}
+      <div className="flex md:hidden scroll-tab-bar mb-3 bg-white/60 dark:bg-white/5 rounded-xl p-1 sticky top-0 z-10 backdrop-blur-sm">
+        {COLUMNS.map(col => {
+          const count = getColumnTasks(col.id).length
+          const isActive = mobileActiveColumn === col.id
+          return (
+            <button
+              key={col.id}
+              onClick={() => setMobileActiveColumn(col.id)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex-1 justify-center ${
+                isActive
+                  ? 'bg-brand-dark dark:bg-white text-white dark:text-brand-dark shadow-sm'
+                  : 'text-slate-500 dark:text-gray-400'
+              }`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${col.dotColor}`} />
+              {col.title}
+              <span className={`text-[10px] ${isActive ? 'opacity-80' : 'opacity-50'}`}>({count})</span>
+            </button>
+          )
+        })}
+      </div>
+
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-4 gap-6 h-full min-w-[960px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 h-full">
           {COLUMNS.map(column => {
             const columnTasks = getColumnTasks(column.id)
             const isCollapsed = collapsedColumns[column.id]
 
+            // Mobilde sadece aktif kolonu göster
+            const isHiddenOnMobile = mobileActiveColumn !== column.id
+
             return (
               <div
                 key={column.id}
-                className={`flex flex-col transition-all duration-300 ${isCollapsed ? 'h-auto' : 'h-[calc(100vh-140px)]'}`}
+                className={`flex flex-col transition-all duration-300 ${isHiddenOnMobile ? 'hidden md:flex' : 'flex'} ${isCollapsed ? 'h-auto' : 'md:h-[calc(100vh-140px)]'}`}
               >
                 {/* Column Header — minimal, flush with background */}
                 <div className="flex items-center justify-between mb-3">

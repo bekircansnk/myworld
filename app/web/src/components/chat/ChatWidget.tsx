@@ -169,7 +169,7 @@ export function ChatWidget() {
     <>
       {/* Floating Button / Robot Indicator */}
       {!isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-center gap-2 pointer-events-none">
+        <div className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 flex flex-col items-center gap-2 pointer-events-none">
           {/* Obal bubbles will take care of their own pointer events and positioning natively */}
           <SpeechBubbles />
           
@@ -181,7 +181,7 @@ export function ChatWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <Card className="fixed bottom-6 right-6 w-[380px] sm:w-[420px] h-[600px] max-h-[85vh] shadow-2xl z-50 flex flex-col border border-border animate-in slide-in-from-bottom-5">
+        <Card className="fixed bottom-0 right-0 md:bottom-6 md:right-6 w-full md:w-[380px] lg:w-[420px] h-[80vh] md:h-[600px] max-h-[85vh] shadow-2xl z-50 flex flex-col border border-border animate-in slide-in-from-bottom-5 rounded-b-none md:rounded-b-xl">
           <CardHeader className="p-3 border-b flex flex-row items-center justify-between space-y-0 shrink-0">
             <div className="flex items-center gap-2">
               <span className="text-lg">✨</span>

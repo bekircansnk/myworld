@@ -216,10 +216,16 @@ export function TopNavbar() {
   }
 
   return (
-    <header className="w-full bg-[#f5f2e8]/80 dark:bg-[#0f1117]/80 backdrop-blur-xl border-b border-[#e8e4d8]/40 dark:border-white/5 px-4 lg:px-8 py-3 shrink-0 z-30 print:hidden">
-      <div className="flex items-center justify-between gap-4">
-        {/* Sol: Navigation */}
-        <nav className="flex items-center gap-1 overflow-visible">
+    <header className="w-full bg-[#f5f2e8]/80 dark:bg-[#0f1117]/80 backdrop-blur-xl border-b border-[#e8e4d8]/40 dark:border-white/5 px-3 md:px-4 lg:px-8 py-2 md:py-3 shrink-0 z-30 print:hidden">
+      <div className="flex items-center justify-between gap-2 md:gap-4">
+        {/* Sol: Mobilde logo, masaüstünde navigation */}
+        <div className="flex items-center gap-2 md:hidden shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-xs shadow-md">
+            MW
+          </div>
+          <span className="text-sm font-bold text-brand-dark dark:text-white">My World</span>
+        </div>
+        <nav className="hidden md:flex items-center gap-1 overflow-visible">
           {navItems.map(item => {
             const isActive = viewMode === item.id
             return (
@@ -265,7 +271,7 @@ export function TopNavbar() {
 
             {showProjectMenu && (
               <div
-                className="absolute top-full left-0 mt-2 w-60 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 py-2 z-[100]"
+                className="absolute top-full left-0 mt-2 w-60 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 py-2 z-[100] max-h-[70vh] overflow-y-auto"
                 style={{ animation: 'fadeSlideDown 0.15s ease-out' }}
               >
                 <div className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Firmalar</div>
@@ -322,7 +328,7 @@ export function TopNavbar() {
             </button>
 
             {showNotifPanel && (
-              <div className="absolute top-full right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 z-50 animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden">
+              <div className="absolute top-full right-0 mt-2 w-[calc(100vw-1.5rem)] sm:w-80 max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 z-50 animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden">
                 <div className="px-4 py-3 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
                   <h3 className="text-sm font-bold text-brand-dark dark:text-white">Bildirimler</h3>
                   {unreadCount > 0 && (
@@ -382,7 +388,7 @@ export function TopNavbar() {
             </button>
 
             {showUserPanel && (
-              <div className="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 z-50 animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden">
+              <div className="absolute top-full right-0 mt-2 w-[calc(100vw-1.5rem)] sm:w-56 max-w-[15rem] bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 z-50 animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden">
                 <div className="p-4 border-b border-slate-100 dark:border-white/10">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-sm">
