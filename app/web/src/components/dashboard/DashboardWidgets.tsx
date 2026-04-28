@@ -284,7 +284,7 @@ export function DashboardWidgets() {
   greeting = hour < 12 ? "Günaydın" : hour < 18 ? "İyi öğlenler" : "İyi akşamlar"
 
   return (
-    <div className="flex flex-col h-full w-full min-h-0 overflow-hidden gap-4">
+    <div className="flex flex-col w-full min-h-0 overflow-y-auto lg:overflow-hidden lg:h-full gap-4">
       <ConfirmDialog
         isOpen={isClearHistoryConfirmOpen}
         onOpenChange={setIsClearHistoryConfirmOpen}
@@ -295,7 +295,7 @@ export function DashboardWidgets() {
       />
 
       {/* === HEADER STATS === */}
-      <div className="flex flex-col xl:flex-row justify-between items-center w-full gap-3 md:gap-6 shrink-0 mb-2 md:mb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-3 md:gap-6 shrink-0 mb-2 md:mb-4">
 
         {/* SOL */}
         <div className="shrink-0 flex items-center mt-1 xl:mt-0">
@@ -303,7 +303,7 @@ export function DashboardWidgets() {
         </div>
 
         {/* ORTA */}
-        <div className="flex flex-wrap gap-3 md:gap-4 items-end flex-1 xl:justify-center">
+        <div className="flex flex-wrap gap-3 md:gap-4 items-end flex-1 sm:justify-center">
           <div>
             <p className="text-xs md:text-sm text-brand-gray dark:text-gray-400 mb-1 text-center">Açık Görevler</p>
             <div className="bg-brand-dark dark:bg-white text-white dark:text-brand-dark px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold text-center">{todoTasks.length + inProgressTasks.length}</div>
@@ -346,13 +346,13 @@ export function DashboardWidgets() {
       </div>
 
       {/* === MAIN GRID === */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 flex-1 min-h-0 overflow-y-auto md:overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 min-h-0">
 
         {/* ========= SOL KOLON ========= */}
-        <div className="col-span-12 lg:col-span-3 flex flex-col gap-3 md:gap-4 min-h-0">
+        <div className="col-span-1 lg:col-span-3 flex flex-col gap-4 min-h-0">
 
-          {/* Dijital & Analog Saat — sabit yükseklik */}
-          <div className="floating-card rounded-2xl md:rounded-3xl p-4 md:p-6 flex flex-row items-center justify-between shrink-0 h-[140px] md:h-[280px] relative overflow-hidden group">
+          {/* Dijital & Analog Saat */}
+          <div className="floating-card rounded-2xl md:rounded-3xl p-4 md:p-6 flex flex-row items-center justify-between shrink-0 relative overflow-hidden group" style={{minHeight: '140px'}}>
             <div className="absolute -top-12 -right-12 w-48 h-48 bg-brand-yellow/5 rounded-full blur-3xl group-hover:bg-brand-yellow/8 transition-colors" />
             <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-slate-500/5 rounded-full blur-3xl" />
             <div className="relative z-10 flex flex-col items-start justify-center pl-1 md:pl-2 flex-1 gap-2 md:gap-4">
@@ -424,8 +424,8 @@ export function DashboardWidgets() {
             </div>
           </div>
 
-          {/* Akıllı Asistan — flex-grow */}
-          <div className="hidden md:flex floating-card rounded-3xl p-6 flex-grow flex-col gap-3 overflow-hidden min-h-[250px] md:min-h-0">
+          {/* Akıllı Asistan — mobilde gizli, masaüstünde flex-grow */}
+          <div className="hidden lg:flex floating-card rounded-3xl p-6 flex-grow flex-col gap-3 overflow-hidden min-h-0">
             <div className="flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-brand-yellow flex items-center justify-center shadow-sm">
@@ -506,11 +506,11 @@ export function DashboardWidgets() {
         </div>
 
         {/* ========= ORTA KOLON ========= */}
-        <div className="col-span-12 lg:col-span-6 flex flex-col gap-3 md:gap-4 min-h-0">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 shrink-0 sm:h-[280px]">
+        <div className="col-span-1 lg:col-span-6 flex flex-col gap-4 min-h-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 shrink-0">
 
             {/* Gelişim Chart */}
-            <div className="floating-card rounded-3xl p-5 flex flex-col relative overflow-hidden min-h-[200px] sm:min-h-0">
+            <div className="floating-card rounded-3xl p-5 flex flex-col relative overflow-hidden" style={{minHeight: '220px'}}>
               <button className="absolute top-5 right-5 w-8 h-8 bg-brand-bg dark:bg-slate-900 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-slate-700 transition shrink-0">
                 <ArrowUpRight className="w-3.5 h-3.5 text-brand-gray dark:text-gray-400" />
               </button>
@@ -544,7 +544,7 @@ export function DashboardWidgets() {
             </div>
 
             {/* Çalışma Sayacı & Aktif Etkinlik */}
-            <div className="floating-card rounded-3xl p-5 flex flex-row relative overflow-hidden min-h-[200px] sm:min-h-0">
+            <div className="floating-card rounded-3xl p-5 flex flex-row relative overflow-hidden" style={{minHeight: '220px'}}>
               <div className="w-[50%] flex flex-col items-center justify-between border-r border-slate-100 dark:border-white/5 pr-4 relative">
                 <h3 className="text-[10px] font-bold text-brand-dark dark:text-white self-start uppercase tracking-widest">Çalışma Sayacı</h3>
                 <div className="relative w-24 h-24 flex items-center justify-center">
@@ -621,8 +621,8 @@ export function DashboardWidgets() {
             </div>
           </div>
 
-          {/* Takvim — flex-grow */}
-          <div className="floating-card rounded-3xl p-5 flex-grow flex flex-col min-h-[300px] md:min-h-0 relative overflow-hidden">
+          {/* Takvim */}
+          <div className="floating-card rounded-3xl p-5 flex flex-col relative overflow-hidden" style={{minHeight: '320px'}}>
             <div className="flex justify-between items-center mb-3 shrink-0">
               <h3 className="text-sm font-semibold text-brand-dark dark:text-white flex items-center gap-2">
                 <CalendarDays className="w-4 h-4 text-brand-yellow" />
@@ -672,10 +672,10 @@ export function DashboardWidgets() {
         </div>
 
         {/* ========= SAG KOLON ========= */}
-        <div className="col-span-12 lg:col-span-3 flex flex-col gap-3 md:gap-4 min-h-0">
+        <div className="col-span-1 lg:col-span-3 flex flex-col gap-4 min-h-0">
 
-          {/* Durum Paneli — h-[280px] shrink-0 */}
-          <div className="floating-card rounded-3xl p-6 shrink-0 h-[280px] flex flex-col relative overflow-hidden">
+          {/* Durum Paneli */}
+          <div className="floating-card rounded-3xl p-6 shrink-0 flex flex-col relative overflow-hidden" style={{minHeight: '260px'}}>
             <div className="flex justify-between items-center shrink-0 mb-4">
               <h3 className="text-base font-semibold text-brand-dark dark:text-white">Durum Paneli</h3>
               <div className="flex bg-brand-bg dark:bg-slate-900 p-1 rounded-full">
@@ -719,8 +719,8 @@ export function DashboardWidgets() {
             </div>
           </div>
 
-          {/* Gorevler — flex-grow */}
-          <div className="floating-card rounded-3xl p-6 flex-grow flex flex-col min-h-[300px] md:min-h-0 relative overflow-hidden">
+          {/* Görevler */}
+          <div className="floating-card rounded-3xl p-6 flex flex-col relative overflow-hidden" style={{minHeight: '300px'}}>
             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-3/4 h-8 bg-brand-yellow/5 dark:bg-white/5 blur-xl rounded-full" />
             <div className="flex justify-between items-center mb-4 relative z-10 shrink-0">
               <h3 className="text-sm font-semibold text-brand-dark dark:text-white">Görevler</h3>

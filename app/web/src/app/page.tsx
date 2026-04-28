@@ -122,7 +122,7 @@ export default function DashboardPage() {
       ) : isPhotoTracking ? (
         <PhotoTrackingLayout projectId={selectedProjectId} />
       ) : (
-        <div className={`flex-1 flex flex-col mobile-content-area ${isDashboard ? 'overflow-hidden p-3 md:p-5 lg:p-8' : 'overflow-y-auto overflow-x-hidden p-3 md:p-5 lg:p-8'}`}>
+        <div className={`flex-1 flex flex-col mobile-content-area ${isDashboard ? 'overflow-y-auto lg:overflow-hidden p-3 md:p-5 lg:p-8' : 'overflow-y-auto overflow-x-hidden p-3 md:p-5 lg:p-8'}`}>
 
           {/* Dashboard — Header DashboardWidgets içinde */}
           {isDashboard ? (
