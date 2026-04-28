@@ -505,10 +505,10 @@ export function TaskDetailPanel() {
             </div>
 
             {/* Status + Due Date */}
-            <div className="flex items-center gap-2 mt-4">
+            <div className="flex items-center gap-1.5 md:gap-2 mt-3 md:mt-4 overflow-x-auto pb-1 scrollbar-none">
               {(['todo', 'in_progress', 'in_review', 'done'] as const).map(s => (
                 <button key={s} onClick={() => handleStatusChange(s)}
-                  className={`px-4 py-2 text-xs font-bold rounded-xl transition-all shadow-sm ${
+                  className={`px-3 md:px-4 py-1.5 md:py-2 text-[10px] md:text-xs font-bold rounded-lg md:rounded-xl whitespace-nowrap transition-all shadow-sm ${
                     selectedTask.status === s
                       ? 'bg-indigo-600 text-white shadow-indigo-500/30'
                       : 'bg-white dark:bg-white/5 text-slate-600 dark:text-white/60 hover:bg-slate-50 dark:hover:bg-white/10 border border-slate-200 dark:border-transparent'
@@ -726,70 +726,76 @@ export function TaskDetailPanel() {
             <div className="w-full md:w-[400px] shrink-0 flex flex-col overflow-hidden bg-slate-50/30 dark:bg-black/10">
               
               {/* ÜST: İLERLEME ÖZETİ + SÜRE */}
-              <div className="p-5 border-b border-slate-100 dark:border-white/5 shrink-0">
-                <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50/50 dark:from-emerald-500/10 dark:to-teal-500/5 border border-emerald-100 dark:border-emerald-500/20 p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="w-4 h-4 text-emerald-500" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400/80">İlerleme Özeti</span>
-                  </div>
-                  <p className="text-[11px] font-medium text-emerald-800/80 dark:text-emerald-100/60 leading-relaxed">
-                    {subtasks.length > 0
-                      ? `${subtasks.length} alt görevden ${doneSubtasks.length} tanesi tamamlandı (${progress}%). ${
-                          progress === 100 ? 'Harika, görev tamamlanmaya hazır! 🎉' :
-                          progress >= 50 ? 'Yarıdan fazlası bitti, devam et! 💪' :
-                          'Henüz başlangıç aşamasında, ilk adıma odaklan.'
-                        }`
-                      : 'Alt görev eklendikçe ilerleme burada özetlenecek.'
-                    }
-                  </p>
-                  <div className="flex gap-2 mt-3 w-2/3 mx-auto">
-                    <div className="flex-1 bg-white/80 dark:bg-slate-800/60 rounded-lg p-1.5 text-center flex flex-col justify-center">
-                      <p className="text-sm font-black text-slate-800 dark:text-white/90">
-                        {totalActual}<span className="text-[10px] font-bold text-slate-400 ml-0.5">dk</span>
-                      </p>
-                      <p className="text-[9px] font-bold uppercase text-slate-500 dark:text-white/50">Harcanan</p>
+              <div className="border-b border-slate-100 dark:border-white/5 shrink-0 group/progress cursor-pointer">
+                <div className="p-3 md:p-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-emerald-500" />
+                      <span className="text-[10px] md:text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400/80">İlerleme Özeti</span>
                     </div>
-                    <div className="flex-1 bg-white/80 dark:bg-slate-800/60 rounded-lg p-1.5 text-center flex flex-col justify-center">
-                      <p className="text-sm font-black text-slate-800 dark:text-white/90">
-                        {totalEstimated || '—'}<span className="text-[10px] font-bold text-slate-400 ml-0.5">{totalEstimated ? 'dk' : ''}</span>
+                    <span className="text-[10px] font-bold text-emerald-600 md:hidden">{progress}%</span>
+                  </div>
+                  
+                  <div className="max-h-0 md:max-h-[300px] overflow-hidden group-hover/progress:max-h-[300px] transition-all duration-300 ease-in-out">
+                    <div className="mt-3 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50/50 dark:from-emerald-500/10 dark:to-teal-500/5 border border-emerald-100 dark:border-emerald-500/20 p-4">
+                      <p className="text-[11px] font-medium text-emerald-800/80 dark:text-emerald-100/60 leading-relaxed">
+                        {subtasks.length > 0
+                          ? `${subtasks.length} alt görevden ${doneSubtasks.length} tanesi tamamlandı (${progress}%). ${
+                              progress === 100 ? 'Harika, görev tamamlanmaya hazır! 🎉' :
+                              progress >= 50 ? 'Yarıdan fazlası bitti, devam et! 💪' :
+                              'Henüz başlangıç aşamasında, ilk adıma odaklan.'
+                            }`
+                          : 'Alt görev eklendikçe ilerleme burada özetlenecek.'
+                        }
                       </p>
-                      <p className="text-[9px] font-bold uppercase text-slate-500 dark:text-white/50">Tahmini</p>
+                      <div className="flex gap-2 mt-3 w-full md:w-2/3 mx-auto">
+                        <div className="flex-1 bg-white/80 dark:bg-slate-800/60 rounded-lg p-1.5 text-center flex flex-col justify-center">
+                          <p className="text-sm font-black text-slate-800 dark:text-white/90">
+                            {totalActual}<span className="text-[10px] font-bold text-slate-400 ml-0.5">dk</span>
+                          </p>
+                          <p className="text-[9px] font-bold uppercase text-slate-500 dark:text-white/50">Harcanan</p>
+                        </div>
+                        <div className="flex-1 bg-white/80 dark:bg-slate-800/60 rounded-lg p-1.5 text-center flex flex-col justify-center">
+                          <p className="text-sm font-black text-slate-800 dark:text-white/90">
+                            {totalEstimated || '—'}<span className="text-[10px] font-bold text-slate-400 ml-0.5">{totalEstimated ? 'dk' : ''}</span>
+                          </p>
+                          <p className="text-[9px] font-bold uppercase text-slate-500 dark:text-white/50">Tahmini</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* ORTA: YAPAY ZEKA — Daraltılmış, hover'da genişler */}
-              <div className="border-b border-slate-100 dark:border-white/5 shrink-0 group/ai">
-                <div className="p-4 pb-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xs font-bold text-slate-700 dark:text-white/80 flex items-center gap-2">
+              <div className="border-b border-slate-100 dark:border-white/5 shrink-0 group/ai cursor-pointer">
+                <div className="p-3 md:p-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-[10px] md:text-xs font-bold uppercase tracking-widest md:tracking-normal md:normal-case text-slate-700 dark:text-white/80 flex items-center gap-2">
                       <Bot className="w-4 h-4 text-purple-500" />
-                      Yapay Zeka Asistanı
+                      Yapay Zeka
                     </h3>
-                    <button onClick={fetchAIAnalysis} disabled={isAnalyzing}
+                    <button onClick={(e) => { e.stopPropagation(); fetchAIAnalysis(); }} disabled={isAnalyzing}
                       className="text-[10px] font-semibold text-purple-500 hover:text-purple-600 flex items-center gap-1 transition-colors disabled:opacity-50">
                       {isAnalyzing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                      Yenile
+                      <span className="hidden md:inline">Yenile</span>
                     </button>
                   </div>
 
-                  <div className="rounded-xl bg-gradient-to-br from-purple-100/80 to-indigo-100/60 dark:from-purple-500/15 dark:to-indigo-500/10 border border-purple-200/50 dark:border-purple-500/20 p-3 shadow-sm relative overflow-hidden transition-all duration-300 max-h-[70px] group-hover/ai:max-h-[400px] group-hover/ai:p-4">
-                    <div className="absolute -top-10 -right-10 w-24 h-24 bg-purple-400/20 blur-3xl rounded-full" />
-                    {isAnalyzing ? (
-                      <div className="flex items-center gap-2 text-xs font-medium text-purple-600/70 dark:text-purple-300/60">
-                        <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-500" />
-                        Büyük zeka düşünüyor...
-                      </div>
-                    ) : selectedTask.ai_analysis ? (
-                      <p className="text-[12px] font-medium text-slate-700 dark:text-white/80 leading-relaxed whitespace-pre-wrap relative z-10 line-clamp-3 group-hover/ai:line-clamp-none transition-all duration-300">{selectedTask.ai_analysis}</p>
-                    ) : (
-                      <p className="text-[12px] font-medium text-slate-400 dark:text-white/30 italic relative z-10">AI analizi yok. Yenile'ye tıklayın.</p>
-                    )}
-                    {/* Hover ipucu — sadece collapsed iken */}
-                    {selectedTask.ai_analysis && (
-                      <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-purple-100/90 dark:from-purple-900/40 to-transparent pointer-events-none group-hover/ai:opacity-0 transition-opacity" />
-                    )}
+                  <div className="max-h-0 md:max-h-[100px] overflow-hidden group-hover/ai:max-h-[500px] transition-all duration-300 ease-in-out">
+                    <div className="mt-3 rounded-xl bg-gradient-to-br from-purple-100/80 to-indigo-100/60 dark:from-purple-500/15 dark:to-indigo-500/10 border border-purple-200/50 dark:border-purple-500/20 p-3 md:p-4 shadow-sm relative overflow-hidden">
+                      <div className="absolute -top-10 -right-10 w-24 h-24 bg-purple-400/20 blur-3xl rounded-full pointer-events-none" />
+                      {isAnalyzing ? (
+                        <div className="flex items-center gap-2 text-xs font-medium text-purple-600/70 dark:text-purple-300/60">
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-500" />
+                          Büyük zeka düşünüyor...
+                        </div>
+                      ) : selectedTask.ai_analysis ? (
+                        <p className="text-[11px] md:text-[12px] font-medium text-slate-700 dark:text-white/80 leading-relaxed whitespace-pre-wrap relative z-10">{selectedTask.ai_analysis}</p>
+                      ) : (
+                        <p className="text-[11px] md:text-[12px] font-medium text-slate-400 dark:text-white/30 italic relative z-10">AI analizi yok. Yenile'ye tıklayın.</p>
+                      )}
+                    </div>
                   </div>
 
                   {/* Geçmiş Analizler — hover'da görünür */}
@@ -807,8 +813,8 @@ export function TaskDetailPanel() {
                 </div>
               </div>
 
-              {/* ALT: İŞLEM GEÇMİŞİ — TAM GENIŞLIK */}
-              <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+              {/* ALT: İŞLEM GEÇMİŞİ — SADECE DESKTOP */}
+              <div className="hidden md:flex flex-1 flex-col overflow-hidden min-h-0">
                 <div className="px-5 pt-5 pb-2 shrink-0">
                   <h3 className="text-sm font-bold text-slate-700 dark:text-white/80 flex items-center gap-2">
                     <History className="w-4 h-4 text-emerald-500" />

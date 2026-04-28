@@ -425,7 +425,7 @@ export function DashboardWidgets() {
           </div>
 
           {/* Akıllı Asistan — flex-grow */}
-          <div className="floating-card rounded-3xl p-6 flex-grow flex flex-col gap-3 overflow-hidden min-h-0">
+          <div className="floating-card rounded-3xl p-6 flex-grow flex flex-col gap-3 overflow-hidden min-h-[250px] md:min-h-0">
             <div className="flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-brand-yellow flex items-center justify-center shadow-sm">
@@ -510,7 +510,7 @@ export function DashboardWidgets() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 shrink-0 sm:h-[280px]">
 
             {/* Gelişim Chart */}
-            <div className="floating-card rounded-3xl p-5 flex flex-col relative overflow-hidden">
+            <div className="floating-card rounded-3xl p-5 flex flex-col relative overflow-hidden min-h-[200px] sm:min-h-0">
               <button className="absolute top-5 right-5 w-8 h-8 bg-brand-bg dark:bg-slate-900 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-slate-700 transition shrink-0">
                 <ArrowUpRight className="w-3.5 h-3.5 text-brand-gray dark:text-gray-400" />
               </button>
@@ -544,7 +544,7 @@ export function DashboardWidgets() {
             </div>
 
             {/* Çalışma Sayacı & Aktif Etkinlik */}
-            <div className="floating-card rounded-3xl p-5 flex flex-row relative overflow-hidden">
+            <div className="floating-card rounded-3xl p-5 flex flex-row relative overflow-hidden min-h-[200px] sm:min-h-0">
               <div className="w-[50%] flex flex-col items-center justify-between border-r border-slate-100 dark:border-white/5 pr-4 relative">
                 <h3 className="text-[10px] font-bold text-brand-dark dark:text-white self-start uppercase tracking-widest">Çalışma Sayacı</h3>
                 <div className="relative w-24 h-24 flex items-center justify-center">
@@ -622,7 +622,7 @@ export function DashboardWidgets() {
           </div>
 
           {/* Takvim — flex-grow */}
-          <div className="floating-card rounded-3xl p-5 flex-grow flex flex-col min-h-0 relative overflow-hidden">
+          <div className="floating-card rounded-3xl p-5 flex-grow flex flex-col min-h-[300px] md:min-h-0 relative overflow-hidden">
             <div className="flex justify-between items-center mb-3 shrink-0">
               <h3 className="text-sm font-semibold text-brand-dark dark:text-white flex items-center gap-2">
                 <CalendarDays className="w-4 h-4 text-brand-yellow" />
@@ -720,7 +720,7 @@ export function DashboardWidgets() {
           </div>
 
           {/* Gorevler — flex-grow */}
-          <div className="floating-card rounded-3xl p-6 flex-grow flex flex-col min-h-0 relative overflow-hidden">
+          <div className="floating-card rounded-3xl p-6 flex-grow flex flex-col min-h-[300px] md:min-h-0 relative overflow-hidden">
             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-3/4 h-8 bg-brand-yellow/5 dark:bg-white/5 blur-xl rounded-full" />
             <div className="flex justify-between items-center mb-4 relative z-10 shrink-0">
               <h3 className="text-sm font-semibold text-brand-dark dark:text-white">Görevler</h3>

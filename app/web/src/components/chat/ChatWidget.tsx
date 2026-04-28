@@ -169,7 +169,7 @@ export function ChatWidget() {
     <>
       {/* Floating Button / Robot Indicator */}
       {!isOpen && (
-        <div className="fixed bottom-20 md:bottom-6 right-0 md:right-6 translate-x-8 md:translate-x-0 opacity-50 md:opacity-100 hover:translate-x-0 hover:opacity-100 transition-all duration-300 z-50 flex flex-col items-center gap-2 pointer-events-none">
+        <div className="hidden md:flex fixed bottom-20 md:bottom-6 right-0 md:right-6 translate-x-8 md:translate-x-0 opacity-50 md:opacity-100 hover:translate-x-0 hover:opacity-100 transition-all duration-300 z-50 flex-col items-center gap-2 pointer-events-none">
           {/* Mobilde konuşma balonları yer kaplamasın */}
           <div className="hidden md:block">
             <SpeechBubbles />
