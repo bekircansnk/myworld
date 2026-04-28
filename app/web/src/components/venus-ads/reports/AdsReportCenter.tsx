@@ -5,6 +5,7 @@ import { Plus, FileText, Clock, Download, Trash2, X, BarChart3, Calendar, Trendi
 import { VenusReportTemplate, VenusAIAnalysisReport } from '@/types/venus-ads';
 import { AIAnalysisForm } from './AIAnalysisForm';
 import { useRouter } from 'next/navigation';
+import { AIReportDetailModal } from './AIReportDetailModal';
 
 const TEMPLATE_TYPES = [
   { value: 'weekly', label: 'Haftalık Rapor', icon: Calendar },
@@ -104,6 +105,8 @@ export function AdsReportCenter({ projectId }: { projectId: number | null }) {
   const [activeTab, setActiveTab] = useState<'standard' | 'ai'>('ai');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isAIFormOpen, setIsAIFormOpen] = useState(false);
+  const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
+  const [autoDownloadReport, setAutoDownloadReport] = useState<boolean>(false);
 
   useEffect(() => {
     fetchReportTemplates(projectId || undefined);
@@ -245,7 +248,12 @@ export function AdsReportCenter({ projectId }: { projectId: number | null }) {
             {aiReports.map(report => (
               <div 
                 key={report.id} 
-                onClick={() => report.status === 'completed' && router.push(`/venus-ads/reports/ai/${report.id}`)}
+                onClick={() => {
+                  if (report.status === 'completed') {
+                    setSelectedReportId(report.id);
+                    setAutoDownloadReport(false);
+                  }
+                }}
                 className={`bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-white/5 overflow-hidden group transition-all relative ${
                   report.status === 'completed' 
                     ? 'cursor-pointer hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/80' 
@@ -270,7 +278,11 @@ export function AdsReportCenter({ projectId }: { projectId: number | null }) {
                 <div className="px-6 py-3 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/20 flex items-center justify-end min-h-[48px]">
                   <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     {report.status === 'completed' && (
-                      <button onClick={(e) => { e.stopPropagation(); router.push(`/venus-ads/reports/ai/${report.id}?download=true`) }} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors" title="PDF İndir (Ekrana Git)">
+                      <button onClick={(e) => { 
+                        e.stopPropagation(); 
+                        setSelectedReportId(report.id);
+                        setAutoDownloadReport(true);
+                      }} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors" title="PDF İndir (Ekrana Git)">
                         <Download className="w-3.5 h-3.5" />
                       </button>
                     )}
@@ -287,6 +299,13 @@ export function AdsReportCenter({ projectId }: { projectId: number | null }) {
       )}
       {isFormOpen && <ReportForm onClose={() => setIsFormOpen(false)} projectId={projectId} />}
       {isAIFormOpen && <AIAnalysisForm onClose={() => setIsAIFormOpen(false)} projectId={projectId} />}
+      {selectedReportId && (
+        <AIReportDetailModal 
+          reportId={selectedReportId} 
+          onClose={() => setSelectedReportId(null)} 
+          autoDownload={autoDownloadReport} 
+        />
+      )}
     </div>
   );
 }
