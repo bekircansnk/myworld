@@ -7,9 +7,25 @@ import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
 import { App } from '@capacitor/app';
 import { useProjectStore } from '@/stores/projectStore';
 import { useTaskStore } from '@/stores/taskStore';
+import { useCalendarStore } from '@/stores/calendarStore';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { syncLocalNotifications } from '@/lib/notifications';
 
 export function CapacitorNativeProvider() {
   const backPressTimeRef = useRef(0);
+
+  // Bildirimler için stateler
+  const tasks = useTaskStore(state => state.tasks);
+  const events = useCalendarStore(state => state.events);
+  const notificationsEnabled = useSettingsStore(state => state.notificationsEnabled);
+  const reminderOffsetMinutes = useSettingsStore(state => state.reminderOffsetMinutes);
+
+  // Bildirimleri eşitle
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    // Sadece veriler hazır olduğunda eşitlemeyi dene
+    syncLocalNotifications(tasks, events, notificationsEnabled, reminderOffsetMinutes).catch(console.warn);
+  }, [tasks, events, notificationsEnabled, reminderOffsetMinutes]);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
