@@ -425,7 +425,7 @@ export function DashboardWidgets() {
           </div>
 
           {/* Akıllı Asistan — flex-grow */}
-          <div className="floating-card rounded-3xl p-6 flex-grow flex flex-col gap-3 overflow-hidden min-h-[250px] md:min-h-0">
+          <div className="hidden md:flex floating-card rounded-3xl p-6 flex-grow flex-col gap-3 overflow-hidden min-h-[250px] md:min-h-0">
             <div className="flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-brand-yellow flex items-center justify-center shadow-sm">

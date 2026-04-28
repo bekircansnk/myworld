@@ -56,6 +56,26 @@ export function TopNavbar() {
   const [notifications, setNotifications] = React.useState<AppNotification[]>([])
   const [apiCost, setApiCost] = React.useState<ApiCostData | null>(null)
 
+  // PWA Install Prompt
+  const [deferredPrompt, setDeferredPrompt] = React.useState<any>(null)
+
+  React.useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault()
+      setDeferredPrompt(e)
+    }
+    window.addEventListener('beforeinstallprompt', handler)
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
+  const handleInstallApp = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt()
+      const { outcome } = await deferredPrompt.userChoice
+      if (outcome === 'accepted') setDeferredPrompt(null)
+    }
+  }
+
   // Context Menu and Edit States
   const [contextMenuState, setContextMenuState] = React.useState<{ show: boolean, x: number, y: number, projectId: number | null }>({ show: false, x: 0, y: 0, projectId: null })
   const [settingsProject, setSettingsProject] = React.useState<any>(null)
@@ -247,6 +267,25 @@ export function TopNavbar() {
 
         {/* Sağ: Aksiyonlar */}
         <div className="flex items-center gap-1 md:gap-2 shrink-0">
+          {/* PWA Yükleme Butonu */}
+          {deferredPrompt && (
+            <button
+              onClick={handleInstallApp}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all animate-pulse hover:animate-none mr-1"
+            >
+              Uygulamayı Yükle
+            </button>
+          )}
+          {deferredPrompt && (
+            <button
+              onClick={handleInstallApp}
+              className="sm:hidden flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all animate-pulse hover:animate-none"
+              title="Uygulamayı Yükle"
+            >
+              +
+            </button>
+          )}
+
           {/* Firmalar — Click/Hover ile açılır */}
           <div
             className="relative"
@@ -332,7 +371,7 @@ export function TopNavbar() {
             </button>
 
             {showNotifPanel && (
-              <div className="absolute top-full right-0 mt-2 w-[calc(100vw-1.5rem)] sm:w-80 max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 z-50 animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden">
+              <div className="absolute top-full -right-20 sm:right-0 mt-2 w-[320px] max-w-[calc(100vw-2rem)] sm:w-80 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 z-50 animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden">
                 <div className="px-4 py-3 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
                   <h3 className="text-sm font-bold text-brand-dark dark:text-white">Bildirimler</h3>
                   {unreadCount > 0 && (
@@ -392,7 +431,7 @@ export function TopNavbar() {
             </button>
 
             {showUserPanel && (
-              <div className="absolute top-full right-0 mt-2 w-[calc(100vw-1.5rem)] sm:w-56 max-w-[15rem] bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 z-50 animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden">
+              <div className="absolute top-full -right-4 sm:right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] sm:w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 z-50 animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden">
                 <div className="p-4 border-b border-slate-100 dark:border-white/10">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-sm">

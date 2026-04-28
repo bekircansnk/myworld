@@ -106,6 +106,8 @@ export function TaskDetailPanel() {
   const [imagePreview, setImagePreview] = React.useState<string | null>(null)
   const [activityLog, setActivityLog] = React.useState<ActivityEvent[]>([])
   const [showPriorityMenu, setShowPriorityMenu] = React.useState(false)
+  const [isProgressOpen, setIsProgressOpen] = React.useState(false)
+  const [isAIOpen, setIsAIOpen] = React.useState(false)
   const subtaskInputRef = React.useRef<HTMLInputElement>(null)
   const priorityMenuRef = React.useRef<HTMLDivElement>(null)
   const hasFetchedAI = React.useRef(false)
@@ -653,8 +655,8 @@ export function TaskDetailPanel() {
                   {subtasks.map((st) => (
                     editingSubtaskId === st.id ? (
                       <div key={st.id} className="flex flex-col gap-2 p-3 rounded-xl bg-slate-50 dark:bg-black/20 border border-indigo-200 dark:border-indigo-500/30 shadow-sm animate-in fade-in">
-                        <Input value={subtaskEditTitle} onChange={e => setSubtaskEditTitle(e.target.value)} placeholder="Alt görev adı" className="h-8 text-sm font-semibold bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700" autoFocus />
-                        <Textarea value={subtaskEditDesc} onChange={e => setSubtaskEditDesc(e.target.value)} placeholder="Açıklama (opsiyonel)" className="min-h-[60px] text-xs resize-none bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700" />
+                        <Textarea value={subtaskEditTitle} onChange={e => setSubtaskEditTitle(e.target.value)} placeholder="Alt görev adı" className="min-h-[40px] text-xs font-semibold bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 resize-none py-2" autoFocus />
+                        <Textarea value={subtaskEditDesc} onChange={e => setSubtaskEditDesc(e.target.value)} placeholder="Açıklama (opsiyonel)" className="min-h-[60px] text-[11px] resize-none bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700" />
                         <div className="flex justify-end gap-2 mt-1">
                            <Button size="sm" variant="ghost" onClick={cancelSubtaskEdit} className="h-7 text-[11px] px-3">İptal</Button>
                            <Button size="sm" onClick={saveSubtaskEdit} className="h-7 text-[11px] px-4 bg-indigo-500 hover:bg-indigo-600 text-white">Kaydet</Button>
@@ -726,18 +728,24 @@ export function TaskDetailPanel() {
             <div className="w-full md:w-[400px] shrink-0 flex flex-col overflow-hidden bg-slate-50/30 dark:bg-black/10">
               
               {/* ÜST: İLERLEME ÖZETİ + SÜRE */}
-              <div className="border-b border-slate-100 dark:border-white/5 shrink-0 group/progress cursor-pointer">
+              <div 
+                className="border-b border-slate-100 dark:border-white/5 shrink-0 cursor-pointer select-none"
+                onClick={() => setIsProgressOpen(!isProgressOpen)}
+              >
                 <div className="p-3 md:p-5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <TrendingUp className="w-4 h-4 text-emerald-500" />
                       <span className="text-[10px] md:text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400/80">İlerleme Özeti</span>
                     </div>
-                    <span className="text-[10px] font-bold text-emerald-600 md:hidden">{progress}%</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-emerald-600 md:hidden">{progress}%</span>
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform text-slate-400 ${isProgressOpen ? 'rotate-180' : ''}`} />
+                    </div>
                   </div>
                   
-                  <div className="max-h-0 md:max-h-[300px] overflow-hidden group-hover/progress:max-h-[300px] transition-all duration-300 ease-in-out">
-                    <div className="mt-3 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50/50 dark:from-emerald-500/10 dark:to-teal-500/5 border border-emerald-100 dark:border-emerald-500/20 p-4">
+                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isProgressOpen ? 'max-h-[300px] mt-3' : 'max-h-0 md:max-h-[300px] md:mt-3'}`}>
+                    <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50/50 dark:from-emerald-500/10 dark:to-teal-500/5 border border-emerald-100 dark:border-emerald-500/20 p-4">
                       <p className="text-[11px] font-medium text-emerald-800/80 dark:text-emerald-100/60 leading-relaxed">
                         {subtasks.length > 0
                           ? `${subtasks.length} alt görevden ${doneSubtasks.length} tanesi tamamlandı (${progress}%). ${
@@ -767,23 +775,29 @@ export function TaskDetailPanel() {
                 </div>
               </div>
 
-              {/* ORTA: YAPAY ZEKA — Daraltılmış, hover'da genişler */}
-              <div className="border-b border-slate-100 dark:border-white/5 shrink-0 group/ai cursor-pointer">
+              {/* ORTA: YAPAY ZEKA — Tıklanabilir (Accordion) */}
+              <div 
+                className="border-b border-slate-100 dark:border-white/5 shrink-0 cursor-pointer select-none"
+                onClick={() => setIsAIOpen(!isAIOpen)}
+              >
                 <div className="p-3 md:p-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-[10px] md:text-xs font-bold uppercase tracking-widest md:tracking-normal md:normal-case text-slate-700 dark:text-white/80 flex items-center gap-2">
                       <Bot className="w-4 h-4 text-purple-500" />
                       Yapay Zeka
                     </h3>
-                    <button onClick={(e) => { e.stopPropagation(); fetchAIAnalysis(); }} disabled={isAnalyzing}
-                      className="text-[10px] font-semibold text-purple-500 hover:text-purple-600 flex items-center gap-1 transition-colors disabled:opacity-50">
-                      {isAnalyzing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                      <span className="hidden md:inline">Yenile</span>
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button onClick={(e) => { e.stopPropagation(); fetchAIAnalysis(); }} disabled={isAnalyzing}
+                        className="text-[10px] font-semibold text-purple-500 hover:text-purple-600 flex items-center gap-1 transition-colors disabled:opacity-50">
+                        {isAnalyzing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                        <span className="hidden md:inline">Yenile</span>
+                      </button>
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform text-slate-400 ${isAIOpen ? 'rotate-180' : ''}`} />
+                    </div>
                   </div>
 
-                  <div className="max-h-0 md:max-h-[100px] overflow-hidden group-hover/ai:max-h-[500px] transition-all duration-300 ease-in-out">
-                    <div className="mt-3 rounded-xl bg-gradient-to-br from-purple-100/80 to-indigo-100/60 dark:from-purple-500/15 dark:to-indigo-500/10 border border-purple-200/50 dark:border-purple-500/20 p-3 md:p-4 shadow-sm relative overflow-hidden">
+                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isAIOpen ? 'max-h-[500px] mt-3' : 'max-h-0 md:max-h-[100px] md:mt-3'}`}>
+                    <div className="rounded-xl bg-gradient-to-br from-purple-100/80 to-indigo-100/60 dark:from-purple-500/15 dark:to-indigo-500/10 border border-purple-200/50 dark:border-purple-500/20 p-3 md:p-4 shadow-sm relative overflow-hidden">
                       <div className="absolute -top-10 -right-10 w-24 h-24 bg-purple-400/20 blur-3xl rounded-full pointer-events-none" />
                       {isAnalyzing ? (
                         <div className="flex items-center gap-2 text-xs font-medium text-purple-600/70 dark:text-purple-300/60">
@@ -798,9 +812,9 @@ export function TaskDetailPanel() {
                     </div>
                   </div>
 
-                  {/* Geçmiş Analizler — hover'da görünür */}
+                  {/* Geçmiş Analizler — isAIOpen'a bağlı görünür */}
                   {selectedTask.ai_analysis_history && selectedTask.ai_analysis_history.length > 0 && (
-                    <div className="mt-2 space-y-1.5 max-h-0 overflow-hidden group-hover/ai:max-h-[200px] transition-all duration-300">
+                    <div className={`mt-2 space-y-1.5 overflow-hidden transition-all duration-300 ${isAIOpen ? 'max-h-[200px]' : 'max-h-0'}`}>
                       <h4 className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">Geçmiş Analizler</h4>
                       {selectedTask.ai_analysis_history.slice(0, 3).map((hist: any, i: number) => (
                         <div key={i} className="rounded-lg bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 p-2">

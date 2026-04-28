@@ -20,6 +20,9 @@ import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSa
   isSameDay, addMonths, subMonths, isToday, eachDayOfInterval, addWeeks, subWeeks } from "date-fns"
 import { tr } from "date-fns/locale"
 import { useAuthStore } from "@/store/authStore"
+import { polyfill } from "mobile-drag-drop"
+import { scrollBehaviourDragImageTranslateOverride } from "mobile-drag-drop/scroll-behaviour"
+import "mobile-drag-drop/default.css"
 
 // ============================
 // HELPERS
@@ -131,7 +134,19 @@ export function CalendarPage() {
     closeContextMenu()
   }
 
-  React.useEffect(() => { setMounted(true) }, [])
+  React.useEffect(() => { 
+    setMounted(true) 
+    
+    // Mobil için Drag and Drop Polyfill aktivasyonu
+    polyfill({
+      dragImageTranslateOverride: scrollBehaviourDragImageTranslateOverride
+    });
+    const noop = () => {}
+    window.addEventListener('touchmove', noop, { passive: false });
+    return () => {
+      window.removeEventListener('touchmove', noop)
+    }
+  }, [])
 
   // Merge tasks with due_date into calendar events
   const taskEvents: CalendarEvent[] = React.useMemo(() => {

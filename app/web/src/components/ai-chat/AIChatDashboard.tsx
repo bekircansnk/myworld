@@ -248,6 +248,9 @@ export function AIChatDashboard() {
   const [sessionToDelete, setSessionToDelete] = React.useState<number | null>(null)
   const [isDeleteAllOpen, setIsDeleteAllOpen] = React.useState(false)
 
+  // Mobile Tab State: 'chat' | 'history'
+  const [mobileTab, setMobileTab] = React.useState<'chat' | 'history'>('chat')
+
   // Handle right click on session cards
   const handleContextMenu = (e: React.MouseEvent, sessionId: number) => {
     e.preventDefault()
@@ -381,58 +384,62 @@ export function AIChatDashboard() {
         </div>
       )}
 
-      {/* === TOP: CATEGORY SWITCHER === */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
-        {/* Kategori Tabs */}
-        <div className="flex items-center bg-white dark:bg-slate-800 rounded-full p-1.5 shadow-sm border border-slate-100 dark:border-white/5 gap-1">
-                  {CATEGORY_TABS.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => handleCategoryChange(tab.key)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all duration-200 ${
-                selectedCategory === tab.key
-                  ? 'bg-brand-dark dark:bg-white text-white dark:text-brand-dark shadow-sm'
-                  : 'text-brand-gray dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-              }`}
-            >
-              {tab.icon}
-              <span className="hidden md:inline">{tab.label}</span>
-            </button>
-          ))}
+      {/* === TOP: MOBILE TABS & ACTIONS === */}
+      <div className="flex items-center justify-between gap-4 shrink-0 bg-white dark:bg-slate-800 p-2 md:p-3 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5">
+        
+        {/* Mobile Tabs */}
+        <div className="flex md:hidden items-center bg-slate-100 dark:bg-slate-900 rounded-xl p-1 gap-1">
+          <button
+            onClick={() => setMobileTab('chat')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              mobileTab === 'chat' ? 'bg-white dark:bg-slate-700 text-brand-dark dark:text-white shadow-sm' : 'text-slate-500'
+            }`}
+          >
+            Sohbet
+          </button>
+          <button
+            onClick={() => setMobileTab('history')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+              mobileTab === 'history' ? 'bg-white dark:bg-slate-700 text-brand-dark dark:text-white shadow-sm' : 'text-slate-500'
+            }`}
+          >
+            Geçmiş <span className="bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[9px]">{sessionsTotal}</span>
+          </button>
         </div>
 
-        {/* Right side: stats */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm text-brand-gray dark:text-gray-400">
-            <Brain className="w-4 h-4 text-brand-yellow" />
-            <span className="font-bold text-brand-dark dark:text-white">{sessionsTotal}</span>
-            <span>sohbet</span>
-          </div>
+        {/* Desktop title / Right side actions */}
+        <div className="hidden md:flex items-center gap-2 text-sm text-brand-gray dark:text-gray-400 pl-2">
+          <Brain className="w-4 h-4 text-brand-yellow" />
+          <span className="font-bold text-brand-dark dark:text-white">{sessionsTotal}</span>
+          <span>sohbet geçmişi</span>
+        </div>
+
+        <div className="flex items-center gap-2 ml-auto">
           <button 
             onClick={() => setIsDeleteAllOpen(true)}
             disabled={sessionsTotal === 0}
-            className="flex items-center gap-2 px-3 py-2.5 bg-slate-50 dark:bg-slate-800 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-full text-xs font-bold transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed hidden sm:flex shrink-0"
+            className="flex items-center gap-2 px-3 py-2 bg-slate-50 dark:bg-slate-800 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl text-xs font-bold transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed hidden sm:flex shrink-0"
             title="Tüm Sohbetleri Sil"
           >
             <Trash2 className="w-4 h-4" />
             <span className="hidden md:inline">Tümünü Sil</span>
           </button>
           <button
-            onClick={handleNewChat}
-            className="flex items-center gap-2 px-4 py-2.5 bg-brand-yellow text-brand-dark rounded-full text-xs font-bold hover:bg-brand-yellow/90 transition-all shadow-sm hover:shadow-md hover:scale-[1.02]"
+            onClick={() => { handleNewChat(); setMobileTab('chat'); }}
+            className="flex items-center gap-2 px-4 py-2 bg-brand-yellow text-brand-dark rounded-xl text-xs font-bold hover:bg-brand-yellow/90 transition-all shadow-sm hover:shadow-md"
           >
             <Plus className="w-4 h-4" />
-            Yeni Sohbet
+            <span className="hidden sm:inline">Yeni Sohbet</span>
+            <span className="sm:hidden">Yeni</span>
           </button>
         </div>
       </div>
 
       {/* === MAIN CONTENT: TWO PANELS === */}
-      {/* === MAIN CONTENT: TWO PANELS === */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 md:gap-4 min-h-0 overflow-hidden">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 min-h-0 overflow-hidden">
 
         {/* ========= LEFT PANEL: AI CHAT ========= */}
-        <div className="col-span-1 lg:col-span-7 xl:col-span-8 flex flex-col floating-card rounded-2xl overflow-hidden relative">
+        <div className={`col-span-1 md:col-span-7 xl:col-span-8 flex-col floating-card rounded-2xl overflow-hidden relative ${mobileTab === 'history' ? 'hidden md:flex' : 'flex'}`}>
           
           {/* Decorative top gradient */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-yellow via-amber-400 to-brand-yellow rounded-t-2xl" />
@@ -602,7 +609,7 @@ export function AIChatDashboard() {
         </div>
 
         {/* ========= RIGHT PANEL: PERSISTENT MEMORY ========= */}
-        <div className="hidden lg:flex col-span-1 lg:col-span-5 xl:col-span-4 flex-col floating-card rounded-2xl overflow-hidden">
+        <div className={`col-span-1 md:col-span-5 xl:col-span-4 flex-col floating-card rounded-2xl overflow-hidden ${mobileTab === 'chat' ? 'hidden md:flex' : 'flex'}`}>
           
           {/* Header */}
           <div className="p-5 border-b border-slate-100 dark:border-white/5 shrink-0">
@@ -653,7 +660,7 @@ export function AIChatDashboard() {
                       <SessionCard
                         session={session}
                         isActive={session.id === activeSessionId}
-                        onClick={() => selectSession(session.id)}
+                        onClick={() => { selectSession(session.id); setMobileTab('chat'); }}
                         onContextMenu={(e) => handleContextMenu(e, session.id)}
                       />
                     </div>
