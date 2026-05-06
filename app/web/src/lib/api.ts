@@ -23,6 +23,7 @@ api.interceptors.response.use(
   (error) => {
     // Ağ hatası (çevrimdışı) → sessizce geç, mevcut cache kullanılsın
     if (!error.response) {
+      error.isOfflineError = true;
       return Promise.reject(error);
     }
     

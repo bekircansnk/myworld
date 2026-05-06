@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { CalendarEvent, CalendarViewMode } from '@/types/calendar';
 import { api } from '@/lib/api';
 import { idbStorage } from '@/lib/idb-storage';
+import { enqueue } from '@/lib/syncQueue';
 
 interface CalendarState {
   events: CalendarEvent[];
@@ -57,24 +58,48 @@ export const useCalendarStore = create<CalendarState>()(
       setSelectedEvent: (event) => set({ selectedEvent: event }),
 
       addEvent: async (event) => {
+        const tempId = event.id || `temp_${Date.now()}`;
+        const tempEvent = { ...event, id: tempId };
+        set((state) => ({ 
+          events: [...state.events, tempEvent] 
+        }));
         try {
           const res = await api.post('/api/calendar/events', event);
-          set((state) => ({ 
-            events: [...state.events, res.data] 
+          set((state) => ({
+            events: state.events.map(e => e.id === tempId ? res.data : e)
           }));
-        } catch(err) { console.error(err); }
+        } catch(err: any) { 
+          if (err.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+            enqueue('POST', '/api/calendar/events', event);
+          } else {
+            set((state) => ({ events: state.events.filter(e => e.id !== tempId) }));
+            console.error(err); 
+          }
+        }
       },
 
       updateEvent: async (id, data) => {
+        const prevEvents = get().events;
+        set((state) => ({
+          events: state.events.map((e) => e.id === id ? { ...e, ...data } : e),
+          selectedEvent: state.selectedEvent?.id === id 
+            ? { ...state.selectedEvent, ...data } 
+            : state.selectedEvent,
+        }));
         try {
           const res = await api.put(`/api/calendar/events/${id}`, data);
           set((state) => ({
             events: state.events.map((e) => e.id === id ? { ...e, ...res.data } : e),
-            selectedEvent: state.selectedEvent?.id === id 
-              ? { ...state.selectedEvent, ...res.data } 
-              : state.selectedEvent,
+            selectedEvent: state.selectedEvent?.id === id ? { ...state.selectedEvent, ...res.data } : state.selectedEvent,
           }));
-        } catch(err) { console.error(err); }
+        } catch(err: any) {
+          if (err.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+            enqueue('PUT', `/api/calendar/events/${id}`, data);
+          } else {
+            set({ events: prevEvents });
+            console.error(err);
+          }
+        }
       },
 
       deleteEvent: async (id) => {
@@ -84,9 +109,13 @@ export const useCalendarStore = create<CalendarState>()(
         }));
         try {
            await api.delete(`/api/calendar/events/${id}`);
-        } catch(err) { 
-           console.error(err); 
-           get().fetchEvents();
+        } catch(err: any) { 
+           if (err.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+             enqueue('DELETE', `/api/calendar/events/${id}`);
+           } else {
+             console.error(err); 
+             get().fetchEvents();
+           }
         }
       },
 

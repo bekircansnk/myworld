@@ -963,10 +963,10 @@ function AddEventDialog({ open, onClose, defaultDate, onSave }: {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden border-0 shadow-2xl bg-white dark:bg-slate-900 rounded-3xl [&>button]:hidden">
+      <DialogContent className="sm:max-w-[480px] w-[95vw] max-h-[85vh] overflow-y-auto p-0 border-0 shadow-2xl bg-white dark:bg-slate-900 rounded-3xl [&>button]:hidden">
         <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-br from-indigo-500/15 via-purple-500/10 to-transparent pointer-events-none" />
         <button onClick={onClose} className="absolute top-4 right-4 z-50 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-slate-800 text-gray-500 hover:text-gray-800 dark:hover:text-white transition-colors"><X className="w-4 h-4" /></button>
-        <div className="relative z-10 p-6 pt-8">
+        <div className="relative z-10 p-5 md:p-6 pt-8">
           <DialogHeader className="mb-5">
             <DialogTitle className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-3">
               <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30"><CalendarIcon className="w-5 h-5" /></div>

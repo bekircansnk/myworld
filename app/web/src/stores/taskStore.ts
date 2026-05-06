@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { api } from '@/lib/api';
 import { idbStorage } from '@/lib/idb-storage';
+import { enqueue } from '@/lib/syncQueue';
 import { Task } from '@/types';
 
 interface TaskState {
@@ -73,10 +74,14 @@ export const useTaskStore = create<TaskState>()(
             tasks: state.tasks.map((t) => (t.id === tempId ? response.data : t)),
           }));
         } catch (error: any) {
-          set((state) => ({
-            tasks: state.tasks.filter((t) => t.id !== tempId),
-            error: error.message
-          }));
+          if (error.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+            enqueue('POST', '/api/tasks', data);
+          } else {
+            set((state) => ({
+              tasks: state.tasks.filter((t) => t.id !== tempId),
+              error: error.message
+            }));
+          }
         }
       },
 
@@ -94,7 +99,15 @@ export const useTaskStore = create<TaskState>()(
             selectedTask: state.selectedTask?.id === id ? response.data : state.selectedTask,
           }));
         } catch (error: any) {
-          set({ tasks: previousTasks, selectedTask: previousSelected, error: error.message });
+          if (error.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+            if (id.toString().startsWith('temp_') || id > 1000000000000) {
+              // Geçiçi ID ise backend'e doğrudan PUT gitmez ama biz syncQueue'da halledeceğiz veya backend tarafında çözülebilir.
+              // Şimdilik sadece kuyruğa ekle
+            }
+            enqueue('PUT', `/api/tasks/${id}`, data);
+          } else {
+            set({ tasks: previousTasks, selectedTask: previousSelected, error: error.message });
+          }
         }
       },
 
@@ -113,7 +126,11 @@ export const useTaskStore = create<TaskState>()(
             selectedTask: state.selectedTask?.id === id ? response.data : state.selectedTask,
           }));
         } catch (error: any) {
-          set({ tasks: previousTasks, error: error.message });
+          if (error.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+            enqueue('PATCH', `/api/tasks/${id}/status?status=${status}`);
+          } else {
+            set({ tasks: previousTasks, error: error.message });
+          }
         }
       },
 
@@ -126,8 +143,12 @@ export const useTaskStore = create<TaskState>()(
         try {
           await api.delete(`/api/tasks/${id}`);
         } catch (error: any) {
-          set({ error: error.message });
-          get().fetchTasks();
+          if (error.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+            enqueue('DELETE', `/api/tasks/${id}`);
+          } else {
+            set({ error: error.message });
+            get().fetchTasks();
+          }
         }
       },
 
@@ -143,10 +164,14 @@ export const useTaskStore = create<TaskState>()(
             tasks: state.tasks.map(t => t.id === tempId ? response.data : t),
           }));
         } catch (error: any) {
-          set((state) => ({
-            tasks: state.tasks.filter((t) => t.id !== tempId),
-            error: error.message
-          }));
+          if (error.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+            enqueue('POST', `/api/tasks/${parentId}/subtasks`, taskData);
+          } else {
+            set((state) => ({
+              tasks: state.tasks.filter((t) => t.id !== tempId),
+              error: error.message
+            }));
+          }
         }
       }
     }),

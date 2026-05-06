@@ -157,7 +157,7 @@ export function TaskCard({ task, subtaskCount = 0, doneSubtaskCount = 0, isProje
         onConfirm={() => deleteTask(task.id)}
       />
     <ContextMenu>
-      <ContextMenuTrigger>
+      <ContextMenuTrigger className="block">
         <div
           className="rounded-lg p-4 cursor-pointer group transition-all duration-200 hover:shadow-md border backdrop-blur-sm"
           style={cardStyle}
