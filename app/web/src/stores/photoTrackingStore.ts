@@ -30,6 +30,16 @@ interface PhotoTrackingState {
   exportExcel: (projectId?: number, month?: number, year?: number) => Promise<void>;
 }
 
+const injectProject = async (data: any) => {
+  if (data.project_id) return data;
+  try {
+    const { useProjectStore } = await import('@/stores/projectStore');
+    const projectId = useProjectStore.getState().selectedProjectId;
+    if (projectId) return { ...data, project_id: projectId };
+  } catch (e) {}
+  return data;
+};
+
 export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
   viewMode: 'overview',
   setViewMode: (mode) => set({ viewMode: mode }),
@@ -53,7 +63,8 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
   },
   
   createModel: async (data) => {
-    const res = await api.post('/api/ads/photo-tracking/models', data);
+    const payload = await injectProject(data);
+    const res = await api.post('/api/ads/photo-tracking/models', payload);
     set(state => ({ models: [res.data, ...state.models] }));
     return res.data;
   },
@@ -92,7 +103,8 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
     }
     
     try {
-      const res = await api.post(`/api/ads/photo-tracking/models/${modelId}/colors`, data);
+      const payload = await injectProject(data);
+      const res = await api.post(`/api/ads/photo-tracking/models/${modelId}/colors`, payload);
       const color = res.data;
       set(state => ({
         models: state.models.map(m => {
@@ -165,7 +177,8 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
   },
   
   addRevision: async (modelId, data) => {
-    const res = await api.post(`/api/ads/photo-tracking/models/${modelId}/revisions`, data);
+    const payload = await injectProject(data);
+    const res = await api.post(`/api/ads/photo-tracking/models/${modelId}/revisions`, payload);
     const revision = res.data;
     set(state => ({
       models: state.models.map(m => {
@@ -203,7 +216,16 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
     try {
       const formData = new FormData();
       formData.append('file', file);
-      if (projectId) formData.append('project_id', projectId.toString());
+      
+      let currentProjectId = projectId;
+      if (!currentProjectId) {
+        try {
+          const { useProjectStore } = await import('@/stores/projectStore');
+          currentProjectId = useProjectStore.getState().selectedProjectId || undefined;
+        } catch(e) {}
+      }
+      
+      if (currentProjectId) formData.append('project_id', currentProjectId.toString());
       if (weekNumber) formData.append('week_number', weekNumber.toString());
       if (month) formData.append('month', month.toString());
       if (year) formData.append('year', year.toString());

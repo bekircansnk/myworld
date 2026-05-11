@@ -112,6 +112,17 @@ function buildCrud<T extends { id: number }>(
   };
 }
 
+const injectProject = async (data: any) => {
+  if (data instanceof FormData) return data; // formData is handled separately
+  if (data.project_id) return data;
+  try {
+    const { useProjectStore } = await import('@/stores/projectStore');
+    const projectId = useProjectStore.getState().selectedProjectId;
+    if (projectId) return { ...data, project_id: projectId };
+  } catch (e) {}
+  return data;
+};
+
 export const useAdsStore = create<AdsState>((set) => ({
   viewMode: 'overview',
   setViewMode: (mode) => set({ viewMode: mode }),
@@ -145,7 +156,8 @@ export const useAdsStore = create<AdsState>((set) => ({
     } catch (e) { console.error("fetch campaigns", e); set({ isLoadingCampaigns: false }); }
   },
   createCampaign: async (data) => {
-    const res = await api.post('/api/ads/campaigns', data);
+    const payload = await injectProject(data);
+    const res = await api.post('/api/ads/campaigns', payload);
     set((s) => ({ campaigns: [res.data, ...s.campaigns] }));
     return res.data;
   },
@@ -179,7 +191,8 @@ export const useAdsStore = create<AdsState>((set) => ({
     } catch (e) { console.error("fetch experiments", e); set({ isLoadingExperiments: false }); }
   },
   createExperiment: async (data) => {
-    const res = await api.post('/api/ads/experiments', data);
+    const payload = await injectProject(data);
+    const res = await api.post('/api/ads/experiments', payload);
     set((s) => ({ experiments: [res.data, ...s.experiments] }));
     return res.data;
   },
@@ -215,7 +228,8 @@ export const useAdsStore = create<AdsState>((set) => ({
     } catch (e) { console.error("fetch creatives", e); set({ isLoadingCreatives: false }); }
   },
   createCreative: async (data) => {
-    const res = await api.post('/api/ads/creatives', data);
+    const payload = await injectProject(data);
+    const res = await api.post('/api/ads/creatives', payload);
     set((s) => ({ creatives: [res.data, ...s.creatives] }));
     return res.data;
   },
@@ -242,7 +256,8 @@ export const useAdsStore = create<AdsState>((set) => ({
     } catch (e) { console.error("fetch tasks", e); set({ isLoadingTasks: false }); }
   },
   createTask: async (data) => {
-    const res = await api.post('/api/ads/tasks', data);
+    const payload = await injectProject(data);
+    const res = await api.post('/api/ads/tasks', payload);
     set((s) => ({ adsTasks: [res.data, ...s.adsTasks] }));
     return res.data;
   },
@@ -274,7 +289,8 @@ export const useAdsStore = create<AdsState>((set) => ({
     } catch (e) { console.error("fetch checklists", e); set({ isLoadingChecklists: false }); }
   },
   createChecklist: async (data) => {
-    const res = await api.post('/api/ads/onboarding', data);
+    const payload = await injectProject(data);
+    const res = await api.post('/api/ads/onboarding', payload);
     set((s) => ({ checklists: [res.data, ...s.checklists] }));
     return res.data;
   },
@@ -333,7 +349,8 @@ export const useAdsStore = create<AdsState>((set) => ({
     } catch (e) { console.error("fetch reports", e); set({ isLoadingReports: false }); }
   },
   createReportTemplate: async (data) => {
-    const res = await api.post('/api/ads/reports', data);
+    const payload = await injectProject(data);
+    const res = await api.post('/api/ads/reports', payload);
     set((s) => ({ reportTemplates: [res.data, ...s.reportTemplates] }));
     return res.data;
   },
@@ -356,6 +373,13 @@ export const useAdsStore = create<AdsState>((set) => ({
   createAIAnalysis: async (formData) => {
     set({ isLoadingAIReports: true });
     try {
+      if (!formData.has('project_id')) {
+        try {
+          const { useProjectStore } = await import('@/stores/projectStore');
+          const projectId = useProjectStore.getState().selectedProjectId;
+          if (projectId) formData.append('project_id', String(projectId));
+        } catch(e) {}
+      }
       const res = await api.post('/api/ads/reports/ai-analysis', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -403,7 +427,8 @@ export const useAdsStore = create<AdsState>((set) => ({
     } catch (e) { console.error("fetch csv imports", e); set({ isLoadingCSV: false }); }
   },
   createCSVImport: async (data) => {
-    const res = await api.post('/api/ads/csv-imports', data);
+    const payload = await injectProject(data);
+    const res = await api.post('/api/ads/csv-imports', payload);
     set((s) => ({ csvImports: [res.data, ...s.csvImports] }));
     return res.data;
   },
@@ -422,7 +447,15 @@ export const useAdsStore = create<AdsState>((set) => ({
       const formData = new FormData();
       formData.append('file', file);
       formData.append('platform_source', platform);
-      if (projectId) formData.append('project_id', String(projectId));
+      
+      let currentProjectId = projectId;
+      if (!currentProjectId) {
+        try {
+          const { useProjectStore } = await import('@/stores/projectStore');
+          currentProjectId = useProjectStore.getState().selectedProjectId || undefined;
+        } catch(e) {}
+      }
+      if (currentProjectId) formData.append('project_id', String(currentProjectId));
 
       const response = await api.post('/api/ads/csv-imports/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
