@@ -273,7 +273,7 @@ export function UserPermissionsPanel({
 
       {nonSuperUsers.map(user => {
         const isExpanded = expandedUser === user.id
-        const companies = userCompanies[user.id] || []
+        const companies = userCompanies[user.id] || user.company_accesses || []
         const isLoading = loading === user.id
         const isAddingCompany = addingCompany === user.id
         const unassignedProjects = allProjects.filter(

@@ -67,7 +67,7 @@ export const canEdit = (user: User | null, module: string): boolean => {
 };
 
 export const isAdmin = (user: User | null): boolean => {
-  return user?.role === 'super_admin' || user?.role === 'admin';
+  return user?.role === 'super_admin';
 };
 
 interface AuthState {

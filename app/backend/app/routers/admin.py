@@ -478,3 +478,25 @@ async def delete_role_template(
     else:
         raise HTTPException(status_code=404, detail="Rol şablonu bulunamadı")
     return {"message": "Rol şablonu silindi"}
+
+from sqlalchemy import text
+
+@router.post("/reset-data")
+async def reset_data(
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(require_super_admin)
+):
+    """Tüm gereksiz verileri (görev, not, takvim vb) temizler."""
+    tables = [
+        "tasks", "notes", "calendar_events", 
+        "chat_messages", "chat_sessions", "activity_logs", 
+        "notifications", "timer_sessions", "ai_memory"
+    ]
+    for table in tables:
+        try:
+            await db.execute(text(f"TRUNCATE TABLE {table} CASCADE"))
+            await db.commit()
+        except Exception:
+            await db.rollback()
+            
+    return {"status": "ok", "message": "Temizlik tamamlandı"}

@@ -38,10 +38,22 @@ export function UserCard({ user, onClick }: { user: any, onClick: () => void }) 
              <div>
                 <h3 className="font-bold text-brand-dark dark:text-white text-lg leading-tight group-hover:text-indigo-500 transition-colors">{user.name}</h3>
                 <p className="text-xs text-slate-500 font-medium">@{user.username}</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                   <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${roleColors[user.role] || roleColors.viewer}`}>
-                     {roleNames[user.role] || 'Bilinmeyen'}
-                   </span>
+                <div className="mt-2 flex flex-wrap gap-1.5 max-w-[200px]">
+                   {user.role === 'super_admin' ? (
+                     <span className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400">
+                       SÜPER ADMİN (TÜM FİRMALAR)
+                     </span>
+                   ) : user.company_accesses && user.company_accesses.length > 0 ? (
+                     user.company_accesses.map((access: any) => (
+                       <span key={access.project_id} className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400 truncate max-w-[120px]" title={access.project_name}>
+                         {access.project_name}
+                       </span>
+                     ))
+                   ) : (
+                     <span className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-500 dark:bg-slate-500/20 dark:text-slate-400">
+                       Firma Yok
+                     </span>
+                   )}
                 </div>
              </div>
           </div>
