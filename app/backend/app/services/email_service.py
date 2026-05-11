@@ -27,9 +27,8 @@ async def send_email(to: str, subject: str, html_body: str) -> bool:
         "Content-Type": "application/json"
     }
     
-    # Resend ücretsiz pakette sadece test domaini (onboarding@resend.dev) ile kayıtlı e-postaya mail atabilir.
-    # Kendi domaininizi doğruladıysanız burayı kendi e-postanız (örn: info@myworld.com) ile değiştirebilirsiniz.
-    from_email = "onboarding@resend.dev"
+    # Alan adı Resend üzerinden doğrulandı (pikselai.com)
+    from_email = "info@pikselai.com"
     
     payload = {
         "from": f"{settings.smtp_from_name} <{from_email}>",
