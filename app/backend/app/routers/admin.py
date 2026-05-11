@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import func
+from sqlalchemy.orm import selectinload
 from typing import List
 import json
 
@@ -72,7 +73,8 @@ async def get_user(
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(require_admin)
 ):
-    result = await db.execute(select(User).where(User.id == user_id))
+    stmt = select(User).options(selectinload(User.company_accesses)).where(User.id == user_id)
+    result = await db.execute(stmt)
     user = result.scalars().first()
     if not user:
         raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
@@ -105,6 +107,7 @@ async def create_user(
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
+    new_user.company_accesses = []
     
     # Log the action
     await log_activity(db, current_admin.id, "create_user", "admin", {"created_user_id": new_user.id, "username": new_user.username}, request)
@@ -147,6 +150,7 @@ async def update_user(
         
     await db.commit()
     await db.refresh(user)
+    user.company_accesses = []
     
     await log_activity(db, current_admin.id, "update_user", "admin", {"updated_user_id": user.id}, request)
     

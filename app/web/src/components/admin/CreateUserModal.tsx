@@ -13,18 +13,19 @@ export function CreateUserModal({ isOpen, onClose, onCreate }: any) {
   if (!isOpen) return null
 
   const handleSubmit = async (e: React.FormEvent) => {
-     e.preventDefault()
-     setLoading(true)
-     setError('')
-     try {
-        await onCreate(formData)
-        onClose()
-        setFormData({ username: '', password: '', name: '', email: '', role: 'viewer', permissions: {} })
-     } catch(err: any) {
-        setError(err.response?.data?.detail || 'Kullanıcı oluşturulurken bir hata oluştu.')
-     } finally {
-        setLoading(false)
-     }
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    try {
+      await onCreate(formData)
+      onClose()
+      setFormData({ username: '', password: '', name: '', email: '', role: 'viewer', permissions: {} })
+    } catch(err: any) {
+      const detail = err.response?.data?.detail || err.response?.data?.message || err.response?.data?.details || err.message;
+      setError(typeof detail === 'string' ? detail : JSON.stringify(detail));
+    } finally {
+      setLoading(false)
+    }
   }
 
   const modalContent = (

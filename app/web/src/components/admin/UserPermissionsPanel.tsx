@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { api } from "@/lib/api"
-import { Shield, ChevronRight, Check, X, ShieldAlert, ShieldCheck, Trash2, Building2, Plus, Sparkles } from "lucide-react"
+import { Shield, ChevronRight, Check, X, ShieldAlert, ShieldCheck, Trash2, Building2, Plus, Sparkles, Eye, EyeOff, Pencil, ChevronDown, Loader2, Users } from "lucide-react"
 import { useProjectStore } from "@/stores/projectStore"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 
@@ -106,10 +106,12 @@ function CompanyEditModal({ isOpen, onClose, project, onSave }: {
 
 export function UserPermissionsPanel({ 
   users,
-  isSuperAdmin 
+  isSuperAdmin,
+  onRefreshUsers
 }: { 
   users: any[]
-  isSuperAdmin: boolean 
+  isSuperAdmin: boolean,
+  onRefreshUsers?: () => void
 }) {
   const [expandedUser, setExpandedUser] = React.useState<number | null>(null)
   const [userCompanies, setUserCompanies] = React.useState<Record<number, CompanyAccess[]>>({})
@@ -178,7 +180,7 @@ export function UserPermissionsPanel({
       await api.put(`/api/admin/users/${userId}/companies/${projectId}/permissions`, {
         permissions: fullPerms
       })
-      fetchUsers()
+      if (onRefreshUsers) onRefreshUsers()
     } catch (error) {
       console.error('Full auth failed:', error)
     }
