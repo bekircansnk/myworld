@@ -70,8 +70,15 @@ export const useAIChatStore = create<AIChatState>((set, get) => ({
     const cat = category || get().selectedCategory;
     set({ isSessionsLoading: true });
     try {
+      let currentProjectId = null;
+      try {
+        const { useProjectStore } = await import('@/stores/projectStore');
+        currentProjectId = useProjectStore.getState().selectedProjectId;
+      } catch (e) {}
+
       const params: any = { limit: 50 };
       if (cat && cat !== 'all') params.category = cat;
+      if (currentProjectId) params.project_id = currentProjectId;
       
       const response = await api.get('/api/chat/sessions', { params });
       set({
@@ -87,7 +94,13 @@ export const useAIChatStore = create<AIChatState>((set, get) => ({
 
   createSession: async () => {
     try {
-      const response = await api.post('/api/chat/sessions');
+      let currentProjectId = null;
+      try {
+        const { useProjectStore } = await import('@/stores/projectStore');
+        currentProjectId = useProjectStore.getState().selectedProjectId;
+      } catch (e) {}
+
+      const response = await api.post('/api/chat/sessions', { project_id: currentProjectId });
       const newSession: ChatSession = response.data;
       
       set((state) => ({
@@ -148,9 +161,18 @@ export const useAIChatStore = create<AIChatState>((set, get) => ({
         content: msg.content,
       }));
 
+      let currentProjectId = null;
+      try {
+        const { useProjectStore } = await import('@/stores/projectStore');
+        currentProjectId = useProjectStore.getState().selectedProjectId;
+      } catch (e) {
+        console.error("Project store couldn't be loaded", e);
+      }
+
       const response = await api.post('/api/chat', {
         messages,
         session_id: sessionId,
+        project_id: currentProjectId,
       });
 
       const { reply, actions_executed, session_id: returnedSessionId } = response.data;

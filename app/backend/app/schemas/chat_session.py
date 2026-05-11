@@ -5,6 +5,7 @@ from datetime import datetime
 
 class ChatSessionCreate(BaseModel):
     title: Optional[str] = None
+    project_id: Optional[int] = None
 
 
 class ChatSessionResponse(BaseModel):

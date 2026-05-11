@@ -34,6 +34,7 @@ router = APIRouter()
 class ChatRequest(BaseModel):
     messages: List[Dict[str, str]]
     session_id: Optional[int] = None
+    project_id: Optional[int] = None
 
 class ActionLog(BaseModel):
     action: str
@@ -128,6 +129,17 @@ async def chat_with_ai(
         
         # 1. Bağlam Oluştur
         raw_context = await build_system_context(db, MOCK_USER_ID)
+        
+        # Aktif Proje Bilgisi
+        active_project_name = "Tüm Firmalar (Genel)"
+        if request.project_id:
+            res_proj = await db.execute(select(Project).where(Project.id == request.project_id))
+            proj = res_proj.scalars().first()
+            if proj:
+                active_project_name = proj.name
+                
+        raw_context += f"\n\n=== AKTİF FİRMA ===\nKullanıcı ŞU ANDA arayüzde '{active_project_name}' firmasının içerisindedir. YAPACAĞIN BÜTÜN İŞLEMLER (görev, plan, takvim vb.) SADECE BU FİRMAYA EKLENMELİDİR. Başka bir firma adı uydurma veya yeni firma oluşturma!\n"
+        
         context = optimize_context_tokens(raw_context)
         debug_info["context_length"] = len(context)
         debug_info["session_id"] = session_id
@@ -183,7 +195,7 @@ async def chat_with_ai(
                         logger.warning(f"⚠️ Geçersiz due_date: {raw_due_date} - {de}")
                 
                 # Proje eşleştirme
-                project_id = await _resolve_project_id(db, project_name, MOCK_USER_ID)
+                project_id = request.project_id
                 
                 valid_priorities = ['urgent', 'medium', 'low']
                 final_priority = priority if priority in valid_priorities else 'medium'
@@ -285,7 +297,7 @@ async def chat_with_ai(
                 if not task_title:
                     continue
                 
-                project_id = await _resolve_project_id(db, project_name, MOCK_USER_ID)
+                project_id = request.project_id
                 valid_priorities = ['urgent', 'medium', 'low']
                 final_priority = priority if priority in valid_priorities else 'medium'
                 
@@ -798,6 +810,7 @@ async def create_chat_session(
     session = ChatSession(
         user_id=MOCK_USER_ID,
         title=request.title if request else None,
+        project_id=request.project_id if request else None,
         ai_categories=["genel"]
     )
     db.add(session)
@@ -806,19 +819,43 @@ async def create_chat_session(
     return session
 
 
-@router.get("/chat/sessions", response_model=List[dict])
+@router.get("/chat/sessions", response_model=ChatSessionListResponse)
 async def get_chat_sessions(
+    limit: int = 50,
+    category: Optional[str] = None,
+    project_id: Optional[int] = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_permission("ai_chat", "view"))
 ):
-    """Soft delete all chat sessions for the user."""
+    """Kullanıcının chat sessionlarını getir."""
     MOCK_USER_ID = current_user.id
-    from sqlalchemy import update
     
-    # Dummy logic to match requested structure (List[dict])
     query = select(ChatSession).where(ChatSession.user_id == MOCK_USER_ID)
+    
+    if project_id:
+        query = query.where(ChatSession.project_id == project_id)
+    else:
+        query = query.where(ChatSession.project_id == None)
+        
+    if category and category != 'all':
+        query = query.filter(func.json_extract(ChatSession.ai_categories, '$').like(f'%"{category}"%'))
+        
+    query = query.order_by(ChatSession.updated_at.desc()).limit(limit)
+    
     result = await db.execute(query)
-    return [s.__dict__ for s in result.scalars().all()]
+    sessions = result.scalars().all()
+    
+    # Toplam sayı
+    count_query = select(func.count(ChatSession.id)).where(ChatSession.user_id == MOCK_USER_ID)
+    if project_id:
+        count_query = count_query.where(ChatSession.project_id == project_id)
+    else:
+        count_query = count_query.where(ChatSession.project_id == None)
+        
+    count_res = await db.execute(count_query)
+    total = count_res.scalar() or 0
+    
+    return {"sessions": sessions, "total": total}
 
 
 @router.get("/chat/sessions/{session_id}/messages", response_model=List[ChatHistoryResponse])

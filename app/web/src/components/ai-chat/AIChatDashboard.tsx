@@ -17,6 +17,7 @@ import { api } from "@/lib/api"
 import { useTaskStore } from "@/stores/taskStore"
 import { useCalendarStore } from "@/stores/calendarStore"
 import { useNoteStore } from "@/stores/noteStore"
+import { useProjectStore } from "@/stores/projectStore"
 
 // ============ CATEGORY CONFIG ============
 
@@ -70,7 +71,7 @@ function MessageBubble({ msg }: { msg: SessionMessage }) {
     if (!cleanContent) return null;
     const handleUndo = async () => {
       try {
-        await api.post(`/api/ai/undo/${msg.id}`)
+        await api.post(`/api/chat/undo/${msg.id}`)
         // Refresh stores to reflect changes
         useTaskStore.getState().fetchTasks()
         useCalendarStore.getState().fetchEvents()
@@ -123,13 +124,13 @@ function MessageBubble({ msg }: { msg: SessionMessage }) {
 
         <div className="space-y-1">
           <div
-            className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+            className={`rounded-2xl px-4 py-3 text-sm leading-relaxed select-text ${
               isUser
                 ? 'bg-brand-dark dark:bg-indigo-600 text-white rounded-tr-md shadow-sm'
                 : 'bg-white dark:bg-slate-700/60 text-brand-dark dark:text-white/90 rounded-tl-md shadow-sm border border-slate-100 dark:border-white/5'
             }`}
           >
-            <div className="whitespace-pre-wrap break-words">{msg.content}</div>
+            <div className="whitespace-pre-wrap break-words select-text">{msg.content}</div>
           </div>
 
           {/* Action badges removed as per user request */}
@@ -284,10 +285,13 @@ export function AIChatDashboard() {
     setIsDeleteAllOpen(false)
   }
 
-  // Initial load
+  const { selectedProjectId } = useProjectStore()
+
+  // Initial load or project change
   React.useEffect(() => {
+    clearActiveSession()
     fetchSessions()
-  }, [])
+  }, [selectedProjectId])
 
   // Auto scroll
   React.useEffect(() => {
