@@ -28,17 +28,17 @@ export interface User {
 export const canViewCompany = (user: User | null, module: string, projectId?: number | null): boolean => {
   if (!user) return false;
   
-  // YENİ MANTIK: Dashboard HER ZAMAN AÇIKTIR.
+  // Dashboard HER ZAMAN AÇIKTIR.
   if (module === 'dashboard') return true;
   
-  if (user.role === 'super_admin') return true;
+  // Super admin ve admin her şeye erişir
+  if (user.role === 'super_admin' || user.role === 'admin') return true;
   
   // Firma seçilmişse firma bazlı kontrol
   if (projectId && user.company_accesses && user.company_accesses.length > 0) {
     const access = user.company_accesses.find(a => a.project_id === projectId);
     if (!access) return false;
     
-    // YENİ MANTIK: is_owner olsa bile admin tarafından modül kapatılmışsa kapalıdır.
     if (access.permissions && access.permissions[module] !== undefined) {
       return access.permissions[module]?.view ?? false;
     }
@@ -47,20 +47,19 @@ export const canViewCompany = (user: User | null, module: string, projectId?: nu
     return false;
   }
   
-  // company_accesses henüz yüklenmediyse veya şirket yoksa → persist'ten gelen eski user.permissions ile kontrol et
   return user.permissions?.[module]?.view ?? false;
 };
 
 export const canEditCompany = (user: User | null, module: string, projectId?: number | null): boolean => {
   if (!user) return false;
-  if (user.role === 'super_admin') return true;
+  // Super admin ve admin her şeye erişir
+  if (user.role === 'super_admin' || user.role === 'admin') return true;
   
   // Firma seçilmişse firma bazlı kontrol
   if (projectId && user.company_accesses && user.company_accesses.length > 0) {
     const access = user.company_accesses.find(a => a.project_id === projectId);
     if (!access) return false;
     
-    // YENİ MANTIK: is_owner olsa bile admin tarafından modül kapatılmışsa kapalıdır.
     if (access.permissions && access.permissions[module] !== undefined) {
       return access.permissions[module]?.edit ?? false;
     }
@@ -82,7 +81,7 @@ export const canEdit = (user: User | null, module: string): boolean => {
 };
 
 export const isAdmin = (user: User | null): boolean => {
-  return user?.role === 'super_admin';
+  return user?.role === 'super_admin' || user?.role === 'admin';
 };
 
 interface AuthState {

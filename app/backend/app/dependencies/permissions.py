@@ -27,8 +27,8 @@ async def get_user_company_access(db: AsyncSession, user_id: int, project_id: in
 
 def can_access_company(user: User, access: Optional[UserCompanyAccess], module: str, action: str = "view") -> bool:
     """Kullanıcının firmada belirli bir modüle erişip erişemeyeceğini kontrol eder"""
-    # Super admin her şeye erişir
-    if user.role == "super_admin":
+    # Super admin ve admin her şeye erişir
+    if user.role in ("super_admin", "admin"):
         return True
     
     # Erişim kaydı yoksa izin yok
@@ -47,8 +47,8 @@ def can_access_company(user: User, access: Optional[UserCompanyAccess], module: 
 def require_permission(module: str, action: str = "view"):
     """Eski uyumluluk - global izin kontrolü (firma seçilmemişse)"""
     async def checker(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-        # Super admin her şeye erişebilir
-        if current_user.role == "super_admin":
+        # Super admin ve admin her şeye erişebilir
+        if current_user.role in ("super_admin", "admin"):
             return current_user
         
         # Kullanıcının global izinlerini kontrol et
@@ -142,8 +142,8 @@ def require_company_permission(module: str, action: str = "view"):
             except (ValueError, TypeError):
                 effective_project_id = None
 
-        # Super admin her şeye erişir (proje context'ini state'e yazdıktan sonra early return)
-        if current_user.role == "super_admin":
+        # Super admin ve admin her şeye erişir (proje context'ini state'e yazdıktan sonra early return)
+        if current_user.role in ("super_admin", "admin"):
             return current_user
 
         # project_id yoksa: Global izin kontrolü

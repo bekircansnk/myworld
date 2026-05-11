@@ -65,24 +65,33 @@ export default function DashboardPage() {
     }
   }, [isAuthenticated, projects.length])
 
-  // Firma değiştiğinde tüm modül verilerini yeniden çek + polling ile sürekli senkronize et
+  // Firma veya viewMode değiştiğinde tüm modül verilerini yeniden çek
   React.useEffect(() => {
     if (!isAuthenticated || !selectedProjectId) return
 
-    // İlk yükleme
+    // ViewMode'a göre gerekli veriyi çek
+    const refreshData = () => {
+      if (viewMode === 'all_tasks' || viewMode === 'project' || viewMode === 'dashboard') {
+        fetchTasks(selectedProjectId)
+      }
+      if (viewMode === 'calendar' || viewMode === 'dashboard') {
+        fetchEvents(selectedProjectId)
+      }
+      if (viewMode === 'notes' || viewMode === 'dashboard') {
+        fetchNotes(selectedProjectId)
+      }
+    }
+
+    // İlk yükleme — her zaman tüm verileri çek
     fetchTasks(selectedProjectId)
     fetchEvents(selectedProjectId)
     fetchNotes(selectedProjectId)
 
-    // 15 saniyede bir otomatik yenileme (gerçek zamanlı senkronizasyon)
-    const pollInterval = setInterval(() => {
-      fetchTasks(selectedProjectId)
-      fetchEvents(selectedProjectId)
-      fetchNotes(selectedProjectId)
-    }, 15000)
+    // 15 saniyede bir sadece aktif modülü yenile
+    const pollInterval = setInterval(refreshData, 15000)
 
     return () => clearInterval(pollInterval)
-  }, [isAuthenticated, selectedProjectId])
+  }, [isAuthenticated, selectedProjectId, viewMode])
 
   const handleMorningDismiss = () => {
     localStorage.setItem("myworld_last_greet", new Date().toDateString())

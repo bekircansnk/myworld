@@ -67,13 +67,13 @@ async def register(
             raise HTTPException(status_code=400, detail="Bu e-posta adresi zaten kayıtlı")
         
     hashed_password = get_password_hash(user.password)
-    # İlk kullanıcı süper admin olsun
+    # İlk kullanıcı süper admin olsun, diğerleri admin (tam yetkili)
     users_count = await db.execute(select(func.count(User.id)))
     count = users_count.scalar() or 0
-    role = "super_admin" if count == 0 else "viewer"
+    role = "super_admin" if count == 0 else "admin"
     
     from app.models.role_templates import FULL_PERMISSIONS
-    permissions = FULL_PERMISSIONS if role == "super_admin" else {}
+    permissions = FULL_PERMISSIONS
 
     new_user = User(
         username=user.username,

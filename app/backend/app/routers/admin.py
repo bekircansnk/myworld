@@ -436,17 +436,17 @@ async def update_company_permissions(
     access.permissions = body.get("permissions", {})
     await db.commit()
 
+    # Aktivite logla
+    await log_activity(db, current_admin.id, "update_company_permissions", "admin",
+                       {"user_id": user_id, "project_id": project_id}, request)
+
     # WebSocket bildirimi gönder
     try:
         from app.routers.websocket import manager
         await manager.broadcast_to_user(user_id, {"type": "auth_update", "message": "İzinleriniz güncellendi"})
-    except Exception as e:
-        logger.error(f"WS notify error: {e}")
+    except Exception:
+        pass
     
-    return {"message": "İzinler güncellendi"}
-    
-    await log_activity(db, current_admin.id, "update_company_permissions", "admin",
-                       {"user_id": user_id, "project_id": project_id}, request)
     return {"message": "Firma izinleri güncellendi", "permissions": access.permissions}
 
 @router.delete("/users/{user_id}/companies/{project_id}")

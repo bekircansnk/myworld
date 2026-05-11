@@ -129,9 +129,6 @@ async def update_event(
     db_event.start_time = local_to_utc(new_start_dt, user_tz)
     db_event.end_time = local_to_utc(new_end_dt, user_tz)
     
-    db_event.start_time = new_start_dt
-    db_event.end_time = new_end_dt
-    
     if event.title is not None: db_event.title = event.title
     if event.description is not None: db_event.description = event.description
     if event.allDay is not None: db_event.is_all_day = event.allDay
