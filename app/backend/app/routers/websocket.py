@@ -2,8 +2,8 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from typing import List, Dict
 import json
 import logging
-import jwt
-from app.core.config import settings
+from jose import jwt
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -57,10 +57,16 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
         # Token doğrulama
         if token:
             try:
-                payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM])
-                user_id_str = payload.get("sub")
-                if user_id_str:
-                    user_id = int(user_id_str)
+                payload = jwt.decode(token, settings.secret_key, algorithms=["HS256"])
+                # sub genelde username'dir (auth.py'ye göre)
+                username = payload.get("sub")
+                if username:
+                    from app.database import AsyncSessionLocal
+                    from app.models.user import User
+                    from sqlalchemy import select
+                    async with AsyncSessionLocal() as session:
+                        res = await session.execute(select(User.id).where(User.username == username))
+                        user_id = res.scalar()
             except Exception as e:
                 logger.error(f"WS Token Decode Error: {e}")
         
