@@ -2,12 +2,12 @@
 
 import * as React from "react"
 import { useAdminStore } from "@/stores/adminStore"
-import { Users, Shield, Activity, BarChart, Settings, Search, Plus, Building2 } from "lucide-react"
+import { Users, Shield, Activity, BarChart, Search, Plus, Building2, Tag } from "lucide-react"
 import { CreateUserModal } from "./CreateUserModal"
 import { UserCard } from "./UserCard"
-import { PermissionMatrix } from "./PermissionMatrix"
 import { UserDetailPanel } from "./UserDetailPanel"
-import { CompanyManagementPanel } from "./CompanyManagementPanel"
+import { UserPermissionsPanel } from "./UserPermissionsPanel"
+import { RoleManagementPanel } from "./RoleManagementPanel"
 import { useAuthStore } from "@/store/authStore"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
@@ -18,7 +18,7 @@ export function AdminPanel() {
     fetchUsers, fetchStats, fetchActivityLogs, fetchRoleTemplates 
   } = useAdminStore()
   
-  const [activeTab, setActiveTab] = React.useState<'dashboard'|'users'|'permissions'|'logs'|'companies'>('dashboard')
+  const [activeTab, setActiveTab] = React.useState<'dashboard'|'users'|'permissions'|'roles'|'logs'>('dashboard')
   const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false)
   const [selectedUser, setSelectedUser] = React.useState<any>(null)
   const { user } = useAuthStore()
@@ -31,6 +31,14 @@ export function AdminPanel() {
     fetchRoleTemplates()
   }, [])
 
+  const tabs = [
+    { id: 'dashboard', label: 'Özet', icon: BarChart },
+    { id: 'users', label: 'Kullanıcılar', icon: Users },
+    { id: 'permissions', label: 'Firmalar & İzinler', icon: Shield },
+    { id: 'roles', label: 'Roller', icon: Tag },
+    { id: 'logs', label: 'Loglar', icon: Activity },
+  ]
+
   return (
     <div className="flex flex-col h-full w-full max-w-7xl mx-auto animate-in fade-in duration-500">
       <div className="flex items-center justify-between mb-8">
@@ -42,22 +50,21 @@ export function AdminPanel() {
           <p className="text-sm text-brand-gray dark:text-gray-400 mt-1">Sistem erişimlerini, kullanıcıları ve rolleri yönetin.</p>
         </div>
         
-        <div className="flex bg-white dark:bg-slate-800 p-1 rounded-2xl shadow-sm border border-slate-200/60 dark:border-white/10">
-           <button onClick={() => setActiveTab('dashboard')} className={`px-4 py-2 text-sm font-bold rounded-xl transition-all flex items-center gap-2 ${activeTab === 'dashboard' ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
-             <BarChart className="w-4 h-4" /> Özet
-           </button>
-           <button onClick={() => setActiveTab('users')} className={`px-4 py-2 text-sm font-bold rounded-xl transition-all flex items-center gap-2 ${activeTab === 'users' ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
-             <Users className="w-4 h-4" /> Kullanıcılar
-           </button>
-           <button onClick={() => setActiveTab('companies')} className={`px-4 py-2 text-sm font-bold rounded-xl transition-all flex items-center gap-2 ${activeTab === 'companies' ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
-             <Building2 className="w-4 h-4" /> Firmalar
-           </button>
-           <button onClick={() => setActiveTab('permissions')} className={`px-4 py-2 text-sm font-bold rounded-xl transition-all flex items-center gap-2 ${activeTab === 'permissions' ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
-             <Settings className="w-4 h-4" /> İzinler
-           </button>
-           <button onClick={() => setActiveTab('logs')} className={`px-4 py-2 text-sm font-bold rounded-xl transition-all flex items-center gap-2 ${activeTab === 'logs' ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
-             <Activity className="w-4 h-4" /> Loglar
-           </button>
+        <div className="flex bg-white dark:bg-slate-800 p-1 rounded-2xl shadow-sm border border-slate-200/60 dark:border-white/10 flex-wrap gap-1">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`px-3 md:px-4 py-2 text-xs md:text-sm font-bold rounded-xl transition-all flex items-center gap-1.5 md:gap-2 whitespace-nowrap ${
+                activeTab === tab.id 
+                  ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 shadow-sm' 
+                  : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700/50'
+              }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              <span className="hidden sm:inline">{tab.label}</span>
+            </button>
+          ))}
         </div>
       </div>
       
@@ -167,17 +174,17 @@ export function AdminPanel() {
            </div>
         )}
         
-        {/* COMPANIES TAB */}
-        {activeTab === 'companies' && (
-           <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm overflow-hidden p-6">
-              <CompanyManagementPanel users={users} isSuperAdmin={isSuperAdmin} />
-           </div>
-        )}
-        
-        {/* PERMISSIONS TAB */}
+        {/* FIRMALAR & İZİNLER TAB (birleştirilmiş) */}
         {activeTab === 'permissions' && (
            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm overflow-hidden p-6">
-              <PermissionMatrix users={users} onUpdateUser={(id: number, perms: any) => useAdminStore.getState().updatePermissions(id, perms)} />
+              <UserPermissionsPanel users={users} roleTemplates={roleTemplates} isSuperAdmin={isSuperAdmin} />
+           </div>
+        )}
+
+        {/* ROLLER TAB */}
+        {activeTab === 'roles' && (
+           <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm overflow-hidden p-6">
+              <RoleManagementPanel roleTemplates={roleTemplates} />
            </div>
         )}
         

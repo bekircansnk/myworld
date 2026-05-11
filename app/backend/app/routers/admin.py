@@ -378,3 +378,80 @@ async def revoke_company_access(
                        {"user_id": user_id, "project_id": project_id}, request)
     return {"message": "Firma erişimi kaldırıldı"}
 
+
+# ===================== ROL ŞABLONLARI =====================
+
+# Runtime rol şablonu deposu (uygulama yeniden başlayana kadar kalıcı)
+_custom_role_templates = {}
+
+def _get_all_templates():
+    """Varsayılan + özel şablonları birleştir"""
+    merged = dict(ROLE_TEMPLATES)
+    merged.update(_custom_role_templates)
+    return merged
+
+@router.get("/role-templates")
+async def get_role_templates(
+    current_admin: User = Depends(require_admin)
+):
+    """Tüm rol şablonlarını getir"""
+    return _get_all_templates()
+
+@router.post("/role-templates")
+async def create_role_template(
+    request: Request,
+    current_admin: User = Depends(require_admin)
+):
+    """Yeni rol şablonu oluştur"""
+    body = await request.json()
+    key = body.get("key", "")
+    if not key:
+        raise HTTPException(status_code=400, detail="Rol anahtarı gerekli")
+    
+    _custom_role_templates[key] = {
+        "label": body.get("label", key),
+        "description": body.get("description", ""),
+        "role": "editor",
+        "permissions": body.get("permissions", {})
+    }
+    
+    await log_activity(db=None, user_id=current_admin.id, action="create_role_template", 
+                       module="admin", details={"key": key}, request=request)
+    return {"message": "Rol şablonu oluşturuldu", "key": key}
+
+@router.put("/role-templates/{key}")
+async def update_role_template(
+    key: str,
+    request: Request,
+    current_admin: User = Depends(require_admin)
+):
+    """Rol şablonunu güncelle"""
+    body = await request.json()
+    
+    # Hem varsayılan hem özel şablonlarda arayıp özel'e kopyala
+    all_templates = _get_all_templates()
+    if key not in all_templates:
+        raise HTTPException(status_code=404, detail="Rol şablonu bulunamadı")
+    
+    _custom_role_templates[key] = {
+        "label": body.get("label", all_templates[key].get("label", key)),
+        "description": body.get("description", ""),
+        "role": all_templates[key].get("role", "editor"),
+        "permissions": body.get("permissions", all_templates[key].get("permissions", {}))
+    }
+    return {"message": "Rol şablonu güncellendi"}
+
+@router.delete("/role-templates/{key}")
+async def delete_role_template(
+    key: str,
+    current_admin: User = Depends(require_admin)
+):
+    """Rol şablonunu sil"""
+    if key in _custom_role_templates:
+        del _custom_role_templates[key]
+    elif key in ROLE_TEMPLATES:
+        # Varsayılan şablonu silemeyiz ama override edebiliriz
+        _custom_role_templates[key] = None  # Silindi olarak işaretle
+    else:
+        raise HTTPException(status_code=404, detail="Rol şablonu bulunamadı")
+    return {"message": "Rol şablonu silindi"}

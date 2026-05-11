@@ -1,0 +1,368 @@
+"use client"
+
+import * as React from "react"
+import { api } from "@/lib/api"
+import { Building2, Users, Plus, Trash2, ChevronDown, Shield, Check, X, EyeOff, Eye, Pencil, Tag, Loader2 } from "lucide-react"
+import { useProjectStore } from "@/stores/projectStore"
+
+// Modül tanımları
+const MODULES = [
+  { key: 'dashboard', label: 'Kontrol Paneli', actions: ['view'] },
+  { key: 'tasks', label: 'Görevler', actions: ['view', 'edit', 'delete'] },
+  { key: 'calendar', label: 'Takvim', actions: ['view', 'edit'] },
+  { key: 'notes', label: 'Notlar', actions: ['view', 'edit'] },
+  { key: 'ai_chat', label: 'AI Sohbet', actions: ['view'] },
+  { key: 'ads', label: 'Reklam', actions: ['view', 'edit'] },
+  { key: 'photo_tracking', label: 'Fotoğraf Takip', actions: ['view', 'edit'] },
+]
+
+// İzin durumu: disabled (gizli), view (sadece görüntüle), edit (düzenle)
+type PermState = 'disabled' | 'view' | 'edit'
+
+function getPermState(perm: any): PermState {
+  if (!perm || perm.view === false) return 'disabled'
+  if (perm.edit === true) return 'edit'
+  return 'view'
+}
+
+function permStateToObj(state: PermState, hasDelete?: boolean): any {
+  switch (state) {
+    case 'disabled': return { view: false, edit: false, ...(hasDelete ? { delete: false } : {}) }
+    case 'view': return { view: true, edit: false, ...(hasDelete ? { delete: false } : {}) }
+    case 'edit': return { view: true, edit: true, ...(hasDelete ? { delete: true } : {}) }
+  }
+}
+
+const PERM_BUTTON_STYLES: Record<PermState, string> = {
+  disabled: 'bg-slate-100 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700',
+  view: 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/30',
+  edit: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30',
+}
+
+const PERM_LABELS: Record<PermState, { icon: any; text: string }> = {
+  disabled: { icon: EyeOff, text: 'Devre Dışı' },
+  view: { icon: Eye, text: 'Görüntüle' },
+  edit: { icon: Pencil, text: 'Düzenle' },
+}
+
+interface CompanyAccess {
+  project_id: number
+  project_name: string
+  permissions: Record<string, any>
+  is_owner: boolean
+}
+
+export function UserPermissionsPanel({ 
+  users,
+  roleTemplates,
+  isSuperAdmin 
+}: { 
+  users: any[]
+  roleTemplates: Record<string, any>
+  isSuperAdmin: boolean 
+}) {
+  const [expandedUser, setExpandedUser] = React.useState<number | null>(null)
+  const [userCompanies, setUserCompanies] = React.useState<Record<number, CompanyAccess[]>>({})
+  const [editingPerms, setEditingPerms] = React.useState<Record<string, Record<string, any>>>({}) // "userId-projectId" -> perms
+  const [loading, setLoading] = React.useState<number | null>(null)
+  const [saving, setSaving] = React.useState<string | null>(null)
+  const [addingCompany, setAddingCompany] = React.useState<number | null>(null)
+  const [allProjects, setAllProjects] = React.useState<any[]>([])
+  const { projects } = useProjectStore()
+
+  // Firmalar listesini çek
+  React.useEffect(() => {
+    setAllProjects(projects)
+  }, [projects])
+
+  // Kullanıcı açıldığında firma erişimlerini çek
+  const fetchUserCompanies = async (userId: number) => {
+    setLoading(userId)
+    try {
+      const resp = await api.get(`/api/admin/users/${userId}/companies`)
+      setUserCompanies(prev => ({ ...prev, [userId]: resp.data }))
+      
+      // İzin düzenleme state'ini doldur
+      const permMap: Record<string, Record<string, any>> = {}
+      for (const access of resp.data) {
+        permMap[`${userId}-${access.project_id}`] = access.permissions || {}
+      }
+      setEditingPerms(prev => ({ ...prev, ...permMap }))
+    } catch (e) { console.error(e) }
+    setLoading(null)
+  }
+
+  const toggleUser = (userId: number) => {
+    if (expandedUser === userId) {
+      setExpandedUser(null)
+    } else {
+      setExpandedUser(userId)
+      fetchUserCompanies(userId)
+    }
+  }
+
+  // Firma erişimi ver
+  const grantAccess = async (userId: number, projectId: number) => {
+    try {
+      const defaultPerms: Record<string, any> = {}
+      MODULES.forEach(m => {
+        defaultPerms[m.key] = { view: true, edit: false }
+        if (m.actions.includes('delete')) defaultPerms[m.key].delete = false
+      })
+      await api.post(`/api/admin/users/${userId}/companies/${projectId}`, { permissions: defaultPerms })
+      setAddingCompany(null)
+      fetchUserCompanies(userId)
+    } catch (e) { console.error(e) }
+  }
+
+  // Firma erişimi kaldır
+  const revokeAccess = async (userId: number, projectId: number) => {
+    try {
+      await api.delete(`/api/admin/users/${userId}/companies/${projectId}`)
+      fetchUserCompanies(userId)
+    } catch (e) { console.error(e) }
+  }
+
+  // İzin durumunu değiştir (3 durumlu cycle: disabled → view → edit → disabled)
+  const cyclePermission = (userId: number, projectId: number, moduleKey: string) => {
+    const key = `${userId}-${projectId}`
+    const current = editingPerms[key] || {}
+    const modulePerm = current[moduleKey] || {}
+    const state = getPermState(modulePerm)
+    const mod = MODULES.find(m => m.key === moduleKey)
+    const hasDelete = mod?.actions.includes('delete')
+    
+    let nextState: PermState
+    if (state === 'disabled') nextState = 'view'
+    else if (state === 'view') nextState = mod?.actions.includes('edit') ? 'edit' : 'disabled'
+    else nextState = 'disabled'
+    
+    setEditingPerms(prev => ({
+      ...prev,
+      [key]: { ...current, [moduleKey]: permStateToObj(nextState, hasDelete) }
+    }))
+  }
+
+  // İzinleri kaydet
+  const savePermissions = async (userId: number, projectId: number) => {
+    const key = `${userId}-${projectId}`
+    setSaving(key)
+    try {
+      await api.put(`/api/admin/users/${userId}/companies/${projectId}/permissions`, {
+        permissions: editingPerms[key] || {}
+      })
+      fetchUserCompanies(userId)
+    } catch (e) { console.error(e) }
+    setSaving(null)
+  }
+
+  // Rol şablonu uygula
+  const applyRole = (userId: number, projectId: number, roleKey: string) => {
+    const template = roleTemplates[roleKey]
+    if (!template) return
+    const key = `${userId}-${projectId}`
+    setEditingPerms(prev => ({
+      ...prev,
+      [key]: { ...template.permissions }
+    }))
+  }
+
+  const nonSuperUsers = users.filter(u => u.role !== 'super_admin')
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="text-lg font-black text-brand-dark dark:text-white flex items-center gap-2">
+            <Shield className="w-5 h-5 text-indigo-500" />
+            Firmalar & İzin Yönetimi
+          </h3>
+          <p className="text-xs text-slate-500 mt-1">Kullanıcıya tıklayarak firma erişimlerini ve modül izinlerini yönetin.</p>
+        </div>
+      </div>
+
+      {nonSuperUsers.length === 0 && (
+        <div className="text-center py-12 text-slate-400">
+          <Users className="w-10 h-10 mx-auto mb-3 opacity-30" />
+          <p className="text-sm">Henüz yönetilecek kullanıcı yok.</p>
+        </div>
+      )}
+
+      {nonSuperUsers.map(user => {
+        const isExpanded = expandedUser === user.id
+        const companies = userCompanies[user.id] || []
+        const isLoading = loading === user.id
+        const isAddingCompany = addingCompany === user.id
+        
+        // Kullanıcıya atanmamış firmalar
+        const unassignedProjects = allProjects.filter(
+          p => !companies.some(c => c.project_id === p.id)
+        )
+
+        return (
+          <div key={user.id} className={`rounded-2xl border transition-all overflow-hidden ${
+            isExpanded 
+              ? 'border-indigo-300 dark:border-indigo-500/30 shadow-lg shadow-indigo-500/5'
+              : 'border-slate-200 dark:border-white/10 hover:border-indigo-200 dark:hover:border-indigo-500/20'
+          }`}>
+            {/* Kullanıcı Satırı */}
+            <button
+              onClick={() => toggleUser(user.id)}
+              className={`w-full flex items-center justify-between p-4 transition-all ${
+                isExpanded ? 'bg-indigo-50/50 dark:bg-indigo-500/5' : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/80'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm font-black shrink-0">
+                  {user.name?.substring(0, 2).toUpperCase() || 'U'}
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-bold text-brand-dark dark:text-white">{user.name}</p>
+                  <p className="text-[10px] text-slate-500">@{user.username} • {user.role}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-bold text-slate-400 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-lg">
+                  {companies.length} firma
+                </span>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+              </div>
+            </button>
+
+            {/* Genişletilmiş İçerik */}
+            {isExpanded && (
+              <div className="border-t border-slate-100 dark:border-white/5 bg-white dark:bg-slate-800/50">
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-8 gap-2 text-slate-400">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-sm">Yükleniyor...</span>
+                  </div>
+                ) : (
+                  <div className="p-4 space-y-4">
+                    {/* Firma Listesi */}
+                    {companies.length === 0 && !isAddingCompany && (
+                      <div className="text-center py-6 text-slate-400 text-sm">
+                        Bu kullanıcının hiçbir firmaya erişimi yok.
+                      </div>
+                    )}
+
+                    {companies.map(company => {
+                      const key = `${user.id}-${company.project_id}`
+                      const perms = editingPerms[key] || company.permissions || {}
+                      const isSaving = saving === key
+
+                      return (
+                        <div key={company.project_id} className="rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/30 overflow-hidden">
+                          {/* Firma Başlığı */}
+                          <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-800/80 border-b border-slate-100 dark:border-white/5">
+                            <div className="flex items-center gap-2">
+                              <Building2 className="w-4 h-4 text-indigo-500" />
+                              <span className="text-sm font-bold text-brand-dark dark:text-white">{company.project_name}</span>
+                              {company.is_owner && (
+                                <span className="text-[9px] font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded-md">SAHİP</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {/* Rol Şablonu Uygula */}
+                              <select
+                                onChange={(e) => {
+                                  if (e.target.value) applyRole(user.id, company.project_id, e.target.value)
+                                  e.target.value = ''
+                                }}
+                                className="text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-none rounded-lg px-2 py-1 cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                defaultValue=""
+                              >
+                                <option value="" disabled>Rol Uygula...</option>
+                                {Object.entries(roleTemplates).map(([key, tmpl]: [string, any]) => (
+                                  <option key={key} value={key}>{tmpl.label}</option>
+                                ))}
+                              </select>
+                              
+                              <button
+                                onClick={() => savePermissions(user.id, company.project_id)}
+                                disabled={isSaving}
+                                className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold rounded-lg transition-all disabled:opacity-50 flex items-center gap-1"
+                              >
+                                {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                                Kaydet
+                              </button>
+                              
+                              {!company.is_owner && (
+                                <button
+                                  onClick={() => revokeAccess(user.id, company.project_id)}
+                                  className="px-2 py-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[10px] font-bold rounded-lg transition-all flex items-center gap-1"
+                                >
+                                  <Trash2 className="w-3 h-3" /> Kaldır
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* İzin Matrisi */}
+                          <div className="px-4 py-3">
+                            <div className="grid gap-2">
+                              {MODULES.map(mod => {
+                                const modulePerm = perms[mod.key] || {}
+                                const state = getPermState(modulePerm)
+                                const StateIcon = PERM_LABELS[state].icon
+                                
+                                return (
+                                  <div key={mod.key} className="flex items-center gap-3">
+                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 w-28 shrink-0">{mod.label}</span>
+                                    <button
+                                      onClick={() => cyclePermission(user.id, company.project_id, mod.key)}
+                                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1.5 border min-w-[110px] justify-center ${PERM_BUTTON_STYLES[state]}`}
+                                    >
+                                      <StateIcon className="w-3 h-3" />
+                                      {PERM_LABELS[state].text}
+                                    </button>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+
+                    {/* Firma Ekle Butonu */}
+                    {isAddingCompany ? (
+                      <div className="rounded-xl border border-dashed border-indigo-300 dark:border-indigo-500/30 bg-indigo-50/30 dark:bg-indigo-500/5 p-4">
+                        <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 mb-3">Firma Ekle</p>
+                        {unassignedProjects.length === 0 ? (
+                          <p className="text-xs text-slate-400">Atanacak firma kalmadı.</p>
+                        ) : (
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            {unassignedProjects.map(p => (
+                              <button
+                                key={p.id}
+                                onClick={() => grantAccess(user.id, p.id)}
+                                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:border-indigo-300 dark:hover:border-indigo-500/30 transition-all text-left group"
+                              >
+                                <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: p.color || '#6366f1' }} />
+                                <span className="text-xs font-semibold text-brand-dark dark:text-white truncate group-hover:text-indigo-600">{p.name}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        <button onClick={() => setAddingCompany(null)} className="mt-3 text-[10px] font-bold text-slate-400 hover:text-slate-600">İptal</button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setAddingCompany(user.id)}
+                        className="w-full py-3 rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10 text-sm font-bold text-slate-400 hover:text-indigo-600 hover:border-indigo-300 dark:hover:border-indigo-500/30 transition-all flex items-center justify-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Firma Ekle
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}

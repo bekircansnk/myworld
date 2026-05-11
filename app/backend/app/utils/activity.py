@@ -13,6 +13,9 @@ async def log_activity(
     """
     Sistem içindeki eylemleri kaydetmek için yardımcı fonksiyon
     """
+    if db is None:
+        return None
+        
     ip_address = None
     if request and request.client:
         ip_address = request.client.host
