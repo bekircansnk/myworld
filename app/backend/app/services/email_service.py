@@ -1,8 +1,5 @@
 """E-posta gönderim servisi — Gmail SMTP üzerinden çalışır"""
-import smtplib
 import secrets
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 from typing import Optional
 
