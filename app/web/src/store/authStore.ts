@@ -33,11 +33,17 @@ export const canViewCompany = (user: User | null, module: string, projectId?: nu
   if (projectId && user.company_accesses && user.company_accesses.length > 0) {
     const access = user.company_accesses.find(a => a.project_id === projectId);
     if (!access) return false;
+    
+    // YENİ MANTIK: is_owner olsa bile admin tarafından modül kapatılmışsa kapalıdır.
+    if (access.permissions && access.permissions[module] !== undefined) {
+      return access.permissions[module]?.view ?? false;
+    }
+    
     if (access.is_owner) return true;
-    return access.permissions?.[module]?.view ?? false;
+    return false;
   }
   
-  // company_accesses henüz yüklenmediyse → persist'ten gelen eski user.permissions ile kontrol et
+  // company_accesses henüz yüklenmediyse veya şirket yoksa → persist'ten gelen eski user.permissions ile kontrol et
   return user.permissions?.[module]?.view ?? false;
 };
 
@@ -49,8 +55,14 @@ export const canEditCompany = (user: User | null, module: string, projectId?: nu
   if (projectId && user.company_accesses && user.company_accesses.length > 0) {
     const access = user.company_accesses.find(a => a.project_id === projectId);
     if (!access) return false;
+    
+    // YENİ MANTIK: is_owner olsa bile admin tarafından modül kapatılmışsa kapalıdır.
+    if (access.permissions && access.permissions[module] !== undefined) {
+      return access.permissions[module]?.edit ?? false;
+    }
+    
     if (access.is_owner) return true;
-    return access.permissions?.[module]?.edit ?? false;
+    return false;
   }
   
   return user.permissions?.[module]?.edit ?? false;
