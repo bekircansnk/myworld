@@ -10,7 +10,7 @@ interface NoteStore {
   isDetailPanelOpen: boolean;
   _hasHydrated: boolean;
   
-  fetchNotes: () => Promise<void>;
+  fetchNotes: (projectId?: number | null) => Promise<void>;
   addNoteAction: (content: string, source?: string) => Promise<void>;
   addExplicitNoteAction: (data: Partial<Note>) => Promise<void>;
   deleteNoteAction: (id: number) => Promise<void>;
@@ -28,9 +28,10 @@ export const useNoteStore = create<NoteStore>()(
       isDetailPanelOpen: false,
       _hasHydrated: false,
 
-      fetchNotes: async () => {
+      fetchNotes: async (projectId) => {
         try {
-          const res = await api.get('/api/notes')
+          const params = projectId ? { project_id: projectId } : {};
+          const res = await api.get('/api/notes', { params })
           set({ notes: res.data })
         } catch(e) { console.error('Notlar alinamadi', e) }
       },

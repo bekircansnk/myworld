@@ -16,7 +16,7 @@ interface CalendarState {
   _hasHydrated: boolean;
 
   // Actions
-  fetchEvents: () => Promise<void>;
+  fetchEvents: (projectId?: number | null) => Promise<void>;
   setViewMode: (mode: CalendarViewMode) => void;
   setCurrentDate: (date: string) => void;
   setSelectedDate: (date: string | null) => void;
@@ -41,10 +41,11 @@ export const useCalendarStore = create<CalendarState>()(
       isLoading: false,
       _hasHydrated: false,
 
-      fetchEvents: async () => {
+      fetchEvents: async (projectId) => {
         set({ isLoading: true });
         try {
-          const res = await api.get('/api/calendar/events');
+          const params = projectId ? { project_id: projectId } : {};
+          const res = await api.get('/api/calendar/events', { params });
           set({ events: res.data, isLoading: false });
         } catch (err) {
           console.error(err);

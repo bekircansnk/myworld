@@ -16,7 +16,7 @@ import { CalendarPage } from "@/components/calendar/CalendarPage"
 import { AIChatDashboard } from "@/components/ai-chat/AIChatDashboard"
 import { TopNavbar } from "@/components/layout/TopNavbar"
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav"
-import { useAuthStore } from "@/store/authStore"
+import { useAuthStore, canViewCompany, isAdmin } from "@/store/authStore"
 import { LoginOverlay } from "@/components/auth/LoginOverlay"
 import { AdsLayout } from "@/components/ads-panel/AdsLayout"
 import { PhotoTrackingLayout } from "@/components/photo-tracking/PhotoTrackingLayout"
@@ -106,14 +106,14 @@ export default function DashboardPage() {
   const isPhotoTracking = viewMode === 'photo_tracking'
   const isAdminPanel = viewMode === 'admin'
   
-  // İzin kontrolleri
-  const { canView, isAdmin } = require("@/store/authStore")
+  // Firma bazlı izin kontrolleri
+  const canViewModule = (module: string) => canViewCompany(user, module, selectedProjectId);
   
   // İzinsiz sayfaya geçiş engelleme (Fallback)
-  if (isReklamAds && !canView(user, 'ads')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
-  if (isCalendar && !canView(user, 'calendar')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
-  if (isAIChat && !canView(user, 'ai_chat')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
-  if (isPhotoTracking && !canView(user, 'photo_tracking')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
+  if (isReklamAds && !canViewModule('ads')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
+  if (isCalendar && !canViewModule('calendar')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
+  if (isAIChat && !canViewModule('ai_chat')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
+  if (isPhotoTracking && !canViewModule('photo_tracking')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
   if (isAdminPanel && !isAdmin(user)) return <div className="p-8 text-center text-red-500">Yönetici yetkiniz yok.</div>
 
   return (
@@ -145,9 +145,9 @@ export default function DashboardPage() {
         <div className={`flex-1 flex flex-col mobile-content-area ${isDashboard ? 'overflow-y-auto lg:overflow-hidden p-3 md:p-5 lg:p-8' : 'overflow-y-auto overflow-x-hidden p-3 md:p-5 lg:p-8'}`}>
 
           {/* Dashboard — Header DashboardWidgets içinde */}
-          {isDashboard && canView(user, 'dashboard') ? (
+          {isDashboard && canViewModule('dashboard') ? (
             <DashboardWidgets />
-          ) : !canView(user, 'dashboard') && isDashboard ? (
+          ) : !canViewModule('dashboard') && isDashboard ? (
              <div className="flex-1 flex items-center justify-center text-slate-400">Dashboard erişiminiz kapalı. Yandaki menüden yetkili olduğunuz bir modülü seçin.</div>
           ) : (
             <>
@@ -156,12 +156,12 @@ export default function DashboardPage() {
                   <h1 className="text-xl lg:text-2xl font-bold tracking-tight">{pageTitle}</h1>
                   <p className="text-muted-foreground text-sm mt-0.5">{pageDescription}</p>
                 </div>
-                {(viewMode === 'all_tasks' || viewMode === 'project') && canView(user, 'tasks') && <TaskForm />}
+                {(viewMode === 'all_tasks' || viewMode === 'project') && canViewModule('tasks') && <TaskForm />}
               </div>
               {viewMode === 'notes' ? (
-                 canView(user, 'notes') ? <NotesList /> : <div className="text-red-500">Notlar modülüne erişiminiz yok.</div>
+                 canViewModule('notes') ? <NotesList /> : <div className="text-red-500">Notlar modülüne erişiminiz yok.</div>
               ) : (
-                 canView(user, 'tasks') ? <KanbanBoard projectId={selectedProjectId} /> : <div className="text-red-500">Görevler modülüne erişiminiz yok.</div>
+                 canViewModule('tasks') ? <KanbanBoard projectId={selectedProjectId} /> : <div className="text-red-500">Görevler modülüne erişiminiz yok.</div>
               )}
             </>
           )}

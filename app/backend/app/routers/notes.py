@@ -1,6 +1,6 @@
 import os
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List, Optional
@@ -13,17 +13,22 @@ from app.models.note import Note
 from app.schemas.note import NoteCreate, NoteUpdate, NoteResponse
 from app.services.gemini import generate_chat_response, _get_gemini_client, log_cost_awaitable
 from app.dependencies.auth import get_current_user
-from app.dependencies.permissions import require_permission
+from app.dependencies.permissions import require_company_permission
 from app.models.user import User
 
 router = APIRouter(prefix="/notes", tags=["notes"])
 
 @router.get("", response_model=List[NoteResponse])
 async def get_notes(
+    project_id: Optional[int] = Query(None),
     db: AsyncSession = Depends(get_db), 
-    current_user: User = Depends(require_permission("notes", "view"))
+    current_user: User = Depends(require_company_permission("notes", "view"))
 ):
-    query = select(Note).where(Note.user_id == current_user.id).order_by(Note.created_at.desc())
+    # Firma bazlı filtreleme
+    if project_id:
+        query = select(Note).where(Note.project_id == project_id).order_by(Note.created_at.desc())
+    else:
+        query = select(Note).where(Note.user_id == current_user.id).order_by(Note.created_at.desc())
     result = await db.execute(query)
     return result.scalars().all()
 
@@ -31,7 +36,7 @@ async def get_notes(
 async def create_note(
     note: NoteCreate, 
     db: AsyncSession = Depends(get_db), 
-    current_user: User = Depends(require_permission("notes", "edit"))
+    current_user: User = Depends(require_company_permission("notes", "edit"))
 ):
     note_data = note.model_dump()
     
@@ -83,7 +88,7 @@ async def update_note(
     note_id: int, 
     note_update: NoteUpdate, 
     db: AsyncSession = Depends(get_db), 
-    current_user: User = Depends(require_permission("notes", "edit"))
+    current_user: User = Depends(require_company_permission("notes", "edit"))
 ):
     query = select(Note).where(Note.id == note_id, Note.user_id == current_user.id)
     result = await db.execute(query)
@@ -104,7 +109,7 @@ async def update_note(
 async def delete_note(
     note_id: int, 
     db: AsyncSession = Depends(get_db), 
-    current_user: User = Depends(require_permission("notes", "edit"))
+    current_user: User = Depends(require_company_permission("notes", "edit"))
 ):
     query = select(Note).where(Note.id == note_id, Note.user_id == current_user.id)
     result = await db.execute(query)

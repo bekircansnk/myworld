@@ -1,11 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import or_
 from typing import List
 
 from app.database import get_db
 from app.models.project import Project
+from app.models.user_company_access import UserCompanyAccess
 from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectResponse
+from app.models.role_templates import FULL_PERMISSIONS
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -19,7 +22,27 @@ async def read_projects(
     skip: int = 0, 
     limit: int = 100
 ):
-    query = select(Project).where(Project.user_id == current_user.id).order_by(Project.sort_order.asc(), Project.id.desc()).offset(skip).limit(limit)
+    """Kullanıcının erişebildiği tüm firmaları döner (kendi + erişim verilmiş)"""
+    if current_user.role == "super_admin":
+        # Süper admin tüm firmaları görür
+        query = select(Project).order_by(Project.sort_order.asc(), Project.id.desc()).offset(skip).limit(limit)
+    else:
+        # Kendi oluşturduğu + erişim verilmiş firmalar
+        accessible_project_ids = select(UserCompanyAccess.project_id).where(
+            UserCompanyAccess.user_id == current_user.id
+        )
+        query = (
+            select(Project)
+            .where(
+                or_(
+                    Project.user_id == current_user.id,
+                    Project.id.in_(accessible_project_ids)
+                )
+            )
+            .order_by(Project.sort_order.asc(), Project.id.desc())
+            .offset(skip).limit(limit)
+        )
+    
     result = await db.execute(query)
     return result.scalars().all()
 
@@ -33,6 +56,18 @@ async def create_project(
     db.add(db_project)
     await db.commit()
     await db.refresh(db_project)
+    
+    # Otomatik olarak firma sahibi olarak erişim kaydı oluştur (tam yetki)
+    access = UserCompanyAccess(
+        user_id=current_user.id,
+        project_id=db_project.id,
+        is_owner=True,
+        permissions=FULL_PERMISSIONS,
+        granted_by=current_user.id
+    )
+    db.add(access)
+    await db.commit()
+    
     return db_project
 
 @router.put("/{project_id}", response_model=ProjectResponse)
@@ -42,13 +77,31 @@ async def update_project(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    query = select(Project).where(Project.id == project_id, Project.user_id == current_user.id)
+    # Kendi firması veya super_admin
+    if current_user.role == "super_admin":
+        query = select(Project).where(Project.id == project_id)
+    else:
+        # Firma sahibi veya erişim verilmiş
+        query = select(Project).where(Project.id == project_id)
+    
     result = await db.execute(query)
     db_project = result.scalars().first()
     
     if db_project is None:
         raise HTTPException(status_code=404, detail="Project not found")
-        
+    
+    # Erişim kontrolü: Sahibi veya super_admin değilse yetkisi var mı?
+    if current_user.role != "super_admin" and db_project.user_id != current_user.id:
+        access_result = await db.execute(
+            select(UserCompanyAccess).where(
+                UserCompanyAccess.user_id == current_user.id,
+                UserCompanyAccess.project_id == project_id,
+                UserCompanyAccess.is_owner == True
+            )
+        )
+        if not access_result.scalars().first():
+            raise HTTPException(status_code=403, detail="Bu firmayı düzenleme yetkiniz yok")
+    
     update_data = project_update.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(db_project, key, value)
@@ -63,12 +116,24 @@ async def delete_project(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    query = select(Project).where(Project.id == project_id, Project.user_id == current_user.id)
+    if current_user.role == "super_admin":
+        query = select(Project).where(Project.id == project_id)
+    else:
+        # Sadece kendi oluşturduğu firmayı silebilir
+        query = select(Project).where(Project.id == project_id, Project.user_id == current_user.id)
+    
     result = await db.execute(query)
     db_project = result.scalars().first()
     
     if db_project is None:
         raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Firma erişim kayıtlarını temizle
+    access_result = await db.execute(
+        select(UserCompanyAccess).where(UserCompanyAccess.project_id == project_id)
+    )
+    for access in access_result.scalars().all():
+        await db.delete(access)
         
     await db.delete(db_project)
     await db.commit()

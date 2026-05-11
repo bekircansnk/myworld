@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Button } from "@/components/ui/button"
-import { Trash2, Save, Loader2, Search, Plus, MoreVertical, Copy, Code, Sparkles, Tag, CheckCircle2 } from "lucide-react"
+import { Trash2, Save, Loader2, Search, Plus, MoreVertical, Copy, Code, Sparkles, Tag, CheckCircle2, ShieldAlert } from "lucide-react"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
 import { api } from "@/lib/api"
@@ -14,14 +14,21 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useAuthStore, canEditCompany } from "@/store/authStore"
+import { useProjectStore } from "@/stores/projectStore"
 
 const CATEGORIES = ["Tüm Notlar", "Genel Notlar", "Yaratıcı Fikirler", "Yazılım"]
 
 export function NotesList() {
   const { openNoteDetail, notes, fetchNotes, addNoteAction, addExplicitNoteAction, deleteNoteAction, updateNoteInList } = useNoteStore()
+  const { user } = useAuthStore()
+  const { selectedProjectId } = useProjectStore()
   const [isLoading, setIsLoading] = React.useState(true)
   const [newNoteContent, setNewNoteContent] = React.useState("")
   const [isSaving, setIsSaving] = React.useState(false)
+
+  // Firma bazlı izin kontrolü
+  const hasEditPermission = canEditCompany(user, 'notes', selectedProjectId)
 
   const [activeTab, setActiveTab] = React.useState("Tüm Notlar")
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -39,7 +46,7 @@ export function NotesList() {
   const loadNotes = async () => {
     try {
       setIsLoading(true)
-      await fetchNotes()
+      await fetchNotes(selectedProjectId)
     } catch (error) {
       console.error("Notlar getirilemedi:", error)
     } finally {
@@ -49,7 +56,7 @@ export function NotesList() {
 
   React.useEffect(() => {
     loadNotes()
-  }, [])
+  }, [selectedProjectId])
 
   // Close context menu on outside click
   React.useEffect(() => {
@@ -235,32 +242,39 @@ export function NotesList() {
                onChange={e => setSearchQuery(e.target.value)}
              />
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-             <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-2xl p-1 gap-1">
-               <input 
-                 value={newNoteContent}
-                 onChange={e => setNewNoteContent(e.target.value)}
-                 placeholder="Hızlı Not..."
-                 className="bg-transparent border-none text-sm px-2 md:px-3 focus:outline-none w-24 sm:w-32 md:w-48 text-slate-800 dark:text-slate-200"
-                 onKeyDown={e => e.key === 'Enter' && handleCreateNote()}
-               />
-               <Button 
-                  onClick={handleCreateNote} 
-                  disabled={isSaving || !newNoteContent.trim()} 
-                  className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-200 dark:hover:bg-white text-white dark:text-slate-900 rounded-[14px] px-3 h-8 text-xs font-semibold"
+          {hasEditPermission ? (
+            <div className="flex items-center gap-2 shrink-0">
+               <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-2xl p-1 gap-1">
+                 <input 
+                   value={newNoteContent}
+                   onChange={e => setNewNoteContent(e.target.value)}
+                   placeholder="Hızlı Not..."
+                   className="bg-transparent border-none text-sm px-2 md:px-3 focus:outline-none w-24 sm:w-32 md:w-48 text-slate-800 dark:text-slate-200"
+                   onKeyDown={e => e.key === 'Enter' && handleCreateNote()}
+                 />
+                 <Button 
+                    onClick={handleCreateNote} 
+                    disabled={isSaving || !newNoteContent.trim()} 
+                    className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-200 dark:hover:bg-white text-white dark:text-slate-900 rounded-[14px] px-3 h-8 text-xs font-semibold"
+                 >
+                    {isSaving && newNoteContent.trim() ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                 </Button>
+               </div>
+               
+               <Button
+                  onClick={openAddModal}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl h-9 md:h-10 px-3 md:px-4 flex items-center gap-2 shadow-sm whitespace-nowrap"
                >
-                  {isSaving && newNoteContent.trim() ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Yeni Not</span>
                </Button>
-             </div>
-             
-             <Button
-                onClick={openAddModal}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl h-9 md:h-10 px-3 md:px-4 flex items-center gap-2 shadow-sm whitespace-nowrap"
-             >
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Yeni Not</span>
-             </Button>
-          </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 px-3 py-1.5 rounded-xl text-xs font-semibold">
+              <ShieldAlert className="w-4 h-4" />
+              <span>Sadece görüntüleme</span>
+            </div>
+          )}
         </div>
       </header>
 
@@ -294,12 +308,14 @@ export function NotesList() {
                            {note.ai_category || 'Genel Not'}
                         </span>
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                           {hasEditPermission && (
                            <button 
                               className="p-1.5 text-slate-400 hover:text-red-500 rounded-full hover:bg-slate-200/50 dark:hover:bg-slate-700/50"
                               onClick={(e) => handleDelete(e, note.id)}
                            >
                               <Trash2 className="w-4 h-4" />
                            </button>
+                           )}
                            <button 
                               className="p-1.5 text-slate-400 hover:text-slate-800 dark:hover:text-white rounded-full hover:bg-slate-200/50 dark:hover:bg-slate-700/50"
                               onClick={(e) => handleRightClick(e, note)}

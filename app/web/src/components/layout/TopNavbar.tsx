@@ -11,7 +11,7 @@ import { api } from "@/lib/api"
 import { ProjectForm } from "@/components/projects/ProjectForm"
 import { Pencil, Trash2, LogOut } from "lucide-react"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
-import { useAuthStore, canView, isAdmin } from "@/store/authStore"
+import { useAuthStore, canViewCompany, isAdmin } from "@/store/authStore"
 import { ProfileSettings } from "@/components/auth/ProfileSettings"
 import { ProjectSettingsModal } from "@/components/projects/ProjectSettingsModal"
 
@@ -220,13 +220,13 @@ export function TopNavbar() {
 
   // Sadece izni olan modülleri göster
   const navItems = [
-    ...(canView(user, 'dashboard') ? [{ id: 'dashboard', label: 'Kontrol Paneli', icon: LayoutDashboard }] : []),
-    ...(canView(user, 'tasks') ? [{ id: 'all_tasks', label: 'Görevler', icon: ListTodo }] : []),
-    ...(canView(user, 'calendar') ? [{ id: 'calendar', label: 'Takvim', icon: CalendarDays }] : []),
-    ...(canView(user, 'notes') ? [{ id: 'notes', label: 'Notlar', icon: NotebookPen }] : []),
-    ...(canView(user, 'ai_chat') ? [{ id: 'ai_chat', label: 'AI Sohbet', icon: Bot }] : []),
-    ...(canView(user, 'ads') ? [{ id: 'ads', label: 'Reklam', icon: Megaphone }] : []),
-    ...(canView(user, 'photo_tracking') ? [{ id: 'photo_tracking', label: 'Fotoğraf Takip', icon: Camera }] : []),
+    ...(canViewCompany(user, 'dashboard', selectedProjectId) ? [{ id: 'dashboard', label: 'Kontrol Paneli', icon: LayoutDashboard }] : []),
+    ...(canViewCompany(user, 'tasks', selectedProjectId) ? [{ id: 'all_tasks', label: 'Görevler', icon: ListTodo }] : []),
+    ...(canViewCompany(user, 'calendar', selectedProjectId) ? [{ id: 'calendar', label: 'Takvim', icon: CalendarDays }] : []),
+    ...(canViewCompany(user, 'notes', selectedProjectId) ? [{ id: 'notes', label: 'Notlar', icon: NotebookPen }] : []),
+    ...(canViewCompany(user, 'ai_chat', selectedProjectId) ? [{ id: 'ai_chat', label: 'AI Sohbet', icon: Bot }] : []),
+    ...(canViewCompany(user, 'ads', selectedProjectId) ? [{ id: 'ads', label: 'Reklam', icon: Megaphone }] : []),
+    ...(canViewCompany(user, 'photo_tracking', selectedProjectId) ? [{ id: 'photo_tracking', label: 'Fotoğraf Takip', icon: Camera }] : []),
     ...(isAdmin(user) ? [{ id: 'admin', label: 'Yönetim', icon: Shield }] : []),
   ]
 

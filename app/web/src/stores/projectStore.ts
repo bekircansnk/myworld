@@ -15,6 +15,7 @@ interface ProjectState {
   _hasHydrated: boolean;
   setSelectedProjectId: (id: number | null) => void;
   setViewMode: (mode: ViewMode) => void;
+  switchCompany: (id: number | null) => void;
   fetchProjects: () => Promise<void>;
   addProject: (data: Partial<Project>) => Promise<void>;
   updateProject: (id: number, data: Partial<Project>) => Promise<void>;
@@ -33,6 +34,13 @@ export const useProjectStore = create<ProjectState>()(
 
       setSelectedProjectId: (id) => set({ selectedProjectId: id, viewMode: id ? 'project' : 'dashboard' }),
       setViewMode: (mode) => set({ viewMode: mode, selectedProjectId: mode === 'project' ? get().selectedProjectId : null }),
+
+      // Firma değişikliği - tüm modülleri tetikler
+      switchCompany: (id) => {
+        set({ selectedProjectId: id });
+        // Firma değişikliğinde dashboard'a dönebilir veya mevcut view'da kalabilir
+        // Şu an mevcut view'da kalıyor, veriler otomatik güncellenecek
+      },
 
       fetchProjects: async () => {
         set({ isLoading: true, error: null });

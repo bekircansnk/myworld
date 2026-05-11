@@ -15,20 +15,20 @@ import {
   ShieldAlert
 } from "lucide-react"
 
-import { useAuthStore, canView, isAdmin } from "@/store/authStore"
+import { useAuthStore, canViewCompany, isAdmin } from "@/store/authStore"
 
 export function MobileBottomNav() {
-  const { viewMode, setViewMode } = useProjectStore()
+  const { viewMode, setViewMode, selectedProjectId } = useProjectStore()
   const { user } = useAuthStore()
   const [showMore, setShowMore] = React.useState(false)
 
   // Ana 5 sekme — mobilde her zaman görünür (İzne göre filtrele)
   const allMainTabs = [
-    ...(canView(user, 'dashboard') ? [{ id: 'dashboard', label: 'Panel', icon: LayoutDashboard }] : []),
-    ...(canView(user, 'tasks') ? [{ id: 'all_tasks', label: 'Görevler', icon: ListTodo }] : []),
-    ...(canView(user, 'calendar') ? [{ id: 'calendar', label: 'Takvim', icon: CalendarDays }] : []),
-    ...(canView(user, 'notes') ? [{ id: 'notes', label: 'Notlar', icon: NotebookPen }] : []),
-    ...(canView(user, 'ai_chat') ? [{ id: 'ai_chat', label: 'AI', icon: Bot }] : []),
+    ...(canViewCompany(user, 'dashboard', selectedProjectId) ? [{ id: 'dashboard', label: 'Panel', icon: LayoutDashboard }] : []),
+    ...(canViewCompany(user, 'tasks', selectedProjectId) ? [{ id: 'all_tasks', label: 'Görevler', icon: ListTodo }] : []),
+    ...(canViewCompany(user, 'calendar', selectedProjectId) ? [{ id: 'calendar', label: 'Takvim', icon: CalendarDays }] : []),
+    ...(canViewCompany(user, 'notes', selectedProjectId) ? [{ id: 'notes', label: 'Notlar', icon: NotebookPen }] : []),
+    ...(canViewCompany(user, 'ai_chat', selectedProjectId) ? [{ id: 'ai_chat', label: 'AI', icon: Bot }] : []),
   ]
   
   // En fazla ilk 5'i ana ekranda
@@ -37,8 +37,8 @@ export function MobileBottomNav() {
   // Kalanlar ve ekstra modüller "Daha Fazla" menüsünde
   const moreTabs = [
     ...allMainTabs.slice(5),
-    ...(canView(user, 'ads') ? [{ id: 'ads', label: 'Reklam', icon: Megaphone }] : []),
-    ...(canView(user, 'photo_tracking') ? [{ id: 'photo_tracking', label: 'Fotoğraf', icon: Camera }] : []),
+    ...(canViewCompany(user, 'ads', selectedProjectId) ? [{ id: 'ads', label: 'Reklam', icon: Megaphone }] : []),
+    ...(canViewCompany(user, 'photo_tracking', selectedProjectId) ? [{ id: 'photo_tracking', label: 'Fotoğraf', icon: Camera }] : []),
     ...(isAdmin(user) ? [{ id: 'admin', label: 'Yönetim', icon: ShieldAlert }] : [])
   ]
 

@@ -3,6 +3,15 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { api } from '@/lib/api';
 import { idbStorage } from '@/lib/idb-storage';
 
+// Firma erişim bilgisi
+export interface CompanyAccess {
+  project_id: number;
+  project_name: string;
+  color?: string;
+  permissions: Record<string, { view?: boolean; edit?: boolean; delete?: boolean }>;
+  is_owner: boolean;
+}
+
 export interface User {
   id: number;
   username: string;
@@ -11,19 +20,53 @@ export interface User {
   role: 'super_admin' | 'admin' | 'editor' | 'viewer';
   permissions: Record<string, { view?: boolean; edit?: boolean; delete?: boolean }>;
   email?: string;
+  company_accesses?: CompanyAccess[];
 }
 
-// Helper functions for checking access
-export const canView = (user: User | null, module: string): boolean => {
+// Firma bazlı izin kontrolü - belirli bir firma için modül izni var mı?
+export const canViewCompany = (user: User | null, module: string, projectId?: number | null): boolean => {
   if (!user) return false;
-  if (user.role === 'super_admin' || user.role === 'admin') return true;
+  if (user.role === 'super_admin') return true;
+  
+  // Firma seçilmişse firma bazlı kontrol
+  if (projectId && user.company_accesses) {
+    const access = user.company_accesses.find(a => a.project_id === projectId);
+    if (!access) return false;
+    if (access.is_owner) return true;
+    if (user.role === 'admin') return true;
+    return access.permissions?.[module]?.view ?? false;
+  }
+  
+  // Global fallback
+  if (user.role === 'admin') return true;
   return user.permissions?.[module]?.view ?? false;
 };
 
-export const canEdit = (user: User | null, module: string): boolean => {
+export const canEditCompany = (user: User | null, module: string, projectId?: number | null): boolean => {
   if (!user) return false;
-  if (user.role === 'super_admin' || user.role === 'admin') return true;
+  if (user.role === 'super_admin') return true;
+  
+  // Firma seçilmişse firma bazlı kontrol
+  if (projectId && user.company_accesses) {
+    const access = user.company_accesses.find(a => a.project_id === projectId);
+    if (!access) return false;
+    if (access.is_owner) return true;
+    if (user.role === 'admin') return true;
+    return access.permissions?.[module]?.edit ?? false;
+  }
+  
+  // Global fallback
+  if (user.role === 'admin') return true;
   return user.permissions?.[module]?.edit ?? false;
+};
+
+// Eski uyumlu fonksiyonlar (geriye uyumluluk)
+export const canView = (user: User | null, module: string): boolean => {
+  return canViewCompany(user, module);
+};
+
+export const canEdit = (user: User | null, module: string): boolean => {
+  return canEditCompany(user, module);
 };
 
 export const isAdmin = (user: User | null): boolean => {
@@ -84,10 +127,10 @@ export const useAuthStore = create<AuthState>()(
 
         try {
           const response = await api.get('/api/auth/me');
+          // Firma erişim bilgileri /me response'unda geliyor
           set({ user: response.data, isAuthenticated: true, isLoading: false, token: activeToken });
         } catch (error) {
           // Çevrimdışıysa veya API ulaşılamazsa → çıkış YAPMA
-          // Mevcut token + user bilgisiyle devam et
           const { user } = get();
           if (user && activeToken) {
             // Kayıtlı kullanıcı var → çevrimdışı modda devam

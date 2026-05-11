@@ -257,24 +257,30 @@ async def get_user_companies(
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(require_admin)
 ):
-    """Bir kullanıcının erişebildiği firmaları listele"""
+    """Bir kullanıcının erişebildiği firmaları ve firma bazlı izinlerini listele"""
     result = await db.execute(
         select(UserCompanyAccess, Project.name)
         .join(Project, UserCompanyAccess.project_id == Project.id)
         .where(UserCompanyAccess.user_id == user_id)
     )
     accesses = result.all()
-    return [{"project_id": a.UserCompanyAccess.project_id, "project_name": a.name} for a in accesses]
+    return [{
+        "project_id": a.UserCompanyAccess.project_id, 
+        "project_name": a.name,
+        "permissions": a.UserCompanyAccess.permissions or {},
+        "is_owner": a.UserCompanyAccess.is_owner or False
+    } for a in accesses]
 
 @router.post("/users/{user_id}/companies/{project_id}")
 async def grant_company_access(
     user_id: int,
     project_id: int,
     request: Request,
+    permissions: dict = None,
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(require_admin)
 ):
-    """Kullanıcıya firma erişimi ver"""
+    """Kullanıcıya firma erişimi ver (opsiyonel izin matrisi ile)"""
     # Super admin değilse sadece kendi erişebildiği firmaları atayabilir
     if current_admin.role != "super_admin":
         check = await db.execute(
@@ -286,6 +292,14 @@ async def grant_company_access(
         if not check.scalars().first():
             raise HTTPException(status_code=403, detail="Bu firmayı atama yetkiniz yok")
     
+    # Request body'den izinleri al
+    body = {}
+    try:
+        body = await request.json()
+    except:
+        pass
+    company_permissions = body.get("permissions", permissions or {})
+    
     # Zaten var mı?
     existing = await db.execute(
         select(UserCompanyAccess).where(
@@ -293,19 +307,51 @@ async def grant_company_access(
             UserCompanyAccess.project_id == project_id
         )
     )
-    if existing.scalars().first():
-        return {"message": "Kullanıcı zaten bu firmaya erişebiliyor"}
+    existing_access = existing.scalars().first()
+    if existing_access:
+        # Mevcutsa izinleri güncelle
+        existing_access.permissions = company_permissions
+        await db.commit()
+        return {"message": "Firma erişim izinleri güncellendi"}
     
     access = UserCompanyAccess(
         user_id=user_id,
         project_id=project_id,
+        permissions=company_permissions,
         granted_by=current_admin.id
     )
     db.add(access)
     await db.commit()
     await log_activity(db, current_admin.id, "grant_company_access", "admin",
-                       {"user_id": user_id, "project_id": project_id}, request)
+                       {"user_id": user_id, "project_id": project_id, "permissions": company_permissions}, request)
     return {"message": "Firma erişimi verildi"}
+
+@router.put("/users/{user_id}/companies/{project_id}/permissions")
+async def update_company_permissions(
+    user_id: int,
+    project_id: int,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(require_admin)
+):
+    """Kullanıcının bir firmadaki modül izinlerini güncelle"""
+    result = await db.execute(
+        select(UserCompanyAccess).where(
+            UserCompanyAccess.user_id == user_id,
+            UserCompanyAccess.project_id == project_id
+        )
+    )
+    access = result.scalars().first()
+    if not access:
+        raise HTTPException(status_code=404, detail="Kullanıcının bu firmaya erişimi yok")
+    
+    body = await request.json()
+    access.permissions = body.get("permissions", {})
+    await db.commit()
+    
+    await log_activity(db, current_admin.id, "update_company_permissions", "admin",
+                       {"user_id": user_id, "project_id": project_id}, request)
+    return {"message": "Firma izinleri güncellendi", "permissions": access.permissions}
 
 @router.delete("/users/{user_id}/companies/{project_id}")
 async def revoke_company_access(
@@ -331,3 +377,4 @@ async def revoke_company_access(
     await log_activity(db, current_admin.id, "revoke_company_access", "admin",
                        {"user_id": user_id, "project_id": project_id}, request)
     return {"message": "Firma erişimi kaldırıldı"}
+

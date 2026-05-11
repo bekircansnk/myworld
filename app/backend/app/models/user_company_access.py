@@ -1,15 +1,22 @@
-from sqlalchemy import Column, Integer, ForeignKey, DateTime, UniqueConstraint
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, UniqueConstraint, JSON, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.base import Base
 
 class UserCompanyAccess(Base):
-    """Kullanıcı-Firma erişim tablosu: hangi kullanıcı hangi firmaya erişebilir"""
+    """Kullanıcı-Firma erişim tablosu: hangi kullanıcı hangi firmaya hangi izinlerle erişebilir"""
     __tablename__ = "user_company_access"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    
+    # Firma bazlı modül izinleri (notes: {view: true, edit: false}, tasks: {view: true, edit: true} vb.)
+    permissions = Column(JSON, default={})
+    
+    # Kullanıcı bu firmayı kendisi mi oluşturdu? (True ise tam yetki)
+    is_owner = Column(Boolean, default=False)
+    
     granted_by = Column(Integer, ForeignKey("users.id"), nullable=True)  # Kim verdi
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
