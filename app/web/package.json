@@ -10,13 +10,6 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
-    "@capacitor/android": "^8.3.1",
-    "@capacitor/app": "^8.1.0",
-    "@capacitor/core": "^8.3.1",
-    "@capacitor/keyboard": "^8.0.3",
-    "@capacitor/local-notifications": "^8.0.2",
-    "@capacitor/network": "^8.0.1",
-    "@capacitor/status-bar": "^8.0.2",
     "@google/genai": "^1.45.0",
     "@hello-pangea/dnd": "^18.0.1",
     "@serwist/next": "^9.5.11",
@@ -44,8 +37,6 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
-    "@capacitor/assets": "^3.0.5",
-    "@capacitor/cli": "^8.3.1",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
