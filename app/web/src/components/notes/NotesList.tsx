@@ -69,7 +69,7 @@ export function NotesList() {
     if (!newNoteContent.trim()) return
     setIsSaving(true)
     try {
-      await addNoteAction(newNoteContent, 'notes_page')
+      await addNoteAction(newNoteContent, 'notes_page', selectedProjectId)
       setNewNoteContent("")
     } catch (e) {
       console.error(e)
@@ -93,7 +93,8 @@ export function NotesList() {
         title: addTitle.trim() || undefined,
         content: addContent,
         ai_category: addCategory,
-        source: 'notes_page_modal'
+        source: 'notes_page_modal',
+        project_id: selectedProjectId || undefined
       })
       setIsAddModalOpen(false)
     } catch (e) {

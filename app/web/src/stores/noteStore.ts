@@ -11,7 +11,7 @@ interface NoteStore {
   _hasHydrated: boolean;
   
   fetchNotes: (projectId?: number | null) => Promise<void>;
-  addNoteAction: (content: string, source?: string) => Promise<void>;
+  addNoteAction: (content: string, source?: string, projectId?: number | null) => Promise<void>;
   addExplicitNoteAction: (data: Partial<Note>) => Promise<void>;
   deleteNoteAction: (id: number) => Promise<void>;
   updateNoteInList: (note: Note) => void;
@@ -36,9 +36,9 @@ export const useNoteStore = create<NoteStore>()(
         } catch(e) { console.error('Notlar alinamadi', e) }
       },
 
-      addNoteAction: async (content, source='notes_page') => {
+      addNoteAction: async (content, source='notes_page', projectId) => {
         try {
-           const res = await api.post('/api/notes', { content, source })
+           const res = await api.post('/api/notes', { content, source, project_id: projectId || null })
            set(state => ({ notes: [res.data, ...state.notes] }))
         } catch(e){ console.error(e) }
       },
