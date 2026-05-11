@@ -56,7 +56,6 @@ class AdminStatsResponse(BaseModel):
     total_tasks: int
     total_notes: int
     total_events: int
-    role_distribution: dict
     
 class ActivityLogResponse(BaseModel):
     """Aktivite logu yanıtı"""

@@ -8,15 +8,14 @@ import { CreateUserModal } from "./CreateUserModal"
 import { UserCard } from "./UserCard"
 import { UserDetailPanel } from "./UserDetailPanel"
 import { UserPermissionsPanel } from "./UserPermissionsPanel"
-import { RoleManagementPanel } from "./RoleManagementPanel"
 import { useAuthStore } from "@/store/authStore"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
 
 export function AdminPanel() {
   const { 
-    users, stats, activityLogs, roleTemplates, isLoading,
-    fetchUsers, fetchStats, fetchActivityLogs, fetchRoleTemplates 
+    users, stats, activityLogs, isLoading,
+    fetchUsers, fetchStats, fetchActivityLogs 
   } = useAdminStore()
   
   const [activeTab, setActiveTab] = React.useState<'dashboard'|'users'|'permissions'|'roles'|'logs'>('dashboard')
@@ -31,14 +30,12 @@ export function AdminPanel() {
     fetchUsers()
     fetchStats()
     fetchActivityLogs()
-    fetchRoleTemplates()
   }, [])
 
   const tabs = [
     { id: 'dashboard', label: 'Özet', icon: BarChart },
     { id: 'users', label: 'Kullanıcılar', icon: Users },
     { id: 'permissions', label: 'Firmalar & İzinler', icon: Shield },
-    { id: 'roles', label: 'Roller', icon: Tag },
     { id: 'logs', label: 'Loglar', icon: Activity },
   ]
 
@@ -89,23 +86,6 @@ export function AdminPanel() {
                   </div>
                   <div className="w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">
                      <Users className="w-8 h-8 text-indigo-500" />
-                  </div>
-               </div>
-               
-               <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm flex items-center justify-between">
-                  <div>
-                     <p className="text-sm font-semibold text-slate-500 mb-1">Rol Dağılımı</p>
-                     <div className="space-y-2 mt-3">
-                        {Object.entries(stats.role_distribution).map(([role, count]) => (
-                           <div key={role} className="flex items-center justify-between gap-4 text-xs font-bold">
-                              <span className="text-brand-dark dark:text-gray-300 capitalize flex items-center gap-1.5">
-                                 <span className={`w-2 h-2 rounded-full ${role === 'super_admin' ? 'bg-purple-500' : role === 'admin' ? 'bg-indigo-500' : role === 'editor' ? 'bg-amber-500' : 'bg-slate-400'}`} />
-                                 {role.replace('_', ' ')}
-                              </span>
-                              <span className="bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-md">{count}</span>
-                           </div>
-                        ))}
-                     </div>
                   </div>
                </div>
                
@@ -180,17 +160,10 @@ export function AdminPanel() {
         {/* FIRMALAR & İZİNLER TAB (birleştirilmiş) */}
         {activeTab === 'permissions' && (
            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm overflow-hidden p-6">
-              <UserPermissionsPanel users={users} roleTemplates={roleTemplates} isSuperAdmin={isSuperAdmin} />
+              <UserPermissionsPanel users={users} isSuperAdmin={isSuperAdmin} />
            </div>
         )}
 
-        {/* ROLLER TAB */}
-        {activeTab === 'roles' && (
-           <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm overflow-hidden p-6">
-              <RoleManagementPanel roleTemplates={roleTemplates} />
-           </div>
-        )}
-        
         {/* LOGS TAB */}
         {activeTab === 'logs' && (
            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm overflow-hidden">
@@ -244,7 +217,7 @@ export function AdminPanel() {
       </div>
       
       {/* Modals & Panels */}
-      <CreateUserModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} roleTemplates={roleTemplates} onCreate={(data: any) => useAdminStore.getState().createUser(data)} />
+      <CreateUserModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} onCreate={(data: any) => useAdminStore.getState().createUser(data)} />
       <UserDetailPanel user={selectedUser} onClose={() => setSelectedUser(null)} onUpdate={(id: number, data: any) => useAdminStore.getState().updateUser(id, data)} />
       
       <ConfirmDialog 

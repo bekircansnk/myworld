@@ -101,7 +101,11 @@ export const useTaskStore = create<TaskState>()(
           selectedTask: state.selectedTask?.id === id ? { ...state.selectedTask, ...data } : state.selectedTask,
         }));
         try {
-          const response = await api.put(`/api/tasks/${id}`, data);
+          let url = `/api/tasks/${id}`;
+          if (data.project_id) {
+            url += `?project_id=${data.project_id}`;
+          }
+          const response = await api.put(url, data);
           set((state) => ({
             tasks: state.tasks.map((t) => (t.id === id ? response.data : t)),
             selectedTask: state.selectedTask?.id === id ? response.data : state.selectedTask,
@@ -128,7 +132,13 @@ export const useTaskStore = create<TaskState>()(
         }));
         
         try {
-          const response = await api.patch(`/api/tasks/${id}/status?status=${status}`);
+          const { tasks } = get();
+          const task = tasks.find(t => t.id === id);
+          let url = `/api/tasks/${id}/status?status=${status}`;
+          if (task?.project_id) {
+            url += `&project_id=${task.project_id}`;
+          }
+          const response = await api.patch(url);
           set((state) => ({
             tasks: state.tasks.map((t) => (t.id === id ? response.data : t)),
             selectedTask: state.selectedTask?.id === id ? response.data : state.selectedTask,
@@ -149,7 +159,13 @@ export const useTaskStore = create<TaskState>()(
           isDetailPanelOpen: state.selectedTask?.id === id ? false : state.isDetailPanelOpen,
         }));
         try {
-          await api.delete(`/api/tasks/${id}`);
+          const { tasks } = get();
+          const task = tasks.find(t => t.id === id);
+          let url = `/api/tasks/${id}`;
+          if (task?.project_id) {
+            url += `?project_id=${task.project_id}`;
+          }
+          await api.delete(url);
         } catch (error: any) {
           if (error.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
             enqueue('DELETE', `/api/tasks/${id}`);
@@ -167,7 +183,11 @@ export const useTaskStore = create<TaskState>()(
           tasks: [...state.tasks, tempSubtask],
         }));
         try {
-          const response = await api.post(`/api/tasks/${parentId}/subtasks`, taskData);
+          let url = `/api/tasks/${parentId}/subtasks`;
+          if (taskData.project_id) {
+            url += `?project_id=${taskData.project_id}`;
+          }
+          const response = await api.post(url, taskData);
           set((state) => ({
             tasks: state.tasks.map(t => t.id === tempId ? response.data : t),
           }));

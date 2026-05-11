@@ -138,7 +138,7 @@ async def update_user(
         user.name = data.name
     if data.email is not None:
         user.email = data.email
-    if data.role is not None:
+    if data.role is not None and current_admin.role == "super_admin":
         user.role = data.role
     if data.is_active is not None:
         user.is_active = data.is_active
@@ -233,12 +233,6 @@ async def get_stats(db: AsyncSession = Depends(get_db), current_admin: User = De
     active = sum(1 for u in users if u.is_active)
     inactive = len(users) - active
     
-    # Role distribution
-    roles = {}
-    for u in users:
-        roles[u.role] = roles.get(u.role, 0) + 1
-        
-    # Diğer istatistikler (Count kullanımı)
     tasks_count = await db.execute(select(func.count(Task.id)))
     notes_count = await db.execute(select(func.count(Note.id)))
     events_count = await db.execute(select(func.count(CalendarEvent.id)))
@@ -249,8 +243,7 @@ async def get_stats(db: AsyncSession = Depends(get_db), current_admin: User = De
         "inactive_users": inactive,
         "total_tasks": tasks_count.scalar() or 0,
         "total_notes": notes_count.scalar() or 0,
-        "total_events": events_count.scalar() or 0,
-        "role_distribution": roles
+        "total_events": events_count.scalar() or 0
     }
 
 @router.get("/activity-logs", response_model=List[ActivityLogResponse])
@@ -459,107 +452,6 @@ async def revoke_company_access(
     await log_activity(db, current_admin.id, "revoke_company_access", "admin",
                        {"user_id": user_id, "project_id": project_id}, request)
     return {"message": "Firma erişimi kaldırıldı"}
-
-
-from sqlalchemy.orm.attributes import flag_modified
-
-async def get_custom_roles_from_db(db: AsyncSession):
-    res = await db.execute(select(User).where(User.role == "super_admin"))
-    super_admin = res.scalars().first()
-    if super_admin and super_admin.settings:
-        return super_admin.settings.get("custom_role_templates", {})
-    return {}
-
-async def save_custom_roles_to_db(db: AsyncSession, templates: dict):
-    res = await db.execute(select(User).where(User.role == "super_admin"))
-    super_admin = res.scalars().first()
-    if super_admin:
-        settings = super_admin.settings or {}
-        settings["custom_role_templates"] = templates
-        super_admin.settings = dict(settings)
-        flag_modified(super_admin, "settings")
-        await db.commit()
-
-async def _get_all_templates(db: AsyncSession):
-    custom = await get_custom_roles_from_db(db)
-    merged = dict(ROLE_TEMPLATES)
-    merged.update(custom)
-    return {k: v for k, v in merged.items() if v is not None}
-
-@router.get("/role-templates")
-async def get_role_templates(
-    db: AsyncSession = Depends(get_db),
-    current_admin: User = Depends(require_admin)
-):
-    """Tüm rol şablonlarını getir"""
-    return await _get_all_templates(db)
-
-@router.post("/role-templates")
-async def create_role_template(
-    request: Request,
-    db: AsyncSession = Depends(get_db),
-    current_admin: User = Depends(require_admin)
-):
-    """Yeni rol şablonu oluştur"""
-    body = await request.json()
-    key = body.get("key", "")
-    if not key:
-        raise HTTPException(status_code=400, detail="Rol anahtarı gerekli")
-    
-    custom_roles = await get_custom_roles_from_db(db)
-    custom_roles[key] = {
-        "label": body.get("label", key),
-        "description": body.get("description", ""),
-        "role": "editor",
-        "permissions": body.get("permissions", {})
-    }
-    await save_custom_roles_to_db(db, custom_roles)
-    
-    await log_activity(db=db, user_id=current_admin.id, action="create_role_template", 
-                       module="admin", details={"key": key}, request=request)
-    return {"message": "Rol şablonu oluşturuldu", "key": key}
-
-@router.put("/role-templates/{key}")
-async def update_role_template(
-    key: str,
-    request: Request,
-    db: AsyncSession = Depends(get_db),
-    current_admin: User = Depends(require_admin)
-):
-    """Rol şablonunu güncelle"""
-    body = await request.json()
-    
-    all_templates = await _get_all_templates(db)
-    if key not in all_templates:
-        raise HTTPException(status_code=404, detail="Rol şablonu bulunamadı")
-    
-    custom_roles = await get_custom_roles_from_db(db)
-    custom_roles[key] = {
-        "label": body.get("label", all_templates[key].get("label", key)),
-        "description": body.get("description", ""),
-        "role": all_templates[key].get("role", "editor"),
-        "permissions": body.get("permissions", all_templates[key].get("permissions", {}))
-    }
-    await save_custom_roles_to_db(db, custom_roles)
-    return {"message": "Rol şablonu güncellendi"}
-
-@router.delete("/role-templates/{key}")
-async def delete_role_template(
-    key: str,
-    db: AsyncSession = Depends(get_db),
-    current_admin: User = Depends(require_admin)
-):
-    """Rol şablonunu sil"""
-    custom_roles = await get_custom_roles_from_db(db)
-    if key in custom_roles:
-        del custom_roles[key]
-        await save_custom_roles_to_db(db, custom_roles)
-    elif key in ROLE_TEMPLATES:
-        custom_roles[key] = None
-        await save_custom_roles_to_db(db, custom_roles)
-    else:
-        raise HTTPException(status_code=404, detail="Rol şablonu bulunamadı")
-    return {"message": "Rol şablonu silindi"}
 
 from sqlalchemy import text
 

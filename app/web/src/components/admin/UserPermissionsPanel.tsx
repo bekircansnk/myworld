@@ -106,11 +106,9 @@ function CompanyEditModal({ isOpen, onClose, project, onSave }: {
 
 export function UserPermissionsPanel({ 
   users,
-  roleTemplates,
   isSuperAdmin 
 }: { 
   users: any[]
-  roleTemplates: Record<string, any>
   isSuperAdmin: boolean 
 }) {
   const [expandedUser, setExpandedUser] = React.useState<number | null>(null)
@@ -206,16 +204,6 @@ export function UserPermissionsPanel({
       fetchUserCompanies(userId)
     } catch (e) { console.error(e) }
     setSaving(null)
-  }
-
-  const applyRole = (userId: number, projectId: number, roleKey: string) => {
-    const template = roleTemplates[roleKey]
-    if (!template) return
-    const key = `${userId}-${projectId}`
-    setEditingPerms(prev => ({
-      ...prev,
-      [key]: { ...template.permissions }
-    }))
   }
 
   const nonSuperUsers = users.filter(u => u.role !== 'super_admin')
@@ -340,20 +328,6 @@ export function UserPermissionsPanel({
                               )}
                             </div>
                             <div className="flex items-center gap-2">
-                              <select
-                                onChange={(e) => {
-                                  if (e.target.value) applyRole(user.id, company.project_id, e.target.value)
-                                  e.target.value = ''
-                                }}
-                                className="text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-none rounded-lg px-2 py-1 cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                defaultValue=""
-                              >
-                                <option value="" disabled>Rol Uygula...</option>
-                                {Object.entries(roleTemplates).map(([key, tmpl]: [string, any]) => (
-                                  <option key={key} value={key}>{tmpl.label}</option>
-                                ))}
-                              </select>
-                              
                               <button
                                 onClick={() => savePermissions(user.id, company.project_id)}
                                 disabled={isSaving}

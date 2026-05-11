@@ -51,16 +51,23 @@ export const useNoteStore = create<NoteStore>()(
       },
 
       deleteNoteAction: async(id) => {
+        const { notes } = get();
+        const note = notes.find(n => n.id === id);
+        
         set(state => ({ 
           notes: state.notes.filter(n => n.id !== id),
           selectedNote: state.selectedNote?.id === id ? null : state.selectedNote,
           isDetailPanelOpen: state.selectedNote?.id === id ? false : state.isDetailPanelOpen
         }))
         try {
-          await api.delete(`/api/notes/${id}`)
+          let url = `/api/notes/${id}`;
+          if (note?.project_id) {
+            url += `?project_id=${note.project_id}`;
+          }
+          await api.delete(url)
         } catch(e) {
           console.error(e)
-          get().fetchNotes()
+          get().fetchNotes(note?.project_id)
         }
       },
 

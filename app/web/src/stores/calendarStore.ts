@@ -65,7 +65,11 @@ export const useCalendarStore = create<CalendarState>()(
           events: [...state.events, tempEvent] 
         }));
         try {
-          const res = await api.post('/api/calendar/events', event);
+          let url = '/api/calendar/events';
+          if (event.project_id) {
+            url += `?project_id=${event.project_id}`;
+          }
+          const res = await api.post(url, event);
           set((state) => ({
             events: state.events.map(e => e.id === tempId ? res.data : e)
           }));
@@ -88,7 +92,11 @@ export const useCalendarStore = create<CalendarState>()(
             : state.selectedEvent,
         }));
         try {
-          const res = await api.put(`/api/calendar/events/${id}`, data);
+          let url = `/api/calendar/events/${id}`;
+          if (data.project_id) {
+            url += `?project_id=${data.project_id}`;
+          }
+          const res = await api.put(url, data);
           set((state) => ({
             events: state.events.map((e) => e.id === id ? { ...e, ...res.data } : e),
             selectedEvent: state.selectedEvent?.id === id ? { ...state.selectedEvent, ...res.data } : state.selectedEvent,
@@ -109,7 +117,13 @@ export const useCalendarStore = create<CalendarState>()(
           selectedEvent: state.selectedEvent?.id === id ? null : state.selectedEvent,
         }));
         try {
-           await api.delete(`/api/calendar/events/${id}`);
+          const { events } = get();
+          const event = events.find(e => e.id.toString() === id.toString());
+          let url = `/api/calendar/events/${id}`;
+          if (event?.project_id) {
+            url += `?project_id=${event.project_id}`;
+          }
+          await api.delete(url);
         } catch(err: any) { 
            if (err.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
              enqueue('DELETE', `/api/calendar/events/${id}`);

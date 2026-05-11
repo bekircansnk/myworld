@@ -9,7 +9,6 @@ export interface AdminStats {
   total_tasks: number;
   total_notes: number;
   total_events: number;
-  role_distribution: Record<string, number>;
 }
 
 export interface ActivityLog {
@@ -27,12 +26,10 @@ interface AdminState {
   users: User[];
   stats: AdminStats | null;
   activityLogs: ActivityLog[];
-  roleTemplates: Record<string, any>;
   isLoading: boolean;
   fetchUsers: () => Promise<void>;
   fetchStats: () => Promise<void>;
   fetchActivityLogs: (limit?: number) => Promise<void>;
-  fetchRoleTemplates: () => Promise<void>;
   createUser: (data: any) => Promise<void>;
   updateUser: (id: number, data: any) => Promise<void>;
   updatePermissions: (id: number, permissions: any) => Promise<void>;
@@ -45,7 +42,6 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   users: [],
   stats: null,
   activityLogs: [],
-  roleTemplates: {},
   isLoading: false,
 
   fetchUsers: async () => {
@@ -74,15 +70,6 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       set({ activityLogs: response.data });
     } catch (error) {
       console.error('Aktivite logları alınamadı', error);
-    }
-  },
-
-  fetchRoleTemplates: async () => {
-    try {
-      const response = await api.get('/api/admin/role-templates');
-      set({ roleTemplates: response.data });
-    } catch (error) {
-      console.error('Rol şablonları alınamadı', error);
     }
   },
 
