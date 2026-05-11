@@ -51,8 +51,19 @@ export default function DashboardPage() {
     if (isAuthenticated) {
       fetchProjects()
       useWebSocketStore.getState().connect()
+      
+      // Eğer kullanıcı henüz hiçbir firmaya sahip değilse, yetki gelmesini bekle (polling)
+      // (WebSocket kapalıysa veya hata verdiyse yedek plan)
+      const authPoll = setInterval(() => {
+        if (projects.length === 0) {
+           useAuthStore.getState().checkAuth();
+           fetchProjects();
+        }
+      }, 15000);
+      
+      return () => clearInterval(authPoll);
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, projects.length])
 
   // Firma değiştiğinde tüm modül verilerini yeniden çek + polling ile sürekli senkronize et
   React.useEffect(() => {

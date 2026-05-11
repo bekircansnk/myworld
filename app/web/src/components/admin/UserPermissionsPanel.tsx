@@ -161,8 +161,7 @@ export function UserPermissionsPanel({
     try {
       const defaultPerms: Record<string, any> = {}
       MODULES.forEach(m => {
-        defaultPerms[m.key] = { view: true, edit: false }
-        if (m.actions.includes('delete')) defaultPerms[m.key].delete = false
+        defaultPerms[m.key] = { view: true, edit: true, delete: false }
       })
       await api.post(`/api/admin/users/${userId}/companies/${projectId}`, { permissions: defaultPerms })
       setAddingCompany(null)

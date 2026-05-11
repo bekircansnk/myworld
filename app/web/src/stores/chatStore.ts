@@ -139,13 +139,20 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }));
 
     try {
+      const { useProjectStore } = await import('@/stores/projectStore');
+      const selectedProjectId = useProjectStore.getState().selectedProjectId;
+
       // API'ye gönderilecek basit history payload'u
       const payload = get().messages.map(msg => ({
         role: msg.role === 'system' ? 'ai' : msg.role,
         content: msg.content
       }));
 
-      const response = await api.post('/api/chat', { messages: payload });
+      const response = await api.post('/api/chat', { 
+        messages: payload,
+        project_id: selectedProjectId,
+        session_id: get().messages.length > 2 ? undefined : undefined // Session ID logic can be added later
+      });
       const { reply, actions_executed, debug } = response.data;
       
       // AI yanıtı
@@ -162,11 +169,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
       // Ekranı güncellemek için global storları tetikle
       const { useTaskStore } = await import('@/stores/taskStore');
-      const { useProjectStore } = await import('@/stores/projectStore');
       const { useCalendarStore } = await import('@/stores/calendarStore');
       
-      useTaskStore.getState().fetchTasks();
-      useProjectStore.getState().fetchProjects();
+      const taskStore = useTaskStore.getState();
+      const projectStore = useProjectStore.getState();
+      const calendarStore = useCalendarStore.getState();
+      
+      taskStore.fetchTasks(selectedProjectId || undefined);
+      projectStore.fetchProjects();
 
       // Takvim eventlerini AI döndürdüyse lokale ekle
       if (actions_executed && Array.isArray(actions_executed)) {
@@ -219,7 +229,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         error: error.message || "AI servisine ulaşılamadı", 
         isLoading: false 
       });
-    },
-    reset: () => set({ messages: [], isLoading: false, error: null, inputHint: "", lastAiMessage: null, showBubble: false })
-  }
+    }
+  },
+  reset: () => set({ messages: [], isLoading: false, error: null, inputHint: "", lastAiMessage: null, showBubble: false })
 }));

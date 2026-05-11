@@ -1,7 +1,9 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from typing import List
+from typing import List, Dict
 import json
 import logging
+import jwt
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -9,46 +11,74 @@ router = APIRouter(prefix="/ws", tags=["websocket"])
 
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: List[WebSocket] = []
+        # user_id -> List[WebSocket]
+        self.active_connections: Dict[int, List[WebSocket]] = {}
 
-    async def connect(self, websocket: WebSocket):
+    async def connect(self, websocket: WebSocket, user_id: int):
         await websocket.accept()
-        self.active_connections.append(websocket)
-        logger.info(f"WebSocket Client Connected: {websocket.client}")
+        if user_id not in self.active_connections:
+            self.active_connections[user_id] = []
+        self.active_connections[user_id].append(websocket)
+        logger.info(f"User {user_id} connected via WebSocket. Active users: {len(self.active_connections)}")
 
-    def disconnect(self, websocket: WebSocket):
-        if websocket in self.active_connections:
-            self.active_connections.remove(websocket)
-            logger.info(f"WebSocket Client Disconnected: {websocket.client}")
+    def disconnect(self, websocket: WebSocket, user_id: int):
+        if user_id in self.active_connections:
+            if websocket in self.active_connections[user_id]:
+                self.active_connections[user_id].remove(websocket)
+            if not self.active_connections[user_id]:
+                del self.active_connections[user_id]
+        logger.info(f"User {user_id} disconnected from WebSocket")
 
-    async def broadcast(self, message: str):
-        # Ölü bağlantıları temizlemek için
-        dead_connections = []
-        for connection in self.active_connections:
-            try:
-                await connection.send_text(message)
-            except Exception as e:
-                logger.error(f"Error broadcasting message to {connection.client}: {e}")
-                dead_connections.append(connection)
-        
-        for dead_conn in dead_connections:
-            self.disconnect(dead_conn)
+    async def broadcast_to_user(self, user_id: int, message: dict):
+        if user_id in self.active_connections:
+            message_str = json.dumps(message)
+            dead_connections = []
+            for connection in self.active_connections[user_id]:
+                try:
+                    await connection.send_text(message_str)
+                except Exception as e:
+                    logger.error(f"Error notifying user {user_id}: {e}")
+                    dead_connections.append(connection)
+            
+            for dead_conn in dead_connections:
+                self.disconnect(dead_conn, user_id)
+
+    async def broadcast(self, message: dict):
+        message_str = json.dumps(message)
+        for user_id in list(self.active_connections.keys()):
+            await self.broadcast_to_user(user_id, message)
 
 manager = ConnectionManager()
 
-@router.websocket("/")
-async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
+@router.websocket("/{token}")
+async def websocket_endpoint(websocket: WebSocket, token: str):
+    user_id = None
     try:
+        # Token doğrulama
+        if token:
+            try:
+                payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM])
+                user_id_str = payload.get("sub")
+                if user_id_str:
+                    user_id = int(user_id_str)
+            except Exception as e:
+                logger.error(f"WS Token Decode Error: {e}")
+        
+        if not user_id:
+            logger.warning("WS Connection rejected: Invalid token")
+            await websocket.close(code=4003) # Unauthorized
+            return
+
+        await manager.connect(websocket, user_id)
+        
         while True:
-            # Client'ten gelen mesajları karşıla (örn: ping, kimlik doğrulama vb.)
             data = await websocket.receive_text()
-            logger.info(f"WebSocket Received: {data}")
-            # Yanıt olarak geri dön (Örn: ping -> pong)
             if data == "ping":
                 await websocket.send_text(json.dumps({"type": "pong"}))
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
+        if user_id:
+            manager.disconnect(websocket, user_id)
     except Exception as e:
-        logger.error(f"WebSocket Error: {e}")
-        manager.disconnect(websocket)
+        logger.error(f"WebSocket Runtime Error: {e}")
+        if user_id:
+            manager.disconnect(websocket, user_id)

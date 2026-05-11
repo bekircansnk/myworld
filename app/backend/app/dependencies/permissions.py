@@ -147,15 +147,18 @@ def require_company_permission(module: str, action: str = "view"):
                 effective_project_id = None
 
         # project_id yoksa: Global izin kontrolü
+        # project_id yoksa: Global izin kontrolü
         if not effective_project_id:
-            # Super admin değilse ve project_id bulunamadıysa:
-            # Sadece global izinleri olanlara veya kendi kayıtlarına (eğer ID yoksa listeleme demektir) izin ver
+            # OKUMA (LISTELEME) izni: Kullanıcı login ise ve ID yoksa kendi kayıtlarını listelemesine izin ver
+            # (Router seviyesinde Task.user_id == current_user.id kontrolü zaten yapılıyor)
+            if action == "view":
+                return current_user
+
+            # Yazma/Düzenleme işlemleri için mutlaka global izin veya proje bağlamı gerekir
             perm = (current_user.permissions or {}).get(module, {})
             if perm.get(action, False):
                 return current_user
             
-            # Not allowed without project context
-                
             # LOG DENIAL
             from app.models.activity_log import ActivityLog
             log = ActivityLog(

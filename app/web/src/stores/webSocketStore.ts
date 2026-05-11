@@ -16,28 +16,64 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
   socket: null,
   isConnected: false,
   
-  connect: () => {
+  connect: async () => {
     if (get().socket?.readyState === WebSocket.OPEN || typeof window === 'undefined') return;
     
+    // AuthStore'dan token al
+    let token = "";
+    try {
+      const { useAuthStore } = await import('@/store/authStore');
+      token = useAuthStore.getState().token || localStorage.getItem('token') || "";
+    } catch (e) {
+      console.warn("AuthStore import error in WS", e);
+    }
+
+    if (!token) {
+        console.warn("WS connect aborted: No token found");
+        return;
+    }
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.hostname;
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `${protocol}//${host}:8000/ws/`;
+    const host = window.location.hostname === 'localhost' ? 'localhost:8000' : window.location.host;
+    // URL'e token ekle (Backend /{token} bekliyor)
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL 
+        ? `${process.env.NEXT_PUBLIC_WS_URL}${token}`
+        : `${protocol}//${host}/ws/${token}`;
     
     try {
       const ws = new WebSocket(wsUrl);
       
       ws.onopen = () => {
         set({ isConnected: true, socket: ws });
-        _reconnectAttempts = 0; // Başarılı bağlantıda sıfırla
+        _reconnectAttempts = 0;
+        console.log("WebSocket Connected");
       };
       
-      ws.onmessage = () => {
-        // Gelen veri tipine göre state güncellemeleri
+      ws.onmessage = async (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          
+          if (data.type === 'auth_update') {
+             // Yetki veya firma değişikliği sinyali
+             const { useAuthStore } = await import('@/store/authStore');
+             const { useProjectStore } = await import('@/stores/projectStore');
+             
+             await useAuthStore.getState().checkAuth();
+             await useProjectStore.getState().fetchProjects();
+          }
+
+          if (data.type === 'new_task') {
+             const { useTaskStore } = await import('@/stores/taskStore');
+             useTaskStore.getState().fetchTasks();
+          }
+
+        } catch (e) {
+          console.error("WS message error", e);
+        }
       };
       
       ws.onclose = () => {
         set({ isConnected: false, socket: null });
-        // Maksimum deneme sınırı ile exponential backoff
         if (_reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
           const delay = Math.min(5000 * Math.pow(2, _reconnectAttempts), 60000);
           _reconnectAttempts++;
@@ -46,12 +82,12 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
       };
       
       ws.onerror = () => {
-        // Sessiz geç — onclose zaten tetiklenecek
+         // Error handles via onclose
       };
       
       set({ socket: ws });
-    } catch {
-      // WebSocket oluşturulamadı — sessizce geç
+    } catch (e) {
+      console.error("WS Connection error", e);
     }
   },
   

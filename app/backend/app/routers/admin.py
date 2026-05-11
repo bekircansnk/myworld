@@ -403,6 +403,14 @@ async def grant_company_access(
     await db.commit()
     await log_activity(db, current_admin.id, "grant_company_access", "admin",
                        {"user_id": user_id, "project_id": project_id, "permissions": company_permissions}, request)
+    
+    # WebSocket bildirimi gönder
+    try:
+        from app.routers.websocket import manager
+        await manager.broadcast_to_user(user_id, {"type": "auth_update", "message": "Firma erişimi verildi"})
+    except Exception as e:
+        logger.error(f"WS notify error: {e}")
+
     return {"message": "Firma erişimi verildi"}
 
 @router.put("/users/{user_id}/companies/{project_id}/permissions")
@@ -427,6 +435,15 @@ async def update_company_permissions(
     body = await request.json()
     access.permissions = body.get("permissions", {})
     await db.commit()
+
+    # WebSocket bildirimi gönder
+    try:
+        from app.routers.websocket import manager
+        await manager.broadcast_to_user(user_id, {"type": "auth_update", "message": "İzinleriniz güncellendi"})
+    except Exception as e:
+        logger.error(f"WS notify error: {e}")
+    
+    return {"message": "İzinler güncellendi"}
     
     await log_activity(db, current_admin.id, "update_company_permissions", "admin",
                        {"user_id": user_id, "project_id": project_id}, request)
