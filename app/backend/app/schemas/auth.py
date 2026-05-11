@@ -1,13 +1,14 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
 
 class UserRegister(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     password: str = Field(..., min_length=4)
     name: str = Field(..., min_length=1)
+    email: Optional[str] = None  # Opsiyonel, varsa doğrulama maili gönderilir
 
 class UserLogin(BaseModel):
-    username: str
+    username: str  # E-posta veya kullanıcı adı
     password: str
 
 class UserResponse(BaseModel):
@@ -18,6 +19,7 @@ class UserResponse(BaseModel):
     role: str = "viewer"
     permissions: dict = {}
     email: Optional[str] = None
+    email_verified: bool = False
     is_active: bool = True
     
     class Config:
@@ -33,3 +35,18 @@ class ProfileUpdate(BaseModel):
     password: Optional[str] = None
     name: Optional[str] = None
     avatar_url: Optional[str] = None
+    email: Optional[str] = None
+
+# E-posta tabanlı şemalar
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordWithToken(BaseModel):
+    token: str
+    new_password: str = Field(..., min_length=4)
+
+class VerifyEmailRequest(BaseModel):
+    token: str
+
+class ResendVerificationRequest(BaseModel):
+    email: str

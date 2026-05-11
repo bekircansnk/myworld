@@ -34,6 +34,7 @@ class AdminUserResponse(BaseModel):
     username: str
     name: str
     email: Optional[str] = None
+    email_verified: bool = False
     role: str
     permissions: dict = {}
     is_active: bool = True

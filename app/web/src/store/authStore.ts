@@ -20,6 +20,7 @@ export interface User {
   role: 'super_admin' | 'admin' | 'editor' | 'viewer';
   permissions: Record<string, { view?: boolean; edit?: boolean; delete?: boolean }>;
   email?: string;
+  email_verified?: boolean;
   company_accesses?: CompanyAccess[];
 }
 

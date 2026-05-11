@@ -28,6 +28,14 @@ class Settings(BaseSettings):
     telegram_bot_token: str
     telegram_admin_id: str
 
+    # E-Posta (SMTP)
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from_name: str = "My World"
+    smtp_from_email: str = ""
+
     model_config = SettingsConfigDict(
         env_file=Path(__file__).resolve().parent.parent.parent.parent / ".env",
         env_file_encoding="utf-8",

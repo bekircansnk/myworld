@@ -4,20 +4,27 @@ import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 
+type Tab = 'login' | 'register' | 'forgot';
+
 export function LoginOverlay() {
   const { login } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<'login' | 'register' | 'reset'>('login');
-  const [username, setUsername] = useState('');
+  const [activeTab, setActiveTab] = useState<Tab>('login');
+  
+  // Form alanları
+  const [identifier, setIdentifier] = useState(''); // E-posta veya kullanıcı adı
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Kaydedilmiş giriş bilgilerini yükle
   useEffect(() => {
     const savedUser = localStorage.getItem('myworld_saved_user');
-    const savedPass = localStorage.getItem('myworld_saved_pass');
-    if (savedUser) setUsername(savedUser);
-    if (savedPass) setPassword(savedPass);
+    if (savedUser) setIdentifier(savedUser);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,35 +34,52 @@ export function LoginOverlay() {
     setLoading(true);
 
     try {
-      if (activeTab === 'reset') {
-        await api.post('/api/auth/reset-password', { username, new_password: password });
-        setSuccess('Şifreniz başarıyla sıfırlandı. Şimdi giriş yapabilirsiniz.');
-        localStorage.setItem('myworld_saved_user', username);
-        localStorage.setItem('myworld_saved_pass', password);
-        setTimeout(() => { setActiveTab('login'); setSuccess(''); }, 2000);
+      if (activeTab === 'forgot') {
+        // Şifre sıfırlama linki gönder
+        await api.post('/api/auth/forgot-password', { email: identifier });
+        setSuccess('E-posta adresinize şifre sıfırlama linki gönderildi. Lütfen gelen kutunuzu kontrol edin.');
       }
       else if (activeTab === 'login') {
+        // Giriş — e-posta veya kullanıcı adı
         const formData = new FormData();
-        formData.append('username', username);
+        formData.append('username', identifier);
         formData.append('password', password);
         
         const response = await api.post('/api/auth/login', formData, {
            headers: { 'Content-Type': 'multipart/form-data' }
         });
-        localStorage.setItem('myworld_saved_user', username);
-        localStorage.setItem('myworld_saved_pass', password);
+        localStorage.setItem('myworld_saved_user', identifier);
         login(response.data.access_token, response.data.user);
       } else {
-        await api.post('/api/auth/register', { username, password, name: username });
+        // Kayıt
+        if (password !== confirmPassword) {
+          setError('Şifreler eşleşmiyor');
+          setLoading(false);
+          return;
+        }
+        
+        const registerData: Record<string, string> = { 
+          username: identifier, 
+          password, 
+          name: name || identifier 
+        };
+        if (email) registerData.email = email;
+        
+        await api.post('/api/auth/register', registerData);
+        
+        // Otomatik giriş
         const formData = new FormData();
-        formData.append('username', username);
+        formData.append('username', identifier);
         formData.append('password', password);
         const loginResponse = await api.post('/api/auth/login', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
-        localStorage.setItem('myworld_saved_user', username);
-        localStorage.setItem('myworld_saved_pass', password);
+        localStorage.setItem('myworld_saved_user', identifier);
         login(loginResponse.data.access_token, loginResponse.data.user);
+        
+        if (email) {
+          setSuccess('Hesabınız oluşturuldu! E-posta doğrulama linki gönderildi.');
+        }
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Bir hata oluştu. Lütfen tekrar deneyin.');
@@ -63,6 +87,12 @@ export function LoginOverlay() {
       setLoading(false);
     }
   };
+
+  const tabs: { key: Tab; label: string; color: string }[] = [
+    { key: 'login', label: 'Giriş', color: 'bg-indigo-600' },
+    { key: 'register', label: 'Kayıt', color: 'bg-indigo-600' },
+    { key: 'forgot', label: 'Şifremi Unuttum', color: 'bg-amber-500' },
+  ];
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-xl transition-all duration-500">
@@ -75,52 +105,95 @@ export function LoginOverlay() {
             <p className="text-sm text-foreground/70">Kişisel yönetim sistemine hoş geldin.</p>
           </div>
 
+          {/* Sekme Butonları */}
           <div className="flex bg-foreground/5 p-1 rounded-xl mb-6">
-            <button 
-              onClick={() => { setActiveTab('login'); setError(''); setSuccess(''); }}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'login' ? 'bg-indigo-600 text-white shadow-lg' : 'text-foreground/70 hover:text-foreground'}`}
-            >
-              Giriş
-            </button>
-            <button 
-              onClick={() => { setActiveTab('register'); setError(''); setSuccess(''); }}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'register' ? 'bg-indigo-600 text-white shadow-lg' : 'text-foreground/70 hover:text-foreground'}`}
-            >
-              Kayıt
-            </button>
-            <button 
-              onClick={() => { setActiveTab('reset'); setError(''); setSuccess(''); }}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'reset' ? 'bg-red-500 text-white shadow-lg' : 'text-foreground/70 hover:text-foreground'}`}
-            >
-              Sıfırla
-            </button>
+            {tabs.map(tab => (
+              <button 
+                key={tab.key}
+                onClick={() => { setActiveTab(tab.key); setError(''); setSuccess(''); }}
+                className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${activeTab === tab.key ? `${tab.color} text-white shadow-lg` : 'text-foreground/70 hover:text-foreground'}`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="text-xs font-medium text-foreground/60 uppercase tracking-wider mb-1 block">Kullanıcı Adı</label>
-              <input 
-                type="text" 
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2.5 text-foreground placeholder-foreground/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
-                placeholder="Kullanıcı adınız"
-              />
-            </div>
+            {/* Kayıt: Ad Soyad */}
+            {activeTab === 'register' && (
+              <div>
+                <label className="text-xs font-medium text-foreground/60 uppercase tracking-wider mb-1 block">Ad Soyad</label>
+                <input 
+                  type="text" 
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2.5 text-foreground placeholder-foreground/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
+                  placeholder="Adınız Soyadınız"
+                />
+              </div>
+            )}
+
+            {/* Giriş: E-posta veya Kullanıcı Adı | Kayıt: Kullanıcı Adı | Şifremi Unuttum: E-posta */}
             <div>
               <label className="text-xs font-medium text-foreground/60 uppercase tracking-wider mb-1 block">
-                {activeTab === 'reset' ? 'Yeni Şifre' : 'Şifre'}
+                {activeTab === 'login' ? 'E-posta veya Kullanıcı Adı' : activeTab === 'forgot' ? 'E-posta Adresi' : 'Kullanıcı Adı'}
               </label>
               <input 
-                type="text" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                type={activeTab === 'forgot' ? 'email' : 'text'}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 required
                 className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2.5 text-foreground placeholder-foreground/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
-                placeholder="••••••••"
+                placeholder={activeTab === 'login' ? 'E-posta veya kullanıcı adı' : activeTab === 'forgot' ? 'ornek@gmail.com' : 'Kullanıcı adınız'}
               />
             </div>
+
+            {/* Kayıt: E-posta (Opsiyonel) */}
+            {activeTab === 'register' && (
+              <div>
+                <label className="text-xs font-medium text-foreground/60 uppercase tracking-wider mb-1 block">
+                  E-posta Adresi <span className="text-foreground/40">(Opsiyonel)</span>
+                </label>
+                <input 
+                  type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2.5 text-foreground placeholder-foreground/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
+                  placeholder="ornek@gmail.com"
+                />
+              </div>
+            )}
+
+            {/* Şifre — forgot hariç */}
+            {activeTab !== 'forgot' && (
+              <div>
+                <label className="text-xs font-medium text-foreground/60 uppercase tracking-wider mb-1 block">Şifre</label>
+                <input 
+                  type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2.5 text-foreground placeholder-foreground/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
+                  placeholder="••••••••"
+                />
+              </div>
+            )}
+
+            {/* Kayıt: Şifre Tekrar */}
+            {activeTab === 'register' && (
+              <div>
+                <label className="text-xs font-medium text-foreground/60 uppercase tracking-wider mb-1 block">Şifre Tekrar</label>
+                <input 
+                  type="password" 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2.5 text-foreground placeholder-foreground/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
+                  placeholder="••••••••"
+                />
+              </div>
+            )}
             
             {error && <div className="text-red-500 text-sm font-medium bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</div>}
             {success && <div className="text-emerald-500 text-sm font-medium bg-emerald-500/10 p-3 rounded-lg border border-emerald-500/20">{success}</div>}
@@ -128,7 +201,11 @@ export function LoginOverlay() {
             <button 
               type="submit" 
               disabled={loading}
-              className={`w-full py-3 text-white font-medium rounded-xl transition-all shadow-lg active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 ${activeTab === 'reset' ? 'bg-red-500 hover:bg-red-600 hover:shadow-red-500/25' : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-500/25'}`}
+              className={`w-full py-3 text-white font-medium rounded-xl transition-all shadow-lg active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 ${
+                activeTab === 'forgot' 
+                  ? 'bg-amber-500 hover:bg-amber-600 hover:shadow-amber-500/25' 
+                  : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-500/25'
+              }`}
             >
               {loading ? (
                 <>
@@ -138,8 +215,21 @@ export function LoginOverlay() {
                   </svg>
                   Yükleniyor...
                 </>
-              ) : activeTab === 'login' ? 'Sisteme Giriş Yap' : activeTab === 'register' ? 'Hesap Oluştur' : 'Şifreyi Değiştir'}
+              ) : activeTab === 'login' ? 'Sisteme Giriş Yap' : activeTab === 'register' ? 'Hesap Oluştur' : 'Sıfırlama Linki Gönder'}
             </button>
+
+            {/* Giriş sekmesinde Şifremi Unuttum linki */}
+            {activeTab === 'login' && (
+              <p className="text-center text-xs text-foreground/50 mt-2">
+                <button 
+                  type="button" 
+                  onClick={() => { setActiveTab('forgot'); setError(''); setSuccess(''); }}
+                  className="text-indigo-400 hover:text-indigo-300 underline transition-colors"
+                >
+                  Şifremi Unuttum
+                </button>
+              </p>
+            )}
           </form>
         </div>
       </div>

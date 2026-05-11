@@ -52,6 +52,7 @@ async def get_users(
             "username": user.username,
             "name": user.name,
             "email": user.email,
+            "email_verified": user.email_verified,
             "role": user.role,
             "permissions": user.permissions or {},
             "is_active": user.is_active,

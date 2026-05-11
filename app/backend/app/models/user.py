@@ -10,6 +10,7 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     name = Column(String, nullable=False)
     email = Column(String(100), nullable=True)
+    email_verified = Column(Boolean, default=False)  # E-posta doğrulandı mı?
     avatar_url = Column(String, nullable=True)
     
     # RBAC alanları

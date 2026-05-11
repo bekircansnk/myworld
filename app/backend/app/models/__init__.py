@@ -12,6 +12,7 @@ from app.models.chat_message import ChatMessage
 from app.models.chat_session import ChatSession
 from app.models.activity_log import ActivityLog
 from app.models.user_company_access import UserCompanyAccess
+from app.models.email_verification import EmailVerification
 
 # Ads Panel Panel Models
 from app.models.ads import *
