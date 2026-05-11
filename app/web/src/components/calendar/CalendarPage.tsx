@@ -958,7 +958,9 @@ function AddEventDialog({ open, onClose, defaultDate, onSave }: {
 
   const handleSave = () => {
     if (!title.trim()) return
-    onSave({ id: generateId(), title: title.trim(), description: description.trim() || undefined, date, startTime: allDay ? undefined : startTime || undefined, endTime: allDay ? undefined : endTime || undefined, allDay, color, category })
+    const { useProjectStore } = require("@/stores/projectStore")
+    const projectId = useProjectStore.getState().selectedProjectId
+    onSave({ id: generateId(), title: title.trim(), description: description.trim() || undefined, date, startTime: allDay ? undefined : startTime || undefined, endTime: allDay ? undefined : endTime || undefined, allDay, color, category, project_id: projectId })
   }
 
   return (

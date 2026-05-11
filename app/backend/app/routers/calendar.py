@@ -39,6 +39,7 @@ def convert_to_response(db_event: CalendarEvent) -> CalendarEventResponse:
         taskId=db_event.task_id,
         noteId=db_event.note_id,
         isCompleted=db_event.is_completed,
+        project_id=db_event.project_id,
         created_at=db_event.created_at,
         updated_at=db_event.updated_at
     )
@@ -70,7 +71,8 @@ async def create_event(
         event_type=event.category,
         task_id=event.taskId,
         note_id=event.noteId,
-        is_completed=event.isCompleted or False
+        is_completed=event.isCompleted or False,
+        project_id=event.project_id
     )
     db.add(db_event)
     await db.commit()

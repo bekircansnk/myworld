@@ -54,13 +54,23 @@ export default function DashboardPage() {
     }
   }, [isAuthenticated])
 
-  // Firma değiştiğinde tüm modül verilerini yeniden çek
+  // Firma değiştiğinde tüm modül verilerini yeniden çek + polling ile sürekli senkronize et
   React.useEffect(() => {
-    if (isAuthenticated && selectedProjectId) {
+    if (!isAuthenticated || !selectedProjectId) return
+
+    // İlk yükleme
+    fetchTasks(selectedProjectId)
+    fetchEvents(selectedProjectId)
+    fetchNotes(selectedProjectId)
+
+    // 15 saniyede bir otomatik yenileme (gerçek zamanlı senkronizasyon)
+    const pollInterval = setInterval(() => {
       fetchTasks(selectedProjectId)
       fetchEvents(selectedProjectId)
       fetchNotes(selectedProjectId)
-    }
+    }, 15000)
+
+    return () => clearInterval(pollInterval)
   }, [isAuthenticated, selectedProjectId])
 
   const handleMorningDismiss = () => {

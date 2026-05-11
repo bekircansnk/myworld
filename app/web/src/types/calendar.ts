@@ -13,6 +13,7 @@ export interface CalendarEvent {
   isRecurring?: boolean;
   recurringPattern?: 'daily' | 'weekly' | 'monthly';
   isCompleted?: boolean;
+  project_id?: number;
 }
 
 export type CalendarViewMode = 'month' | 'week' | 'day';

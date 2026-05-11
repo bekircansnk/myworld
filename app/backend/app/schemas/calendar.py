@@ -14,6 +14,7 @@ class CalendarEventCreate(BaseModel):
     taskId: Optional[int] = None
     noteId: Optional[int] = None
     isCompleted: Optional[bool] = False
+    project_id: Optional[int] = None
 
 class CalendarEventUpdate(BaseModel):
     title: Optional[str] = None
@@ -42,6 +43,7 @@ class CalendarEventResponse(BaseModel):
     taskId: Optional[int] = None
     noteId: Optional[int] = None
     isCompleted: Optional[bool] = False
+    project_id: Optional[int] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
     
