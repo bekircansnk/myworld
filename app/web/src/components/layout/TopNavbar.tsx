@@ -225,7 +225,7 @@ export function TopNavbar() {
     ...(canView(user, 'calendar') ? [{ id: 'calendar', label: 'Takvim', icon: CalendarDays }] : []),
     ...(canView(user, 'notes') ? [{ id: 'notes', label: 'Notlar', icon: NotebookPen }] : []),
     ...(canView(user, 'ai_chat') ? [{ id: 'ai_chat', label: 'AI Sohbet', icon: Bot }] : []),
-    ...(canView(user, 'venus_ads') ? [{ id: 'venus_ads', label: 'Reklam', icon: Megaphone }] : []),
+    ...(canView(user, 'ads') ? [{ id: 'ads', label: 'Reklam', icon: Megaphone }] : []),
     ...(canView(user, 'photo_tracking') ? [{ id: 'photo_tracking', label: 'Fotoğraf Takip', icon: Camera }] : []),
     ...(isAdmin(user) ? [{ id: 'admin', label: 'Yönetim', icon: Shield }] : []),
   ]

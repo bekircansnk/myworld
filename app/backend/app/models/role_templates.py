@@ -8,7 +8,7 @@ FULL_PERMISSIONS = {
     "calendar": {"view": True, "edit": True},
     "notes": {"view": True, "edit": True},
     "ai_chat": {"view": True},
-    "venus_ads": {"view": True, "edit": True},
+    "ads": {"view": True, "edit": True},
     "photo_tracking": {"view": True, "edit": True}
 }
 
@@ -23,7 +23,7 @@ ROLE_TEMPLATES = {
             "calendar": {"view": True, "edit": True},
             "notes": {"view": False, "edit": False},
             "ai_chat": {"view": False},
-            "venus_ads": {"view": True, "edit": True},
+            "ads": {"view": True, "edit": True},
             "photo_tracking": {"view": True, "edit": True}
         }
     },
@@ -37,7 +37,7 @@ ROLE_TEMPLATES = {
             "calendar": {"view": True, "edit": True},
             "notes": {"view": True, "edit": True},
             "ai_chat": {"view": False},
-            "venus_ads": {"view": False, "edit": False},
+            "ads": {"view": False, "edit": False},
             "photo_tracking": {"view": False, "edit": False}
         }
     },
@@ -57,7 +57,7 @@ ROLE_TEMPLATES = {
             "calendar": {"view": True, "edit": False},
             "notes": {"view": True, "edit": False},
             "ai_chat": {"view": True},
-            "venus_ads": {"view": True, "edit": False},
+            "ads": {"view": True, "edit": False},
             "photo_tracking": {"view": True, "edit": False}
         }
     }
@@ -70,6 +70,6 @@ MODULE_DEFINITIONS = [
     {"key": "calendar", "label": "Takvim", "icon": "CalendarDays", "actions": ["view", "edit"]},
     {"key": "notes", "label": "Notlar", "icon": "NotebookPen", "actions": ["view", "edit"]},
     {"key": "ai_chat", "label": "AI Sohbet", "icon": "Bot", "actions": ["view"]},
-    {"key": "venus_ads", "label": "Reklam Paneli", "icon": "Megaphone", "actions": ["view", "edit"]},
+    {"key": "ads", "label": "Reklam Paneli", "icon": "Megaphone", "actions": ["view", "edit"]},
     {"key": "photo_tracking", "label": "Fotoğraf Takip", "icon": "Camera", "actions": ["view", "edit"]},
 ]

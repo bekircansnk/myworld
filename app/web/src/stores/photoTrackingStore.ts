@@ -44,7 +44,7 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
       if (month) params.append('month', month.toString());
       if (year) params.append('year', year.toString());
       
-      const res = await api.get(`/api/venus/photo-tracking/models?${params.toString()}`);
+      const res = await api.get(`/api/ads/photo-tracking/models?${params.toString()}`);
       set({ models: res.data, isLoadingModels: false });
     } catch (e) {
       console.error(e);
@@ -53,7 +53,7 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
   },
   
   createModel: async (data) => {
-    const res = await api.post('/api/venus/photo-tracking/models', data);
+    const res = await api.post('/api/ads/photo-tracking/models', data);
     set(state => ({ models: [res.data, ...state.models] }));
     return res.data;
   },
@@ -64,7 +64,7 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
       models: state.models.map(m => m.id === id ? { ...m, ...data } : m)
     }));
     try {
-      const res = await api.put(`/api/venus/photo-tracking/models/${id}`, data);
+      const res = await api.put(`/api/ads/photo-tracking/models/${id}`, data);
       // API başarılıysa sunucu verisiyle güncelle
       set(state => ({
         models: state.models.map(m => m.id === id ? res.data : m)
@@ -78,7 +78,7 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
   },
   
   deleteModel: async (id) => {
-    await api.delete(`/api/venus/photo-tracking/models/${id}`);
+    await api.delete(`/api/ads/photo-tracking/models/${id}`);
     set(state => ({
       models: state.models.filter(m => m.id !== id)
     }));
@@ -92,7 +92,7 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
     }
     
     try {
-      const res = await api.post(`/api/venus/photo-tracking/models/${modelId}/colors`, data);
+      const res = await api.post(`/api/ads/photo-tracking/models/${modelId}/colors`, data);
       const color = res.data;
       set(state => ({
         models: state.models.map(m => {
@@ -131,7 +131,7 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
     }));
     
     try {
-      const res = await api.put(`/api/venus/photo-tracking/colors/${id}`, data);
+      const res = await api.put(`/api/ads/photo-tracking/colors/${id}`, data);
       const color = res.data;
       set(state => ({
         models: state.models.map(m => {
@@ -151,7 +151,7 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
   },
   
   deleteColor: async (modelId, colorId) => {
-    await api.delete(`/api/venus/photo-tracking/colors/${colorId}`);
+    await api.delete(`/api/ads/photo-tracking/colors/${colorId}`);
     set(state => ({
       models: state.models.map(m => {
         if (m.id === modelId) {
@@ -165,7 +165,7 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
   },
   
   addRevision: async (modelId, data) => {
-    const res = await api.post(`/api/venus/photo-tracking/models/${modelId}/revisions`, data);
+    const res = await api.post(`/api/ads/photo-tracking/models/${modelId}/revisions`, data);
     const revision = res.data;
     set(state => ({
       models: state.models.map(m => {
@@ -188,7 +188,7 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
       if (month) params.append('month', month.toString());
       if (year) params.append('year', year.toString());
       
-      const res = await api.get(`/api/venus/photo-tracking/overview?${params.toString()}`);
+      const res = await api.get(`/api/ads/photo-tracking/overview?${params.toString()}`);
       set({ overviewStats: res.data, isLoadingOverview: false });
     } catch (e) {
       console.error(e);
@@ -208,7 +208,7 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
       if (month) formData.append('month', month.toString());
       if (year) formData.append('year', year.toString());
       
-      const res = await api.post('/api/venus/photo-tracking/import-excel', formData, {
+      const res = await api.post('/api/ads/photo-tracking/import-excel', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       set(state => ({ 
@@ -234,7 +234,7 @@ export const usePhotoTrackingStore = create<PhotoTrackingState>((set, get) => ({
       if (month) params.append('month', month.toString());
       if (year) params.append('year', year.toString());
       
-      const response = await api.get(`/api/venus/photo-tracking/export-excel?${params.toString()}`, {
+      const response = await api.get(`/api/ads/photo-tracking/export-excel?${params.toString()}`, {
         responseType: 'blob',
       });
       

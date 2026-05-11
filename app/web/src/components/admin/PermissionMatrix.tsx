@@ -7,7 +7,7 @@ const MODULES = [
   { key: 'calendar', label: 'Takvim' },
   { key: 'notes', label: 'Notlar' },
   { key: 'ai_chat', label: 'AI Sohbet' },
-  { key: 'venus_ads', label: 'Reklam' },
+  { key: 'ads', label: 'Reklam' },
   { key: 'photo_tracking', label: 'Foto. Takip' },
 ]
 

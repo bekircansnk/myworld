@@ -18,7 +18,7 @@ import { TopNavbar } from "@/components/layout/TopNavbar"
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav"
 import { useAuthStore } from "@/store/authStore"
 import { LoginOverlay } from "@/components/auth/LoginOverlay"
-import { VenusAdsLayout } from "@/components/venus-ads/VenusAdsLayout"
+import { AdsLayout } from "@/components/ads-panel/AdsLayout"
 import { PhotoTrackingLayout } from "@/components/photo-tracking/PhotoTrackingLayout"
 import { OfflineBanner } from "@/components/ui/OfflineBanner"
 import { AdminPanel } from "@/components/admin/AdminPanel"
@@ -85,7 +85,7 @@ export default function DashboardPage() {
   } else if (viewMode === 'ai_chat') {
     pageTitle = "AI Sohbet"
     pageDescription = "Akıllı asistanınızla konuşun, görev ve plan oluşturun."
-  } else if (viewMode === 'venus_ads') {
+  } else if (viewMode === 'ads') {
     pageTitle = currentProject ? `${currentProject.name} Reklam Paneli` : "Reklam Paneli"
     pageDescription = "Reklam operasyonlarını ve analizlerini yönetin."
   } else if (viewMode === 'project' && currentProject) {
@@ -102,7 +102,7 @@ export default function DashboardPage() {
   const isDashboard = viewMode === 'dashboard'
   const isCalendar = viewMode === 'calendar'
   const isAIChat = viewMode === 'ai_chat'
-  const isVenusAds = viewMode === 'venus_ads'
+  const isReklamAds = viewMode === 'ads'
   const isPhotoTracking = viewMode === 'photo_tracking'
   const isAdminPanel = viewMode === 'admin'
   
@@ -110,7 +110,7 @@ export default function DashboardPage() {
   const { canView, isAdmin } = require("@/store/authStore")
   
   // İzinsiz sayfaya geçiş engelleme (Fallback)
-  if (isVenusAds && !canView(user, 'venus_ads')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
+  if (isReklamAds && !canView(user, 'ads')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
   if (isCalendar && !canView(user, 'calendar')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
   if (isAIChat && !canView(user, 'ai_chat')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
   if (isPhotoTracking && !canView(user, 'photo_tracking')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
@@ -137,8 +137,8 @@ export default function DashboardPage() {
         <div className="flex-1 overflow-hidden p-3 md:p-5 lg:p-8 mobile-content-area">
           <AIChatDashboard />
         </div>
-      ) : isVenusAds ? (
-        <VenusAdsLayout projectId={selectedProjectId} />
+      ) : isReklamAds ? (
+        <AdsLayout projectId={selectedProjectId} />
       ) : isPhotoTracking ? (
         <PhotoTrackingLayout projectId={selectedProjectId} />
       ) : (

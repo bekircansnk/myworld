@@ -37,7 +37,7 @@ export function MobileBottomNav() {
   // Kalanlar ve ekstra modüller "Daha Fazla" menüsünde
   const moreTabs = [
     ...allMainTabs.slice(5),
-    ...(canView(user, 'venus_ads') ? [{ id: 'venus_ads', label: 'Reklam', icon: Megaphone }] : []),
+    ...(canView(user, 'ads') ? [{ id: 'ads', label: 'Reklam', icon: Megaphone }] : []),
     ...(canView(user, 'photo_tracking') ? [{ id: 'photo_tracking', label: 'Fotoğraf', icon: Camera }] : []),
     ...(isAdmin(user) ? [{ id: 'admin', label: 'Yönetim', icon: ShieldAlert }] : [])
   ]

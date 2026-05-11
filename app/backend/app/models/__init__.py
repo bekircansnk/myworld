@@ -13,5 +13,5 @@ from app.models.chat_session import ChatSession
 from app.models.activity_log import ActivityLog
 from app.models.user_company_access import UserCompanyAccess
 
-# Venus Ads Panel Models
-from app.models.venus import *
+# Ads Panel Panel Models
+from app.models.ads import *
