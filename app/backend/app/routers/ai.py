@@ -128,7 +128,7 @@ async def chat_with_ai(
             debug_info["new_session_created"] = session_id
         
         # 1. Bağlam Oluştur
-        raw_context = await build_system_context(db, MOCK_USER_ID)
+        raw_context = await build_system_context(db, MOCK_USER_ID, request.project_id)
         
         # Aktif Proje Bilgisi
         active_project_name = "Tüm Firmalar (Genel)"

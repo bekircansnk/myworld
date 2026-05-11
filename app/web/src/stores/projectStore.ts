@@ -130,7 +130,6 @@ export const useProjectStore = create<ProjectState>()(
       storage: createJSONStorage(() => idbStorage),
       partialize: (state) => ({
         projects: state.projects,
-        viewMode: state.viewMode,
         selectedProjectId: state.selectedProjectId,
       }),
       onRehydrateStorage: () => (state) => {

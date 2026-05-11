@@ -42,12 +42,23 @@ export function ProjectForm({ customTrigger, open: controlledOpen, onOpenChange,
     if (!formData.name.trim()) return
 
     setLoading(true)
-    await addProject({
-      name: formData.name,
-      color: formData.color
-    })
-    setLoading(false)
-    handleOpenChange(false)
+    try {
+      await addProject({
+        name: formData.name,
+        color: formData.color
+      })
+      const error = useProjectStore.getState().error
+      if (error) {
+        alert("Firma eklenemedi: " + error)
+      } else {
+        setFormData({ name: "", color: "#3b82f6" })
+        handleOpenChange(false)
+      }
+    } catch (e: any) {
+      alert("Firma eklenemedi: " + e.message)
+    } finally {
+      setLoading(false)
+    }
     setFormData({ name: "", color: "#3b82f6" })
   }
 

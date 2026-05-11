@@ -129,6 +129,27 @@ async def delete_project(
     for access in access_result.scalars().all():
         await db.delete(access)
         
+    from app.models.task import Task
+    from app.models.note import Note
+    from app.models.calendar_event import CalendarEvent
+    from app.models.chat_session import ChatSession
+    from app.models.chat_message import ChatMessage
+    from sqlalchemy import delete
+    
+    # İlgili tüm verileri sil
+    # 1. Görevler
+    await db.execute(delete(Task).where(Task.project_id == project_id))
+    # 2. Notlar
+    await db.execute(delete(Note).where(Note.project_id == project_id))
+    # 3. Takvim
+    await db.execute(delete(CalendarEvent).where(CalendarEvent.project_id == project_id))
+    # 4. Chat session ve mesajlar
+    sessions_result = await db.execute(select(ChatSession).where(ChatSession.project_id == project_id))
+    session_ids = [s.id for s in sessions_result.scalars().all()]
+    if session_ids:
+        await db.execute(delete(ChatMessage).where(ChatMessage.session_id.in_(session_ids)))
+        await db.execute(delete(ChatSession).where(ChatSession.project_id == project_id))
+        
     await db.delete(db_project)
     await db.commit()
-    return {"status": "ok", "message": "Project deleted successfully"}
+    return {"status": "ok", "message": "Project and all related data deleted successfully"}

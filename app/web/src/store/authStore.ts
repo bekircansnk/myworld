@@ -27,7 +27,6 @@ export interface User {
 export const canViewCompany = (user: User | null, module: string, projectId?: number | null): boolean => {
   if (!user) return false;
   if (user.role === 'super_admin') return true;
-  if (user.role === 'admin') return true;
   
   // Firma seçilmişse firma bazlı kontrol
   if (projectId && user.company_accesses && user.company_accesses.length > 0) {
@@ -44,7 +43,6 @@ export const canViewCompany = (user: User | null, module: string, projectId?: nu
 export const canEditCompany = (user: User | null, module: string, projectId?: number | null): boolean => {
   if (!user) return false;
   if (user.role === 'super_admin') return true;
-  if (user.role === 'admin') return true;
   
   // Firma seçilmişse firma bazlı kontrol
   if (projectId && user.company_accesses && user.company_accesses.length > 0) {

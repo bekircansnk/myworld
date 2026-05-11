@@ -11,23 +11,27 @@ from app.models.chat_session import ChatSession
 from app.services.location_service import utc_to_local, get_current_time_for_user, get_user_timezone
 from app.services.prayer_times_service import get_prayer_times
 
-async def build_system_context(db: AsyncSession, user_id: int) -> str:
+async def build_system_context(db: AsyncSession, user_id: int, project_id: int = None) -> str:
     """
     Kullanıcının aktif proje, görev ve notlarını veritabanından çekip
     LLM prompuna yedirilecek tek bir string (bağlam/context) haline getirir.
-    Tüm görevler dahil edilir: aktif, tamamlanmış, alt görevler.
+    Eğer project_id verilmişse sadece o firmanın verilerini getirir.
     """
     # Projeler
-    proj_result = await db.execute(
-        select(Project).filter(Project.user_id == user_id, Project.is_active == True)
-    )
+    proj_query = select(Project).filter(Project.user_id == user_id, Project.is_active == True)
+    if project_id:
+        proj_query = proj_query.filter(Project.id == project_id)
+        
+    proj_result = await db.execute(proj_query)
     projects = proj_result.scalars().all()
     project_map = {p.id: p.name for p in projects}
     
     # TÜM görevler (tamamlanmış dahil — AI tam resmi görsün)
-    all_tasks_result = await db.execute(
-        select(Task).filter(Task.user_id == user_id, (Task.is_deleted == False) | (Task.is_deleted == None)).order_by(Task.created_at.desc())
-    )
+    tasks_query = select(Task).filter(Task.user_id == user_id, (Task.is_deleted == False) | (Task.is_deleted == None))
+    if project_id:
+        tasks_query = tasks_query.filter(Task.project_id == project_id)
+    
+    all_tasks_result = await db.execute(tasks_query.order_by(Task.created_at.desc()))
     all_tasks = all_tasks_result.scalars().all()
     
     # Görevleri kategorize et
@@ -36,9 +40,11 @@ async def build_system_context(db: AsyncSession, user_id: int) -> str:
     subtasks = [t for t in all_tasks if t.parent_task_id]
     
     # Notlar
-    note_result = await db.execute(
-        select(Note).filter(Note.user_id == user_id, (Note.is_deleted == False) | (Note.is_deleted == None)).order_by(Note.created_at.desc()).limit(15)
-    )
+    note_query = select(Note).filter(Note.user_id == user_id, (Note.is_deleted == False) | (Note.is_deleted == None))
+    if project_id:
+        note_query = note_query.filter(Note.project_id == project_id)
+        
+    note_result = await db.execute(note_query.order_by(Note.created_at.desc()).limit(15))
     notes = note_result.scalars().all()
     
     # İstatistikler
@@ -54,10 +60,13 @@ async def build_system_context(db: AsyncSession, user_id: int) -> str:
     local_time = get_current_time_for_user(user)
     
     # Son Sohbet Geçmişi
-    sessions_res = await db.execute(
-        select(ChatSession).filter(ChatSession.user_id == user_id, ChatSession.is_active == True)
-        .order_by(ChatSession.updated_at.desc()).limit(3)
-    )
+    sessions_query = select(ChatSession).filter(ChatSession.user_id == user_id, ChatSession.is_active == True)
+    if project_id:
+        sessions_query = sessions_query.filter(ChatSession.project_id == project_id)
+    else:
+        sessions_query = sessions_query.filter(ChatSession.project_id == None)
+        
+    sessions_res = await db.execute(sessions_query.order_by(ChatSession.updated_at.desc()).limit(3))
     last_sessions = sessions_res.scalars().all()
     
     # Ezan Vakitleri
@@ -93,14 +102,16 @@ async def build_system_context(db: AsyncSession, user_id: int) -> str:
     period_start = today_start - timedelta(days=7)
     period_end = today_start + timedelta(days=2)
     
-    event_result = await db.execute(
-        select(CalendarEvent)
-        .filter(CalendarEvent.user_id == user_id,
-                (CalendarEvent.is_deleted == False) | (CalendarEvent.is_deleted == None),
-                CalendarEvent.start_time >= period_start,
-                CalendarEvent.start_time <= period_end)
-        .order_by(CalendarEvent.start_time)
+    event_query = select(CalendarEvent).filter(
+        CalendarEvent.user_id == user_id,
+        (CalendarEvent.is_deleted == False) | (CalendarEvent.is_deleted == None),
+        CalendarEvent.start_time >= period_start,
+        CalendarEvent.start_time <= period_end
     )
+    if project_id:
+        event_query = event_query.filter(CalendarEvent.project_id == project_id)
+        
+    event_result = await db.execute(event_query.order_by(CalendarEvent.start_time))
     events = event_result.scalars().all()
     
     context += "=== TAKVİM ETKİNLİKLERİ (SON 7 GÜN + BUGÜN + YARIN) ===\n"
