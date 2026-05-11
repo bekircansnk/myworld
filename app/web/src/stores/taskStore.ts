@@ -69,7 +69,12 @@ export const useTaskStore = create<TaskState>()(
           tasks: [tempTask, ...state.tasks],
         }));
         try {
-          const response = await api.post('/api/tasks', data);
+          // project_id'yi hem URL query param hem body'de gönder - backend izin kontrolü için
+          let url = '/api/tasks';
+          if (data.project_id) {
+            url += `?project_id=${data.project_id}`;
+          }
+          const response = await api.post(url, data);
           set((state) => ({
             tasks: state.tasks.map((t) => (t.id === tempId ? response.data : t)),
           }));
@@ -77,10 +82,13 @@ export const useTaskStore = create<TaskState>()(
           if (error.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
             enqueue('POST', '/api/tasks', data);
           } else {
+            // Hata durumunda geçici görevi kaldır, asla ekranda kalmamasın
             set((state) => ({
               tasks: state.tasks.filter((t) => t.id !== tempId),
-              error: error.message
+              error: error.response?.data?.detail || error.message
             }));
+            // Güncel veriyi yenile
+            get().fetchTasks(data.project_id as number | undefined);
           }
         }
       },

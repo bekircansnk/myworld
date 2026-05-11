@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, Query
+from fastapi import Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from typing import Optional
@@ -61,6 +61,7 @@ def require_permission(module: str, action: str = "view"):
 def require_company_permission(module: str, action: str = "view"):
     """Firma bazlı izin kontrolü — router dependency olarak kullanılır"""
     async def checker(
+        request: Request,
         project_id: Optional[int] = Query(None),
         current_user: User = Depends(get_current_user),
         db: AsyncSession = Depends(get_db)
@@ -68,9 +69,18 @@ def require_company_permission(module: str, action: str = "view"):
         # Super admin her şeye erişir
         if current_user.role == "super_admin":
             return current_user
-        
+
+        # project_id query param'da yoksa body'den almayı dene
+        effective_project_id = project_id
+        if not effective_project_id:
+            try:
+                body = await request.json()
+                effective_project_id = body.get("project_id")
+            except Exception:
+                pass
+
         # project_id yoksa global izin kontrolü yap
-        if not project_id:
+        if not effective_project_id:
             if current_user.role == "admin":
                 return current_user
             perm = (current_user.permissions or {}).get(module, {})
@@ -80,20 +90,20 @@ def require_company_permission(module: str, action: str = "view"):
                     detail=f"{module} modülüne {action} erişiminiz yok"
                 )
             return current_user
-        
+
         # Firma bazlı izin kontrolü
-        access = await get_user_company_access(db, current_user.id, project_id)
+        access = await get_user_company_access(db, current_user.id, effective_project_id)
         if not access:
             raise HTTPException(status_code=403, detail="Bu firmaya erişiminiz yok")
-        
+
         # Firma sahibi tam yetkili
         if access.is_owner:
             return current_user
-        
+
         # Admin rolü firma bazlı da tam yetki
         if current_user.role == "admin":
             return current_user
-        
+
         # Firma bazlı modül izinlerini kontrol et
         perm = (access.permissions or {}).get(module, {})
         if not perm.get(action, False):
