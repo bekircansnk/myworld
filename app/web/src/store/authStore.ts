@@ -27,6 +27,10 @@ export interface User {
 // Firma bazlı izin kontrolü - belirli bir firma için modül izni var mı?
 export const canViewCompany = (user: User | null, module: string, projectId?: number | null): boolean => {
   if (!user) return false;
+  
+  // YENİ MANTIK: Dashboard HER ZAMAN AÇIKTIR.
+  if (module === 'dashboard') return true;
+  
   if (user.role === 'super_admin') return true;
   
   // Firma seçilmişse firma bazlı kontrol
