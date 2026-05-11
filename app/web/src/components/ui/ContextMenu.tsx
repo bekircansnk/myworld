@@ -53,18 +53,29 @@ export function ContextMenuProvider() {
   }, [menu]);
 
   // Ekran sınırları hesapla
-  const [adjustedPos, setAdjustedPos] = React.useState({ x: 0, y: 0 });
+  const [adjustedPos, setAdjustedPos] = React.useState<{ x: number, y: number, ready: boolean }>({ x: 0, y: 0, ready: false });
+  
   React.useEffect(() => {
-    if (!menu || !menuRef.current) {
-      setAdjustedPos({ x: menu?.x ?? 0, y: menu?.y ?? 0 });
+    if (!menu) {
+      setAdjustedPos({ x: 0, y: 0, ready: false });
       return;
     }
+    
+    // İlk render'da mouse koordinatlarını kullan, hazır değiliz ama en azından 0,0 değiliz
+    if (!menuRef.current) {
+      setAdjustedPos({ x: menu.x, y: menu.y, ready: true });
+      return;
+    }
+
     const rect = menuRef.current.getBoundingClientRect();
     let x = menu.x;
     let y = menu.y;
+    
+    // Ekran dışına taşma kontrolü
     if (x + rect.width > window.innerWidth) x = window.innerWidth - rect.width - 8;
     if (y + rect.height > window.innerHeight) y = window.innerHeight - rect.height - 8;
-    setAdjustedPos({ x, y });
+    
+    setAdjustedPos({ x, y, ready: true });
   }, [menu]);
 
   if (!menu || typeof document === 'undefined') return null;
@@ -73,10 +84,10 @@ export function ContextMenuProvider() {
     <div className="fixed inset-0 z-[999998]" style={{ pointerEvents: 'none' }}>
       <div
         ref={menuRef}
-        className="absolute min-w-[180px] bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200/80 dark:border-white/10 py-1.5 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className={`absolute min-w-[180px] bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200/80 dark:border-white/10 py-1.5 overflow-hidden animate-in fade-in zoom-in-95 duration-100 ${!adjustedPos.ready ? 'opacity-0' : ''}`}
         style={{
-          left: adjustedPos.x,
-          top: adjustedPos.y,
+          left: adjustedPos.ready ? adjustedPos.x : menu.x,
+          top: adjustedPos.ready ? adjustedPos.y : menu.y,
           pointerEvents: 'auto',
         }}
         onMouseDown={(e) => e.stopPropagation()}
