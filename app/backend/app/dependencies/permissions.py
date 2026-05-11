@@ -87,10 +87,6 @@ def require_company_permission(module: str, action: str = "view"):
         current_user: User = Depends(get_current_user),
         db: AsyncSession = Depends(get_db)
     ):
-        # 1. Super admin her şeye erişir
-        if current_user.role == "super_admin":
-            return current_user
-
         effective_project_id = project_id
         
         # 2. Body'den almayı dene (POST/PUT istekleri için)
@@ -146,7 +142,10 @@ def require_company_permission(module: str, action: str = "view"):
             except (ValueError, TypeError):
                 effective_project_id = None
 
-        # project_id yoksa: Global izin kontrolü
+        # Super admin her şeye erişir (proje context'ini state'e yazdıktan sonra early return)
+        if current_user.role == "super_admin":
+            return current_user
+
         # project_id yoksa: Global izin kontrolü
         if not effective_project_id:
             # OKUMA (LISTELEME) izni: Kullanıcı login ise ve ID yoksa kendi kayıtlarını listelemesine izin ver
