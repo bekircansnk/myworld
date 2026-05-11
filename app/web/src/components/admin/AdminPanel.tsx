@@ -163,7 +163,7 @@ export function AdminPanel() {
         {/* PERMISSIONS TAB */}
         {activeTab === 'permissions' && (
            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm overflow-hidden p-6">
-              <PermissionMatrix users={users} onUpdateUser={(id, perms) => useAdminStore.getState().updatePermissions(id, perms)} />
+              <PermissionMatrix users={users} onUpdateUser={(id: number, perms: any) => useAdminStore.getState().updatePermissions(id, perms)} />
            </div>
         )}
         
