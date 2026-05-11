@@ -363,6 +363,80 @@ export function UserPermissionsPanel({
           </div>
         )
       })}
+
+      {/* TÜM FİRMALARIN YÖNETİMİ ALANI */}
+      {isSuperAdmin && (
+        <div className="mt-12 space-y-4 border-t-2 border-slate-100 dark:border-white/5 pt-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-black text-brand-dark dark:text-white flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-indigo-500" />
+                Firma Yönetimi
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">Sistemdeki tüm firmaları görüntüleyin, düzenleyin ve silin.</p>
+            </div>
+            <button
+              onClick={async () => {
+                const name = prompt("Yeni firma adı:")
+                if (name) {
+                  await useProjectStore.getState().addProject({ name, color: "#6366f1" })
+                  alert("Firma eklendi.")
+                }
+              }}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-500/30 transition-all flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" /> Yeni Firma
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {allProjects.map(project => (
+              <div key={project.id} className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 p-4 transition-all hover:border-indigo-200 dark:hover:border-indigo-500/30 flex items-center justify-between group">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: project.color || '#6366f1' }} />
+                  <div>
+                    <h4 className="text-sm font-bold text-brand-dark dark:text-white">{project.name}</h4>
+                    <p className="text-[10px] text-slate-400">ID: {project.id}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    onClick={async () => {
+                      const newName = prompt("Yeni firma adını girin:", project.name)
+                      if (newName && newName !== project.name) {
+                        await useProjectStore.getState().updateProject(project.id, { name: newName })
+                      }
+                      
+                      const newColor = prompt("Yeni renk kodunu girin (HEX):", project.color || "#6366f1")
+                      if (newColor && newColor !== project.color) {
+                        await useProjectStore.getState().updateProject(project.id, { color: newColor })
+                      }
+                    }}
+                    className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    <Pencil className="w-4 h-4 text-slate-400" />
+                  </button>
+                  <button 
+                    onClick={async () => {
+                      if (confirm(`"${project.name}" firmasını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`)) {
+                        await useProjectStore.getState().deleteProject(project.id)
+                      }
+                    }}
+                    className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4 text-rose-400" />
+                  </button>
+                </div>
+              </div>
+            ))}
+            {allProjects.length === 0 && (
+              <div className="col-span-full text-center py-6 text-slate-400 text-sm">
+                Sistemde hiç firma bulunmuyor.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
