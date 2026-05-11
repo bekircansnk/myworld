@@ -27,40 +27,37 @@ export interface User {
 export const canViewCompany = (user: User | null, module: string, projectId?: number | null): boolean => {
   if (!user) return false;
   if (user.role === 'super_admin') return true;
+  if (user.role === 'admin') return true;
   
   // Firma seçilmişse firma bazlı kontrol
-  if (projectId && user.company_accesses) {
+  if (projectId && user.company_accesses && user.company_accesses.length > 0) {
     const access = user.company_accesses.find(a => a.project_id === projectId);
     if (!access) return false;
     if (access.is_owner) return true;
-    if (user.role === 'admin') return true;
     return access.permissions?.[module]?.view ?? false;
   }
   
-  // Global fallback
-  if (user.role === 'admin') return true;
+  // company_accesses henüz yüklenmediyse → persist'ten gelen eski user.permissions ile kontrol et
   return user.permissions?.[module]?.view ?? false;
 };
 
 export const canEditCompany = (user: User | null, module: string, projectId?: number | null): boolean => {
   if (!user) return false;
   if (user.role === 'super_admin') return true;
+  if (user.role === 'admin') return true;
   
   // Firma seçilmişse firma bazlı kontrol
-  if (projectId && user.company_accesses) {
+  if (projectId && user.company_accesses && user.company_accesses.length > 0) {
     const access = user.company_accesses.find(a => a.project_id === projectId);
     if (!access) return false;
     if (access.is_owner) return true;
-    if (user.role === 'admin') return true;
     return access.permissions?.[module]?.edit ?? false;
   }
   
-  // Global fallback
-  if (user.role === 'admin') return true;
   return user.permissions?.[module]?.edit ?? false;
 };
 
-// Eski uyumlu fonksiyonlar (geriye uyumluluk)
+// Eski uyumlu fonksiyonlar
 export const canView = (user: User | null, module: string): boolean => {
   return canViewCompany(user, module);
 };
@@ -95,7 +92,6 @@ export const useAuthStore = create<AuthState>()(
       _hasHydrated: false,
       
       login: (token, user) => {
-        // localStorage'a da yaz (api.ts interceptor uyumluluğu için)
         if (typeof window !== 'undefined') {
           localStorage.setItem('token', token);
         }
@@ -111,7 +107,6 @@ export const useAuthStore = create<AuthState>()(
       
       checkAuth: async () => {
         const { token } = get();
-        // localStorage'dan da kontrol et (geriye uyumluluk)
         const localToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
         const activeToken = token || localToken;
         
@@ -120,7 +115,6 @@ export const useAuthStore = create<AuthState>()(
           return;
         }
 
-        // Token varsa localStorage ile eşitle
         if (activeToken && typeof window !== 'undefined') {
           localStorage.setItem('token', activeToken);
         }
@@ -130,13 +124,11 @@ export const useAuthStore = create<AuthState>()(
           // Firma erişim bilgileri /me response'unda geliyor
           set({ user: response.data, isAuthenticated: true, isLoading: false, token: activeToken });
         } catch (error) {
-          // Çevrimdışıysa veya API ulaşılamazsa → çıkış YAPMA
           const { user } = get();
           if (user && activeToken) {
-            // Kayıtlı kullanıcı var → çevrimdışı modda devam
+            // Çevrimdışı — kayıtlı verilerle devam
             set({ isAuthenticated: true, isLoading: false, token: activeToken });
           } else {
-            // Hiç kullanıcı bilgisi yok → giriş ekranı göster
             set({ isAuthenticated: false, isLoading: false });
           }
         }
@@ -159,11 +151,9 @@ export const useAuthStore = create<AuthState>()(
       onRehydrateStorage: () => (state) => {
         if (state) {
           state._hasHydrated = true;
-          // Hydrate olduktan sonra kayıtlı token + user varsa anında authenticated yap
           if (state.token && state.user) {
             state.isAuthenticated = true;
             state.isLoading = false;
-            // localStorage ile eşitle
             if (typeof window !== 'undefined') {
               localStorage.setItem('token', state.token);
             }

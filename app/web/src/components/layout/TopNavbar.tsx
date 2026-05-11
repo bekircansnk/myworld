@@ -58,6 +58,7 @@ export function TopNavbar() {
 
   // PWA Install Prompt
   const [deferredPrompt, setDeferredPrompt] = React.useState<any>(null)
+  const [showInstallBtn, setShowInstallBtn] = React.useState(true)
 
   React.useEffect(() => {
     const handler = (e: any) => {
@@ -65,7 +66,9 @@ export function TopNavbar() {
       setDeferredPrompt(e)
     }
     window.addEventListener('beforeinstallprompt', handler)
-    return () => window.removeEventListener('beforeinstallprompt', handler)
+    // 5 dakika sonra install butonunu gizle
+    const hideTimer = setTimeout(() => setShowInstallBtn(false), 5 * 60 * 1000)
+    return () => { window.removeEventListener('beforeinstallprompt', handler); clearTimeout(hideTimer) }
   }, [])
 
   const handleInstallApp = async () => {
@@ -270,7 +273,7 @@ export function TopNavbar() {
         {/* Sağ: Aksiyonlar */}
         <div className="flex items-center gap-1 md:gap-2 shrink-0">
           {/* PWA Yükleme Butonu */}
-          {deferredPrompt && (
+          {deferredPrompt && showInstallBtn && (
             <button
               onClick={handleInstallApp}
               className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all animate-pulse hover:animate-none mr-1"
@@ -278,7 +281,7 @@ export function TopNavbar() {
               Uygulamayı Yükle
             </button>
           )}
-          {deferredPrompt && (
+          {deferredPrompt && showInstallBtn && (
             <button
               onClick={handleInstallApp}
               className="sm:hidden flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all animate-pulse hover:animate-none"

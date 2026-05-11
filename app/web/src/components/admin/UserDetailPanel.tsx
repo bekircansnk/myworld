@@ -4,7 +4,7 @@ import { X, Save, Key, UserCheck, UserX } from "lucide-react"
 
 export function UserDetailPanel({ user, onClose, onUpdate }: any) {
   const [formData, setFormData] = React.useState({
-     name: '', username: '', email: '', role: '', is_active: true, password: ''
+     name: '', username: '', email: '', is_active: true, password: ''
   })
   const [loading, setLoading] = React.useState(false)
 
@@ -14,9 +14,8 @@ export function UserDetailPanel({ user, onClose, onUpdate }: any) {
            name: user.name,
            username: user.username,
            email: user.email || '',
-           role: user.role,
            is_active: user.is_active,
-           password: '' // Şifre boş gelir, sadece değişirse gönderilir
+           password: ''
         })
      }
   }, [user])
@@ -28,7 +27,7 @@ export function UserDetailPanel({ user, onClose, onUpdate }: any) {
      setLoading(true)
      try {
         const updateData: any = { ...formData }
-        if (!updateData.password) delete updateData.password // Boşsa gönderme
+        if (!updateData.password) delete updateData.password
         
         await onUpdate(user.id, updateData)
         onClose()
@@ -93,19 +92,6 @@ export function UserDetailPanel({ user, onClose, onUpdate }: any) {
                    <div>
                       <label className="text-xs font-bold text-slate-500 mb-1 block">E-Posta</label>
                       <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none" />
-                   </div>
-                </div>
-                
-                <div className="space-y-4">
-                   <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-white/10 pb-2">Yetkilendirme</h3>
-                   <div>
-                      <label className="text-xs font-bold text-slate-500 mb-1 block">Sistem Rolü</label>
-                      <select disabled={user.role === 'super_admin'} value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none disabled:opacity-50 appearance-none">
-                         <option value="viewer">İzleyici</option>
-                         <option value="editor">Editör</option>
-                         <option value="admin">Yönetici</option>
-                         {user.role === 'super_admin' && <option value="super_admin">Süper Admin</option>}
-                      </select>
                    </div>
                 </div>
                 

@@ -34,7 +34,7 @@ export const useProjectStore = create<ProjectState>()(
 
       setSelectedProjectId: (id) => set({ selectedProjectId: id }),
 
-      // ViewMode değiştiğinde firma seçimini KORUYORUZ - artık null yapmıyoruz
+      // ViewMode değiştiğinde firma seçimini KORUYORUZ
       setViewMode: (mode) => set({ viewMode: mode }),
 
       // Firma değişikliği — firma seçilir, mevcut view korunur
@@ -72,6 +72,11 @@ export const useProjectStore = create<ProjectState>()(
             // Yeni firma oluşturulduğunda otomatik seç
             selectedProjectId: response.data.id,
           }));
+          // Firma oluşturulunca company_accesses güncelle
+          try {
+            const { useAuthStore } = await import('@/store/authStore');
+            await useAuthStore.getState().checkAuth();
+          } catch {}
         } catch (error: any) {
           set((state) => ({
             projects: state.projects.filter(p => p.id !== tempId),
@@ -109,6 +114,11 @@ export const useProjectStore = create<ProjectState>()(
         });
         try {
           await api.delete(`/api/projects/${id}`);
+          // Silme sonrası da company_accesses güncelle
+          try {
+            const { useAuthStore } = await import('@/store/authStore');
+            await useAuthStore.getState().checkAuth();
+          } catch {}
         } catch (error: any) {
           set({ error: error.message });
           get().fetchProjects();
