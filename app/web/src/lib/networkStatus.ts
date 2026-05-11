@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
-// Web ve Capacitor ortamı için birleşik bağlantı durumu izleyici
+// Web ortamı için bağlantı durumu izleyici (Capacitor kaldırıldı)
 export function useNetworkStatus() {
   const [isOnline, setIsOnline] = useState(true);
 
@@ -18,28 +18,9 @@ export function useNetworkStatus() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Capacitor Network plugin desteği (native ortamda)
-    let capacitorCleanup: (() => void) | null = null;
-    
-    (async () => {
-      try {
-        const { Network } = await import('@capacitor/network');
-        const status = await Network.getStatus();
-        setIsOnline(status.connected);
-        
-        const listener = await Network.addListener('networkStatusChange', (status) => {
-          setIsOnline(status.connected);
-        });
-        capacitorCleanup = () => listener.remove();
-      } catch {
-        // Capacitor mevcut değilse web eventlarını kullan (zaten dinleniyor)
-      }
-    })();
-
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      if (capacitorCleanup) capacitorCleanup();
     };
   }, []);
 

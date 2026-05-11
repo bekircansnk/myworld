@@ -8,6 +8,7 @@ out
 build
 .env
 .env.local
+.env.production
 
 # Python / Backend
 __pycache__/
@@ -28,8 +29,27 @@ app/backend/uploads/*
 *.db
 *.sqlite3
 *.command
-.env.production
+
+# Büyük dosyalar
+*.apk
+*.zip
+*.ipa
+
+# Geçici dosyalar
+dev.log
+dev.pid
+*.tsbuildinfo
+next-env.d.ts
+
+# Güvenlik — hassas dosyalar
+fix_password.py
+*.pem
+
+# Yedek
 data/backups/
 
-# Android / Capacitor
+# Android / Capacitor kalıntıları
 app/web/android/
+app/web/assets/
+app/web/out/
+capacitor.config.ts
