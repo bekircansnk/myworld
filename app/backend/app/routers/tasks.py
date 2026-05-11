@@ -36,7 +36,19 @@ async def read_tasks(
     if effective_project_id:
         query = select(Task).options(selectinload(Task.project)).where(Task.project_id == effective_project_id, (Task.is_deleted == False) | (Task.is_deleted == None))
     else:
-        query = select(Task).options(selectinload(Task.project)).where(Task.user_id == current_user.id, (Task.is_deleted == False) | (Task.is_deleted == None))
+        from app.models.user_company_access import UserCompanyAccess
+        # Kullanıcının erişebildiği proje ID'lerini al
+        access_query = select(UserCompanyAccess.project_id).where(UserCompanyAccess.user_id == current_user.id)
+        
+        # Filtre: (Kendi görevi VE (Projesiz VEYA Erişim Yetkisi Olan Proje))
+        query = select(Task).options(selectinload(Task.project)).where(
+            Task.user_id == current_user.id,
+            or_(
+                Task.project_id == None,
+                Task.project_id.in_(access_query)
+            ),
+            (Task.is_deleted == False) | (Task.is_deleted == None)
+        )
     
     if status:
         query = query.where(Task.status == status)

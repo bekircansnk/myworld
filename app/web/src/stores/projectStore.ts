@@ -20,6 +20,7 @@ interface ProjectState {
   addProject: (data: Partial<Project>) => Promise<void>;
   updateProject: (id: number, data: Partial<Project>) => Promise<void>;
   deleteProject: (id: number) => Promise<void>;
+  reset: () => void;
 }
 
 export const useProjectStore = create<ProjectState>()(
@@ -124,6 +125,7 @@ export const useProjectStore = create<ProjectState>()(
           get().fetchProjects();
         }
       },
+      reset: () => set({ projects: [], selectedProjectId: null, viewMode: 'dashboard', error: null })
     }),
     {
       name: 'myworld-projects',

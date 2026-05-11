@@ -27,6 +27,7 @@ interface CalendarState {
   deleteEvents: (ids: string[]) => void;
   toggleFilter: (category: string) => void;
   clearFilters: () => void;
+  reset: () => void;
 }
 
 export const useCalendarStore = create<CalendarState>()(
@@ -154,6 +155,13 @@ export const useCalendarStore = create<CalendarState>()(
       })),
 
       clearFilters: () => set({ activeFilters: [] }),
+      reset: () => set({ 
+        events: [], 
+        activeFilters: [], 
+        selectedEvent: null, 
+        selectedDate: null,
+        currentDate: new Date().toISOString() 
+      })
     }),
     {
       name: 'myworld-calendar',

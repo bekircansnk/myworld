@@ -20,6 +20,7 @@ interface TaskState {
   openTaskDetail: (task: Task) => void;
   closeTaskDetail: () => void;
   addSubtask: (parentId: number, taskData: Partial<Task>) => Promise<void>;
+  reset: () => void;
 }
 
 export const useTaskStore = create<TaskState>()(
@@ -201,7 +202,8 @@ export const useTaskStore = create<TaskState>()(
             }));
           }
         }
-      }
+      },
+      reset: () => set({ tasks: [], selectedTask: null, isDetailPanelOpen: false, error: null })
     }),
     {
       name: 'myworld-tasks',

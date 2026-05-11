@@ -113,19 +113,54 @@ export const useAuthStore = create<AuthState>()(
         set({ token, user, isAuthenticated: true, isLoading: false });
       },
       
-      logout: () => {
+      logout: async () => {
         if (typeof window !== 'undefined') {
           localStorage.removeItem('token');
         }
+        
+        // Diğer tüm store'ları temizle (Dynamic Import ile circular dependency önlenir)
+        try {
+          const [{ useTaskStore }, { useProjectStore }, { useNoteStore }, { useCalendarStore }, { useChatStore }] = await Promise.all([
+            import('@/stores/taskStore'),
+            import('@/stores/projectStore'),
+            import('@/stores/noteStore'),
+            import('@/stores/calendarStore'),
+            import('@/stores/chatStore')
+          ]);
+          
+          useTaskStore.getState().reset();
+          useProjectStore.getState().reset();
+          useNoteStore.getState().reset();
+          useCalendarStore.getState().reset();
+          useChatStore.getState().reset();
+        } catch (e) {
+          console.warn('Store cleanup error:', e);
+        }
+
         set({ token: null, user: null, isAuthenticated: false, isLoading: false });
       },
       
       checkAuth: async () => {
-        const { token } = get();
+        const { token, user: oldUser } = get();
         const localToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
         const activeToken = token || localToken;
         
         if (!activeToken) {
+          if (oldUser) {
+            // Token yok ama eski user varsa temizle
+            const [{ useTaskStore }, { useProjectStore }, { useNoteStore }, { useCalendarStore }, { useChatStore }] = await Promise.all([
+              import('@/stores/taskStore'),
+              import('@/stores/projectStore'),
+              import('@/stores/noteStore'),
+              import('@/stores/calendarStore'),
+              import('@/stores/chatStore')
+            ]);
+            useTaskStore.getState().reset();
+            useProjectStore.getState().reset();
+            useNoteStore.getState().reset();
+            useCalendarStore.getState().reset();
+            useChatStore.getState().reset();
+          }
           set({ isAuthenticated: false, isLoading: false, user: null });
           return;
         }
@@ -136,8 +171,25 @@ export const useAuthStore = create<AuthState>()(
 
         try {
           const response = await api.get('/api/auth/me');
-          // Firma erişim bilgileri /me response'unda geliyor
-          set({ user: response.data, isAuthenticated: true, isLoading: false, token: activeToken });
+          const newUser = response.data;
+
+          // Eğer kullanıcı değişmişse (ID bazlı), tüm store'ları resetle
+          if (oldUser && oldUser.id !== newUser.id) {
+             const [{ useTaskStore }, { useProjectStore }, { useNoteStore }, { useCalendarStore }, { useChatStore }] = await Promise.all([
+              import('@/stores/taskStore'),
+              import('@/stores/projectStore'),
+              import('@/stores/noteStore'),
+              import('@/stores/calendarStore'),
+              import('@/stores/chatStore')
+            ]);
+            useTaskStore.getState().reset();
+            useProjectStore.getState().reset();
+            useNoteStore.getState().reset();
+            useCalendarStore.getState().reset();
+            useChatStore.getState().reset();
+          }
+
+          set({ user: newUser, isAuthenticated: true, isLoading: false, token: activeToken });
         } catch (error) {
           const { user } = get();
           if (user && activeToken) {

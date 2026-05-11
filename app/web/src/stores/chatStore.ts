@@ -36,6 +36,7 @@ interface ChatState {
   isSoundEnabled: boolean;
   toggleSound: () => void;
   triggerProactiveMessage: (message: string) => void;
+  reset: () => void;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -218,6 +219,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         error: error.message || "AI servisine ulaşılamadı", 
         isLoading: false 
       });
-    }
+    },
+    reset: () => set({ messages: [], isLoading: false, error: null, inputHint: "", lastAiMessage: null, showBubble: false })
   }
 }));

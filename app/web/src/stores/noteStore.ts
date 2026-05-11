@@ -18,6 +18,7 @@ interface NoteStore {
   openNoteDetail: (note: Note) => void;
   closeNoteDetail: () => void;
   setSelectedNote: (note: Note | null) => void;
+  reset: () => void;
 }
 
 export const useNoteStore = create<NoteStore>()(
@@ -86,6 +87,7 @@ export const useNoteStore = create<NoteStore>()(
         }
         return { selectedNote: note }
       }),
+      reset: () => set({ notes: [], selectedNote: null, isDetailPanelOpen: false })
     }),
     {
       name: 'myworld-notes',
