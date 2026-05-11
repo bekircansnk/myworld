@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, JSON
+from sqlalchemy import Column, Integer, String, JSON, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from app.models.base import Base
 
@@ -9,9 +9,17 @@ class User(Base):
     username = Column(String(50), unique=True, index=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
     name = Column(String, nullable=False)
+    email = Column(String(100), nullable=True)
     avatar_url = Column(String, nullable=True)
-    settings = Column(JSON, default={})
     
+    # RBAC alanları
+    role = Column(String(30), default="viewer")  # super_admin, admin, editor, viewer
+    permissions = Column(JSON, default={})  # Modül bazlı izinler
+    is_active = Column(Boolean, default=True)
+    last_login = Column(DateTime(timezone=True), nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    
+    settings = Column(JSON, default={})
     timezone = Column(String, default="Europe/Istanbul")
     location = Column(JSON, default={"city": "Başakşehir", "district": "Başakşehir", "country": "Türkiye", "timezone": "Europe/Istanbul"})
     
@@ -21,3 +29,6 @@ class User(Base):
     calendar_events = relationship("CalendarEvent")
     chat_sessions = relationship("ChatSession", back_populates="user")
     chat_messages = relationship("ChatMessage", back_populates="user")
+    
+    # Admin tarafından oluşturulan kullanıcılar
+    created_users = relationship("User", backref="creator", remote_side=[id], foreign_keys=[created_by])
