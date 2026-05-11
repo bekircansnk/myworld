@@ -229,7 +229,7 @@ async def login_with_otp(data: LoginWithOTPRequest, request: Request, db: AsyncS
     if not verification:
         raise HTTPException(status_code=400, detail="Hatalı veya kullanılmış kod")
         
-    if verification.expires_at < datetime.utcnow():
+    if verification.expires_at.replace(tzinfo=None) < datetime.utcnow():
         raise HTTPException(status_code=400, detail="Kodun süresi dolmuş. Lütfen yeni kod isteyin.")
         
     # Kod geçerli, giriş yap
@@ -261,7 +261,7 @@ async def verify_email(data: VerifyEmailRequest, db: AsyncSession = Depends(get_
     if not verification:
         raise HTTPException(status_code=400, detail="Geçersiz veya kullanılmış doğrulama linki")
     
-    if verification.expires_at < datetime.utcnow():
+    if verification.expires_at.replace(tzinfo=None) < datetime.utcnow():
         raise HTTPException(status_code=400, detail="Doğrulama linkinin süresi dolmuş. Yeni link isteyin.")
     
     # Kullanıcıyı bul ve doğrula
@@ -373,7 +373,7 @@ async def reset_password_with_token(data: ResetPasswordWithToken, db: AsyncSessi
     if not verification:
         raise HTTPException(status_code=400, detail="Geçersiz veya kullanılmış sıfırlama linki")
     
-    if verification.expires_at < datetime.utcnow():
+    if verification.expires_at.replace(tzinfo=None) < datetime.utcnow():
         raise HTTPException(status_code=400, detail="Sıfırlama linkinin süresi dolmuş. Yeni link isteyin.")
     
     # Kullanıcıyı bul
@@ -409,7 +409,7 @@ async def check_token_validity(token: str, db: AsyncSession = Depends(get_db)):
     if not verification:
         return {"valid": False, "reason": "Geçersiz veya kullanılmış link"}
     
-    if verification.expires_at < datetime.utcnow():
+    if verification.expires_at.replace(tzinfo=None) < datetime.utcnow():
         return {"valid": False, "reason": "Link süresi dolmuş"}
     
     return {"valid": True, "type": verification.token_type}
