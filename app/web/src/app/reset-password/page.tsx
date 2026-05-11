@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowLeft, KeyRound } from 'lucide-react';
 
 function ResetPasswordContent() {
   const searchParams = useSearchParams();
@@ -12,6 +12,9 @@ function ResetPasswordContent() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [status, setStatus] = useState<"form" | "loading" | "success" | "error" | "invalid">("loading");
   const [message, setMessage] = useState("");
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -77,107 +80,164 @@ function ResetPasswordContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0a0f1d] p-4">
-      <div className="w-full max-w-md bg-[#1e293b] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
-        {/* Başlık */}
-        <div className="bg-gradient-to-r from-red-500 to-orange-500 p-6 text-center">
-          <h1 className="text-2xl font-bold text-white">🔑 Şifre Sıfırlama</h1>
-          <p className="text-red-100 text-sm mt-1">Yeni şifrenizi belirleyin</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-[#f4f1e6] dark:bg-[#0f1117] transition-colors duration-500 overflow-y-auto">
+      
+      {/* Animated Background Patterns */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 via-white to-sky-50/50 dark:from-[#080B14] dark:via-[#0F1423] dark:to-[#0A0D18]" />
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-400/10 dark:bg-indigo-600/10 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-screen opacity-70 animate-pulse" style={{ animationDuration: '8s' }} />
+        <div className="absolute bottom-[-200px] left-[-200px] w-[600px] h-[600px] bg-purple-400/10 dark:bg-purple-600/10 blur-[100px] rounded-full mix-blend-multiply dark:mix-blend-screen opacity-60 animate-pulse" style={{ animationDuration: '10s' }} />
+      </div>
 
-        <div className="p-8">
-          {/* Token kontrol edilirken */}
-          {status === "loading" && (
-            <div className="text-center space-y-4">
-              <div className="w-12 h-12 border-4 border-red-500/30 border-t-red-500 rounded-full animate-spin mx-auto" />
-              <p className="text-slate-400 text-sm">İşlem yapılıyor...</p>
+      <div className="relative w-full max-w-[420px] mx-auto p-4 sm:p-0 my-8 z-10">
+        
+        {/* Glass Card */}
+        <div className="bg-white/95 dark:bg-[#111421]/95 border border-slate-200/50 dark:border-white/10 rounded-3xl shadow-2xl backdrop-blur-xl relative overflow-hidden transition-all duration-300">
+          
+          <div className="p-8">
+            
+            {/* Header Section */}
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 mb-4 shadow-inner">
+                <KeyRound className="w-6 h-6" />
+              </div>
+              <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">Şifre Sıfırlama</h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {status === "form" ? "Yeni şifrenizi belirleyin." : 
+                 status === "success" ? "İşlem başarılı." : 
+                 status === "invalid" || status === "error" ? "İşlem başarısız." : "Bağlantı kontrol ediliyor..."}
+              </p>
             </div>
-          )}
 
-          {/* Form */}
-          {status === "form" && (
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1.5 block">Yeni Şifre</label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required
-                  minLength={4}
-                  className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all font-medium"
-                  placeholder="••••••••"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1.5 block">Şifre Tekrar</label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  minLength={4}
-                  className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all font-medium"
-                  placeholder="••••••••"
-                />
-              </div>
-
-              {message && (
-                <div className="text-red-400 text-sm font-medium bg-red-500/10 p-3 rounded-lg border border-red-500/20">
-                  {message}
+            {/* Token kontrol edilirken */}
+            {status === "loading" && (
+              <div className="text-center space-y-6 py-4 animate-in fade-in zoom-in-95">
+                <div className="relative w-16 h-16 mx-auto">
+                  <div className="absolute inset-0 border-4 border-indigo-100 dark:border-indigo-500/20 rounded-full" />
+                  <div className="absolute inset-0 border-4 border-indigo-600 dark:border-indigo-500 rounded-full border-t-transparent animate-spin" />
                 </div>
-              )}
-
-              <button
-                type="submit"
-                className="w-full py-3 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-red-500/25 active:scale-[0.98]"
-              >
-                Şifremi Güncelle
-              </button>
-            </form>
-          )}
-
-          {/* Başarılı */}
-          {status === "success" && (
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
-                <svg className="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+                <p className="text-slate-500 dark:text-slate-400 font-medium">İşlem yapılıyor, lütfen bekleyin...</p>
               </div>
-              <h2 className="text-xl font-bold text-white">Şifre Güncellendi! ✅</h2>
-              <p className="text-slate-400 text-sm">{message}</p>
-              <a
-                href="/"
-                className="inline-block mt-4 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-indigo-500/25"
-              >
-                Giriş Yap
-              </a>
-            </div>
-          )}
+            )}
 
-          {/* Hata / Geçersiz */}
-          {(status === "error" || status === "invalid") && (
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto">
-                <svg className="w-8 h-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-bold text-white">
-                {status === "invalid" ? "Geçersiz Link" : "Hata Oluştu"}
-              </h2>
-              <p className="text-slate-400 text-sm">{message}</p>
-              <div className="flex gap-3 justify-center mt-4">
-                <a
-                  href="/"
-                  className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-medium transition-all text-sm"
+            {/* Form */}
+            {status === "form" && (
+              <form onSubmit={handleSubmit} className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">Yeni Şifre</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Lock className="w-5 h-5 text-slate-400" />
+                    </div>
+                    <input 
+                      type={showPassword ? 'text' : 'password'}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                      minLength={4}
+                      className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-11 pr-12 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all text-base"
+                      placeholder="••••••••"
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">Şifre Tekrar</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Lock className="w-5 h-5 text-slate-400" />
+                    </div>
+                    <input 
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      minLength={4}
+                      className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-11 pr-12 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all text-base"
+                      placeholder="••••••••"
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                {message && (
+                  <div className="animate-in fade-in slide-in-from-top-2 text-red-600 dark:text-red-400 text-sm font-medium bg-red-50 dark:bg-red-500/10 p-3.5 rounded-xl border border-red-100 dark:border-red-500/20 flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                    <p>{message}</p>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="w-full py-3.5 mt-4 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-semibold rounded-xl transition-all shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] flex items-center justify-center gap-2 text-base"
                 >
-                  Ana Sayfa
-                </a>
+                  Şifremi Güncelle
+                </button>
+              </form>
+            )}
+
+            {/* Başarılı */}
+            {status === "success" && (
+              <div className="text-center space-y-6 py-4 animate-in fade-in zoom-in-95 duration-500">
+                <div className="w-20 h-20 bg-emerald-50 dark:bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto border border-emerald-100 dark:border-emerald-500/20 shadow-inner">
+                  <CheckCircle2 className="w-10 h-10 text-emerald-500 dark:text-emerald-400" />
+                </div>
+                
+                <div className="space-y-2">
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">Şifre Güncellendi!</h2>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm max-w-[280px] mx-auto leading-relaxed">{message}</p>
+                </div>
+                
+                <div className="pt-2">
+                  <a
+                    href="/"
+                    className="inline-flex items-center justify-center w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold rounded-xl transition-all hover:bg-slate-800 dark:hover:bg-slate-100 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
+                  >
+                    Giriş Yap
+                  </a>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+
+            {/* Hata / Geçersiz */}
+            {(status === "error" || status === "invalid") && (
+              <div className="text-center space-y-6 py-4 animate-in fade-in zoom-in-95 duration-500">
+                <div className="w-20 h-20 bg-red-50 dark:bg-red-500/10 rounded-full flex items-center justify-center mx-auto border border-red-100 dark:border-red-500/20 shadow-inner">
+                  <AlertCircle className="w-10 h-10 text-red-500 dark:text-red-400" />
+                </div>
+                
+                <div className="space-y-2">
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                    {status === "invalid" ? "Geçersiz Link" : "Hata Oluştu"}
+                  </h2>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm max-w-[280px] mx-auto leading-relaxed">{message}</p>
+                </div>
+                
+                <div className="pt-2">
+                  <a
+                    href="/"
+                    className="inline-flex items-center justify-center w-full py-3.5 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white border border-slate-200 dark:border-white/5 font-semibold rounded-xl transition-all hover:bg-slate-200 dark:hover:bg-white/20 active:scale-[0.98] gap-2"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Ana Sayfaya Dön
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -187,8 +247,8 @@ function ResetPasswordContent() {
 export default function ResetPasswordPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0f1d]">
-        <div className="w-12 h-12 border-4 border-red-500/30 border-t-red-500 rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#f4f1e6] dark:bg-[#0f1117]">
+        <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
       </div>
     }>
       <ResetPasswordContent />
