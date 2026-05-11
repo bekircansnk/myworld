@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd"
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 
 interface KanbanColumn {
   id: 'todo' | 'in_progress' | 'done'
@@ -51,6 +52,7 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
   const inputRef = React.useRef<HTMLInputElement>(null)
   const [mobileActiveColumn, setMobileActiveColumn] = React.useState<string>('todo')
   const containerRef = React.useRef<HTMLDivElement>(null)
+  const [deleteAllColumn, setDeleteAllColumn] = React.useState<string | null>(null)
 
   // Alt görev sayısını hesapla
   const mainTasks = React.useMemo(() => {
@@ -149,8 +151,28 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
     }
   }
 
+  const handleDeleteAllTasks = async () => {
+    if (!deleteAllColumn) return
+    const tasksToDelete = getColumnTasks(deleteAllColumn)
+    const { deleteTask } = useTaskStore.getState()
+    
+    // Alt görevleri ile birlikte sil
+    for (const task of tasksToDelete) {
+       await deleteTask(task.id)
+    }
+    setDeleteAllColumn(null)
+  }
+
   return (
     <div className="flex-1 overflow-x-hidden overflow-y-auto md:overflow-x-auto md:overflow-y-hidden pb-4 kanban-scroll-area">
+      <ConfirmDialog 
+        isOpen={!!deleteAllColumn} 
+        onOpenChange={(open) => !open && setDeleteAllColumn(null)}
+        title="Tüm Görevleri Sil"
+        description="Bu sütundaki tüm görevleri silmek istediğinize emin misiniz? Bu işlem geri alınamaz."
+        confirmText="Tümünü Sil"
+        onConfirm={handleDeleteAllTasks}
+      />
       {/* Mobil sekmeli tab bar */}
       <div className="flex md:hidden scroll-tab-bar mb-3 bg-white/60 dark:bg-white/5 rounded-xl p-1 sticky top-0 z-10 backdrop-blur-sm">
         {COLUMNS.map(col => {
@@ -217,7 +239,7 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
                         <DropdownMenuItem>Tümünü Seç</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>Tümünü Arşivle</DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-500 hover:text-red-600 focus:text-red-600">Tümünü Sil</DropdownMenuItem>
+                        <DropdownMenuItem className="text-red-500 hover:text-red-600 focus:text-red-600" onClick={() => setDeleteAllColumn(column.id)}>Tümünü Sil</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>

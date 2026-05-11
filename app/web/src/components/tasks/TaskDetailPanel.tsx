@@ -14,6 +14,7 @@ import {
   Bot, Activity, CalendarClock, Timer, Target, TrendingUp,
   ChevronRight, ChevronDown, FileText, Paperclip, History, Flag
 } from "lucide-react"
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { format, formatDistanceToNow } from "date-fns"
 import { tr } from "date-fns/locale"
 
@@ -111,6 +112,7 @@ export function TaskDetailPanel() {
   const subtaskInputRef = React.useRef<HTMLInputElement>(null)
   const priorityMenuRef = React.useRef<HTMLDivElement>(null)
   const hasFetchedAI = React.useRef(false)
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false)
 
   // Derived data
   const subtasks = React.useMemo(() => {
@@ -402,6 +404,17 @@ export function TaskDetailPanel() {
 
   return (
     <>
+      <ConfirmDialog 
+        isOpen={isDeleteConfirmOpen} 
+        onOpenChange={setIsDeleteConfirmOpen}
+        title="Görevi Sil"
+        description="Bu görevi silmek istediğinize emin misiniz? Bu işlem geri alınamaz."
+        confirmText="Sil"
+        onConfirm={async () => {
+           await deleteTask(selectedTask.id);
+           closeTaskDetail();
+        }}
+      />
       {/* Fullscreen Overlay */}
       <div
         className="fixed inset-0 z-50 bg-black/50 dark:bg-black/70 backdrop-blur-md animate-in fade-in duration-200"
@@ -498,11 +511,20 @@ export function TaskDetailPanel() {
                 </div>
               </div>
 
-              <button onClick={closeTaskDetail}
-                className="mt-1 p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white/40 dark:hover:text-white transition-all shadow-sm"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex flex-col gap-2 mt-1">
+                <button onClick={closeTaskDetail}
+                  className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white/40 dark:hover:text-white transition-all shadow-sm"
+                  title="Kapat"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                <button onClick={() => setIsDeleteConfirmOpen(true)}
+                  className="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 dark:hover:text-red-300 transition-all shadow-sm"
+                  title="Görevi Sil"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Status + Due Date */}
