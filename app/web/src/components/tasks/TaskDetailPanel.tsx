@@ -411,7 +411,7 @@ export function TaskDetailPanel() {
       {/* Modal Container — BÜYÜTÜLMÜŞ */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-5 pointer-events-none">
         <div
-          className="pointer-events-auto w-full max-w-full md:max-w-[1280px] h-full md:h-[92vh] rounded-none md:rounded-3xl overflow-hidden animate-in zoom-in-95 fade-in duration-300 border-0 md:border border-slate-200/60 dark:border-white/10 shadow-2xl shadow-indigo-500/10 bg-white dark:bg-slate-900 flex flex-col"
+          className="pointer-events-auto w-full max-w-full md:max-w-[1280px] h-[100dvh] md:h-[92vh] rounded-none md:rounded-3xl overflow-hidden animate-in zoom-in-95 fade-in duration-300 border-0 md:border border-slate-200/60 dark:border-white/10 shadow-2xl shadow-indigo-500/10 bg-white dark:bg-slate-900 flex flex-col"
           onClick={e => e.stopPropagation()}
         >
           {/* ============ HEADER ============ */}
@@ -554,7 +554,7 @@ export function TaskDetailPanel() {
           <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
             
             {/* ===== SOL PANEL — BÜYÜK ===== */}
-            <div className="flex-1 flex flex-col overflow-y-auto md:border-r border-slate-200/50 dark:border-white/5">
+            <div className="flex-1 flex flex-col overflow-y-auto md:border-r border-slate-200/50 dark:border-white/5 pb-24 md:pb-0">
               
               {/* AÇIKLAMA */}
               <div className="p-4 md:p-7 border-b border-slate-100 dark:border-white/5">

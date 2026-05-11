@@ -5,7 +5,6 @@ import { Task } from "@/types"
 import { useTaskStore } from "@/stores/taskStore"
 import { Trash2, Calendar, MoreHorizontal, CheckSquare, Palette } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { format, isPast } from "date-fns"
 import { tr } from "date-fns/locale"
@@ -156,12 +155,14 @@ export function TaskCard({ task, subtaskCount = 0, doneSubtaskCount = 0, isProje
         confirmText="Sil"
         onConfirm={() => deleteTask(task.id)}
       />
-    <ContextMenu>
-      <ContextMenuTrigger>
         <div
           className="rounded-lg p-4 cursor-pointer group transition-all duration-200 hover:shadow-md border backdrop-blur-sm"
           style={cardStyle}
           onClick={() => openTaskDetail(task)}
+          onContextMenu={(e) => {
+            // Mobilde uzun basınca tarayıcının varsayılan menüsünü tamamen engelle
+            if(window.innerWidth < 1024) e.preventDefault();
+          }}
         >
           {/* Tags Row — Minimal dot labels */}
           <div className="flex items-start justify-between mb-2">
@@ -279,35 +280,6 @@ export function TaskCard({ task, subtaskCount = 0, doneSubtaskCount = 0, isProje
             </div>
           )}
         </div>
-      </ContextMenuTrigger>
-      
-      <ContextMenuContent className="w-48 text-sm">
-        <ContextMenuItem onClick={() => openTaskDetail(task)}>Düzenle / Görüntüle</ContextMenuItem>
-        <ContextMenuItem>Kopyala</ContextMenuItem>
-        <ContextMenuItem>Arşivle</ContextMenuItem>
-        {isProjectView && (
-          <>
-            <ContextMenuSeparator />
-            {COLOR_OPTIONS.map(opt => (
-              <ContextMenuItem key={opt.key} onClick={() => setSelectedColor(opt.key)}>
-                <span className="w-3 h-3 rounded-full mr-2 inline-block" style={{ backgroundColor: opt.color }} />
-                {opt.name}
-              </ContextMenuItem>
-            ))}
-          </>
-        )}
-        <ContextMenuSeparator />
-        <ContextMenuItem 
-          className="text-red-500 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/50"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsDeleteConfirmOpen(true);
-          }}
-        >
-          Sil
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
     </>
   )
 }

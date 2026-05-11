@@ -127,12 +127,20 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    -webkit-touch-callout: none;
   }
   body {
     @apply text-foreground tracking-tight;
     background: linear-gradient(135deg, #f0ede1 0%, #fdfbf7 100%);
     background-attachment: fixed;
     min-height: 100vh;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  input, textarea, [contenteditable="true"] {
+    -webkit-touch-callout: default;
+    user-select: auto;
+    -webkit-user-select: auto;
   }
   .dark body,
   body:is(.dark *) {

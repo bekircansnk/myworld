@@ -3,6 +3,7 @@ import * as React from 'react'
 import { X, Camera } from 'lucide-react'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
+import { useSettingsStore } from '@/stores/settingsStore'
 import { createPortal } from 'react-dom'
 
 export function ProfileSettings({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
@@ -13,6 +14,8 @@ export function ProfileSettings({ isOpen, onClose }: { isOpen: boolean, onClose:
   const [message, setMessage] = React.useState<{type: 'success'|'error', text: string} | null>(null)
   
   const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+  const { notificationsEnabled, setNotificationsEnabled, reminderOffsetMinutes, setReminderOffset } = useSettingsStore()
 
   const [mounted, setMounted] = React.useState(false)
 
@@ -117,6 +120,36 @@ export function ProfileSettings({ isOpen, onClose }: { isOpen: boolean, onClose:
               className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2 text-brand-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
               placeholder="••••••••"
             />
+          </div>
+
+          <div className="pt-2 border-t border-slate-100 dark:border-white/10 mt-4">
+            <h3 className="text-sm font-bold text-slate-700 dark:text-white mb-3">Mobil Bildirimler</h3>
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-xs font-semibold text-slate-500 dark:text-gray-400">Bildirimlere İzin Ver</span>
+              <button 
+                type="button"
+                onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${notificationsEnabled ? 'bg-indigo-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+              >
+                <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${notificationsEnabled ? 'translate-x-5' : 'translate-x-1'}`} />
+              </button>
+            </div>
+            
+            {notificationsEnabled && (
+              <div>
+                <label className="text-xs font-semibold text-slate-500 dark:text-gray-400 block mb-1">Varsayılan Hatırlatma (Görev/Etkinlik öncesi)</label>
+                <select
+                  value={reminderOffsetMinutes}
+                  onChange={(e) => setReminderOffset(Number(e.target.value))}
+                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2 text-brand-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium appearance-none"
+                >
+                  <option value={15} className="dark:bg-slate-800 text-black dark:text-white">15 Dakika Önce</option>
+                  <option value={30} className="dark:bg-slate-800 text-black dark:text-white">30 Dakika Önce</option>
+                  <option value={60} className="dark:bg-slate-800 text-black dark:text-white">1 Saat Önce</option>
+                  <option value={1440} className="dark:bg-slate-800 text-black dark:text-white">1 Gün Önce</option>
+                </select>
+              </div>
+            )}
           </div>
 
           <div className="pt-4 flex justify-end gap-3">

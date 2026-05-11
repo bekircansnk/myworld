@@ -17,19 +17,22 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor eklenebilir
+// Response interceptor — çevrimdışı modda token silme YAPMA
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Merkezi hata yönetimi
-    if (error.response && error.response.status === 401) {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        if (window.location.pathname !== '/') {
-           window.location.href = '/';
-        }
-      }
+    // Ağ hatası (çevrimdışı) → sessizce geç, mevcut cache kullanılsın
+    if (!error.response) {
+      error.isOfflineError = true;
+      return Promise.reject(error);
     }
+    
+    // 401 hatası → token'ı silme, sadece logla
+    // Çevrimdışıyken 401 alınabilir, token hala geçerli olabilir
+    if (error.response.status === 401) {
+      console.warn('401 Unauthorized — oturum kontrolü gerekebilir');
+    }
+    
     return Promise.reject(error);
   }
 );

@@ -19,7 +19,7 @@ class Settings(BaseSettings):
 
     # Security
     secret_key: str
-    access_token_expire_minutes: int = 1440
+    access_token_expire_minutes: int = 5256000
     
     # AI (Gemini)
     gemini_api_key: str

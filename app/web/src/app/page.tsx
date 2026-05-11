@@ -20,11 +20,12 @@ import { useAuthStore } from "@/store/authStore"
 import { LoginOverlay } from "@/components/auth/LoginOverlay"
 import { VenusAdsLayout } from "@/components/venus-ads/VenusAdsLayout"
 import { PhotoTrackingLayout } from "@/components/photo-tracking/PhotoTrackingLayout"
+import { OfflineBanner } from "@/components/ui/OfflineBanner"
 
 export default function DashboardPage() {
-  const { isAuthenticated, isLoading: authLoading, checkAuth } = useAuthStore()
-  const { tasks, fetchTasks, isLoading: tasksLoading } = useTaskStore()
-  const { projects, fetchProjects, selectedProjectId, viewMode, isLoading: projLoading } = useProjectStore()
+  const { isAuthenticated, isLoading: authLoading, checkAuth, _hasHydrated: authHydrated } = useAuthStore()
+  const { tasks, fetchTasks } = useTaskStore()
+  const { projects, fetchProjects, selectedProjectId, viewMode } = useProjectStore()
   const { fetchEvents } = useCalendarStore()
 
   const [showMorning, setShowMorning] = React.useState(false)
@@ -56,7 +57,8 @@ export default function DashboardPage() {
     setShowMorning(false)
   }
 
-  if (authLoading) {
+  // Hydrate olmadan önce kısa bir splash göster (tipik 20-50ms)
+  if (!authHydrated || (!isAuthenticated && authLoading)) {
     return <div className="flex-1 flex flex-col items-center justify-center p-8 h-full">Yükleniyor...</div>
   }
 
@@ -66,10 +68,6 @@ export default function DashboardPage() {
          <LoginOverlay />
       </div>
     )
-  }
-
-  if (tasksLoading && tasks.length === 0) {
-    return <div className="p-8 flex items-center justify-center h-full">Görevler Yükleniyor...</div>
   }
 
   const currentProject = projects.find(p => p.id === selectedProjectId)
@@ -107,6 +105,9 @@ export default function DashboardPage() {
     <div className="flex flex-col h-screen w-full overflow-hidden" id="app-root">
       {/* ÜST NAVBAR — Yatay, tüm ekranlarda */}
       <TopNavbar />
+
+      {/* Çevrimdışı/Senkronizasyon Banner */}
+      <OfflineBanner />
 
       {showMorning && <MorningScreen onDismiss={handleMorningDismiss} />}
 
