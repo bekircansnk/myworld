@@ -120,7 +120,8 @@ async def chat_with_ai(
             current_session = ChatSession(
                 user_id=MOCK_USER_ID,
                 title=None,  # Will be set after first AI response
-                ai_categories=["genel"]
+                ai_categories=["genel"],
+                project_id=request.project_id
             )
             db.add(current_session)
             await db.flush()  # Get the ID
@@ -200,14 +201,14 @@ async def chat_with_ai(
                 valid_priorities = ['urgent', 'medium', 'low']
                 final_priority = priority if priority in valid_priorities else 'medium'
                 
-                # --- DUPLICATE GUARD ---
-                existing_task = await db.execute(
-                    select(Task).where(
-                        Task.user_id == MOCK_USER_ID,
-                        Task.title == main_title,
-                        Task.status != "done"
-                    )
+                # --- DUPLICATE GUARD (firma bazlı) ---
+                dup_query = select(Task).where(
+                    Task.user_id == MOCK_USER_ID,
+                    Task.title == main_title,
+                    Task.status != "done",
+                    Task.project_id == project_id
                 )
+                existing_task = await db.execute(dup_query)
                 if existing_task.scalars().first():
                     logger.info(f"⏭️ Mükerrer görev atlandı: {main_title}")
                     actions_executed.append(ActionLog(
@@ -331,11 +332,12 @@ async def chat_with_ai(
             if not note_content:
                 continue
                 
-            # --- DUPLICATE GUARD ---
+            # --- DUPLICATE GUARD (firma bazlı) ---
             existing_note = await db.execute(
                 select(Note).where(
                     Note.user_id == MOCK_USER_ID,
-                    Note.content == note_content
+                    Note.content == note_content,
+                    Note.project_id == request.project_id
                 )
             )
             if existing_note.scalars().first():
@@ -348,7 +350,7 @@ async def chat_with_ai(
                 continue
             # -----------------------
             
-            new_note = Note(user_id=MOCK_USER_ID, content=note_content, source="ai")
+            new_note = Note(user_id=MOCK_USER_ID, content=note_content, source="ai", project_id=request.project_id)
             db.add(new_note)
             await db.commit()
             await db.refresh(new_note)
@@ -390,13 +392,14 @@ async def chat_with_ai(
                 mins = int(raw_mins)
                 end_dt_utc = start_dt_utc + timedelta(minutes=mins)
                 
-                # --- DUPLICATE GUARD ---
+                # --- DUPLICATE GUARD (firma bazlı) ---
                 existing_event = await db.execute(
                     select(CalendarEvent).where(
                         CalendarEvent.user_id == MOCK_USER_ID,
                         CalendarEvent.title == title,
                         CalendarEvent.start_time >= start_dt - timedelta(minutes=30),
-                        CalendarEvent.start_time <= start_dt + timedelta(minutes=30)
+                        CalendarEvent.start_time <= start_dt + timedelta(minutes=30),
+                        CalendarEvent.project_id == request.project_id
                     )
                 )
                 if existing_event.scalars().first():
@@ -415,7 +418,8 @@ async def chat_with_ai(
                     start_time=start_dt_utc,
                     end_time=end_dt_utc,
                     event_type="ai_planned",
-                    task_id=task_id_val
+                    task_id=task_id_val,
+                    project_id=request.project_id
                 )
                 db.add(new_event)
                 await db.commit()

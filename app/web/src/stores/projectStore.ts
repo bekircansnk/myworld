@@ -135,6 +135,8 @@ export const useProjectStore = create<ProjectState>()(
       onRehydrateStorage: () => (state) => {
         if (state) {
           state._hasHydrated = true;
+          // Her sayfa açılışında viewMode daima dashboard olsun
+          state.viewMode = 'dashboard';
         }
       },
     }

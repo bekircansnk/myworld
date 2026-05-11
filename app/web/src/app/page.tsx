@@ -139,8 +139,7 @@ export default function DashboardPage() {
         <p className="text-slate-500 text-sm mb-6 text-center max-w-md">Erişmek istediğiniz bölüme yetkiniz bulunmuyor veya sistem tarafından kısıtlanmış durumda.</p>
         <button 
           onClick={() => {
-            const { useProjectStore } = require("@/stores/projectStore");
-            useProjectStore.getState().setViewMode('tasks');
+            useProjectStore.getState().setViewMode('dashboard');
           }}
           className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition-colors"
         >

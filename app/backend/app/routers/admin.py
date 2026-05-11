@@ -536,3 +536,69 @@ async def reset_data(
             await db.rollback()
             
     return {"status": "ok", "message": "Temizlik tamamlandı"}
+
+@router.post("/cleanup-orphans")
+async def cleanup_orphan_data(
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(require_super_admin)
+):
+    """Silinmiş firmalara ait yetim görev, not, takvim ve chat verilerini temizler."""
+    from app.models.task import Task
+    from app.models.note import Note
+    from app.models.calendar_event import CalendarEvent
+    from app.models.chat_session import ChatSession
+    from app.models.chat_message import ChatMessage
+    from sqlalchemy import delete
+    
+    # Mevcut firma ID'lerini al
+    existing_projects = await db.execute(select(Project.id))
+    valid_ids = [r[0] for r in existing_projects.all()]
+    
+    deleted = {"tasks": 0, "notes": 0, "events": 0, "sessions": 0, "messages": 0}
+    
+    if valid_ids:
+        # project_id var AMA geçerli firmaya ait olmayan verileri sil
+        # Görevler
+        orphan_tasks = await db.execute(
+            select(Task).where(Task.project_id.isnot(None), Task.project_id.notin_(valid_ids))
+        )
+        task_list = orphan_tasks.scalars().all()
+        deleted["tasks"] = len(task_list)
+        if task_list:
+            await db.execute(delete(Task).where(Task.project_id.isnot(None), Task.project_id.notin_(valid_ids)))
+        
+        # Notlar
+        orphan_notes = await db.execute(
+            select(Note).where(Note.project_id.isnot(None), Note.project_id.notin_(valid_ids))
+        )
+        note_list = orphan_notes.scalars().all()
+        deleted["notes"] = len(note_list)
+        if note_list:
+            await db.execute(delete(Note).where(Note.project_id.isnot(None), Note.project_id.notin_(valid_ids)))
+        
+        # Takvim
+        orphan_events = await db.execute(
+            select(CalendarEvent).where(CalendarEvent.project_id.isnot(None), CalendarEvent.project_id.notin_(valid_ids))
+        )
+        event_list = orphan_events.scalars().all()
+        deleted["events"] = len(event_list)
+        if event_list:
+            await db.execute(delete(CalendarEvent).where(CalendarEvent.project_id.isnot(None), CalendarEvent.project_id.notin_(valid_ids)))
+        
+        # Chat Sessions + Messages
+        orphan_sessions = await db.execute(
+            select(ChatSession).where(ChatSession.project_id.isnot(None), ChatSession.project_id.notin_(valid_ids))
+        )
+        session_list = orphan_sessions.scalars().all()
+        orphan_session_ids = [s.id for s in session_list]
+        deleted["sessions"] = len(session_list)
+        if orphan_session_ids:
+            msg_result = await db.execute(
+                select(ChatMessage).where(ChatMessage.session_id.in_(orphan_session_ids))
+            )
+            deleted["messages"] = len(msg_result.scalars().all())
+            await db.execute(delete(ChatMessage).where(ChatMessage.session_id.in_(orphan_session_ids)))
+            await db.execute(delete(ChatSession).where(ChatSession.id.in_(orphan_session_ids)))
+    
+    await db.commit()
+    return {"status": "ok", "deleted": deleted, "message": f"Yetim veriler temizlendi: {deleted}"}
