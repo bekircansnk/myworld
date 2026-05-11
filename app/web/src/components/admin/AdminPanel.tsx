@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import { useAdminStore } from "@/stores/adminStore"
-import { Users, Shield, Activity, BarChart, Search, Plus, Building2, Tag } from "lucide-react"
+import { Users, Shield, Activity, BarChart, Search, Plus, Building2, Tag, Trash2 } from "lucide-react"
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { CreateUserModal } from "./CreateUserModal"
 import { UserCard } from "./UserCard"
 import { UserDetailPanel } from "./UserDetailPanel"
@@ -23,6 +24,8 @@ export function AdminPanel() {
   const [selectedUser, setSelectedUser] = React.useState<any>(null)
   const { user } = useAuthStore()
   const isSuperAdmin = user?.role === 'super_admin'
+  const [isClearLogsConfirmOpen, setIsClearLogsConfirmOpen] = React.useState(false)
+  const { clearLogs } = useAdminStore()
   
   React.useEffect(() => {
     fetchUsers()
@@ -191,8 +194,17 @@ export function AdminPanel() {
         {/* LOGS TAB */}
         {activeTab === 'logs' && (
            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-slate-100 dark:border-white/10">
+              <div className="p-6 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
                  <h3 className="text-lg font-bold">Sistem Aktiviteleri</h3>
+                 {isSuperAdmin && (
+                    <button 
+                       onClick={() => setIsClearLogsConfirmOpen(true)}
+                       className="px-4 py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold rounded-xl transition-all flex items-center gap-2 border border-rose-100 dark:border-rose-500/20"
+                    >
+                       <Trash2 className="w-3.5 h-3.5" />
+                       Logları Temizle
+                    </button>
+                 )}
               </div>
               <div className="overflow-x-auto">
                  <table className="w-full text-left text-sm">
@@ -234,6 +246,16 @@ export function AdminPanel() {
       {/* Modals & Panels */}
       <CreateUserModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} roleTemplates={roleTemplates} onCreate={(data: any) => useAdminStore.getState().createUser(data)} />
       <UserDetailPanel user={selectedUser} onClose={() => setSelectedUser(null)} onUpdate={(id: number, data: any) => useAdminStore.getState().updateUser(id, data)} />
+      
+      <ConfirmDialog 
+         isOpen={isClearLogsConfirmOpen}
+         onOpenChange={setIsClearLogsConfirmOpen}
+         title="Logları Temizle"
+         description="Tüm sistem aktivite loglarını kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz."
+         onConfirm={() => clearLogs()}
+         confirmText="Evet, Temizle"
+         variant="destructive"
+      />
     </div>
   )
 }

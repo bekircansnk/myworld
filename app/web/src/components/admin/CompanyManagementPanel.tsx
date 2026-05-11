@@ -2,8 +2,10 @@
 
 import * as React from "react"
 import { api } from "@/lib/api"
-import { Building2, Users, ListTodo, Plus, Trash2, ChevronRight, Eye, Shield, Check, X, ChevronDown } from "lucide-react"
+import { Building2, Users, ListTodo, Plus, Trash2, ChevronRight, Eye, Shield, Check, X, ChevronDown, AlertTriangle } from "lucide-react"
 import { useProjectStore } from "@/stores/projectStore"
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
+import { useAdminStore } from "@/stores/adminStore"
 
 interface CompanyOverview {
   id: number
@@ -51,6 +53,9 @@ export function CompanyManagementPanel({
   const [loading, setLoading] = React.useState(false)
   const [savingUser, setSavingUser] = React.useState<number | null>(null)
   const { switchCompany, setViewMode } = useProjectStore()
+  const { deleteProject } = useAdminStore()
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false)
+  const [isDeleting, setIsDeleting] = React.useState(false)
 
   React.useEffect(() => {
     fetchCompanies()
@@ -148,6 +153,17 @@ export function CompanyManagementPanel({
     setViewMode('dashboard')
   }
 
+  const handleDeleteCompany = async () => {
+    if (!selectedCompany) return
+    setIsDeleting(true)
+    try {
+      await deleteProject(selectedCompany.id)
+      setSelectedCompany(null)
+      fetchCompanies()
+    } catch (e) { console.error(e) }
+    setIsDeleting(false)
+  }
+
   const nonAdminUsers = users.filter(u => u.role !== 'super_admin')
 
   return (
@@ -202,12 +218,22 @@ export function CompanyManagementPanel({
               </h2>
               <p className="text-sm text-slate-500 mt-1">{selectedCompany.task_count} görev • {companyUsers.length} atanmış kullanıcı</p>
             </div>
-            <button
-              onClick={() => switchToCompany(selectedCompany.id)}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-500/30 flex items-center gap-2"
-            >
-              <Eye className="w-4 h-4" /> Firmaya Geç
-            </button>
+            <div className="flex gap-2">
+               {isSuperAdmin && (
+                  <button
+                    onClick={() => setIsDeleteConfirmOpen(true)}
+                    className="px-4 py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-sm font-bold rounded-xl transition-all flex items-center gap-2 border border-rose-100 dark:border-rose-500/20"
+                  >
+                    <Trash2 className="w-4 h-4" /> Firmayı Sil
+                  </button>
+               )}
+               <button
+                 onClick={() => switchToCompany(selectedCompany.id)}
+                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-500/30 flex items-center gap-2"
+               >
+                 <Eye className="w-4 h-4" /> Firmaya Geç
+               </button>
+            </div>
           </div>
 
           {/* Kullanıcı Erişim ve İzin Yönetimi */}
@@ -330,6 +356,18 @@ export function CompanyManagementPanel({
             <p className="text-sm font-medium">Detay görmek için soldan bir firma seçin</p>
           </div>
         </div>
+      )}
+
+      {selectedCompany && (
+         <ConfirmDialog 
+            isOpen={isDeleteConfirmOpen}
+            onOpenChange={setIsDeleteConfirmOpen}
+            title="Firmayı Sil"
+            description={`'${selectedCompany.name}' isimli firmayı ve bu firmaya ait TÜM verileri (görevler, notlar, takvim, chat vb.) kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz ve tüm bağlı kullanıcıların bu firmadaki verileri silinecektir.`}
+            onConfirm={handleDeleteCompany}
+            confirmText={isDeleting ? "Siliniyor..." : "Evet, Tamamen Sil"}
+            variant="destructive"
+         />
       )}
     </div>
   )

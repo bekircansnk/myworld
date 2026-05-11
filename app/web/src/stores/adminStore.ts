@@ -37,6 +37,8 @@ interface AdminState {
   updateUser: (id: number, data: any) => Promise<void>;
   updatePermissions: (id: number, permissions: any) => Promise<void>;
   deleteUser: (id: number) => Promise<void>;
+  deleteProject: (id: number) => Promise<void>;
+  clearLogs: () => Promise<void>;
 }
 
 export const useAdminStore = create<AdminState>((set, get) => ({
@@ -109,6 +111,34 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   },
   
   deleteUser: async (id) => {
-      // API'da soft delete tanımlandığında burası tetiklenir, şimdilik aktif/pasif ile yönetiyoruz.
+    try {
+      await api.delete(`/api/admin/users/${id}`);
+      const { users } = get();
+      set({ users: users.filter(u => u.id !== id) });
+      get().fetchStats();
+    } catch (error) {
+      console.error('Kullanıcı silinemedi', error);
+      throw error;
+    }
+  },
+
+  deleteProject: async (id) => {
+    try {
+      await api.delete(`/api/admin/projects/${id}`);
+      get().fetchStats();
+    } catch (error) {
+      console.error('Firma silinemedi', error);
+      throw error;
+    }
+  },
+
+  clearLogs: async () => {
+    try {
+      await api.post('/api/admin/clear-logs');
+      set({ activityLogs: [] });
+    } catch (error) {
+      console.error('Loglar temizlenemedi', error);
+      throw error;
+    }
   }
 }));

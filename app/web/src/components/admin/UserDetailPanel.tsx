@@ -1,12 +1,19 @@
 import * as React from "react"
 import { createPortal } from "react-dom"
-import { X, Save, Key, UserCheck, UserX } from "lucide-react"
+import { X, Save, Key, UserCheck, UserX, Trash2 } from "lucide-react"
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
+import { useAdminStore } from "@/stores/adminStore"
+import { useAuthStore } from "@/store/authStore"
 
 export function UserDetailPanel({ user, onClose, onUpdate }: any) {
   const [formData, setFormData] = React.useState({
      name: '', username: '', email: '', is_active: true, password: ''
   })
   const [loading, setLoading] = React.useState(false)
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false)
+  const { deleteUser } = useAdminStore()
+  const { user: currentUser } = useAuthStore()
+  const isSuperAdmin = currentUser?.role === 'super_admin'
 
   React.useEffect(() => {
      if (user) {
@@ -36,6 +43,18 @@ export function UserDetailPanel({ user, onClose, onUpdate }: any) {
      } finally {
         setLoading(false)
      }
+  }
+
+  const handleDelete = async () => {
+    setLoading(true)
+    try {
+      await deleteUser(user.id)
+      onClose()
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const panelContent = (
@@ -108,16 +127,38 @@ export function UserDetailPanel({ user, onClose, onUpdate }: any) {
              </form>
           </div>
           
-          <div className="p-6 border-t border-slate-100 dark:border-white/10 shrink-0 bg-slate-50/50 dark:bg-slate-800/50 flex gap-3">
-             <button onClick={onClose} className="flex-1 py-3 rounded-xl text-sm font-bold text-slate-500 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+          <div className="p-6 border-t border-slate-100 dark:border-white/10 shrink-0 bg-slate-50/50 dark:bg-slate-800/50 flex flex-col gap-3">
+            <div className="flex gap-3">
+              <button onClick={onClose} className="flex-1 py-3 rounded-xl text-sm font-bold text-slate-500 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                 İptal
-             </button>
-             <button disabled={loading} form="edit-user-form" type="submit" className="flex-1 py-3 rounded-xl text-sm font-bold bg-brand-dark dark:bg-white text-white dark:text-brand-dark shadow-xl transition-all flex items-center justify-center gap-2">
+              </button>
+              <button disabled={loading} form="edit-user-form" type="submit" className="flex-1 py-3 rounded-xl text-sm font-bold bg-brand-dark dark:bg-white text-white dark:text-brand-dark shadow-xl transition-all flex items-center justify-center gap-2">
                 {loading ? <span className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" /> : <Save className="w-4 h-4" />}
                 Değişiklikleri Kaydet
-             </button>
+              </button>
+            </div>
+
+            {isSuperAdmin && user.id !== currentUser?.id && (
+              <button 
+                type="button"
+                onClick={() => setIsDeleteConfirmOpen(true)}
+                className="w-full py-3 rounded-xl text-sm font-bold text-rose-500 bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors flex items-center justify-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Kullanıcıyı Tamamen Sil
+              </button>
+            )}
           </div>
           
+          <ConfirmDialog 
+            isOpen={isDeleteConfirmOpen}
+            onOpenChange={setIsDeleteConfirmOpen}
+            title="Kullanıcıyı Sil"
+            description={`${user.name} (@${user.username}) isimli kullanıcıyı ve tüm verilerini (görevler, notlar, etkinlikler) kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`}
+            onConfirm={handleDelete}
+            confirmText="Evet, Kalıcı Olarak Sil"
+            variant="destructive"
+          />
        </div>
     </>
   )

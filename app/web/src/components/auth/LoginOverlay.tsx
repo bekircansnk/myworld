@@ -272,6 +272,18 @@ export function LoginOverlay() {
                       placeholder={viewState === 'forgot' ? 'ornek@gmail.com' : 'ornek@gmail.com'}
                     />
                   </div>
+                  {/* E-posta girilince hemen altında animasyonla beliren küçük OTP linki */}
+                  {viewState === 'main' && isEmail(identifier) && (
+                    <button
+                      type="button"
+                      onClick={handleSendOtp}
+                      disabled={loading}
+                      className="mt-2 flex items-center gap-1.5 text-xs font-medium text-indigo-500 dark:text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 transition-all duration-200 animate-in fade-in slide-in-from-top-1"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Şifresiz Giriş Yap — Kod Al
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -386,38 +398,17 @@ export function LoginOverlay() {
                 }
               </button>
 
-              {/* --- ALTERNATIVE ACTIONS (LOGIN ONLY) --- */}
+              {/* --- FORGOT PASSWORD LINK (LOGIN ONLY) --- */}
               {viewState === 'main' && activeTab === 'login' && (
-                <div className="pt-4 space-y-4">
-                  {/* Divider */}
-                  <div className="relative flex items-center py-2">
-                    <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
-                    <span className="flex-shrink-0 mx-4 text-xs font-medium text-slate-400 uppercase tracking-widest">Veya</span>
-                    <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
-                  </div>
-
-                  {/* OTP Button */}
-                  <button
-                    type="button"
-                    onClick={handleSendOtp}
-                    disabled={loading || (!identifier || !isEmail(identifier))}
-                    className={`w-full py-3 bg-white dark:bg-white/5 text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-white/10 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/10 font-semibold rounded-xl transition-all flex items-center justify-center gap-2 text-sm shadow-sm ${(!identifier || !isEmail(identifier)) ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5 active:scale-[0.98]'}`}
+                <div className="text-center pt-2">
+                  <button 
+                    type="button" 
+                    onClick={() => { setViewState('forgot'); resetMessages(); }}
+                    className="text-sm font-medium text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-colors inline-flex items-center gap-1.5"
                   >
-                    <Sparkles className="w-4 h-4" />
-                    Şifresiz Giriş Yap (Kod Al)
+                    <KeyRound className="w-3.5 h-3.5" />
+                    Şifremi Unuttum?
                   </button>
-
-                  {/* Forgot Password Link */}
-                  <div className="text-center pt-2">
-                    <button 
-                      type="button" 
-                      onClick={() => { setViewState('forgot'); resetMessages(); }}
-                      className="text-sm font-medium text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-colors inline-flex items-center gap-1.5"
-                    >
-                      <KeyRound className="w-3.5 h-3.5" />
-                      Şifremi Unuttum?
-                    </button>
-                  </div>
                 </div>
               )}
             </form>

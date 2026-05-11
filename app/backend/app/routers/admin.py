@@ -152,6 +152,51 @@ async def update_user(
     
     return user
 
+@router.delete("/users/{user_id}")
+async def delete_user(
+    user_id: int,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(require_super_admin)
+):
+    """Kullanıcıyı ve tüm ilişkili verilerini kalıcı olarak siler."""
+    if user_id == current_admin.id:
+        raise HTTPException(status_code=400, detail="Kendi hesabınızı silemezsiniz")
+        
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+        
+    from sqlalchemy import delete
+    from app.models.task import Task
+    from app.models.note import Note
+    from app.models.calendar_event import CalendarEvent
+    from app.models.chat_session import ChatSession
+    from app.models.chat_message import ChatMessage
+    from app.models.user_company_access import UserCompanyAccess
+    
+    # İlişkili verileri temizle
+    await db.execute(delete(UserCompanyAccess).where(UserCompanyAccess.user_id == user_id))
+    await db.execute(delete(ActivityLog).where((ActivityLog.user_id == user_id) | (ActivityLog.target_user_id == user_id)))
+    await db.execute(delete(Task).where(Task.user_id == user_id))
+    await db.execute(delete(Note).where(Note.user_id == user_id))
+    await db.execute(delete(CalendarEvent).where(CalendarEvent.user_id == user_id))
+    
+    # Chat verileri
+    sessions_result = await db.execute(select(ChatSession.id).where(ChatSession.user_id == user_id))
+    session_ids = [r[0] for r in sessions_result.all()]
+    if session_ids:
+        await db.execute(delete(ChatMessage).where(ChatMessage.session_id.in_(session_ids)))
+        await db.execute(delete(ChatSession).where(ChatSession.id.in_(session_ids)))
+
+    await db.delete(user)
+    await db.commit()
+    
+    await log_activity(db, current_admin.id, "delete_user", "admin", {"deleted_user_id": user_id}, request)
+    
+    return {"message": "Kullanıcı ve tüm verileri başarıyla silindi"}
+
 @router.put("/users/{user_id}/permissions")
 async def update_permissions(
     user_id: int,
@@ -603,3 +648,55 @@ async def cleanup_orphan_data(
     
     await db.commit()
     return {"status": "ok", "deleted": deleted, "message": f"Yetim veriler temizlendi: {deleted}"}
+
+@router.post("/clear-logs")
+async def clear_logs(
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(require_super_admin)
+):
+    """Sistemdeki tüm aktivite loglarını temizler."""
+    await db.execute(text("TRUNCATE TABLE activity_logs CASCADE"))
+    await db.commit()
+    return {"status": "ok", "message": "Sistem logları başarıyla temizlendi"}
+
+@router.delete("/projects/{project_id}")
+async def delete_project(
+    project_id: int,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(require_super_admin)
+):
+    """Firmayı ve tüm ilişkili verilerini (görevler, notlar, erişimler vb) kalıcı olarak siler."""
+    result = await db.execute(select(Project).where(Project.id == project_id))
+    project = result.scalars().first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Firma bulunamadı")
+        
+    from sqlalchemy import delete
+    from app.models.task import Task
+    from app.models.note import Note
+    from app.models.calendar_event import CalendarEvent
+    from app.models.chat_session import ChatSession
+    from app.models.chat_message import ChatMessage
+    from app.models.user_company_access import UserCompanyAccess
+    
+    # Firma ile ilişkili her şeyi sil
+    await db.execute(delete(UserCompanyAccess).where(UserCompanyAccess.project_id == project_id))
+    await db.execute(delete(ActivityLog).where(ActivityLog.project_id == project_id))
+    await db.execute(delete(Task).where(Task.project_id == project_id))
+    await db.execute(delete(Note).where(Note.project_id == project_id))
+    await db.execute(delete(CalendarEvent).where(CalendarEvent.project_id == project_id))
+    
+    sessions_result = await db.execute(select(ChatSession.id).where(ChatSession.project_id == project_id))
+    session_ids = [r[0] for r in sessions_result.all()]
+    if session_ids:
+        await db.execute(delete(ChatMessage).where(ChatMessage.session_id.in_(session_ids)))
+        await db.execute(delete(ChatSession).where(ChatSession.id.in_(session_ids)))
+
+    await db.delete(project)
+    await db.commit()
+    
+    await log_activity(db, current_admin.id, "delete_project", "admin", {"deleted_project_id": project_id, "project_name": project.name}, request)
+    
+    return {"message": f"'{project.name}' firması ve tüm verileri başarıyla silindi"}
+
