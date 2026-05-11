@@ -54,28 +54,28 @@ export function AdminPanel() {
 
   return (
     <div className="flex flex-col h-full w-full max-w-7xl mx-auto animate-in fade-in duration-500">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-4 md:mb-8 flex-wrap gap-3">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-brand-dark dark:text-white flex items-center gap-3">
-            <Shield className="w-8 h-8 text-indigo-500" />
+          <h1 className="text-xl md:text-3xl font-black tracking-tight text-brand-dark dark:text-white flex items-center gap-2 md:gap-3">
+            <Shield className="w-6 h-6 md:w-8 md:h-8 text-indigo-500" />
             Yönetim Paneli
           </h1>
-          <p className="text-sm text-brand-gray dark:text-gray-400 mt-1">Sistem erişimlerini, kullanıcıları ve rolleri yönetin.</p>
+          <p className="text-xs md:text-sm text-brand-gray dark:text-gray-400 mt-1">Sistem erişimlerini, kullanıcıları ve rolleri yönetin.</p>
         </div>
         
-        <div className="flex bg-white dark:bg-slate-800 p-1 rounded-2xl shadow-sm border border-slate-200/60 dark:border-white/10 flex-wrap gap-1">
+        <div className="flex bg-white dark:bg-slate-800 p-1 rounded-2xl shadow-sm border border-slate-200/60 dark:border-white/10 overflow-x-auto scroll-tab-bar w-full sm:w-auto">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`px-3 md:px-4 py-2 text-xs md:text-sm font-bold rounded-xl transition-all flex items-center gap-1.5 md:gap-2 whitespace-nowrap ${
+              className={`px-3 md:px-4 py-2 text-xs md:text-sm font-bold rounded-xl transition-all flex items-center gap-1.5 md:gap-2 whitespace-nowrap shrink-0 ${
                 activeTab === tab.id 
                   ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 shadow-sm' 
                   : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700/50'
               }`}
             >
               <tab.icon className="w-4 h-4" />
-              <span className="hidden sm:inline">{tab.label}</span>
+              <span>{tab.label}</span>
             </button>
           ))}
         </div>
