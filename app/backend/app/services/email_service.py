@@ -14,29 +14,38 @@ def generate_token() -> str:
     return secrets.token_urlsafe(48)
 
 
+import httpx
+
 async def send_email(to: str, subject: str, html_body: str) -> bool:
-    """Gmail SMTP ile e-posta gönderir"""
-    if not settings.smtp_user or not settings.smtp_password:
-        print("[EMAIL] SMTP ayarları yapılandırılmamış, e-posta gönderilemedi.")
+    """Resend API ile e-posta gönderir"""
+    if not settings.resend_api_key:
+        print("[EMAIL] Resend API Key bulunamadı, e-posta gönderilemedi.")
         return False
 
-    msg = MIMEMultipart("alternative")
-    msg["From"] = f"{settings.smtp_from_name} <{settings.smtp_from_email or settings.smtp_user}>"
-    msg["To"] = to
-    msg["Subject"] = subject
-
-    # HTML gövdesi
-    msg.attach(MIMEText(html_body, "html", "utf-8"))
+    headers = {
+        "Authorization": f"Bearer {settings.resend_api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    # Resend ücretsiz pakette sadece test domaini (onboarding@resend.dev) ile kayıtlı e-postaya mail atabilir.
+    # Kendi domaininizi doğruladıysanız burayı kendi e-postanız (örn: info@myworld.com) ile değiştirebilirsiniz.
+    from_email = "onboarding@resend.dev"
+    
+    payload = {
+        "from": f"{settings.smtp_from_name} <{from_email}>",
+        "to": [to],
+        "subject": subject,
+        "html": html_body
+    }
 
     try:
-        with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=5) as server:
-            server.starttls()
-            server.login(settings.smtp_user, settings.smtp_password)
-            server.sendmail(settings.smtp_user, to, msg.as_string())
-        print(f"[EMAIL] Gönderildi → {to}")
-        return True
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post("https://api.resend.com/emails", json=payload, headers=headers)
+            response.raise_for_status()
+            print(f"[EMAIL] Gönderildi (Resend) → {to}")
+            return True
     except Exception as e:
-        print(f"[EMAIL] Gönderim hatası → {to}: {e}")
+        print(f"[EMAIL] Resend gönderim hatası → {to}: {e}")
         return False
 
 
