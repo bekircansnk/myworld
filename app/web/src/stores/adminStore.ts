@@ -19,6 +19,7 @@ export interface ActivityLog {
   module: string;
   details: any;
   ip_address: string | null;
+  project_name: string | null;
   created_at: string;
 }
 

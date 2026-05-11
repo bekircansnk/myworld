@@ -58,18 +58,19 @@ export default function RootLayout({
           disableTransitionOnChange={false}
         >
           <ClientOnly>
-            <div className="flex flex-col w-full h-full relative z-0">
-              {/* Ana İçerik — Navbar artık page.tsx içinde */}
-              <main className="flex-1 flex flex-col h-full relative">
-                {children}
-              </main>
-            </div>
-            
-            {/* Global Widgets */}
-            <ChatWidget />
-            <CapacitorNativeProvider />
-            <ContextMenuProvider />
-            <ToastProvider />
+            <ToastProvider>
+              <div className="flex flex-col w-full h-full relative z-0">
+                {/* Ana İçerik — Navbar artık page.tsx içinde */}
+                <main className="flex-1 flex flex-col h-full relative">
+                  {children}
+                </main>
+              </div>
+              
+              {/* Global Widgets */}
+              <ChatWidget />
+              <CapacitorNativeProvider />
+              <ContextMenuProvider />
+            </ToastProvider>
           </ClientOnly>
         </ThemeProvider>
       </body>
