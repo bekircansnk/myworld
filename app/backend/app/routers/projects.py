@@ -15,7 +15,7 @@ router = APIRouter(prefix="/projects", tags=["projects"])
 from app.dependencies.auth import get_current_user
 from app.models.user import User
 
-@router.get("/", response_model=List[ProjectResponse])
+@router.get("", response_model=List[ProjectResponse])
 async def read_projects(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -40,7 +40,7 @@ async def read_projects(
     result = await db.execute(query)
     return result.scalars().all()
 
-@router.post("/", response_model=ProjectResponse)
+@router.post("", response_model=ProjectResponse)
 async def create_project(
     project: ProjectCreate, 
     db: AsyncSession = Depends(get_db),

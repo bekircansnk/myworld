@@ -19,7 +19,7 @@ class UserResponse(BaseModel):
     role: str = "viewer"
     permissions: dict = {}
     email: Optional[str] = None
-    email_verified: bool = False
+    email_verified: Optional[bool] = False
     is_active: bool = True
     
     class Config:
