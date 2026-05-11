@@ -27,18 +27,12 @@ async def read_projects(
         # Süper admin tüm firmaları görür
         query = select(Project).order_by(Project.sort_order.asc(), Project.id.desc()).offset(skip).limit(limit)
     else:
-        # Kendi oluşturduğu + erişim verilmiş firmalar
         accessible_project_ids = select(UserCompanyAccess.project_id).where(
             UserCompanyAccess.user_id == current_user.id
         )
         query = (
             select(Project)
-            .where(
-                or_(
-                    Project.user_id == current_user.id,
-                    Project.id.in_(accessible_project_ids)
-                )
-            )
+            .where(Project.id.in_(accessible_project_ids))
             .order_by(Project.sort_order.asc(), Project.id.desc())
             .offset(skip).limit(limit)
         )

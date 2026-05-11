@@ -381,14 +381,33 @@ async def revoke_company_access(
 
 # ===================== ROL ŞABLONLARI =====================
 
-# Runtime rol şablonu deposu (uygulama yeniden başlayana kadar kalıcı)
-_custom_role_templates = {}
+import json
+import os
+
+ROLE_TEMPLATES_FILE = os.path.join(os.path.dirname(__file__), "custom_role_templates.json")
+
+def load_custom_templates():
+    if os.path.exists(ROLE_TEMPLATES_FILE):
+        try:
+            with open(ROLE_TEMPLATES_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except:
+            return {}
+    return {}
+
+def save_custom_templates(templates):
+    with open(ROLE_TEMPLATES_FILE, "w", encoding="utf-8") as f:
+        json.dump(templates, f, ensure_ascii=False, indent=2)
+
+# Runtime rol şablonu deposu (dosyadan beslenir)
+_custom_role_templates = load_custom_templates()
 
 def _get_all_templates():
     """Varsayılan + özel şablonları birleştir"""
     merged = dict(ROLE_TEMPLATES)
     merged.update(_custom_role_templates)
-    return merged
+    # Silinmiş olarak işaretlenenleri (None) filtrele
+    return {k: v for k, v in merged.items() if v is not None}
 
 @router.get("/role-templates")
 async def get_role_templates(
@@ -414,6 +433,7 @@ async def create_role_template(
         "role": "editor",
         "permissions": body.get("permissions", {})
     }
+    save_custom_templates(_custom_role_templates)
     
     await log_activity(db=None, user_id=current_admin.id, action="create_role_template", 
                        module="admin", details={"key": key}, request=request)
@@ -439,6 +459,7 @@ async def update_role_template(
         "role": all_templates[key].get("role", "editor"),
         "permissions": body.get("permissions", all_templates[key].get("permissions", {}))
     }
+    save_custom_templates(_custom_role_templates)
     return {"message": "Rol şablonu güncellendi"}
 
 @router.delete("/role-templates/{key}")
@@ -449,9 +470,11 @@ async def delete_role_template(
     """Rol şablonunu sil"""
     if key in _custom_role_templates:
         del _custom_role_templates[key]
+        save_custom_templates(_custom_role_templates)
     elif key in ROLE_TEMPLATES:
         # Varsayılan şablonu silemeyiz ama override edebiliriz
         _custom_role_templates[key] = None  # Silindi olarak işaretle
+        save_custom_templates(_custom_role_templates)
     else:
         raise HTTPException(status_code=404, detail="Rol şablonu bulunamadı")
     return {"message": "Rol şablonu silindi"}
