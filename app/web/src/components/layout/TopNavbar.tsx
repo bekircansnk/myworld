@@ -32,7 +32,7 @@ export interface AppNotification {
 }
 
 export function TopNavbar() {
-  const { projects, fetchProjects, selectedProjectId, setSelectedProjectId, viewMode, setViewMode } = useProjectStore()
+  const { projects, fetchProjects, selectedProjectId, setSelectedProjectId, viewMode, setViewMode, switchCompany } = useProjectStore()
   const { tasks } = useTaskStore()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
@@ -306,15 +306,12 @@ export function TopNavbar() {
           >
             <button
               onClick={() => setShowProjectMenu(prev => !prev)}
-              className={`flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-1.5 md:py-2.5 rounded-xl md:rounded-full text-[11px] md:text-sm font-bold whitespace-nowrap transition-all border md:border-none border-slate-200 dark:border-white/10 ${viewMode === 'project'
-                  ? 'bg-brand-dark dark:bg-white text-white dark:text-brand-dark shadow-sm'
-                  : 'text-brand-gray dark:text-gray-400 hover:text-brand-dark dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
-                }`}
+              className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-1.5 md:py-2.5 rounded-xl md:rounded-full text-[11px] md:text-sm font-bold whitespace-nowrap transition-all border md:border-none border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 shadow-sm"
             >
               {currentProject && (
                 <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full shrink-0" style={{ backgroundColor: currentProject.color || '#6366f1' }} />
               )}
-              <span className="truncate max-w-[80px] md:max-w-[150px]">{currentProject?.name || 'Firmalar'}</span>
+              <span className="truncate max-w-[80px] md:max-w-[150px]">{currentProject?.name || 'Firma Seçin'}</span>
               <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showProjectMenu ? 'rotate-180' : ''}`} />
             </button>
 
@@ -329,17 +326,16 @@ export function TopNavbar() {
                     <button
                       key={p.id}
                       onClick={() => {
-                        setSelectedProjectId(p.id)
-                        setViewMode('project')
+                        switchCompany(p.id)
                         setShowProjectMenu(false)
                       }}
                       onContextMenu={(e) => handleContextMenu(e, p.id)}
-                      className={`w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm font-medium ${selectedProjectId === p.id ? 'bg-slate-50 dark:bg-slate-700' : ''
+                      className={`w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm font-medium ${selectedProjectId === p.id ? 'bg-indigo-50 dark:bg-indigo-500/20' : ''
                         }`}
                     >
                       <span className="w-4 h-4 rounded-full flex-shrink-0 shadow-sm border border-white/30" style={{ backgroundColor: p.color || '#6366f1' }} />
                       <span className="text-brand-dark dark:text-white truncate flex-1">{p.name}</span>
-                      {selectedProjectId === p.id && <span className="text-[10px] font-bold text-brand-yellow">●</span>}
+                      {selectedProjectId === p.id && <span className="w-2 h-2 rounded-full bg-emerald-500"></span>}
                     </button>
                   ))}
                 </div>

@@ -15,7 +15,7 @@ interface ProjectState {
   _hasHydrated: boolean;
   setSelectedProjectId: (id: number | null) => void;
   setViewMode: (mode: ViewMode) => void;
-  switchCompany: (id: number | null) => void;
+  switchCompany: (id: number) => void;
   fetchProjects: () => Promise<void>;
   addProject: (data: Partial<Project>) => Promise<void>;
   updateProject: (id: number, data: Partial<Project>) => Promise<void>;
@@ -32,21 +32,28 @@ export const useProjectStore = create<ProjectState>()(
       error: null,
       _hasHydrated: false,
 
-      setSelectedProjectId: (id) => set({ selectedProjectId: id, viewMode: id ? 'project' : 'dashboard' }),
-      setViewMode: (mode) => set({ viewMode: mode, selectedProjectId: mode === 'project' ? get().selectedProjectId : null }),
+      setSelectedProjectId: (id) => set({ selectedProjectId: id }),
 
-      // Firma değişikliği - tüm modülleri tetikler
+      // ViewMode değiştiğinde firma seçimini KORUYORUZ - artık null yapmıyoruz
+      setViewMode: (mode) => set({ viewMode: mode }),
+
+      // Firma değişikliği — firma seçilir, mevcut view korunur
       switchCompany: (id) => {
         set({ selectedProjectId: id });
-        // Firma değişikliğinde dashboard'a dönebilir veya mevcut view'da kalabilir
-        // Şu an mevcut view'da kalıyor, veriler otomatik güncellenecek
       },
 
       fetchProjects: async () => {
         set({ isLoading: true, error: null });
         try {
           const response = await api.get('/api/projects');
-          set({ projects: response.data, isLoading: false });
+          const projects = response.data;
+          const currentId = get().selectedProjectId;
+          
+          // Eğer hiç firma seçilmemişse veya seçili firma artık yoksa → ilk firmayı otomatik seç
+          const hasValidSelection = currentId && projects.some((p: Project) => p.id === currentId);
+          const autoSelectId = hasValidSelection ? currentId : (projects.length > 0 ? projects[0].id : null);
+          
+          set({ projects, isLoading: false, selectedProjectId: autoSelectId });
         } catch (error: any) {
           set({ error: error.message, isLoading: false });
         }
@@ -62,6 +69,8 @@ export const useProjectStore = create<ProjectState>()(
           const response = await api.post('/api/projects', data);
           set((state) => ({
             projects: state.projects.map(p => p.id === tempId ? response.data : p),
+            // Yeni firma oluşturulduğunda otomatik seç
+            selectedProjectId: response.data.id,
           }));
         } catch (error: any) {
           set((state) => ({
@@ -87,11 +96,17 @@ export const useProjectStore = create<ProjectState>()(
       },
 
       deleteProject: async (id) => {
-        set((state) => ({
-          projects: state.projects.filter((p) => p.id !== id),
-          selectedProjectId: state.selectedProjectId === id ? null : state.selectedProjectId,
-          viewMode: state.selectedProjectId === id ? 'dashboard' : state.viewMode
-        }));
+        const { projects, selectedProjectId } = get();
+        const filtered = projects.filter((p) => p.id !== id);
+        const newSelectedId = selectedProjectId === id 
+          ? (filtered.length > 0 ? filtered[0].id : null)
+          : selectedProjectId;
+        
+        set({
+          projects: filtered,
+          selectedProjectId: newSelectedId,
+          viewMode: selectedProjectId === id ? 'dashboard' : get().viewMode
+        });
         try {
           await api.delete(`/api/projects/${id}`);
         } catch (error: any) {
