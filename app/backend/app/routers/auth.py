@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -50,7 +50,8 @@ from app.dependencies.admin import require_super_admin
 # ============================================================
 @router.post("/register", response_model=TokenResponse)
 async def register(
-    user: UserRegister, 
+    user: UserRegister,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ):
     # Kullanıcı adı kontrolü
@@ -99,7 +100,7 @@ async def register(
         db.add(verification)
         await db.commit()
         # Arka planda gönder (başarısız olursa kayıt iptal olmaz)
-        await send_verification_email(user.email, user.name, token)
+        background_tasks.add_task(send_verification_email, user.email, user.name, token)
     
     access_token = create_access_token(data={"sub": new_user.username})
     return {"access_token": access_token, "token_type": "bearer", "user": new_user}
@@ -167,7 +168,7 @@ async def login_custom(user_login: UserLogin, request: Request, db: AsyncSession
 # ŞİFRESİZ GİRİŞ (OTP)
 # ============================================================
 @router.post("/send-login-otp")
-async def send_login_otp(data: SendOTPRequest, request: Request, db: AsyncSession = Depends(get_db)):
+async def send_login_otp(data: SendOTPRequest, request: Request, background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db)):
     """Şifresiz giriş için e-postaya 6 haneli OTP kodu gönderir"""
     result = await db.execute(select(User).where(User.email == data.email))
     user = result.scalars().first()
@@ -202,7 +203,7 @@ async def send_login_otp(data: SendOTPRequest, request: Request, db: AsyncSessio
     db.add(verification)
     await db.commit()
     
-    await send_login_otp_email(user.email, user.name, otp_code)
+    background_tasks.add_task(send_login_otp_email, user.email, user.name, otp_code)
     return {"message": "Giriş kodu e-posta adresinize gönderildi"}
 
 @router.post("/login-with-otp", response_model=TokenResponse)
@@ -279,7 +280,7 @@ async def verify_email(data: VerifyEmailRequest, db: AsyncSession = Depends(get_
 # DOĞRULAMA MAİLİ TEKRAR GÖNDER
 # ============================================================
 @router.post("/resend-verification")
-async def resend_verification(data: ResendVerificationRequest, db: AsyncSession = Depends(get_db)):
+async def resend_verification(data: ResendVerificationRequest, background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db)):
     """Doğrulama e-postasını tekrar gönderir"""
     result = await db.execute(select(User).where(User.email == data.email))
     user = result.scalars().first()
@@ -313,14 +314,14 @@ async def resend_verification(data: ResendVerificationRequest, db: AsyncSession 
     db.add(verification)
     await db.commit()
     
-    await send_verification_email(user.email, user.name, token)
+    background_tasks.add_task(send_verification_email, user.email, user.name, token)
     return {"message": "E-posta adresinize doğrulama linki gönderildi"}
 
 # ============================================================
 # ŞİFREMİ UNUTTUM
 # ============================================================
 @router.post("/forgot-password")
-async def forgot_password(data: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
+async def forgot_password(data: ForgotPasswordRequest, background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db)):
     """E-posta adresine şifre sıfırlama linki gönderir"""
     result = await db.execute(select(User).where(User.email == data.email))
     user = result.scalars().first()
@@ -351,7 +352,7 @@ async def forgot_password(data: ForgotPasswordRequest, db: AsyncSession = Depend
     db.add(verification)
     await db.commit()
     
-    await send_password_reset_email(user.email, user.name, token)
+    background_tasks.add_task(send_password_reset_email, user.email, user.name, token)
     return {"message": "E-posta adresinize şifre sıfırlama linki gönderildi"}
 
 # ============================================================
@@ -448,7 +449,12 @@ async def read_users_me(current_user: User = Depends(get_current_user), db: Asyn
     }
 
 @router.put("/profile", response_model=UserResponse)
-async def update_profile(profile: ProfileUpdate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def update_profile(
+    profile: ProfileUpdate, 
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user), 
+    db: AsyncSession = Depends(get_db)
+):
     if profile.username is not None and profile.username != current_user.username:
         result = await db.execute(select(User).where(User.username == profile.username))
         if result.scalars().first():
@@ -484,7 +490,7 @@ async def update_profile(profile: ProfileUpdate, current_user: User = Depends(ge
                 expires_at=datetime.utcnow() + timedelta(hours=24)
             )
             db.add(verification)
-            await send_verification_email(profile.email, current_user.name, token)
+            background_tasks.add_task(send_verification_email, profile.email, current_user.name, token)
         
     await db.commit()
     await db.refresh(current_user)
