@@ -33,6 +33,7 @@ export const metadata: Metadata = {
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import { ClientOnly } from "@/components/providers/ClientOnly";
 import { CapacitorNativeProvider } from "@/components/providers/CapacitorNativeProvider";
+import { ContextMenuProvider } from "@/components/ui/ContextMenu";
 
 export default function RootLayout({
   children,
@@ -66,6 +67,7 @@ export default function RootLayout({
             {/* Global Widgets */}
             <ChatWidget />
             <CapacitorNativeProvider />
+            <ContextMenuProvider />
           </ClientOnly>
         </ThemeProvider>
       </body>

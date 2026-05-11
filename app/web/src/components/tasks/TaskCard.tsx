@@ -3,9 +3,10 @@
 import * as React from "react"
 import { Task } from "@/types"
 import { useTaskStore } from "@/stores/taskStore"
-import { Trash2, Calendar, MoreHorizontal, CheckSquare, Palette } from "lucide-react"
+import { Trash2, Calendar, MoreHorizontal, CheckSquare, Palette, Edit2 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
+import { showContextMenu } from "@/components/ui/ContextMenu"
 import { format, isPast } from "date-fns"
 import { tr } from "date-fns/locale"
 
@@ -145,6 +146,23 @@ export function TaskCard({ task, subtaskCount = 0, doneSubtaskCount = 0, isProje
   const accentColor = effectiveColor || '#f59e0b'
   const priorityInfo = getPriorityDot(task.priority)
 
+  const handleContextMenu = (e: React.MouseEvent) => {
+    showContextMenu(e, [
+      {
+        label: 'Düzenle',
+        icon: <Edit2 className="w-full h-full" />,
+        onClick: () => openTaskDetail(task),
+      },
+      {
+        label: 'Görevi Sil',
+        icon: <Trash2 className="w-full h-full" />,
+        onClick: () => setIsDeleteConfirmOpen(true),
+        variant: 'destructive' as const,
+        separator: true,
+      }
+    ])
+  }
+
   return (
     <>
       <ConfirmDialog 
@@ -159,10 +177,7 @@ export function TaskCard({ task, subtaskCount = 0, doneSubtaskCount = 0, isProje
           className="rounded-lg p-4 cursor-pointer group transition-all duration-200 hover:shadow-md border backdrop-blur-sm"
           style={cardStyle}
           onClick={() => openTaskDetail(task)}
-          onContextMenu={(e) => {
-            // Mobilde uzun basınca tarayıcının varsayılan menüsünü tamamen engelle
-            if(window.innerWidth < 1024) e.preventDefault();
-          }}
+          onContextMenu={handleContextMenu}
         >
           {/* Tags Row — Minimal dot labels */}
           <div className="flex items-start justify-between mb-2">
