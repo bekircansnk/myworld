@@ -4,11 +4,11 @@ from datetime import datetime
 
 
 class UserCreate(BaseModel):
-    """Admin tarafından yeni kullanıcı oluşturma"""
+    """Admin paneli yeni kullanıcı oluşturma şeması"""
     username: str = Field(..., min_length=3, max_length=50)
-    password: str = Field(..., min_length=4)
+    password: str = Field(..., min_length=6)
     name: str = Field(..., min_length=1)
-    email: Optional[str] = None
+    email: str = Field(..., description="Kullanıcı e-posta adresi (şifre sıfırlama ve bildirimler için zorunlu)")
     role: str = Field(default="viewer", pattern="^(admin|editor|viewer)$")
     permissions: dict = {}
 

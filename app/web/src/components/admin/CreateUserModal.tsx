@@ -70,8 +70,8 @@ export function CreateUserModal({ isOpen, onClose, roleTemplates, onCreate }: an
                      <input required type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 font-medium focus:ring-2 focus:ring-indigo-500 outline-none" />
                   </div>
                   <div>
-                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">E-Posta (Opsiyonel)</label>
-                     <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 font-medium focus:ring-2 focus:ring-indigo-500 outline-none" />
+                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">E-Posta (Zorunlu)</label>
+                     <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 font-medium focus:ring-2 focus:ring-indigo-500 outline-none" />
                   </div>
                </div>
                

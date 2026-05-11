@@ -50,3 +50,10 @@ class VerifyEmailRequest(BaseModel):
 
 class ResendVerificationRequest(BaseModel):
     email: str
+
+class SendOTPRequest(BaseModel):
+    email: str
+
+class LoginWithOTPRequest(BaseModel):
+    email: str
+    code: str = Field(..., min_length=6, max_length=6)

@@ -112,14 +112,24 @@ export function ProfileSettings({ isOpen, onClose }: { isOpen: boolean, onClose:
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-slate-500 dark:text-gray-400 block mb-1">Yeni Şifre (Değiştirmek istemiyorsanız boş bırakın)</label>
-            <input 
-              type="password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2 text-brand-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
-              placeholder="••••••••"
-            />
+            <label className="text-xs font-semibold text-slate-500 dark:text-gray-400 block mb-2">Şifre Yönetimi</label>
+            <button
+               type="button"
+               onClick={async () => {
+                  try {
+                     await api.post('/api/auth/forgot-password', { email: user?.email });
+                     setMessage({ type: 'success', text: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.' });
+                  } catch (err) {
+                     setMessage({ type: 'error', text: 'Sıfırlama bağlantısı gönderilemedi. Lütfen sistem yöneticinize başvurun.' });
+                  }
+               }}
+               className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-brand-dark dark:text-white font-medium hover:bg-slate-200 dark:hover:bg-white/10 transition-colors flex items-center justify-center gap-2"
+            >
+               ✉️ Şifremi E-posta ile Sıfırla
+            </button>
+            <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
+               Şifre değişikliği güvenliğiniz için yalnızca e-posta onayı ile yapılmaktadır.
+            </p>
           </div>
 
           <div className="pt-2 border-t border-slate-100 dark:border-white/10 mt-4">

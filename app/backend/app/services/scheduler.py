@@ -3,6 +3,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from app.services.proactive import morning_greeting, task_staleness_check, evening_summary
 from app.services.memory_service import generate_daily_summary, generate_weekly_synthesis
+from app.services.task_reminders import send_daily_reminders, send_hourly_reminders
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +12,22 @@ scheduler = AsyncIOScheduler()
 def start_scheduler():
     """APScheduler başlatır ve proaktif AI görevlerini tanımlar."""
     
+    # 0. Günlük Görev Hatırlatıcı (Her sabah 08:00)
+    scheduler.add_job(
+        send_daily_reminders,
+        CronTrigger(hour=8, minute=0),
+        id="send_daily_reminders",
+        replace_existing=True
+    )
+    
+    # 0.1 Saatlik Görev Hatırlatıcı (Her 15 dakikada bir kontrol et, 1 saat kalmışsa yolla)
+    scheduler.add_job(
+        send_hourly_reminders,
+        CronTrigger(minute='*/15'),
+        id="send_hourly_reminders",
+        replace_existing=True
+    )
+
     # 1. Sabah Karşılama (Her gün 12:00'de Kullanıcının uyanma rutinine göre)
     scheduler.add_job(
         morning_greeting,
@@ -52,7 +69,7 @@ def start_scheduler():
     )
 
     scheduler.start()
-    logger.info("✅ APScheduler başlatıldı. Proaktif AI görevleri aktif.")
+    logger.info("✅ APScheduler başlatıldı. Görev hatırlatıcıları ve AI görevleri aktif.")
 
 def shutdown_scheduler():
     """APScheduler durdurur."""

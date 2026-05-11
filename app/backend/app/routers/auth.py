@@ -15,11 +15,12 @@ from app.models.project import Project
 from app.models.email_verification import EmailVerification
 from app.schemas.auth import (
     UserRegister, UserLogin, UserResponse, TokenResponse, ProfileUpdate,
-    ForgotPasswordRequest, ResetPasswordWithToken, VerifyEmailRequest, ResendVerificationRequest
+    ForgotPasswordRequest, ResetPasswordWithToken, VerifyEmailRequest, ResendVerificationRequest,
+    SendOTPRequest, LoginWithOTPRequest
 )
 from app.dependencies.auth import get_password_hash, verify_password, create_access_token, get_current_user
 from app.utils.activity import log_activity
-from app.services.email_service import generate_token, send_verification_email, send_password_reset_email
+from app.services.email_service import generate_token, send_verification_email, send_password_reset_email, generate_numeric_otp, send_login_otp_email
 from pydantic import BaseModel
 
 class PasswordReset(BaseModel):
@@ -158,6 +159,85 @@ async def login_custom(user_login: UserLogin, request: Request, db: AsyncSession
     await db.commit()
     
     await log_activity(db, user.id, "user_login", "auth", {"method": "custom", "identifier": identifier}, request)
+    
+    access_token = create_access_token(data={"sub": user.username})
+    return {"access_token": access_token, "token_type": "bearer", "user": user}
+
+# ============================================================
+# ŞİFRESİZ GİRİŞ (OTP)
+# ============================================================
+@router.post("/send-login-otp")
+async def send_login_otp(data: SendOTPRequest, request: Request, db: AsyncSession = Depends(get_db)):
+    """Şifresiz giriş için e-postaya 6 haneli OTP kodu gönderir"""
+    result = await db.execute(select(User).where(User.email == data.email))
+    user = result.scalars().first()
+    
+    if not user:
+        # Güvenlik açısından "kullanıcı bulunamadı" demek yerine aynı mesaj dönülebilir 
+        # ancak kullanıcıya anlık hata vermek bu senaryoda daha iyi bir UX sunar
+        raise HTTPException(status_code=404, detail="Sistemde bu e-posta adresiyle kayıtlı bir kullanıcı bulunamadı.")
+        
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Hesabınız devre dışı")
+        
+    # Eski kullanılmamış OTP'leri geçersiz yap
+    old_tokens = await db.execute(
+        select(EmailVerification).where(
+            EmailVerification.user_id == user.id,
+            EmailVerification.token_type == "login_otp",
+            EmailVerification.used == False
+        )
+    )
+    for old in old_tokens.scalars().all():
+        old.used = True
+        
+    # Yeni 6 haneli OTP oluştur (5 dakika geçerli)
+    otp_code = generate_numeric_otp(6)
+    verification = EmailVerification(
+        user_id=user.id,
+        token=otp_code,
+        token_type="login_otp",
+        expires_at=datetime.utcnow() + timedelta(minutes=5)
+    )
+    db.add(verification)
+    await db.commit()
+    
+    await send_login_otp_email(user.email, user.name, otp_code)
+    return {"message": "Giriş kodu e-posta adresinize gönderildi"}
+
+@router.post("/login-with-otp", response_model=TokenResponse)
+async def login_with_otp(data: LoginWithOTPRequest, request: Request, db: AsyncSession = Depends(get_db)):
+    """OTP kodu ile sisteme giriş yapar"""
+    user_result = await db.execute(select(User).where(User.email == data.email))
+    user = user_result.scalars().first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+        
+    # OTP kodunu doğrula
+    verify_result = await db.execute(
+        select(EmailVerification).where(
+            EmailVerification.user_id == user.id,
+            EmailVerification.token == data.code,
+            EmailVerification.token_type == "login_otp",
+            EmailVerification.used == False
+        )
+    )
+    verification = verify_result.scalars().first()
+    
+    if not verification:
+        raise HTTPException(status_code=400, detail="Hatalı veya kullanılmış kod")
+        
+    if verification.expires_at < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="Kodun süresi dolmuş. Lütfen yeni kod isteyin.")
+        
+    # Kod geçerli, giriş yap
+    verification.used = True
+    user.last_login = datetime.utcnow()
+    user.email_verified = True # Kod girebildiğine göre e-posta doğrulanmış sayılır
+    await db.commit()
+    
+    await log_activity(db, user.id, "user_login", "auth", {"method": "otp", "identifier": data.email}, request)
     
     access_token = create_access_token(data={"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer", "user": user}

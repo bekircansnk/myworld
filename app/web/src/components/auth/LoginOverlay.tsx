@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 
-type Tab = 'login' | 'register' | 'forgot';
+type Tab = 'login' | 'register' | 'forgot' | 'otp';
 
 export function LoginOverlay() {
   const { login } = useAuthStore();
@@ -16,6 +16,7 @@ export function LoginOverlay() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [otpCode, setOtpCode] = useState('');
   
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -26,6 +27,27 @@ export function LoginOverlay() {
     const savedUser = localStorage.getItem('myworld_saved_user');
     if (savedUser) setIdentifier(savedUser);
   }, []);
+
+  const isEmail = (str: string) => str.includes('@');
+
+  const handleSendOtp = async () => {
+    if (!identifier || !isEmail(identifier)) {
+       setError("Lütfen geçerli bir e-posta adresi girin.");
+       return;
+    }
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    try {
+      await api.post('/api/auth/send-login-otp', { email: identifier });
+      setActiveTab('otp');
+      setSuccess('6 haneli giriş kodunuz e-posta adresinize gönderildi.');
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Kod gönderilirken bir hata oluştu.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +60,15 @@ export function LoginOverlay() {
         // Şifre sıfırlama linki gönder
         await api.post('/api/auth/forgot-password', { email: identifier });
         setSuccess('E-posta adresinize şifre sıfırlama linki gönderildi. Lütfen gelen kutunuzu kontrol edin.');
+      }
+      else if (activeTab === 'otp') {
+        // Şifresiz giriş (OTP)
+        const response = await api.post('/api/auth/login-with-otp', {
+           email: identifier,
+           code: otpCode
+        });
+        localStorage.setItem('myworld_saved_user', identifier);
+        login(response.data.access_token, response.data.user);
       }
       else if (activeTab === 'login') {
         // Giriş — e-posta veya kullanıcı adı
@@ -105,20 +136,33 @@ export function LoginOverlay() {
             <p className="text-sm text-foreground/70">Kişisel yönetim sistemine hoş geldin.</p>
           </div>
 
-          {/* Sekme Butonları */}
-          <div className="flex bg-foreground/5 p-1 rounded-xl mb-6">
-            {tabs.map(tab => (
-              <button 
-                key={tab.key}
-                onClick={() => { setActiveTab(tab.key); setError(''); setSuccess(''); }}
-                className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${activeTab === tab.key ? `${tab.color} text-white shadow-lg` : 'text-foreground/70 hover:text-foreground'}`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          {/* Sekme Butonları (OTP modunda gizle) */}
+          {activeTab !== 'otp' && (
+            <div className="flex bg-foreground/5 p-1 rounded-xl mb-6">
+              {tabs.map(tab => (
+                <button 
+                  key={tab.key}
+                  onClick={() => { setActiveTab(tab.key); setError(''); setSuccess(''); }}
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${activeTab === tab.key ? `${tab.color} text-white shadow-lg` : 'text-foreground/70 hover:text-foreground'}`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* OTP Geri Dönüş */}
+            {activeTab === 'otp' && (
+               <button 
+                 type="button" 
+                 onClick={() => { setActiveTab('login'); setSuccess(''); setError(''); setOtpCode(''); }}
+                 className="text-xs text-indigo-400 hover:text-indigo-300 font-medium mb-2 flex items-center gap-1"
+               >
+                 ← Geri dön
+               </button>
+            )}
+
             {/* Kayıt: Ad Soyad */}
             {activeTab === 'register' && (
               <div>
@@ -134,17 +178,18 @@ export function LoginOverlay() {
               </div>
             )}
 
-            {/* Giriş: E-posta veya Kullanıcı Adı | Kayıt: Kullanıcı Adı | Şifremi Unuttum: E-posta */}
+            {/* Ortak Tanımlayıcı Input */}
             <div>
               <label className="text-xs font-medium text-foreground/60 uppercase tracking-wider mb-1 block">
-                {activeTab === 'login' ? 'E-posta veya Kullanıcı Adı' : activeTab === 'forgot' ? 'E-posta Adresi' : 'Kullanıcı Adı'}
+                {activeTab === 'login' ? 'E-posta veya Kullanıcı Adı' : activeTab === 'forgot' || activeTab === 'otp' ? 'E-posta Adresi' : 'Kullanıcı Adı'}
               </label>
               <input 
-                type={activeTab === 'forgot' ? 'email' : 'text'}
+                type={activeTab === 'forgot' || activeTab === 'otp' ? 'email' : 'text'}
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 required
-                className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2.5 text-foreground placeholder-foreground/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium"
+                readOnly={activeTab === 'otp'}
+                className={`w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2.5 text-foreground placeholder-foreground/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-medium ${activeTab === 'otp' ? 'opacity-60 cursor-not-allowed' : ''}`}
                 placeholder={activeTab === 'login' ? 'E-posta veya kullanıcı adı' : activeTab === 'forgot' ? 'ornek@gmail.com' : 'Kullanıcı adınız'}
               />
             </div>
@@ -165,8 +210,8 @@ export function LoginOverlay() {
               </div>
             )}
 
-            {/* Şifre — forgot hariç */}
-            {activeTab !== 'forgot' && (
+            {/* Şifre — forgot ve otp hariç */}
+            {(activeTab === 'login' || activeTab === 'register') && (
               <div>
                 <label className="text-xs font-medium text-foreground/60 uppercase tracking-wider mb-1 block">Şifre</label>
                 <input 
@@ -194,6 +239,22 @@ export function LoginOverlay() {
                 />
               </div>
             )}
+
+            {/* OTP Giriş Alanı */}
+            {activeTab === 'otp' && (
+              <div>
+                <label className="text-xs font-medium text-foreground/60 uppercase tracking-wider mb-1 block">6 Haneli Kod</label>
+                <input 
+                  type="text" 
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
+                  required
+                  maxLength={6}
+                  className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-center text-2xl tracking-[0.5em] text-foreground placeholder-foreground/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-bold"
+                  placeholder="------"
+                />
+              </div>
+            )}
             
             {error && <div className="text-red-500 text-sm font-medium bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</div>}
             {success && <div className="text-emerald-500 text-sm font-medium bg-emerald-500/10 p-3 rounded-lg border border-emerald-500/20">{success}</div>}
@@ -204,6 +265,8 @@ export function LoginOverlay() {
               className={`w-full py-3 text-white font-medium rounded-xl transition-all shadow-lg active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 ${
                 activeTab === 'forgot' 
                   ? 'bg-amber-500 hover:bg-amber-600 hover:shadow-amber-500/25' 
+                  : activeTab === 'otp'
+                  ? 'bg-emerald-600 hover:bg-emerald-700 hover:shadow-emerald-500/25'
                   : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-500/25'
               }`}
             >
@@ -215,12 +278,26 @@ export function LoginOverlay() {
                   </svg>
                   Yükleniyor...
                 </>
-              ) : activeTab === 'login' ? 'Sisteme Giriş Yap' : activeTab === 'register' ? 'Hesap Oluştur' : 'Sıfırlama Linki Gönder'}
+              ) : activeTab === 'login' ? 'Sisteme Giriş Yap' : activeTab === 'register' ? 'Hesap Oluştur' : activeTab === 'otp' ? 'Kodu Onayla ve Giriş Yap' : 'Sıfırlama Linki Gönder'}
             </button>
+
+            {/* Giriş sekmesinde e-posta ile Kod Al opsiyonu */}
+            {activeTab === 'login' && isEmail(identifier) && (
+              <div className="mt-4 pt-4 border-t border-white/10">
+                 <button
+                    type="button"
+                    onClick={handleSendOtp}
+                    disabled={loading}
+                    className="w-full py-2.5 text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 font-medium rounded-xl transition-all flex items-center justify-center gap-2"
+                 >
+                    ✨ Şifresiz Giriş Yap (Kod Al)
+                 </button>
+              </div>
+            )}
 
             {/* Giriş sekmesinde Şifremi Unuttum linki */}
             {activeTab === 'login' && (
-              <p className="text-center text-xs text-foreground/50 mt-2">
+              <p className="text-center text-xs text-foreground/50 mt-4">
                 <button 
                   type="button" 
                   onClick={() => { setActiveTab('forgot'); setError(''); setSuccess(''); }}

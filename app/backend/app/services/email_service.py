@@ -153,3 +153,29 @@ async def send_welcome_email(to: str, name: str, username: str, temp_password: O
     </div>
     """
     return await send_email(to, "My World — Hesabınız Oluşturuldu", _base_template(content))
+
+def generate_numeric_otp(length: int = 6) -> str:
+    """Rastgele rakamlardan oluşan OTP üretir"""
+    import random
+    return "".join(str(random.randint(0, 9)) for _ in range(length))
+
+async def send_login_otp_email(to: str, name: str, otp_code: str) -> bool:
+    """Şifresiz giriş için 6 haneli OTP kodu gönderir"""
+    content = f"""
+    <h2 style="color:#e2e8f0;margin:0 0 16px;font-size:20px;">Sisteme Giriş Kodu 🔐</h2>
+    <p style="color:#94a3b8;line-height:1.6;margin:0 0 16px;">
+        Merhaba {name}, şifresiz giriş yapmak için tek kullanımlık giriş kodunuz aşağıdadır:
+    </p>
+    <div style="text-align:center;margin:32px 0;">
+        <span style="display:inline-block;background:#334155;color:#fff;padding:16px 32px;border-radius:12px;font-weight:800;font-size:32px;letter-spacing:8px;">
+            {otp_code}
+        </span>
+    </div>
+    <p style="color:#94a3b8;line-height:1.6;margin:0 0 24px;text-align:center;">
+        Bu kod <strong style="color:#e2e8f0;">5 dakika</strong> boyunca geçerlidir.
+    </p>
+    <p style="color:#64748b;font-size:13px;margin:16px 0 0;">
+        Giriş talebinde bulunmadıysanız bu e-postayı görmezden gelebilirsiniz.
+    </p>
+    """
+    return await send_email(to, "My World — Giriş Kodunuz", _base_template(content))
