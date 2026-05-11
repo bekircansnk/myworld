@@ -21,13 +21,49 @@ from app.utils.activity import log_activity
 
 router = APIRouter()
 
+from sqlalchemy.orm import selectinload
+
 @router.get("/users", response_model=List[AdminUserResponse])
 async def get_users(
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(require_admin)
 ):
-    result = await db.execute(select(User).order_by(User.id))
-    return result.scalars().all()
+    query = select(User).options(
+        selectinload(User.company_accesses).selectinload(UserCompanyAccess.project)
+    ).order_by(User.id)
+    result = await db.execute(query)
+    users = result.scalars().all()
+    
+    response = []
+    for user in users:
+        accesses = []
+        for acc in user.company_accesses:
+            if acc.project:
+                accesses.append({
+                    "project_id": acc.project_id,
+                    "project_name": acc.project.name,
+                    "color": acc.project.color,
+                    "permissions": acc.permissions or {},
+                    "is_owner": acc.is_owner or False
+                })
+        
+        user_dict = {
+            "id": user.id,
+            "username": user.username,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role,
+            "permissions": user.permissions or {},
+            "is_active": user.is_active,
+            "avatar_url": user.avatar_url,
+            "last_login": user.last_login,
+            "created_by": user.created_by,
+            "created_at": user.created_at,
+            "company_accesses": accesses
+        }
+        response.append(user_dict)
+        
+    return response
 
 @router.get("/users/{user_id}", response_model=AdminUserResponse)
 async def get_user(

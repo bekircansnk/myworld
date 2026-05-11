@@ -162,7 +162,7 @@ export function ProfileSettings({ isOpen, onClose }: { isOpen: boolean, onClose:
              </button>
           </div>
           
-          {(user?.role === 'admin' || user?.role === 'super_admin') && (
+          {user?.role === 'super_admin' && (
             <div className="pt-4 border-t border-slate-100 dark:border-white/10 mt-6">
               <button 
                  type="button" 

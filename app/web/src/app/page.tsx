@@ -126,12 +126,37 @@ export default function DashboardPage() {
   const isPhotoTracking = viewMode === 'photo_tracking'
   const isAdminPanel = viewMode === 'admin'
   
+  const renderErrorState = (message: string) => (
+    <div className="flex flex-col h-screen w-full overflow-hidden" id="app-root">
+      <TopNavbar />
+      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-50 dark:bg-slate-900">
+        <div className="w-16 h-16 bg-red-100 dark:bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mb-4">
+          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-2">{message}</h2>
+        <p className="text-slate-500 text-sm mb-6 text-center max-w-md">Erişmek istediğiniz bölüme yetkiniz bulunmuyor veya sistem tarafından kısıtlanmış durumda.</p>
+        <button 
+          onClick={() => {
+            const { useProjectStore } = require("@/stores/projectStore");
+            useProjectStore.getState().setViewMode('tasks');
+          }}
+          className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition-colors"
+        >
+          Ana Sayfaya Dön
+        </button>
+      </div>
+      <MobileBottomNav />
+    </div>
+  );
+
   // İzinsiz sayfaya geçiş engelleme (Fallback)
-  if (isReklamAds && !canViewModule('ads')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
-  if (isCalendar && !canViewModule('calendar')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
-  if (isAIChat && !canViewModule('ai_chat')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
-  if (isPhotoTracking && !canViewModule('photo_tracking')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
-  if (isAdminPanel && !isAdmin(user)) return <div className="p-8 text-center text-red-500">Yönetici yetkiniz yok.</div>
+  if (isReklamAds && !canViewModule('ads')) return renderErrorState("Bu modüle erişim yetkiniz yok.");
+  if (isCalendar && !canViewModule('calendar')) return renderErrorState("Bu modüle erişim yetkiniz yok.");
+  if (isAIChat && !canViewModule('ai_chat')) return renderErrorState("Bu modüle erişim yetkiniz yok.");
+  if (isPhotoTracking && !canViewModule('photo_tracking')) return renderErrorState("Bu modüle erişim yetkiniz yok.");
+  if (isAdminPanel && !isAdmin(user)) return renderErrorState("Yönetim paneline erişim yetkiniz yok.");
 
   return (
     <div className="flex flex-col h-screen w-full overflow-hidden" id="app-root">

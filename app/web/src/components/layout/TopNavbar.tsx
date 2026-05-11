@@ -443,12 +443,7 @@ export function TopNavbar() {
                       )}
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-brand-dark dark:text-white capitalize truncate max-w-[120px]">{user?.username || 'Kullanıcı'}</p>
-                      <p className="text-[10px] text-brand-gray dark:text-gray-500">
-                         {user?.role === 'super_admin' ? '👑 Süper Admin' : 
-                          user?.role === 'admin' ? '🛡️ Yönetici' :
-                          user?.role === 'editor' ? '✏️ Editör' : '👁️ İzleyici'}
-                      </p>
+                      <p className="text-sm font-bold text-brand-dark dark:text-white capitalize truncate max-w-[120px]">{user?.name || user?.username || 'Kullanıcı'}</p>
                     </div>
                   </div>
                 </div>

@@ -41,6 +41,7 @@ class AdminUserResponse(BaseModel):
     last_login: Optional[datetime] = None
     created_by: Optional[int] = None
     created_at: Optional[datetime] = None
+    company_accesses: Optional[List[Any]] = Field(default_factory=list)
 
     class Config:
         from_attributes = True
