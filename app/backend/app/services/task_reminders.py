@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.future import select
 from sqlalchemy import and_, or_
-from app.database import get_db_session
+from app.database import AsyncSessionLocal
 from app.models.task import Task
 from app.models.user import User
 from app.services.email_service import send_email, _base_template
@@ -21,7 +21,7 @@ async def send_daily_reminders():
         tomorrow_start = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
         tomorrow_end = tomorrow_start + timedelta(days=1, microseconds=-1)
 
-        async with get_db_session() as db:
+        async with AsyncSessionLocal() as db:
             # Yarın teslim edilecek, tamamlanmamış ve silinmemiş görevleri bul
             stmt = select(Task, User).join(User, Task.user_id == User.id).where(
                 and_(
@@ -88,7 +88,7 @@ async def send_hourly_reminders():
         target_start = now + timedelta(minutes=45)
         target_end = now + timedelta(minutes=60)
 
-        async with get_db_session() as db:
+        async with AsyncSessionLocal() as db:
             stmt = select(Task, User).join(User, Task.user_id == User.id).where(
                 and_(
                     Task.due_date >= target_start,
