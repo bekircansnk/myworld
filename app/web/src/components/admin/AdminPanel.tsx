@@ -2,11 +2,13 @@
 
 import * as React from "react"
 import { useAdminStore } from "@/stores/adminStore"
-import { Users, Shield, Activity, BarChart, Settings, Search, Plus } from "lucide-react"
+import { Users, Shield, Activity, BarChart, Settings, Search, Plus, Building2 } from "lucide-react"
 import { CreateUserModal } from "./CreateUserModal"
 import { UserCard } from "./UserCard"
 import { PermissionMatrix } from "./PermissionMatrix"
 import { UserDetailPanel } from "./UserDetailPanel"
+import { CompanyManagementPanel } from "./CompanyManagementPanel"
+import { useAuthStore } from "@/store/authStore"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
 
@@ -16,9 +18,11 @@ export function AdminPanel() {
     fetchUsers, fetchStats, fetchActivityLogs, fetchRoleTemplates 
   } = useAdminStore()
   
-  const [activeTab, setActiveTab] = React.useState<'dashboard'|'users'|'permissions'|'logs'>('dashboard')
+  const [activeTab, setActiveTab] = React.useState<'dashboard'|'users'|'permissions'|'logs'|'companies'>('dashboard')
   const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false)
   const [selectedUser, setSelectedUser] = React.useState<any>(null)
+  const { user } = useAuthStore()
+  const isSuperAdmin = user?.role === 'super_admin'
   
   React.useEffect(() => {
     fetchUsers()
@@ -44,6 +48,9 @@ export function AdminPanel() {
            </button>
            <button onClick={() => setActiveTab('users')} className={`px-4 py-2 text-sm font-bold rounded-xl transition-all flex items-center gap-2 ${activeTab === 'users' ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
              <Users className="w-4 h-4" /> Kullanıcılar
+           </button>
+           <button onClick={() => setActiveTab('companies')} className={`px-4 py-2 text-sm font-bold rounded-xl transition-all flex items-center gap-2 ${activeTab === 'companies' ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
+             <Building2 className="w-4 h-4" /> Firmalar
            </button>
            <button onClick={() => setActiveTab('permissions')} className={`px-4 py-2 text-sm font-bold rounded-xl transition-all flex items-center gap-2 ${activeTab === 'permissions' ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
              <Settings className="w-4 h-4" /> İzinler
@@ -157,6 +164,13 @@ export function AdminPanel() {
                     ))}
                  </div>
               )}
+           </div>
+        )}
+        
+        {/* COMPANIES TAB */}
+        {activeTab === 'companies' && (
+           <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200/60 dark:border-white/10 shadow-sm overflow-hidden p-6">
+              <CompanyManagementPanel users={users} isSuperAdmin={isSuperAdmin} />
            </div>
         )}
         

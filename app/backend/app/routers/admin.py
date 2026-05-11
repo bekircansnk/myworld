@@ -11,10 +11,12 @@ from app.models.task import Task
 from app.models.note import Note
 from app.models.calendar_event import CalendarEvent
 from app.models.activity_log import ActivityLog
+from app.models.user_company_access import UserCompanyAccess
+from app.models.project import Project
 from app.models.role_templates import ROLE_TEMPLATES
 from app.schemas.admin import UserCreate, UserUpdate, PermissionUpdate, AdminUserResponse, AdminStatsResponse, ActivityLogResponse
 from app.dependencies.admin import require_admin, require_super_admin
-from app.dependencies.auth import get_password_hash
+from app.dependencies.auth import get_password_hash, get_current_user
 from app.utils.activity import log_activity
 
 router = APIRouter()
@@ -175,7 +177,6 @@ async def get_activity_logs(
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(require_admin)
 ):
-    # Join user table to get usernames
     result = await db.execute(
         select(ActivityLog, User.username)
         .outerjoin(User, ActivityLog.user_id == User.id)
@@ -198,3 +199,135 @@ async def get_activity_logs(
         logs.append(log_dict)
         
     return logs
+
+# ============================================================
+# FİRMA (PROJE) TABANLI KULLANICI ERİŞİM YÖNETİMİ
+# ============================================================
+
+@router.get("/companies", response_model=List[dict])
+async def get_all_companies(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """Tüm firmaları listeler. super_admin hepsini görür, admin kendi firmasını görür."""
+    if current_user.role == "super_admin":
+        result = await db.execute(select(Project).order_by(Project.name))
+    else:
+        # Admin sadece kendi erişebildiği firmaları görür
+        result = await db.execute(
+            select(Project)
+            .join(UserCompanyAccess, UserCompanyAccess.project_id == Project.id)
+            .where(UserCompanyAccess.user_id == current_user.id)
+            .order_by(Project.name)
+        )
+    projects = result.scalars().all()
+    return [{"id": p.id, "name": p.name, "user_id": p.user_id} for p in projects]
+
+@router.get("/companies/overview", response_model=List[dict])
+async def get_companies_overview(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """Her firma için özet istatistik (görev, kullanıcı, son aktivite)"""
+    if current_user.role == "super_admin":
+        proj_result = await db.execute(select(Project).order_by(Project.name))
+    else:
+        proj_result = await db.execute(
+            select(Project)
+            .join(UserCompanyAccess, UserCompanyAccess.project_id == Project.id)
+            .where(UserCompanyAccess.user_id == current_user.id)
+        )
+    projects = proj_result.scalars().all()
+    
+    overview = []
+    for p in projects:
+        task_count = await db.execute(select(func.count(Task.id)).where(Task.project_id == p.id))
+        user_count = await db.execute(select(func.count(UserCompanyAccess.id)).where(UserCompanyAccess.project_id == p.id))
+        overview.append({
+            "id": p.id,
+            "name": p.name,
+            "task_count": task_count.scalar() or 0,
+            "user_count": user_count.scalar() or 0,
+        })
+    return overview
+
+@router.get("/users/{user_id}/companies", response_model=List[dict])
+async def get_user_companies(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(require_admin)
+):
+    """Bir kullanıcının erişebildiği firmaları listele"""
+    result = await db.execute(
+        select(UserCompanyAccess, Project.name)
+        .join(Project, UserCompanyAccess.project_id == Project.id)
+        .where(UserCompanyAccess.user_id == user_id)
+    )
+    accesses = result.all()
+    return [{"project_id": a.UserCompanyAccess.project_id, "project_name": a.name} for a in accesses]
+
+@router.post("/users/{user_id}/companies/{project_id}")
+async def grant_company_access(
+    user_id: int,
+    project_id: int,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(require_admin)
+):
+    """Kullanıcıya firma erişimi ver"""
+    # Super admin değilse sadece kendi erişebildiği firmaları atayabilir
+    if current_admin.role != "super_admin":
+        check = await db.execute(
+            select(UserCompanyAccess).where(
+                UserCompanyAccess.user_id == current_admin.id,
+                UserCompanyAccess.project_id == project_id
+            )
+        )
+        if not check.scalars().first():
+            raise HTTPException(status_code=403, detail="Bu firmayı atama yetkiniz yok")
+    
+    # Zaten var mı?
+    existing = await db.execute(
+        select(UserCompanyAccess).where(
+            UserCompanyAccess.user_id == user_id,
+            UserCompanyAccess.project_id == project_id
+        )
+    )
+    if existing.scalars().first():
+        return {"message": "Kullanıcı zaten bu firmaya erişebiliyor"}
+    
+    access = UserCompanyAccess(
+        user_id=user_id,
+        project_id=project_id,
+        granted_by=current_admin.id
+    )
+    db.add(access)
+    await db.commit()
+    await log_activity(db, current_admin.id, "grant_company_access", "admin",
+                       {"user_id": user_id, "project_id": project_id}, request)
+    return {"message": "Firma erişimi verildi"}
+
+@router.delete("/users/{user_id}/companies/{project_id}")
+async def revoke_company_access(
+    user_id: int,
+    project_id: int,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(require_admin)
+):
+    """Kullanıcıdan firma erişimini kaldır"""
+    result = await db.execute(
+        select(UserCompanyAccess).where(
+            UserCompanyAccess.user_id == user_id,
+            UserCompanyAccess.project_id == project_id
+        )
+    )
+    access = result.scalars().first()
+    if not access:
+        raise HTTPException(status_code=404, detail="Erişim bulunamadı")
+    
+    await db.delete(access)
+    await db.commit()
+    await log_activity(db, current_admin.id, "revoke_company_access", "admin",
+                       {"user_id": user_id, "project_id": project_id}, request)
+    return {"message": "Firma erişimi kaldırıldı"}

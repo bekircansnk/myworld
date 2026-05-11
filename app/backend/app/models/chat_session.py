@@ -15,6 +15,7 @@ class ChatSession(Base):
     last_user_message = Column(Text, nullable=True)  # Last user question for card display
     message_count = Column(Integer, default=0)
     is_active = Column(Boolean, default=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True)  # Firma bazlı filtreleme
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
                         onupdate=lambda: datetime.now(timezone.utc))

@@ -11,6 +11,7 @@ from app.models.calendar_event import CalendarEvent
 from app.models.chat_message import ChatMessage
 from app.models.chat_session import ChatSession
 from app.models.activity_log import ActivityLog
+from app.models.user_company_access import UserCompanyAccess
 
 # Venus Ads Panel Models
 from app.models.venus import *
