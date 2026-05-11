@@ -51,18 +51,26 @@ export function DashboardWidgets() {
   const { projects, setViewMode, setSelectedProjectId } = useProjectStore()
   const { user } = useAuthStore()
 
-  // === CLOCK ===
+  // === CLOCK (dakika bazlı güncelleme — CPU tasarrufu) ===
   const [currentTime, setCurrentTime] = React.useState(new Date())
   React.useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000)
-    return () => clearInterval(timer)
+    // İlk güncelleme: bir sonraki dakikanın başına kadar bekle
+    const now = new Date()
+    const msUntilNextMinute = (60 - now.getSeconds()) * 1000 - now.getMilliseconds()
+    const initialTimeout = setTimeout(() => {
+      setCurrentTime(new Date())
+      // Sonra dakikada bir güncelle
+    }, msUntilNextMinute)
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000)
+    return () => { clearTimeout(initialTimeout); clearInterval(timer) }
   }, [])
 
   const { events: calendarEvents, deleteEvent, updateEvent } = useCalendarStore()
   const [detailEvent, setDetailEvent] = React.useState<CalendarEvent | null>(null)
   const [isEventDetailOpen, setIsEventDetailOpen] = React.useState(false)
 
-  // === ACTIVE CALENDAR EVENT ===
+  // === ACTIVE CALENDAR EVENT (dakika bazlı) ===
+  const currentMinuteKey = `${currentTime.getFullYear()}-${currentTime.getMonth()}-${currentTime.getDate()}-${currentTime.getHours()}-${currentTime.getMinutes()}`
   const activeCalendarEvent = React.useMemo(() => {
     const now = currentTime
     const todayStr = format(now, 'yyyy-MM-dd')
@@ -81,7 +89,7 @@ export function DashboardWidgets() {
     })
 
     return current || null
-  }, [calendarEvents, currentTime])
+  }, [calendarEvents, currentMinuteKey])
 
   const eventProgress = React.useMemo(() => {
     if (!activeCalendarEvent?.startTime || !activeCalendarEvent?.endTime) return null
@@ -92,14 +100,13 @@ export function DashboardWidgets() {
     const endMin = eh * 60 + em
     const nowMin = now.getHours() * 60 + now.getMinutes()
     const totalMin = endMin - startMin
-    // Handle edge case where totalMin could be 0
     if (totalMin <= 0) return { elapsedMin: 0, totalMin: 0, percent: 100, isComplete: true }
 
     const elapsedMin = nowMin - startMin
     const percent = Math.min(Math.max((elapsedMin / totalMin) * 100, 0), 100)
     const isComplete = percent >= 100
     return { elapsedMin, totalMin, percent, isComplete }
-  }, [activeCalendarEvent, currentTime])
+  }, [activeCalendarEvent, currentMinuteKey])
 
   // === WORK TIMER ===
   const [isTimerRunning, setIsTimerRunning] = React.useState(false)
@@ -199,10 +206,12 @@ export function DashboardWidgets() {
   const completionRate = totalTasks > 0 ? Math.round((doneTasks.length / totalTasks) * 100) : 0
 
   // === Gelişim chart — Haftalık (Pzt - Paz) ===
+  // Gün bazlı key — sadece gün değiştiğinde yeniden hesapla
+  const dayKey = `${currentTime.getFullYear()}-${currentTime.getMonth()}-${currentTime.getDate()}`
   const weeklyProgressStats = React.useMemo(() => {
     const days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz']
     const now = currentTime
-    const currentDayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1 // 0 for Monday, 6 for Sunday
+    const currentDayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1
     const startOfWeek = new Date(now)
     startOfWeek.setDate(now.getDate() - currentDayOfWeek)
     startOfWeek.setHours(0, 0, 0, 0)
@@ -226,7 +235,7 @@ export function DashboardWidgets() {
         isToday
       }
     })
-  }, [mainTasks, currentTime])
+  }, [mainTasks, dayKey])
 
   const maxWeeklyTasks = Math.max(...weeklyProgressStats.map(s => s.total), 1)
 
@@ -236,7 +245,7 @@ export function DashboardWidgets() {
     const month = currentTime.getMonth()
     const firstDay = new Date(year, month, 1)
     const lastDay = new Date(year, month + 1, 0)
-    const startDayOfWeek = (firstDay.getDay() + 6) % 7 // Monday=0
+    const startDayOfWeek = (firstDay.getDay() + 6) % 7
 
     const days: { day: number, isCurrentMonth: boolean, isToday: boolean, tasks: typeof mainTasks }[] = []
 
@@ -260,7 +269,7 @@ export function DashboardWidgets() {
       days.push({ day: isCurrentMonth ? d : 0, isCurrentMonth, isToday, tasks: dayTasks })
     }
     return days
-  }, [currentTime, mainTasks])
+  }, [dayKey, mainTasks])
 
   // Orientation mode
   const [orientationMode, setOrientationMode] = React.useState<'weekly' | 'monthly'>('weekly')
@@ -353,8 +362,6 @@ export function DashboardWidgets() {
 
           {/* Dijital & Analog Saat */}
           <div className="floating-card rounded-2xl md:rounded-3xl p-4 md:p-6 flex flex-row items-center justify-between shrink-0 relative overflow-hidden group min-h-[140px]">
-            <div className="absolute -top-12 -right-12 w-48 h-48 bg-brand-yellow/5 rounded-full blur-3xl group-hover:bg-brand-yellow/8 transition-colors" />
-            <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-slate-500/5 rounded-full blur-3xl" />
             <div className="relative z-10 flex flex-col items-start justify-center pl-1 md:pl-2 flex-1 gap-2 md:gap-4">
               <div className="text-3xl md:text-5xl font-light tracking-tighter text-brand-dark dark:text-white tabular-nums drop-shadow-sm leading-none">
                 {format(currentTime, 'HH:mm')}
@@ -362,64 +369,6 @@ export function DashboardWidgets() {
               <div className="text-[10px] text-brand-gray dark:text-gray-400 uppercase tracking-[0.3em] font-bold leading-relaxed">
                 {format(currentTime, 'dd MMMM', { locale: tr })}<br />
                 {format(currentTime, 'EEEE', { locale: tr })}
-              </div>
-            </div>
-            <div className="relative z-10 hidden md:flex items-center justify-center flex-1">
-              <div className="relative w-36 h-36">
-                <div className="absolute inset-0 rounded-full bg-white/50 dark:bg-black/20 border border-brand-dark/5 dark:border-white/5 shadow-inner" />
-                {/* Saat işaretleri (12 adet) */}
-                {[...Array(12)].map((_, i) => {
-                  const angle = (i * 30) * (Math.PI / 180)
-                  const radius = 62
-                  const x = 50 + radius * Math.sin(angle)
-                  const y = 50 - radius * Math.cos(angle)
-                  return (
-                    <div
-                      key={i}
-                      className={`absolute rounded-full ${i % 3 === 0 ? 'w-[3px] h-4 bg-brand-dark/25 dark:bg-white/35' : 'w-[2px] h-2 bg-brand-dark/10 dark:bg-white/12'}`}
-                      style={{
-                        left: `${x}%`,
-                        top: `${y}%`,
-                        transform: `translate(-50%, -50%) rotate(${i * 30}deg)`,
-                      }}
-                    />
-                  )
-                })}
-                {/* Akrep (saat ibresi) */}
-                <div
-                  className="absolute w-[5px] bg-brand-dark dark:bg-white rounded-full shadow-sm"
-                  style={{
-                    height: '28%',
-                    left: '50%',
-                    top: '50%',
-                    transformOrigin: '50% 100%',
-                    transform: `translate(-50%, -100%) rotate(${(currentTime.getHours() % 12) * 30 + currentTime.getMinutes() * 0.5}deg)`,
-                  }}
-                />
-                {/* Yelkovan (dakika ibresi) */}
-                <div
-                  className="absolute w-[3px] bg-brand-dark/60 dark:bg-white/60 rounded-full"
-                  style={{
-                    height: '36%',
-                    left: '50%',
-                    top: '50%',
-                    transformOrigin: '50% 100%',
-                    transform: `translate(-50%, -100%) rotate(${currentTime.getMinutes() * 6 + currentTime.getSeconds() * 0.1}deg)`,
-                  }}
-                />
-                {/* Saniye ibresi */}
-                <div
-                  className="absolute w-[1.5px] bg-brand-yellow rounded-full"
-                  style={{
-                    height: '40%',
-                    left: '50%',
-                    top: '50%',
-                    transformOrigin: '50% 100%',
-                    transform: `translate(-50%, -100%) rotate(${currentTime.getSeconds() * 6}deg)`,
-                  }}
-                />
-                {/* Merkez noktası */}
-                <div className="absolute left-1/2 top-1/2 w-3 h-3 bg-brand-dark dark:bg-white rounded-full border-2 border-brand-yellow -translate-x-1/2 -translate-y-1/2 z-20 shadow-md" />
               </div>
             </div>
           </div>

@@ -8,6 +8,10 @@ interface WebSocketState {
   sendMessage: (message: string) => void;
 }
 
+let _reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 3;
+let _reconnectTimeout: NodeJS.Timeout | null = null;
+
 export const useWebSocketStore = create<WebSocketState>((set, get) => ({
   socket: null,
   isConnected: false,
@@ -15,41 +19,48 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
   connect: () => {
     if (get().socket?.readyState === WebSocket.OPEN || typeof window === 'undefined') return;
     
-    // Geliştirme ortamında sabit 8000, üretimde host dinamik olmalı
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.hostname;
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `${protocol}//${host}:8000/ws/`;
     
-    const ws = new WebSocket(wsUrl);
-    
-    ws.onopen = () => {
-      set({ isConnected: true, socket: ws });
-      console.log("🟢 WebSocket Connected");
-      ws.send(JSON.stringify({ type: "connect", message: "Client is ready" }));
-    };
-    
-    ws.onmessage = (event) => {
-      console.log("⚡ WebSocket Message:", event.data);
-      // İleride gelen veri tipine göre state güncellemeleri veya bildirimler eklenebilir.
-      // Örn: if (data.type === 'TASK_UPDATED') fetchTasks();
-    };
-    
-    ws.onclose = () => {
-      set({ isConnected: false, socket: null });
-      console.log("🔴 WebSocket Disconnected. Reconnecting in 5s...");
-      // Otomatik yeniden bağlanma
-      setTimeout(() => get().connect(), 5000);
-    };
-    
-    ws.onerror = (error) => {
-      // console.error can crash Next.js dev server UI with an unhandled exception overlay, so we use warn.
-      console.warn("🟠 WebSocket Error observed. Connection might be retrying...", error);
-    };
-    
-    set({ socket: ws });
+    try {
+      const ws = new WebSocket(wsUrl);
+      
+      ws.onopen = () => {
+        set({ isConnected: true, socket: ws });
+        _reconnectAttempts = 0; // Başarılı bağlantıda sıfırla
+      };
+      
+      ws.onmessage = () => {
+        // Gelen veri tipine göre state güncellemeleri
+      };
+      
+      ws.onclose = () => {
+        set({ isConnected: false, socket: null });
+        // Maksimum deneme sınırı ile exponential backoff
+        if (_reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+          const delay = Math.min(5000 * Math.pow(2, _reconnectAttempts), 60000);
+          _reconnectAttempts++;
+          _reconnectTimeout = setTimeout(() => get().connect(), delay);
+        }
+      };
+      
+      ws.onerror = () => {
+        // Sessiz geç — onclose zaten tetiklenecek
+      };
+      
+      set({ socket: ws });
+    } catch {
+      // WebSocket oluşturulamadı — sessizce geç
+    }
   },
   
   disconnect: () => {
+    if (_reconnectTimeout) {
+      clearTimeout(_reconnectTimeout);
+      _reconnectTimeout = null;
+    }
+    _reconnectAttempts = MAX_RECONNECT_ATTEMPTS; // Reconnect engelle
     const { socket } = get();
     if (socket) {
       socket.close();

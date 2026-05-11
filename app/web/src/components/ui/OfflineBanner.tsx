@@ -15,15 +15,14 @@ export function OfflineBanner() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [wasOffline, setWasOffline] = useState(false);
 
-  // Bekleyen işlem sayısını takip et
+  // Bekleyen işlem sayısını takip et (30 saniye aralıkla)
   useEffect(() => {
     const checkPending = async () => {
       const count = await getPendingCount();
       setPendingCount(count);
     };
     checkPending();
-    // Her 5 saniyede kontrol et
-    const interval = setInterval(checkPending, 5000);
+    const interval = setInterval(checkPending, 30000);
     return () => clearInterval(interval);
   }, []);
 

@@ -152,9 +152,9 @@
 
   /* ===== FLOATING CARD — 3D Havada Duruyor Efekti ===== */
   .floating-card {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     border-radius: 1rem;
     border: 1px solid rgba(255, 255, 255, 0.6);
     box-shadow: 
@@ -183,9 +183,9 @@
 
   /* Daha opak, solid ve yumuşak kartlar */
   .glass-card {
-    @apply bg-white/90 dark:bg-[#1a1e2e]/92 rounded-3xl border border-white/60 dark:border-white/8 transition-all duration-300 ease-out;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    @apply bg-white/95 dark:bg-[#1a1e2e]/95 rounded-3xl border border-white/60 dark:border-white/8 transition-all duration-300 ease-out;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.03);
   }
   .glass-card:hover {
@@ -194,11 +194,11 @@
   }
   
   .glass-panel {
-    @apply bg-white/95 dark:bg-[#151926]/95 backdrop-blur-3xl rounded-3xl border border-slate-100 dark:border-white/5 shadow-soft supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-[#151926]/80;
+    @apply bg-white/97 dark:bg-[#151926]/97 backdrop-blur-sm rounded-3xl border border-slate-100 dark:border-white/5 shadow-soft;
   }
 
   .glass-sidebar {
-    @apply bg-[#f8fafc]/80 dark:bg-[#111421]/90 backdrop-blur-xl border-r border-slate-200/40 dark:border-white/5 supports-[backdrop-filter]:bg-[#f8fafc]/50 dark:supports-[backdrop-filter]:bg-[#111421]/60 transition-colors duration-500;
+    @apply bg-[#f8fafc]/95 dark:bg-[#111421]/95 backdrop-blur-sm border-r border-slate-200/40 dark:border-white/5 transition-colors duration-500;
   }
 
   /* Soft ve sevimli CTA butonlar */
