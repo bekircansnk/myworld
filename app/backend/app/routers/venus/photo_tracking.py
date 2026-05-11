@@ -12,8 +12,9 @@ import io
 import pandas as pd
 
 from app.database import get_db
-from app.routers.auth import get_current_user
 from app.models.user import User
+from app.dependencies.auth import get_current_user
+from app.dependencies.permissions import require_permission
 from app.models.venus.photo_model import PhotoModel
 from app.models.venus.photo_model_color import PhotoModelColor
 from app.models.venus.photo_revision import PhotoRevision
@@ -34,7 +35,7 @@ async def get_models(
     year: Optional[int] = None,
     week_number: Optional[int] = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("photo_tracking", "view"))
 ):
     query = select(PhotoModel).where(PhotoModel.user_id == current_user.id).options(selectinload(PhotoModel.colors), selectinload(PhotoModel.revisions))
     
@@ -55,7 +56,7 @@ async def get_models(
 async def create_model(
     data: PhotoModelCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("photo_tracking", "edit"))
 ):
     model_data = data.model_dump()
     new_model = PhotoModel(**model_data, user_id=current_user.id)
@@ -73,7 +74,7 @@ async def update_model(
     model_id: int,
     data: PhotoModelUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("photo_tracking", "edit"))
 ):
     import logging
     logger = logging.getLogger(__name__)
@@ -127,7 +128,7 @@ async def update_model(
 async def delete_model(
     model_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("photo_tracking", "edit"))
 ):
     query = select(PhotoModel).where(PhotoModel.id == model_id, PhotoModel.user_id == current_user.id)
     result = await db.execute(query)
@@ -146,7 +147,7 @@ async def add_color(
     model_id: int,
     data: PhotoModelColorCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("photo_tracking", "edit"))
 ):
     # check model
     query = select(PhotoModel).where(PhotoModel.id == model_id, PhotoModel.user_id == current_user.id)
@@ -165,7 +166,7 @@ async def update_color(
     color_id: int,
     data: PhotoModelColorUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("photo_tracking", "edit"))
 ):
     query = select(PhotoModelColor).join(PhotoModel).where(PhotoModelColor.id == color_id, PhotoModel.user_id == current_user.id)
     result = await db.execute(query)
@@ -208,7 +209,7 @@ async def update_color(
 async def delete_color(
     color_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("photo_tracking", "edit"))
 ):
     query = select(PhotoModelColor).join(PhotoModel).where(PhotoModelColor.id == color_id, PhotoModel.user_id == current_user.id)
     result = await db.execute(query)
@@ -236,7 +237,7 @@ async def add_revision(
     model_id: int,
     data: PhotoRevisionCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("photo_tracking", "edit"))
 ):
     query = select(PhotoModel).where(PhotoModel.id == model_id, PhotoModel.user_id == current_user.id)
     result = await db.execute(query)
@@ -256,7 +257,7 @@ async def get_overview(
     month: Optional[int] = None,
     year: Optional[int] = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("photo_tracking", "view"))
 ):
     models_q = select(PhotoModel).where(PhotoModel.user_id == current_user.id)
     if project_id:

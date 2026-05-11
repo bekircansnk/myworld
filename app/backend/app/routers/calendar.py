@@ -8,6 +8,7 @@ from app.database import get_db
 from app.models.calendar_event import CalendarEvent
 from app.schemas.calendar import CalendarEventCreate, CalendarEventUpdate, CalendarEventResponse
 from app.dependencies.auth import get_current_user
+from app.dependencies.permissions import require_permission
 from app.models.user import User
 from app.services.location_service import local_to_utc, utc_to_local, get_user_timezone
 
@@ -43,7 +44,11 @@ def convert_to_response(db_event: CalendarEvent) -> CalendarEventResponse:
     )
 
 @router.post("", response_model=CalendarEventResponse)
-async def create_event(event: CalendarEventCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def create_event(
+    event: CalendarEventCreate, 
+    db: AsyncSession = Depends(get_db), 
+    current_user: User = Depends(require_permission("calendar", "edit"))
+):
     # Parse frontend format to DB format
     start_time_str = f"{event.date}T{event.startTime or '00:00'}:00"
     end_time_str = f"{event.date}T{event.endTime or '23:59'}:00"
@@ -73,13 +78,23 @@ async def create_event(event: CalendarEventCreate, db: AsyncSession = Depends(ge
     return convert_to_response(db_event)
 
 @router.get("", response_model=List[CalendarEventResponse])
-async def list_events(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def list_events(
+    start_date: Optional[datetime] = None, 
+    end_date: Optional[datetime] = None, 
+    db: AsyncSession = Depends(get_db), 
+    current_user: User = Depends(require_permission("calendar", "view"))
+):
     result = await db.execute(select(CalendarEvent).where(CalendarEvent.user_id == current_user.id))
     events = result.scalars().all()
     return [convert_to_response(e) for e in events]
 
 @router.put("/{event_id}", response_model=CalendarEventResponse)
-async def update_event(event_id: int, event: CalendarEventUpdate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def update_event(
+    event_id: int, 
+    event: CalendarEventUpdate, 
+    db: AsyncSession = Depends(get_db), 
+    current_user: User = Depends(require_permission("calendar", "edit"))
+):
     result = await db.execute(select(CalendarEvent).where(CalendarEvent.id == event_id, CalendarEvent.user_id == current_user.id))
     db_event = result.scalars().first()
     if not db_event:

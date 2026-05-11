@@ -4,14 +4,14 @@ import * as React from "react"
 import { useProjectStore } from "@/stores/projectStore"
 import { useTaskStore } from "@/stores/taskStore"
 import { useTheme } from "next-themes"
-import { Bell, Sun, Moon, User, ChevronDown, Plus, LayoutDashboard, ListTodo, CalendarDays, NotebookPen, X, Clock, AlertTriangle, Check, Bot, Megaphone, Camera } from "lucide-react"
+import { LayoutDashboard, ListTodo, CalendarDays, NotebookPen, Bot, Megaphone, Camera, Menu, Bell, Search, Plus, Loader2, PlayCircle, Clock, CheckCircle2, MoreVertical, X, Shield, Sun, Moon, User, ChevronDown, AlertTriangle, Check } from "lucide-react"
 import { format, isToday, isTomorrow, isBefore, addDays } from "date-fns"
 import { tr } from "date-fns/locale"
 import { api } from "@/lib/api"
 import { ProjectForm } from "@/components/projects/ProjectForm"
 import { Pencil, Trash2, LogOut } from "lucide-react"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
-import { useAuthStore } from "@/store/authStore"
+import { useAuthStore, canView, isAdmin } from "@/store/authStore"
 import { ProfileSettings } from "@/components/auth/ProfileSettings"
 import { ProjectSettingsModal } from "@/components/projects/ProjectSettingsModal"
 
@@ -218,14 +218,16 @@ export function TopNavbar() {
 
   const currentProject = projects.find(p => p.id === selectedProjectId)
 
+  // Sadece izni olan modülleri göster
   const navItems = [
-    { id: 'dashboard', label: 'Kontrol Paneli', icon: LayoutDashboard },
-    { id: 'all_tasks', label: 'Görevler', icon: ListTodo },
-    { id: 'calendar', label: 'Takvim', icon: CalendarDays },
-    { id: 'notes', label: 'Notlar', icon: NotebookPen },
-    { id: 'ai_chat', label: 'AI Sohbet', icon: Bot },
-    { id: 'venus_ads', label: 'Reklam', icon: Megaphone },
-    { id: 'photo_tracking', label: 'Fotoğraf Takip', icon: Camera },
+    ...(canView(user, 'dashboard') ? [{ id: 'dashboard', label: 'Kontrol Paneli', icon: LayoutDashboard }] : []),
+    ...(canView(user, 'tasks') ? [{ id: 'all_tasks', label: 'Görevler', icon: ListTodo }] : []),
+    ...(canView(user, 'calendar') ? [{ id: 'calendar', label: 'Takvim', icon: CalendarDays }] : []),
+    ...(canView(user, 'notes') ? [{ id: 'notes', label: 'Notlar', icon: NotebookPen }] : []),
+    ...(canView(user, 'ai_chat') ? [{ id: 'ai_chat', label: 'AI Sohbet', icon: Bot }] : []),
+    ...(canView(user, 'venus_ads') ? [{ id: 'venus_ads', label: 'Reklam', icon: Megaphone }] : []),
+    ...(canView(user, 'photo_tracking') ? [{ id: 'photo_tracking', label: 'Fotoğraf Takip', icon: Camera }] : []),
+    ...(isAdmin(user) ? [{ id: 'admin', label: 'Yönetim', icon: Shield }] : []),
   ]
 
   const notifTypeIcon: Record<string, React.ReactNode> = {
@@ -443,7 +445,11 @@ export function TopNavbar() {
                     </div>
                     <div>
                       <p className="text-sm font-bold text-brand-dark dark:text-white capitalize truncate max-w-[120px]">{user?.username || 'Kullanıcı'}</p>
-                      <p className="text-[10px] text-brand-gray dark:text-gray-500">My World Üyesi</p>
+                      <p className="text-[10px] text-brand-gray dark:text-gray-500">
+                         {user?.role === 'super_admin' ? '👑 Süper Admin' : 
+                          user?.role === 'admin' ? '🛡️ Yönetici' :
+                          user?.role === 'editor' ? '✏️ Editör' : '👁️ İzleyici'}
+                      </p>
                     </div>
                   </div>
                 </div>

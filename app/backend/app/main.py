@@ -11,6 +11,7 @@ from app.routers.notes import router as notes_router
 from app.routers.telegram import router as telegram_router
 from app.routers.reports import router as reports_router
 from app.routers.auth import router as auth_router
+from app.routers.admin import router as admin_router
 from app.routers.websocket import router as websocket_router
 from app.routers.calendar import router as calendar_router
 from app.utils.logger import logger
@@ -54,6 +55,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
+app.include_router(admin_router, prefix="/api/admin", tags=["Admin"])
 app.include_router(projects_router, prefix="/api")
 app.include_router(tasks_router, prefix="/api")
 app.include_router(ai_router, prefix="/api", tags=["AI Asistan"])

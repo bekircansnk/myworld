@@ -5,6 +5,7 @@ from sqlalchemy.future import select
 import os
 import base64
 from datetime import datetime
+from sqlalchemy import func
 
 from app.database import get_db
 from app.models.user import User
@@ -29,18 +30,37 @@ async def reset_password(data: PasswordReset, db: AsyncSession = Depends(get_db)
     return {"message": "Şifre başarıyla sıfırlandı"}
 
 
+from app.dependencies.admin import require_super_admin
+
 @router.post("/register", response_model=TokenResponse)
-async def register(user: UserRegister, db: AsyncSession = Depends(get_db)):
+async def register(
+    user: UserRegister, 
+    db: AsyncSession = Depends(get_db),
+    # Sadece ilk kurulum veya super admin kullanımında izin verilecek. 
+    # Normal akışta admin panelden kullanıcı eklenecek.
+    # current_admin: User = Depends(require_super_admin)
+):
     result = await db.execute(select(User).where(User.username == user.username))
     existing_user = result.scalars().first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Username already registered")
         
     hashed_password = get_password_hash(user.password)
+    # İlk kayıt olan kullanıcı süper admin olsun diye kontrol yapalım
+    users_count = await db.execute(select(func.count(User.id)))
+    count = users_count.scalar() or 0
+    role = "super_admin" if count == 0 else "viewer"
+    
+    # Tam yetkiler
+    from app.models.role_templates import FULL_PERMISSIONS
+    permissions = FULL_PERMISSIONS if role == "super_admin" else {}
+
     new_user = User(
         username=user.username,
         password_hash=hashed_password,
-        name=user.name
+        name=user.name,
+        role=role,
+        permissions=permissions
     )
     db.add(new_user)
     await db.commit()
@@ -60,6 +80,13 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Hesabınız devre dışı")
+        
+    # Son giriş zamanını güncelle
+    user.last_login = datetime.utcnow()
+    await db.commit()
+    
     access_token = create_access_token(data={"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer", "user": user}
 
@@ -73,6 +100,13 @@ async def login_custom(user_login: UserLogin, db: AsyncSession = Depends(get_db)
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Hesabınız devre dışı")
+        
+    # Son giriş zamanını güncelle
+    user.last_login = datetime.utcnow()
+    await db.commit()
+    
     access_token = create_access_token(data={"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer", "user": user}
 

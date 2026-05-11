@@ -21,9 +21,10 @@ import { LoginOverlay } from "@/components/auth/LoginOverlay"
 import { VenusAdsLayout } from "@/components/venus-ads/VenusAdsLayout"
 import { PhotoTrackingLayout } from "@/components/photo-tracking/PhotoTrackingLayout"
 import { OfflineBanner } from "@/components/ui/OfflineBanner"
+import { AdminPanel } from "@/components/admin/AdminPanel"
 
 export default function DashboardPage() {
-  const { isAuthenticated, isLoading: authLoading, checkAuth, _hasHydrated: authHydrated } = useAuthStore()
+  const { user, isAuthenticated, isLoading: authLoading, checkAuth, _hasHydrated: authHydrated } = useAuthStore()
   const { tasks, fetchTasks } = useTaskStore()
   const { projects, fetchProjects, selectedProjectId, viewMode } = useProjectStore()
   const { fetchEvents } = useCalendarStore()
@@ -93,6 +94,9 @@ export default function DashboardPage() {
   } else if (viewMode === 'photo_tracking') {
     pageTitle = currentProject ? `${currentProject.name} Fotoğraf Takip` : "Fotoğraf Takip"
     pageDescription = "Fotoğraf üretim operasyonlarını yönetin ve raporlayın."
+  } else if (viewMode === 'admin') {
+    pageTitle = "Yönetim Paneli"
+    pageDescription = "Kullanıcılar, yetkiler ve sistem yönetimi."
   }
 
   const isDashboard = viewMode === 'dashboard'
@@ -100,6 +104,17 @@ export default function DashboardPage() {
   const isAIChat = viewMode === 'ai_chat'
   const isVenusAds = viewMode === 'venus_ads'
   const isPhotoTracking = viewMode === 'photo_tracking'
+  const isAdminPanel = viewMode === 'admin'
+  
+  // İzin kontrolleri
+  const { canView, isAdmin } = require("@/store/authStore")
+  
+  // İzinsiz sayfaya geçiş engelleme (Fallback)
+  if (isVenusAds && !canView(user, 'venus_ads')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
+  if (isCalendar && !canView(user, 'calendar')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
+  if (isAIChat && !canView(user, 'ai_chat')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
+  if (isPhotoTracking && !canView(user, 'photo_tracking')) return <div className="p-8 text-center text-red-500">Bu modüle erişim yetkiniz yok.</div>
+  if (isAdminPanel && !isAdmin(user)) return <div className="p-8 text-center text-red-500">Yönetici yetkiniz yok.</div>
 
   return (
     <div className="flex flex-col h-screen w-full overflow-hidden" id="app-root">
@@ -112,7 +127,11 @@ export default function DashboardPage() {
       {showMorning && <MorningScreen onDismiss={handleMorningDismiss} />}
 
       {/* ANA İÇERİK */}
-      {isCalendar ? (
+      {isAdminPanel ? (
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-slate-50/50 dark:bg-slate-900/50">
+           <AdminPanel />
+        </div>
+      ) : isCalendar ? (
         <CalendarPage />
       ) : isAIChat ? (
         <div className="flex-1 overflow-hidden p-3 md:p-5 lg:p-8 mobile-content-area">
@@ -126,8 +145,10 @@ export default function DashboardPage() {
         <div className={`flex-1 flex flex-col mobile-content-area ${isDashboard ? 'overflow-y-auto lg:overflow-hidden p-3 md:p-5 lg:p-8' : 'overflow-y-auto overflow-x-hidden p-3 md:p-5 lg:p-8'}`}>
 
           {/* Dashboard — Header DashboardWidgets içinde */}
-          {isDashboard ? (
+          {isDashboard && canView(user, 'dashboard') ? (
             <DashboardWidgets />
+          ) : !canView(user, 'dashboard') && isDashboard ? (
+             <div className="flex-1 flex items-center justify-center text-slate-400">Dashboard erişiminiz kapalı. Yandaki menüden yetkili olduğunuz bir modülü seçin.</div>
           ) : (
             <>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
@@ -135,12 +156,12 @@ export default function DashboardPage() {
                   <h1 className="text-xl lg:text-2xl font-bold tracking-tight">{pageTitle}</h1>
                   <p className="text-muted-foreground text-sm mt-0.5">{pageDescription}</p>
                 </div>
-                {(viewMode === 'all_tasks' || viewMode === 'project') && <TaskForm />}
+                {(viewMode === 'all_tasks' || viewMode === 'project') && canView(user, 'tasks') && <TaskForm />}
               </div>
               {viewMode === 'notes' ? (
-                <NotesList />
+                 canView(user, 'notes') ? <NotesList /> : <div className="text-red-500">Notlar modülüne erişiminiz yok.</div>
               ) : (
-                <KanbanBoard projectId={selectedProjectId} />
+                 canView(user, 'tasks') ? <KanbanBoard projectId={selectedProjectId} /> : <div className="text-red-500">Görevler modülüne erişiminiz yok.</div>
               )}
             </>
           )}

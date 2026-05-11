@@ -161,6 +161,23 @@ export function ProfileSettings({ isOpen, onClose }: { isOpen: boolean, onClose:
                {loading ? 'Kaydediliyor...' : 'Kaydet'}
              </button>
           </div>
+          
+          {(user?.role === 'admin' || user?.role === 'super_admin') && (
+            <div className="pt-4 border-t border-slate-100 dark:border-white/10 mt-6">
+              <button 
+                 type="button" 
+                 onClick={() => {
+                    onClose();
+                    // viewMode'u admin olarak değiştir
+                    const { useProjectStore } = require("@/stores/projectStore");
+                    useProjectStore.getState().setViewMode('admin');
+                 }}
+                 className="w-full py-3 rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400 font-bold text-sm hover:bg-purple-100 dark:hover:bg-purple-500/20 transition-colors flex justify-center items-center gap-2"
+              >
+                 🛡️ Sistem Yönetim Paneline Git
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </div>

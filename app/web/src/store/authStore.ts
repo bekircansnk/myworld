@@ -7,7 +7,28 @@ export interface User {
   id: number;
   username: string;
   avatar_url?: string;
+  name?: string;
+  role: 'super_admin' | 'admin' | 'editor' | 'viewer';
+  permissions: Record<string, { view?: boolean; edit?: boolean; delete?: boolean }>;
+  email?: string;
 }
+
+// Helper functions for checking access
+export const canView = (user: User | null, module: string): boolean => {
+  if (!user) return false;
+  if (user.role === 'super_admin' || user.role === 'admin') return true;
+  return user.permissions?.[module]?.view ?? false;
+};
+
+export const canEdit = (user: User | null, module: string): boolean => {
+  if (!user) return false;
+  if (user.role === 'super_admin' || user.role === 'admin') return true;
+  return user.permissions?.[module]?.edit ?? false;
+};
+
+export const isAdmin = (user: User | null): boolean => {
+  return user?.role === 'super_admin' || user?.role === 'admin';
+};
 
 interface AuthState {
   user: User | null;

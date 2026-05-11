@@ -14,6 +14,9 @@ from app.models.task import Task
 from app.models.project import Project
 from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse, TaskReorder, TaskBulkUpdate
 from app.services.gemini import categorize_task, _get_gemini_client, log_cost_sync, log_cost_awaitable
+from app.dependencies.auth import get_current_user
+from app.dependencies.permissions import require_permission
+from app.models.user import User
 
 async def background_categorize_task(task_id: int, task_text: str, project_context: str, tasks_context: str):
     try:
@@ -56,9 +59,6 @@ async def background_categorize_task(task_id: int, task_text: str, project_conte
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
-from app.dependencies.auth import get_current_user
-from app.models.user import User
-
 @router.get("/", response_model=List[TaskResponse])
 async def read_tasks(
     db: AsyncSession = Depends(get_db),
@@ -67,7 +67,7 @@ async def read_tasks(
     priority: Optional[str] = None,
     skip: int = 0,
     limit: int = 100,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("tasks", "view"))
 ):
     query = select(Task).options(selectinload(Task.project)).where(Task.user_id == current_user.id, (Task.is_deleted == False) | (Task.is_deleted == None))
     
@@ -91,7 +91,7 @@ async def create_task(
     task: TaskCreate,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("tasks", "edit"))
 ):
     # 1. Önce görevi veritabanına ekle
     db_task = Task(**task.model_dump(), user_id=current_user.id)
@@ -132,7 +132,7 @@ async def create_task(
 async def reorder_tasks(
     reorder_data: TaskReorder,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("tasks", "edit"))
 ):
     for item in reorder_data.items:
         query = select(Task).where(Task.id == item.id, Task.user_id == current_user.id)
@@ -147,7 +147,7 @@ async def reorder_tasks(
 async def ai_prioritize_tasks(
     req: AIPrioritizeRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("tasks", "edit"))
 ):
     # 1. Bekleyen ana görevleri al
     query = select(Task).where(Task.user_id == current_user.id, Task.status != 'done', Task.parent_task_id == None)
@@ -198,7 +198,7 @@ Lütfen sadece JSON formatında, yeni sıralamaya göre task ID'lerini içeren b
 async def bulk_update_tasks(
     bulk_data: TaskBulkUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("tasks", "edit"))
 ):
     query = select(Task).where(Task.id.in_(bulk_data.task_ids), Task.user_id == current_user.id)
     result = await db.execute(query)
@@ -224,7 +224,7 @@ async def update_task(
     task_id: int,
     task_update: TaskUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("tasks", "edit"))
 ):
     query = select(Task).options(selectinload(Task.project)).where(Task.id == task_id, Task.user_id == current_user.id)
     result = await db.execute(query)
@@ -256,7 +256,7 @@ async def update_task_status(
     task_id: int,
     status: str = Query(..., description="todo, in_progress, done"),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("tasks", "edit"))
 ):
     query = select(Task).options(selectinload(Task.project)).where(Task.id == task_id, Task.user_id == current_user.id)
     result = await db.execute(query)
@@ -280,7 +280,7 @@ async def create_subtask(
     task_id: int,
     subtask: TaskCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("tasks", "edit"))
 ):
     subtask.parent_task_id = task_id
     db_task = Task(**subtask.model_dump(), user_id=current_user.id)
@@ -295,7 +295,7 @@ async def create_subtask(
 async def generate_task_ai_analysis(
     task_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("tasks", "edit"))
 ):
     # 1. Görevi ve alt görevlerini al
     query = select(Task).options(selectinload(Task.project)).where(Task.id == task_id, Task.user_id == current_user.id)
@@ -360,7 +360,7 @@ Alt görev sayısı: {len(subtasks)}, Tamamlanan: {done_count}
 async def delete_task(
     task_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("tasks", "delete"))
 ):
     query = select(Task).where(Task.id == task_id, Task.user_id == current_user.id)
     result = await db.execute(query)

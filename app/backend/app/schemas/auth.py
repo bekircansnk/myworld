@@ -15,6 +15,10 @@ class UserResponse(BaseModel):
     username: str
     name: str
     avatar_url: Optional[str] = None
+    role: str = "viewer"
+    permissions: dict = {}
+    email: Optional[str] = None
+    is_active: bool = True
     
     class Config:
         from_attributes = True

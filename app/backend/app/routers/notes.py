@@ -12,20 +12,27 @@ from app.database import get_db
 from app.models.note import Note
 from app.schemas.note import NoteCreate, NoteUpdate, NoteResponse
 from app.services.gemini import generate_chat_response, _get_gemini_client, log_cost_awaitable
+from app.dependencies.auth import get_current_user
+from app.dependencies.permissions import require_permission
+from app.models.user import User
 
 router = APIRouter(prefix="/notes", tags=["notes"])
 
-from app.dependencies.auth import get_current_user
-from app.models.user import User
-
 @router.get("", response_model=List[NoteResponse])
-async def get_notes(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def get_notes(
+    db: AsyncSession = Depends(get_db), 
+    current_user: User = Depends(require_permission("notes", "view"))
+):
     query = select(Note).where(Note.user_id == current_user.id).order_by(Note.created_at.desc())
     result = await db.execute(query)
     return result.scalars().all()
 
 @router.post("", response_model=NoteResponse)
-async def create_note(note: NoteCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def create_note(
+    note: NoteCreate, 
+    db: AsyncSession = Depends(get_db), 
+    current_user: User = Depends(require_permission("notes", "edit"))
+):
     note_data = note.model_dump()
     
     # AI Auto Title & Category Generation Feature
@@ -72,7 +79,12 @@ SADECE JSON döndür:
     return db_note
 
 @router.put("/{note_id}", response_model=NoteResponse)
-async def update_note(note_id: int, note_update: NoteUpdate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def update_note(
+    note_id: int, 
+    note_update: NoteUpdate, 
+    db: AsyncSession = Depends(get_db), 
+    current_user: User = Depends(require_permission("notes", "edit"))
+):
     query = select(Note).where(Note.id == note_id, Note.user_id == current_user.id)
     result = await db.execute(query)
     db_note = result.scalars().first()
@@ -89,7 +101,11 @@ async def update_note(note_id: int, note_update: NoteUpdate, db: AsyncSession = 
     return db_note
 
 @router.delete("/{note_id}")
-async def delete_note(note_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def delete_note(
+    note_id: int, 
+    db: AsyncSession = Depends(get_db), 
+    current_user: User = Depends(require_permission("notes", "edit"))
+):
     query = select(Note).where(Note.id == note_id, Note.user_id == current_user.id)
     result = await db.execute(query)
     db_note = result.scalars().first()

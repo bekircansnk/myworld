@@ -11,27 +11,36 @@ import {
   MoreHorizontal,
   Megaphone,
   Camera,
-  X
+  X,
+  ShieldAlert
 } from "lucide-react"
 
-// Ana 5 sekme — mobilde her zaman görünür
-const mainTabs = [
-  { id: 'dashboard', label: 'Panel', icon: LayoutDashboard },
-  { id: 'all_tasks', label: 'Görevler', icon: ListTodo },
-  { id: 'calendar', label: 'Takvim', icon: CalendarDays },
-  { id: 'notes', label: 'Notlar', icon: NotebookPen },
-  { id: 'ai_chat', label: 'AI', icon: Bot },
-]
-
-// "Daha Fazla" menüsündeki sekmeler
-const moreTabs = [
-  { id: 'venus_ads', label: 'Reklam Paneli', icon: Megaphone },
-  { id: 'photo_tracking', label: 'Fotoğraf Takip', icon: Camera },
-]
+import { useAuthStore, canView, isAdmin } from "@/store/authStore"
 
 export function MobileBottomNav() {
   const { viewMode, setViewMode } = useProjectStore()
+  const { user } = useAuthStore()
   const [showMore, setShowMore] = React.useState(false)
+
+  // Ana 5 sekme — mobilde her zaman görünür (İzne göre filtrele)
+  const allMainTabs = [
+    ...(canView(user, 'dashboard') ? [{ id: 'dashboard', label: 'Panel', icon: LayoutDashboard }] : []),
+    ...(canView(user, 'tasks') ? [{ id: 'all_tasks', label: 'Görevler', icon: ListTodo }] : []),
+    ...(canView(user, 'calendar') ? [{ id: 'calendar', label: 'Takvim', icon: CalendarDays }] : []),
+    ...(canView(user, 'notes') ? [{ id: 'notes', label: 'Notlar', icon: NotebookPen }] : []),
+    ...(canView(user, 'ai_chat') ? [{ id: 'ai_chat', label: 'AI', icon: Bot }] : []),
+  ]
+  
+  // En fazla ilk 5'i ana ekranda
+  const mainTabs = allMainTabs.slice(0, 5)
+
+  // Kalanlar ve ekstra modüller "Daha Fazla" menüsünde
+  const moreTabs = [
+    ...allMainTabs.slice(5),
+    ...(canView(user, 'venus_ads') ? [{ id: 'venus_ads', label: 'Reklam', icon: Megaphone }] : []),
+    ...(canView(user, 'photo_tracking') ? [{ id: 'photo_tracking', label: 'Fotoğraf', icon: Camera }] : []),
+    ...(isAdmin(user) ? [{ id: 'admin', label: 'Yönetim', icon: ShieldAlert }] : [])
+  ]
 
   // "Daha Fazla" menüsündeki bir sekme aktifse, o ikonu göster
   const activeMore = moreTabs.find(t => t.id === viewMode)

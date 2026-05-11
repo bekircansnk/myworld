@@ -5,6 +5,7 @@ from typing import List, Optional
 
 from app.database import get_db
 from app.dependencies.auth import get_current_user
+from app.dependencies.permissions import require_permission
 from app.models.user import User
 from app.models.venus.campaign import VenusCampaign
 from app.schemas.venus.campaign import CampaignCreate, CampaignUpdate, CampaignResponse
@@ -14,7 +15,7 @@ router = APIRouter(tags=["Venus Ads Campaigns"])
 @router.get("", response_model=List[CampaignResponse])
 async def get_campaigns(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("venus_ads", "view")),
     project_id: Optional[int] = None,
     platform: Optional[str] = None
 ):
@@ -31,7 +32,7 @@ async def get_campaigns(
 async def create_campaign(
     campaign: CampaignCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("venus_ads", "edit"))
 ):
     new_campaign = VenusCampaign(**campaign.model_dump(), user_id=current_user.id)
     db.add(new_campaign)
@@ -44,7 +45,7 @@ async def update_campaign(
     campaign_id: int,
     campaign_update: CampaignUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("venus_ads", "edit"))
 ):
     result = await db.execute(select(VenusCampaign).where(VenusCampaign.id == campaign_id, VenusCampaign.user_id == current_user.id))
     db_campaign = result.scalar_one_or_none()
