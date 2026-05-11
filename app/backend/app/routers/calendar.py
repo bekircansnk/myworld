@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from typing import List, Optional
@@ -47,6 +47,7 @@ def convert_to_response(db_event: CalendarEvent) -> CalendarEventResponse:
 @router.post("", response_model=CalendarEventResponse)
 async def create_event(
     event: CalendarEventCreate, 
+    request: Request,
     db: AsyncSession = Depends(get_db), 
     current_user: User = Depends(require_company_permission("calendar", "edit"))
 ):
@@ -99,10 +100,20 @@ async def list_events(
 async def update_event(
     event_id: int, 
     event: CalendarEventUpdate, 
+    request: Request,
     db: AsyncSession = Depends(get_db), 
     current_user: User = Depends(require_company_permission("calendar", "edit"))
 ):
-    result = await db.execute(select(CalendarEvent).where(CalendarEvent.id == event_id, CalendarEvent.user_id == current_user.id))
+    effective_project_id = getattr(request.state, "project_id", None)
+    
+    if current_user.role == "super_admin":
+        query = select(CalendarEvent).where(CalendarEvent.id == event_id)
+    elif effective_project_id:
+        query = select(CalendarEvent).where(CalendarEvent.id == event_id, CalendarEvent.project_id == effective_project_id)
+    else:
+        query = select(CalendarEvent).where(CalendarEvent.id == event_id, CalendarEvent.user_id == current_user.id)
+        
+    result = await db.execute(query)
     db_event = result.scalars().first()
     if not db_event:
         raise HTTPException(status_code=404, detail="Event not found")
@@ -134,8 +145,22 @@ async def update_event(
     return convert_to_response(db_event)
 
 @router.delete("/{event_id}")
-async def delete_event(event_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
-    result = await db.execute(select(CalendarEvent).where(CalendarEvent.id == event_id, CalendarEvent.user_id == current_user.id))
+async def delete_event(
+    event_id: int, 
+    request: Request,
+    db: AsyncSession = Depends(get_db), 
+    current_user: User = Depends(require_company_permission("calendar", "edit"))
+):
+    effective_project_id = getattr(request.state, "project_id", None)
+    
+    if current_user.role == "super_admin":
+        query = select(CalendarEvent).where(CalendarEvent.id == event_id)
+    elif effective_project_id:
+        query = select(CalendarEvent).where(CalendarEvent.id == event_id, CalendarEvent.project_id == effective_project_id)
+    else:
+        query = select(CalendarEvent).where(CalendarEvent.id == event_id, CalendarEvent.user_id == current_user.id)
+        
+    result = await db.execute(query)
     db_event = result.scalars().first()
     if not db_event:
         raise HTTPException(status_code=404, detail="Event not found")

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete, extract, func
 from sqlalchemy.orm import selectinload
@@ -14,7 +14,7 @@ import pandas as pd
 from app.database import get_db
 from app.models.user import User
 from app.dependencies.auth import get_current_user
-from app.dependencies.permissions import require_permission
+from app.dependencies.permissions import require_company_permission
 from app.models.ads.photo_model import PhotoModel
 from app.models.ads.photo_model_color import PhotoModelColor
 from app.models.ads.photo_revision import PhotoRevision
@@ -30,17 +30,22 @@ router = APIRouter(prefix="/photo-tracking", tags=["Ads Photo Tracking"])
 
 @router.get("/models", response_model=List[PhotoModelResponse])
 async def get_models(
-    project_id: Optional[int] = None,
+    request: Request,
     month: Optional[int] = None,
     year: Optional[int] = None,
     week_number: Optional[int] = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_permission("photo_tracking", "view"))
+    current_user: User = Depends(require_company_permission("photo_tracking", "view"))
 ):
-    query = select(PhotoModel).where(PhotoModel.user_id == current_user.id).options(selectinload(PhotoModel.colors), selectinload(PhotoModel.revisions))
+    effective_project_id = getattr(request.state, "project_id", None)
     
-    if project_id:
-        query = query.where(PhotoModel.project_id == project_id)
+    if current_user.role == "super_admin":
+        query = select(PhotoModel).options(selectinload(PhotoModel.colors), selectinload(PhotoModel.revisions))
+    elif effective_project_id:
+        query = select(PhotoModel).where(PhotoModel.project_id == effective_project_id).options(selectinload(PhotoModel.colors), selectinload(PhotoModel.revisions))
+    else:
+        query = select(PhotoModel).where(PhotoModel.user_id == current_user.id).options(selectinload(PhotoModel.colors), selectinload(PhotoModel.revisions))
+    
     if month:
         query = query.where(PhotoModel.month == month)
     if year:
@@ -55,8 +60,9 @@ async def get_models(
 @router.post("/models", response_model=PhotoModelResponse)
 async def create_model(
     data: PhotoModelCreate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_permission("photo_tracking", "edit"))
+    current_user: User = Depends(require_company_permission("photo_tracking", "edit"))
 ):
     model_data = data.model_dump()
     new_model = PhotoModel(**model_data, user_id=current_user.id)
@@ -73,28 +79,31 @@ async def create_model(
 async def update_model(
     model_id: int,
     data: PhotoModelUpdate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_permission("photo_tracking", "edit"))
+    current_user: User = Depends(require_company_permission("photo_tracking", "edit"))
 ):
+    effective_project_id = getattr(request.state, "project_id", None)
+    
     import logging
     logger = logging.getLogger(__name__)
     
     # 1. Model'i bul
-    query = select(PhotoModel).where(
-        PhotoModel.id == model_id, 
-        PhotoModel.user_id == current_user.id
-    )
+    if current_user.role == "super_admin":
+        query = select(PhotoModel).where(PhotoModel.id == model_id)
+    elif effective_project_id:
+        query = select(PhotoModel).where(PhotoModel.id == model_id, PhotoModel.project_id == effective_project_id)
+    else:
+        query = select(PhotoModel).where(PhotoModel.id == model_id, PhotoModel.user_id == current_user.id)
+        
     result = await db.execute(query)
     target = result.scalar_one_or_none()
     
     if not target:
         raise HTTPException(status_code=404, detail="Model not found")
     
-    # 2. Güncelleme verilerini al
     update_data = data.model_dump(exclude_unset=True)
-    logger.info(f"[UPDATE MODEL] id={model_id}, data={update_data}")
     
-    # 3. Status 'completed' yapılıyorsa, tarihler otomatik eklensin
     if update_data.get('status') == 'completed':
         now = datetime.utcnow()
         update_data['completed_at'] = now
@@ -104,18 +113,12 @@ async def update_model(
         update_data['completed_at'] = None
         update_data['delivery_date'] = None
     
-    # 4. Alanları güncelle
     for key, value in update_data.items():
         setattr(target, key, value)
     
-    # 5. Veritabanına yaz — flush + commit
     await db.flush()
     await db.commit()
     
-    logger.info(f"[UPDATE MODEL] COMMIT OK: id={target.id}, status={target.status}, "
-                f"completed_at={target.completed_at}, delivery={target.delivery_date}")
-    
-    # 6. İlişkileri yükleyerek döndür
     await db.refresh(target)
     query = select(PhotoModel).where(PhotoModel.id == model_id).options(
         selectinload(PhotoModel.colors),
@@ -127,10 +130,19 @@ async def update_model(
 @router.delete("/models/{model_id}")
 async def delete_model(
     model_id: int,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_permission("photo_tracking", "edit"))
+    current_user: User = Depends(require_company_permission("photo_tracking", "edit"))
 ):
-    query = select(PhotoModel).where(PhotoModel.id == model_id, PhotoModel.user_id == current_user.id)
+    effective_project_id = getattr(request.state, "project_id", None)
+    
+    if current_user.role == "super_admin":
+        query = select(PhotoModel).where(PhotoModel.id == model_id)
+    elif effective_project_id:
+        query = select(PhotoModel).where(PhotoModel.id == model_id, PhotoModel.project_id == effective_project_id)
+    else:
+        query = select(PhotoModel).where(PhotoModel.id == model_id, PhotoModel.user_id == current_user.id)
+        
     result = await db.execute(query)
     target = result.scalar_one_or_none()
     
@@ -141,16 +153,23 @@ async def delete_model(
     await db.commit()
     return {"message": "Model deleted successfully"}
 
-# Colors CRUD
 @router.post("/models/{model_id}/colors", response_model=PhotoModelColorResponse)
 async def add_color(
     model_id: int,
     data: PhotoModelColorCreate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_permission("photo_tracking", "edit"))
+    current_user: User = Depends(require_company_permission("photo_tracking", "edit"))
 ):
-    # check model
-    query = select(PhotoModel).where(PhotoModel.id == model_id, PhotoModel.user_id == current_user.id)
+    effective_project_id = getattr(request.state, "project_id", None)
+    
+    if current_user.role == "super_admin":
+        query = select(PhotoModel).where(PhotoModel.id == model_id)
+    elif effective_project_id:
+        query = select(PhotoModel).where(PhotoModel.id == model_id, PhotoModel.project_id == effective_project_id)
+    else:
+        query = select(PhotoModel).where(PhotoModel.id == model_id, PhotoModel.user_id == current_user.id)
+        
     result = await db.execute(query)
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Model not found")
@@ -165,10 +184,19 @@ async def add_color(
 async def update_color(
     color_id: int,
     data: PhotoModelColorUpdate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_permission("photo_tracking", "edit"))
+    current_user: User = Depends(require_company_permission("photo_tracking", "edit"))
 ):
-    query = select(PhotoModelColor).join(PhotoModel).where(PhotoModelColor.id == color_id, PhotoModel.user_id == current_user.id)
+    effective_project_id = getattr(request.state, "project_id", None)
+    
+    if current_user.role == "super_admin":
+        query = select(PhotoModelColor).where(PhotoModelColor.id == color_id)
+    elif effective_project_id:
+        query = select(PhotoModelColor).join(PhotoModel).where(PhotoModelColor.id == color_id, PhotoModel.project_id == effective_project_id)
+    else:
+        query = select(PhotoModelColor).join(PhotoModel).where(PhotoModelColor.id == color_id, PhotoModel.user_id == current_user.id)
+        
     result = await db.execute(query)
     color = result.scalar_one_or_none()
     
@@ -177,7 +205,6 @@ async def update_color(
         
     update_data = data.model_dump(exclude_unset=True)
     
-    # Auto-set dates if completed
     if 'ig_completed' in update_data:
         if update_data['ig_completed'] and not color.ig_completed:
             color.ig_completed_at = datetime.utcnow()
@@ -195,11 +222,10 @@ async def update_color(
         
     await db.commit()
     
-    # Check if we should update model total photos
     model_query = select(PhotoModel).where(PhotoModel.id == color.model_id).options(selectinload(PhotoModel.colors))
     model_res = await db.execute(model_query)
     model = model_res.scalar_one()
-    model.total_photos = sum(c.ig_photo_count + c.banner_photo_count + (c.revision_photo_count or 0) for c in model.colors)
+    model.total_photos = sum((c.ig_photo_count or 0) + (c.banner_photo_count or 0) + (c.revision_photo_count or 0) for c in model.colors)
     await db.commit()
     
     await db.refresh(color)
@@ -208,10 +234,19 @@ async def update_color(
 @router.delete("/colors/{color_id}")
 async def delete_color(
     color_id: int,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_permission("photo_tracking", "edit"))
+    current_user: User = Depends(require_company_permission("photo_tracking", "edit"))
 ):
-    query = select(PhotoModelColor).join(PhotoModel).where(PhotoModelColor.id == color_id, PhotoModel.user_id == current_user.id)
+    effective_project_id = getattr(request.state, "project_id", None)
+    
+    if current_user.role == "super_admin":
+        query = select(PhotoModelColor).where(PhotoModelColor.id == color_id)
+    elif effective_project_id:
+        query = select(PhotoModelColor).join(PhotoModel).where(PhotoModelColor.id == color_id, PhotoModel.project_id == effective_project_id)
+    else:
+        query = select(PhotoModelColor).join(PhotoModel).where(PhotoModelColor.id == color_id, PhotoModel.user_id == current_user.id)
+        
     result = await db.execute(query)
     color = result.scalar_one_or_none()
     
@@ -222,24 +257,31 @@ async def delete_color(
     await db.delete(color)
     await db.commit()
     
-    # Recalculate total photos
     model_query = select(PhotoModel).where(PhotoModel.id == model_id).options(selectinload(PhotoModel.colors))
     model_res = await db.execute(model_query)
     model = model_res.scalar_one()
-    model.total_photos = sum(c.ig_photo_count + c.banner_photo_count + (c.revision_photo_count or 0) for c in model.colors)
+    model.total_photos = sum((c.ig_photo_count or 0) + (c.banner_photo_count or 0) + (c.revision_photo_count or 0) for c in model.colors)
     await db.commit()
     
     return {"message": "Color deleted successfully"}
 
-# Revisions
 @router.post("/models/{model_id}/revisions", response_model=PhotoRevisionResponse)
 async def add_revision(
     model_id: int,
     data: PhotoRevisionCreate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_permission("photo_tracking", "edit"))
+    current_user: User = Depends(require_company_permission("photo_tracking", "edit"))
 ):
-    query = select(PhotoModel).where(PhotoModel.id == model_id, PhotoModel.user_id == current_user.id)
+    effective_project_id = getattr(request.state, "project_id", None)
+    
+    if current_user.role == "super_admin":
+        query = select(PhotoModel).where(PhotoModel.id == model_id)
+    elif effective_project_id:
+        query = select(PhotoModel).where(PhotoModel.id == model_id, PhotoModel.project_id == effective_project_id)
+    else:
+        query = select(PhotoModel).where(PhotoModel.id == model_id, PhotoModel.user_id == current_user.id)
+        
     result = await db.execute(query)
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Model not found")
@@ -250,18 +292,23 @@ async def add_revision(
     await db.refresh(new_rev)
     return new_rev
 
-# Overview
 @router.get("/overview", response_model=PhotoOverviewStats)
 async def get_overview(
-    project_id: Optional[int] = None,
+    request: Request,
     month: Optional[int] = None,
     year: Optional[int] = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_permission("photo_tracking", "view"))
+    current_user: User = Depends(require_company_permission("photo_tracking", "view"))
 ):
-    models_q = select(PhotoModel).where(PhotoModel.user_id == current_user.id)
-    if project_id:
-        models_q = models_q.where(PhotoModel.project_id == project_id)
+    effective_project_id = getattr(request.state, "project_id", None)
+    
+    if current_user.role == "super_admin":
+        models_q = select(PhotoModel)
+    elif effective_project_id:
+        models_q = select(PhotoModel).where(PhotoModel.project_id == effective_project_id)
+    else:
+        models_q = select(PhotoModel).where(PhotoModel.user_id == current_user.id)
+    
     if month:
         models_q = models_q.where(PhotoModel.month == month)
     if year:
@@ -282,17 +329,18 @@ async def get_overview(
         total_revisions=total_revisions
     )
 
-# Excel Import
 @router.post("/import-excel", response_model=PhotoExcelImportResponse)
 async def import_excel(
+    request: Request,
     file: UploadFile = File(...),
-    project_id: Optional[int] = Form(None),
     week_number: int = Form(1),
     month: Optional[int] = Form(None),
     year: Optional[int] = Form(None),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_company_permission("photo_tracking", "edit"))
 ):
+    effective_project_id = getattr(request.state, "project_id", None)
+    
     if not file.filename.endswith('.xlsx'):
         raise HTTPException(status_code=400, detail="Sadece .xlsx dosyaları kabul edilir")
         
@@ -305,12 +353,8 @@ async def import_excel(
     
     try:
         df = pd.read_excel(io.BytesIO(content))
-        
         models_imported = 0
         colors_imported = 0
-        
-        # 'SEZON KODU', 'MADDE AÇIKLAMASI', 'RENK', 'Unnamed: 3', 'Sosyal Medya ', 'WEB SİTESİ 16:9', 'TESLİM EDİLEN', 'REVİZE', 'TESLİM EDİLME TARİHİ'
-        # Group by Model Name ('MADDE AÇIKLAMASI') and process rows as colors
         
         current_model_name = None
         current_model_id = None
@@ -325,7 +369,6 @@ async def import_excel(
                 if pd.notna(sezon) and str(sezon).strip() != '':
                     current_season = str(sezon).strip()
                 
-                # Check if model exists for this month/year
                 m_q = select(PhotoModel).where(
                     PhotoModel.model_name == current_model_name,
                     PhotoModel.user_id == current_user.id,
@@ -338,7 +381,7 @@ async def import_excel(
                 if not model:
                     model = PhotoModel(
                         user_id=current_user.id,
-                        project_id=project_id,
+                        project_id=effective_project_id,
                         model_name=current_model_name,
                         sezon_kodu=current_season,
                         month=month,
@@ -355,23 +398,6 @@ async def import_excel(
                         db.add(model)
                 
                 current_model_id = model.id
-                
-                # Update status if "TESLİM EDİLEN" is checked
-                teslim_edilen = row.get('TESLİM EDİLEN')
-                if pd.notna(teslim_edilen):
-                    t_str = str(teslim_edilen).strip().upper()
-                    if t_str != '' and t_str not in ['NAN', 'NAT', 'NONE', '0', 'FALSE']:
-                        model.status = 'completed'
-                
-                teslim_tarihi = row.get('TESLİM EDİLME TARİHİ')
-                if pd.notna(teslim_tarihi):
-                    try:
-                        if isinstance(teslim_tarihi, str):
-                            model.delivery_date = datetime.strptime(str(teslim_tarihi).strip(), '%d.%m.%Y')
-                        else:
-                            model.delivery_date = pd.to_datetime(teslim_tarihi).to_pydatetime()
-                    except Exception:
-                        pass
                 
             color_name = row.get('RENK')
             if pd.notna(color_name) and str(color_name).strip() != '' and current_model_id:
@@ -399,20 +425,13 @@ async def import_excel(
                 ig_req, ig_count = parse_social(row.get('Sosyal Medya', row.get('Sosyal Medya ')))
                 banner_req, banner_count = parse_social(row.get('WEB SİTESİ 1', row.get('WEB SİTESİ 16:9')))
                 
-                # REVİZE ADET veya eski REVİZE sütunundan sayısal değeri al
                 rev_val_raw = row.get('REVİZE ADET', row.get('REVİZE', ''))
                 revision_req, revision_count = parse_social(rev_val_raw)
                 
-                # REVİZE NOTU sütunundan metin değerini al
-                # Eğer REVİZE hücresinde metin varsa (parse_social 0 dönerse ama hücre doluysa) onu da alabiliriz
                 rev_note_raw = str(row.get('REVİZE NOTU', '')).strip()
                 if rev_note_raw.lower() in ['nan', 'none', 'nat']:
                     rev_note_raw = ""
                 
-                # Fallback: Eğer REVİZE sütununda metin varsa ve REVİZE NOTU boşsa
-                if not rev_note_raw and str(rev_val_raw).strip() and revision_count == 0 and str(rev_val_raw).strip().lower() not in ['x', 'v', 'çarpı']:
-                     rev_note_raw = str(rev_val_raw).strip()
-
                 if not color:
                     color = PhotoModelColor(
                         model_id=current_model_id,
@@ -441,7 +460,6 @@ async def import_excel(
         
         await db.commit()
         
-        # Recalculate total_photos for the imported models
         q = select(PhotoModel).where(PhotoModel.user_id == current_user.id, PhotoModel.month == month, PhotoModel.year == year).options(selectinload(PhotoModel.colors))
         res = await db.execute(q)
         for m in res.scalars().all():
@@ -475,18 +493,24 @@ async def import_excel(
 
 @router.get("/export-excel")
 async def export_excel(
-    project_id: Optional[int] = None,
+    request: Request,
     month: Optional[int] = None,
     year: Optional[int] = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_company_permission("photo_tracking", "view"))
 ):
+    effective_project_id = getattr(request.state, "project_id", None)
+    
     import logging
     logger = logging.getLogger(__name__)
     
-    query = select(PhotoModel).where(PhotoModel.user_id == current_user.id).options(selectinload(PhotoModel.colors), selectinload(PhotoModel.revisions))
-    if project_id:
-        query = query.where(PhotoModel.project_id == project_id)
+    if current_user.role == "super_admin":
+        query = select(PhotoModel).options(selectinload(PhotoModel.colors), selectinload(PhotoModel.revisions))
+    elif effective_project_id:
+        query = select(PhotoModel).where(PhotoModel.project_id == effective_project_id).options(selectinload(PhotoModel.colors), selectinload(PhotoModel.revisions))
+    else:
+        query = select(PhotoModel).where(PhotoModel.user_id == current_user.id).options(selectinload(PhotoModel.colors), selectinload(PhotoModel.revisions))
+    
     if month:
         query = query.where(PhotoModel.month == month)
     if year:
@@ -496,15 +520,11 @@ async def export_excel(
     result = await db.execute(query)
     models = result.scalars().all()
     
-    logger.info(f"[EXCEL EXPORT] Toplam {len(models)} model bulundu.")
-    
     def safe_format_date(dt_val) -> str:
-        """delivery_date SQLite'da string veya datetime olabilir, güvenli şekilde formatla"""
         if dt_val is None:
             return ''
         try:
             if isinstance(dt_val, str):
-                # ISO format string -> parse et
                 from dateutil import parser as dateutil_parser
                 dt_obj = dateutil_parser.parse(dt_val)
                 return dt_obj.strftime('%d.%m.%Y')
@@ -512,20 +532,14 @@ async def export_excel(
                 return dt_val.strftime('%d.%m.%Y')
             else:
                 return str(dt_val)
-        except Exception as e:
-            logger.warning(f"[EXCEL EXPORT] Tarih formatlama hatası: {dt_val} -> {e}")
+        except Exception:
             return str(dt_val) if dt_val else ''
     
-    # Sütun adları: Import ile AYNI isimler (çift yönlü uyumluluk)
     data = []
     for model in models:
         is_completed = str(model.status).strip().lower() == 'completed'
-        # completed_at varsa onu, yoksa delivery_date kullan
         teslim_tarihi = model.completed_at or model.delivery_date
         delivery_str = safe_format_date(teslim_tarihi)
-        revize_str = ', '.join([r.description for r in model.revisions]) if model.revisions else ''
-        
-        logger.info(f"[EXCEL EXPORT] Model: {model.model_name}, status={model.status}, completed_at={model.completed_at}, delivery={model.delivery_date}")
         
         if model.colors:
             for color in model.colors:
@@ -538,7 +552,6 @@ async def export_excel(
                 revize_count = color.revision_photo_count or 0
                 teslim_edilen = (ig_count + banner_count + revize_count) if is_completed else ''
                 
-                # Model level revisions string combined with color note
                 model_revize = ', '.join([r.description for r in model.revisions]) if model.revisions else ''
                 color_note = color.revision_note or ''
                 
@@ -568,26 +581,16 @@ async def export_excel(
                 'WEB SİTESİ 1': '',
                 'TESLİM EDİLEN': 0 if is_completed else '',
                 'REVİZE ADET': '',
-                'REVİZE NOTU': revize_str,
+                'REVİZE NOTU': '',
                 'TESLİM EDİLME TARİHİ': delivery_str
             }
             data.append(row)
 
     df = pd.DataFrame(data)
     output = io.BytesIO()
-    
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index=False, sheet_name='Fotoğraf Takip')
-        
     output.seek(0)
     
-    headers = {
-        'Content-Disposition': 'attachment; filename="fotograf_takip.xlsx"'
-    }
-    
-    return StreamingResponse(
-        output,
-        headers=headers,
-        media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
-
+    headers = {'Content-Disposition': 'attachment; filename="fotograf_takip.xlsx"'}
+    return StreamingResponse(output, headers=headers, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')

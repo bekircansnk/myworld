@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List, Optional
 
@@ -8,18 +8,24 @@ from app.dependencies.auth import get_current_user
 from app.models.user import User
 from app.models.ads.ad_account import AdAccount
 from app.schemas.ads.ad_account import AdAccountCreate, AdAccountUpdate, AdAccountResponse
+from app.dependencies.permissions import require_company_permission
 
 router = APIRouter(tags=["Ads Panel Accounts"])
 
 @router.get("", response_model=List[AdAccountResponse])
 async def get_ad_accounts(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-    project_id: Optional[int] = None
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_company_permission("ads", "view"))
 ):
-    query = select(AdAccount).where(AdAccount.user_id == current_user.id)
-    if project_id:
-        query = query.where(AdAccount.project_id == project_id)
+    effective_project_id = getattr(request.state, "project_id", None)
+    
+    if current_user.role == "super_admin":
+        query = select(AdAccount)
+    elif effective_project_id:
+        query = select(AdAccount).where(AdAccount.project_id == effective_project_id)
+    else:
+        query = select(AdAccount).where(AdAccount.user_id == current_user.id)
     
     result = await db.execute(query)
     return result.scalars().all()
@@ -27,8 +33,8 @@ async def get_ad_accounts(
 @router.post("", response_model=AdAccountResponse)
 async def create_ad_account(
     account: AdAccountCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_company_permission("ads", "edit"))
 ):
     new_account = AdAccount(**account.model_dump(), user_id=current_user.id)
     db.add(new_account)
@@ -40,10 +46,20 @@ async def create_ad_account(
 async def update_ad_account(
     account_id: int,
     account_update: AdAccountUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_company_permission("ads", "edit"))
 ):
-    result = await db.execute(select(AdAccount).where(AdAccount.id == account_id, AdAccount.user_id == current_user.id))
+    effective_project_id = getattr(request.state, "project_id", None)
+    
+    if current_user.role == "super_admin":
+        query = select(AdAccount).where(AdAccount.id == account_id)
+    elif effective_project_id:
+        query = select(AdAccount).where(AdAccount.id == account_id, AdAccount.project_id == effective_project_id)
+    else:
+        query = select(AdAccount).where(AdAccount.id == account_id, AdAccount.user_id == current_user.id)
+        
+    result = await db.execute(query)
     db_account = result.scalar_one_or_none()
     
     if not db_account:
@@ -59,10 +75,20 @@ async def update_ad_account(
 @router.delete("/{account_id}")
 async def delete_ad_account(
     account_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_company_permission("ads", "edit"))
 ):
-    result = await db.execute(select(AdAccount).where(AdAccount.id == account_id, AdAccount.user_id == current_user.id))
+    effective_project_id = getattr(request.state, "project_id", None)
+    
+    if current_user.role == "super_admin":
+        query = select(AdAccount).where(AdAccount.id == account_id)
+    elif effective_project_id:
+        query = select(AdAccount).where(AdAccount.id == account_id, AdAccount.project_id == effective_project_id)
+    else:
+        query = select(AdAccount).where(AdAccount.id == account_id, AdAccount.user_id == current_user.id)
+        
+    result = await db.execute(query)
     db_account = result.scalar_one_or_none()
     
     if not db_account:

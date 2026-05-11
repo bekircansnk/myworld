@@ -70,14 +70,27 @@ def require_company_permission(module: str, action: str = "view"):
         if current_user.role == "super_admin":
             return current_user
 
-        # project_id query param'da yoksa body'den almayı dene
+        # project_id'yi bulmaya çalış (Query -> Body)
         effective_project_id = project_id
+        
         if not effective_project_id:
+            # Body'den almayı dene
             try:
+                # Body'yi tüketmeden (FastAPI caching sayesinde) okumaya çalış
                 body = await request.json()
-                effective_project_id = body.get("project_id")
+                if isinstance(body, dict):
+                    effective_project_id = body.get("project_id")
             except Exception:
                 pass
+
+        # String gelirse int'e çevir
+        if effective_project_id is not None:
+            try:
+                effective_project_id = int(effective_project_id)
+                # Diğer işlemler için request state'ine koy
+                request.state.project_id = effective_project_id
+            except (ValueError, TypeError):
+                effective_project_id = None
 
         # project_id yoksa global izin kontrolü yap
         if not effective_project_id:

@@ -35,6 +35,7 @@ async def get_notes(
 @router.post("", response_model=NoteResponse)
 async def create_note(
     note: NoteCreate, 
+    request: Request,
     db: AsyncSession = Depends(get_db), 
     current_user: User = Depends(require_company_permission("notes", "edit"))
 ):
@@ -87,10 +88,19 @@ SADECE JSON döndür:
 async def update_note(
     note_id: int, 
     note_update: NoteUpdate, 
+    request: Request,
     db: AsyncSession = Depends(get_db), 
     current_user: User = Depends(require_company_permission("notes", "edit"))
 ):
-    query = select(Note).where(Note.id == note_id, Note.user_id == current_user.id)
+    effective_project_id = getattr(request.state, "project_id", None)
+    
+    if current_user.role == "super_admin":
+        query = select(Note).where(Note.id == note_id)
+    elif effective_project_id:
+        query = select(Note).where(Note.id == note_id, Note.project_id == effective_project_id)
+    else:
+        query = select(Note).where(Note.id == note_id, Note.user_id == current_user.id)
+        
     result = await db.execute(query)
     db_note = result.scalars().first()
     
@@ -108,10 +118,19 @@ async def update_note(
 @router.delete("/{note_id}")
 async def delete_note(
     note_id: int, 
+    request: Request,
     db: AsyncSession = Depends(get_db), 
     current_user: User = Depends(require_company_permission("notes", "edit"))
 ):
-    query = select(Note).where(Note.id == note_id, Note.user_id == current_user.id)
+    effective_project_id = getattr(request.state, "project_id", None)
+    
+    if current_user.role == "super_admin":
+        query = select(Note).where(Note.id == note_id)
+    elif effective_project_id:
+        query = select(Note).where(Note.id == note_id, Note.project_id == effective_project_id)
+    else:
+        query = select(Note).where(Note.id == note_id, Note.user_id == current_user.id)
+        
     result = await db.execute(query)
     db_note = result.scalars().first()
     
