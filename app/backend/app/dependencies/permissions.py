@@ -46,7 +46,7 @@ def can_access_company(user: User, access: Optional[UserCompanyAccess], module: 
 
 def require_permission(module: str, action: str = "view"):
     """Eski uyumluluk - global izin kontrolü (firma seçilmemişse)"""
-    async def checker(current_user: User = Depends(get_current_user)):
+    async def checker(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
         # Super admin her şeye erişebilir
         if current_user.role == "super_admin":
             return current_user
@@ -54,6 +54,17 @@ def require_permission(module: str, action: str = "view"):
         # Kullanıcının global izinlerini kontrol et
         perm = (current_user.permissions or {}).get(module, {})
         if not perm.get(action, False):
+            # LOG DENIAL
+            from app.models.activity_log import ActivityLog
+            log = ActivityLog(
+                user_id=current_user.id,
+                action="access_denied",
+                module=module,
+                details={"required_action": action, "type": "global"}
+            )
+            db.add(log)
+            await db.commit()
+            
             raise HTTPException(
                 status_code=403,
                 detail=f"{module} modülüne {action} erişiminiz yok"
@@ -145,6 +156,17 @@ def require_company_permission(module: str, action: str = "view"):
             
             # Not allowed without project context
                 
+            # LOG DENIAL
+            from app.models.activity_log import ActivityLog
+            log = ActivityLog(
+                user_id=current_user.id,
+                action="access_denied",
+                module=module,
+                details={"required_action": action, "reason": "no_project_context"}
+            )
+            db.add(log)
+            await db.commit()
+
             raise HTTPException(
                 status_code=403,
                 detail=f"{module} modülüne {action} erişiminiz için firma seçmelisiniz"
@@ -162,6 +184,18 @@ def require_company_permission(module: str, action: str = "view"):
             if proj_res.scalars().first():
                 return current_user
                 
+            # LOG DENIAL
+            from app.models.activity_log import ActivityLog
+            log = ActivityLog(
+                user_id=current_user.id,
+                project_id=effective_project_id,
+                action="access_denied",
+                module=module,
+                details={"required_action": action, "reason": "no_access_record"}
+            )
+            db.add(log)
+            await db.commit()
+                
             raise HTTPException(status_code=403, detail="Bu firmaya erişiminiz yok")
 
         # Firma sahibi (is_owner) her şeye yetkili
@@ -171,6 +205,18 @@ def require_company_permission(module: str, action: str = "view"):
         # Firma bazlı modül izinlerini kontrol et
         perm = (access.permissions or {}).get(module, {})
         if not perm.get(action, False):
+            # LOG DENIAL
+            from app.models.activity_log import ActivityLog
+            log = ActivityLog(
+                user_id=current_user.id,
+                project_id=effective_project_id,
+                action="access_denied",
+                module=module,
+                details={"required_action": action, "reason": "insufficient_module_permissions", "perms": perm}
+            )
+            db.add(log)
+            await db.commit()
+
             raise HTTPException(
                 status_code=403,
                 detail=f"Bu firma için {module} modülüne {action} yetkiniz yok"

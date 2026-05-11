@@ -246,33 +246,33 @@ async def get_stats(db: AsyncSession = Depends(get_db), current_admin: User = De
         "total_events": events_count.scalar() or 0
     }
 
-@router.get("/activity-logs", response_model=List[ActivityLogResponse])
+@router.get("/activity-logs")
 async def get_activity_logs(
-    limit: int = 50,
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(require_admin)
 ):
-    result = await db.execute(
-        select(ActivityLog, User.username)
+    stmt = (
+        select(ActivityLog, User.username, Project.name)
         .outerjoin(User, ActivityLog.user_id == User.id)
+        .outerjoin(Project, ActivityLog.project_id == Project.id)
         .order_by(ActivityLog.created_at.desc())
-        .limit(limit)
+        .limit(200)
     )
-    
+    result = await db.execute(stmt)
     logs = []
-    for log, username in result.all():
+    for log_row, username, project_name in result.all():
         log_dict = {
-            "id": log.id,
-            "user_id": log.user_id,
+            "id": log_row.id,
+            "user_id": log_row.user_id,
             "username": username,
-            "action": log.action,
-            "module": log.module,
-            "details": log.details,
-            "ip_address": log.ip_address,
-            "created_at": log.created_at
+            "project_name": project_name,
+            "action": log_row.action,
+            "module": log_row.module,
+            "details": log_row.details,
+            "ip_address": log_row.ip_address,
+            "created_at": log_row.created_at
         }
         logs.append(log_dict)
-        
     return logs
 
 # ============================================================

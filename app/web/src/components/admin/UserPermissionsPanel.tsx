@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { api } from "@/lib/api"
-import { Building2, Users, Plus, Trash2, ChevronDown, Shield, Check, X, EyeOff, Eye, Pencil, Tag, Loader2 } from "lucide-react"
+import { Shield, ChevronRight, Check, X, ShieldAlert, ShieldCheck, Trash2, Building2, Plus, Sparkles } from "lucide-react"
 import { useProjectStore } from "@/stores/projectStore"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 
@@ -166,6 +166,22 @@ export function UserPermissionsPanel({
       setAddingCompany(null)
       fetchUserCompanies(userId)
     } catch (e) { console.error(e) }
+  }
+
+  const handleQuickFullAuth = async (userId: number, projectId: number) => {
+    try {
+      const fullPerms: Record<string, any> = {}
+      MODULES.forEach(m => {
+        fullPerms[m.key] = { view: true, edit: true }
+        if (m.actions.includes('delete')) fullPerms[m.key].delete = true
+      })
+      await api.put(`/api/admin/users/${userId}/companies/${projectId}/permissions`, {
+        permissions: fullPerms
+      })
+      fetchUsers()
+    } catch (error) {
+      console.error('Full auth failed:', error)
+    }
   }
 
   const revokeAccess = async (userId: number, projectId: number) => {

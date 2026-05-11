@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
+import { useToast } from "@/components/ui/toast"
 
 interface KanbanColumn {
   id: 'todo' | 'in_progress' | 'done'
@@ -44,6 +45,7 @@ interface KanbanBoardProps {
 }
 
 export function KanbanBoard({ projectId }: KanbanBoardProps) {
+  const toast = useToast()
   const isProjectView = projectId !== null && projectId !== undefined
   const { tasks, addTask, updateTaskStatus } = useTaskStore()
   const [addingToColumn, setAddingToColumn] = React.useState<string | null>(null)
@@ -79,13 +81,18 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
       setAddingToColumn(null)
       return
     }
-    await addTask({
-      title: newCardTitle,
-      status: columnStatus as any,
-      project_id: projectId || undefined,
-    })
-    setNewCardTitle("")
-    setAddingToColumn(null)
+    try {
+      await addTask({
+        title: newCardTitle,
+        status: columnStatus as any,
+        project_id: projectId || undefined,
+      })
+      toast.success("Görev eklendi")
+      setNewCardTitle("")
+      setAddingToColumn(null)
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || "Görev eklenirken hata oluştu")
+    }
   }
 
   React.useEffect(() => {

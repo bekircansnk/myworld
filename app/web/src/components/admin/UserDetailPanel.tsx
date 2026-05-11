@@ -59,7 +59,7 @@ export function UserDetailPanel({ user, onClose, onUpdate }: any) {
 
   const panelContent = (
     <>
-       <div className="fixed inset-0 z-[99998] bg-black/20 backdrop-blur-sm" onClick={onClose} />
+       <div className="fixed inset-0 z-[99998] bg-black/20" onClick={onClose} />
        <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white dark:bg-slate-900 shadow-2xl z-[99999] border-l border-slate-200 dark:border-white/10 flex flex-col animate-in slide-in-from-right duration-300">
           
           <div className="p-6 border-b border-slate-100 dark:border-white/10 flex items-center justify-between shrink-0">

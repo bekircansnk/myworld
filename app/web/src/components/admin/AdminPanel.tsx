@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import { useAdminStore } from "@/stores/adminStore"
-import { Users, Shield, Activity, BarChart, Search, Plus, Building2, Tag, Trash2 } from "lucide-react"
+import { Users, Shield, Activity, BarChart, Search, Plus, Building2, Tag, Trash2, Pencil } from "lucide-react"
+import { ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem } from "@/components/ui/context-menu"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { CreateUserModal } from "./CreateUserModal"
 import { UserCard } from "./UserCard"
@@ -15,7 +16,7 @@ import { tr } from "date-fns/locale"
 export function AdminPanel() {
   const { 
     users, stats, activityLogs, isLoading,
-    fetchUsers, fetchStats, fetchActivityLogs 
+    fetchUsers, fetchStats, fetchActivityLogs, deleteUser
   } = useAdminStore()
   
   const [activeTab, setActiveTab] = React.useState<'dashboard'|'users'|'permissions'|'roles'|'logs'>('dashboard')
@@ -26,6 +27,18 @@ export function AdminPanel() {
   const [isClearLogsConfirmOpen, setIsClearLogsConfirmOpen] = React.useState(false)
   const { clearLogs } = useAdminStore()
   
+  const [deletingUser, setDeletingUser] = React.useState<any>(null)
+  const [isDeleteUserConfirmOpen, setIsDeleteUserConfirmOpen] = React.useState(false)
+
+  const handleDeleteUser = async () => {
+    if (!deletingUser) return
+    try {
+      await deleteUser(deletingUser.id)
+      fetchUsers()
+    } catch (e) { console.error(e) }
+    setDeletingUser(null)
+  }
+
   React.useEffect(() => {
     fetchUsers()
     fetchStats()
@@ -150,7 +163,19 @@ export function AdminPanel() {
               ) : (
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {users.map(user => (
-                       <UserCard key={user.id} user={user} onClick={() => setSelectedUser(user)} />
+                       <ContextMenu key={user.id}>
+                          <ContextMenuTrigger>
+                             <UserCard user={user} onClick={() => setSelectedUser(user)} />
+                          </ContextMenuTrigger>
+                          <ContextMenuContent>
+                             <ContextMenuItem onClick={() => setSelectedUser(user)}>
+                                <Pencil className="w-4 h-4 mr-2" /> Düzenle
+                             </ContextMenuItem>
+                             <ContextMenuItem className="text-rose-600" onClick={() => { setDeletingUser(user); setIsDeleteUserConfirmOpen(true); }}>
+                                <Trash2 className="w-4 h-4 mr-2" /> Sil
+                             </ContextMenuItem>
+                          </ContextMenuContent>
+                       </ContextMenu>
                     ))}
                  </div>
               )}
@@ -185,8 +210,10 @@ export function AdminPanel() {
                        <tr>
                           <th className="px-6 py-3">Tarih</th>
                           <th className="px-6 py-3">Kullanıcı</th>
+                          <th className="px-6 py-3">Firma</th>
                           <th className="px-6 py-3">Aksiyon</th>
                           <th className="px-6 py-3">Modül</th>
+                          <th className="px-6 py-3">Detaylar</th>
                           <th className="px-6 py-3">IP Adresi</th>
                        </tr>
                     </thead>
@@ -199,12 +226,24 @@ export function AdminPanel() {
                              <td className="px-6 py-4 font-bold text-brand-dark dark:text-white">
                                 {log.username || 'Sistem'}
                              </td>
+                             <td className="px-6 py-4 text-xs font-semibold text-slate-500">
+                                {log.project_name || '-'}
+                             </td>
                              <td className="px-6 py-4">
-                                <span className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded-md text-xs font-bold">
+                                <span className={`px-2 py-1 rounded-md text-xs font-bold ${
+                                    log.action === 'access_denied' 
+                                       ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400' 
+                                       : 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
+                                 }`}>
                                    {log.action}
                                 </span>
                              </td>
                              <td className="px-6 py-4 text-slate-500">{log.module}</td>
+                             <td className="px-6 py-4">
+                                <div className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-slate-400 font-mono" title={JSON.stringify(log.details)}>
+                                   {JSON.stringify(log.details)}
+                                </div>
+                             </td>
                              <td className="px-6 py-4 text-xs font-mono text-slate-400">{log.ip_address || '-'}</td>
                           </tr>
                        ))}
@@ -220,6 +259,16 @@ export function AdminPanel() {
       <CreateUserModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} onCreate={(data: any) => useAdminStore.getState().createUser(data)} />
       <UserDetailPanel user={selectedUser} onClose={() => setSelectedUser(null)} onUpdate={(id: number, data: any) => useAdminStore.getState().updateUser(id, data)} />
       
+      <ConfirmDialog 
+         isOpen={isDeleteUserConfirmOpen}
+         onOpenChange={setIsDeleteUserConfirmOpen}
+         title="Kullanıcıyı Sil"
+         description={`${deletingUser?.name} isimli kullanıcıyı ve tüm verilerini kalıcı olarak silmek istediğinize emin misiniz?`}
+         onConfirm={handleDeleteUser}
+         confirmText="Evet, Sil"
+         variant="destructive"
+      />
+
       <ConfirmDialog 
          isOpen={isClearLogsConfirmOpen}
          onOpenChange={setIsClearLogsConfirmOpen}

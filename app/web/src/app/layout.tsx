@@ -34,6 +34,7 @@ import { ChatWidget } from "@/components/chat/ChatWidget";
 import { ClientOnly } from "@/components/providers/ClientOnly";
 import { CapacitorNativeProvider } from "@/components/providers/CapacitorNativeProvider";
 import { ContextMenuProvider } from "@/components/ui/ContextMenu";
+import { ToastProvider } from "@/components/ui/toast";
 
 export default function RootLayout({
   children,
@@ -68,6 +69,7 @@ export default function RootLayout({
             <ChatWidget />
             <CapacitorNativeProvider />
             <ContextMenuProvider />
+            <ToastProvider />
           </ClientOnly>
         </ThemeProvider>
       </body>

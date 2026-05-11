@@ -10,8 +10,10 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, X, Flame, Target, Coffee, Sparkles, Loader2 } from "lucide-react"
+import { useToast } from "@/components/ui/toast"
 
 export function TaskForm() {
+  const toast = useToast()
   const { addTask } = useTaskStore()
   const { projects, selectedProjectId } = useProjectStore()
   const [open, setOpen] = React.useState(false)
@@ -52,15 +54,21 @@ export function TaskForm() {
       finalDesc = "[AI_AUTO_GENERATE]"; 
     }
 
-    await addTask({
-      title: formData.title,
-      description: finalDesc === "[AI_AUTO_GENERATE]" ? "" : finalDesc,
-      priority: formData.priority as "urgent" | "normal" | "low",
-      project_id: formData.project_id === "none" ? undefined : parseInt(formData.project_id)
-    })
-    setLoading(false)
-    setOpen(false)
-    setFormData({ title: "", description: "", priority: "normal", project_id: "none" })
+    try {
+      await addTask({
+        title: formData.title,
+        description: finalDesc === "[AI_AUTO_GENERATE]" ? "" : finalDesc,
+        priority: formData.priority as "urgent" | "normal" | "low",
+        project_id: formData.project_id === "none" ? undefined : parseInt(formData.project_id)
+      })
+      toast.success("Görev başarıyla oluşturuldu")
+      setOpen(false)
+      setFormData({ title: "", description: "", priority: "normal", project_id: "none" })
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || "Görev eklenirken bir hata oluştu")
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleAiEnhance = async () => {
