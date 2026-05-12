@@ -34,7 +34,9 @@ export function LoginOverlay() {
   // Kaydedilmiş giriş bilgilerini yükle
   useEffect(() => {
     const savedUser = localStorage.getItem('pikselis_saved_user');
+    const savedPass = localStorage.getItem('pikselis_saved_pass');
     if (savedUser) setIdentifier(savedUser);
+    if (savedPass) setPassword(savedPass);
   }, []);
 
   const isEmail = (str: string) => str.includes('@');
@@ -92,6 +94,7 @@ export function LoginOverlay() {
            headers: { 'Content-Type': 'multipart/form-data' }
         });
         localStorage.setItem('pikselis_saved_user', identifier);
+        localStorage.setItem('pikselis_saved_pass', password);
         login(response.data.access_token, response.data.user);
       } else {
         // Kayıt
@@ -118,6 +121,7 @@ export function LoginOverlay() {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
         localStorage.setItem('pikselis_saved_user', username);
+        localStorage.setItem('pikselis_saved_pass', password);
         login(loginResponse.data.access_token, loginResponse.data.user);
         
         if (email) {
@@ -265,6 +269,8 @@ export function LoginOverlay() {
                     </div>
                     <input 
                       type={viewState === 'forgot' ? 'email' : 'text'}
+                      name="username"
+                      autoComplete="username"
                       value={identifier}
                       onChange={(e) => setIdentifier(e.target.value)}
                       required
@@ -298,6 +304,8 @@ export function LoginOverlay() {
                       </div>
                       <input 
                         type={showPassword ? 'text' : 'password'}
+                        name="password"
+                        autoComplete="current-password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
