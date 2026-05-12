@@ -7,6 +7,7 @@ import { jsPDF } from 'jspdf';
 import { AdAIAnalysisReport } from '@/types/ads';
 import { ArrowLeft, TrendingUp, TrendingDown, DollarSign, Target, MousePointerClick, ShieldCheck, AlertTriangle, Lightbulb, Activity, CheckCircle2, ChevronRight, Download, X, BarChart3 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 interface AIReportDetailModalProps {
   reportId: string | number;
@@ -21,6 +22,7 @@ export function AIReportDetailModal({ reportId, onClose, autoDownload = false }:
   const [loading, setLoading] = useState(true);
   const reportRef = useRef<HTMLDivElement>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [errorDialog, setErrorDialog] = useState<{isOpen: boolean; message: string}>({isOpen: false, message: ''});
 
   useEffect(() => {
     checkAuth();
@@ -108,7 +110,7 @@ export function AIReportDetailModal({ reportId, onClose, autoDownload = false }:
       pdf.save(`AI_Analiz_${report.title.replace(/\s+/g, '_')}.pdf`);
     } catch (error) {
       console.error('PDF oluşturulamadı:', error);
-      alert("PDF indirme işlemi başarısız oldu. Lütfen tekrar deneyin.");
+      setErrorDialog({ isOpen: true, message: "PDF indirme işlemi başarısız oldu. Lütfen tekrar deneyin." });
     } finally {
       setIsGeneratingPDF(false);
     }
@@ -440,6 +442,17 @@ export function AIReportDetailModal({ reportId, onClose, autoDownload = false }:
           </div>
         </div>
       </div>
+      
+      <ConfirmDialog
+        isOpen={errorDialog.isOpen}
+        onOpenChange={(isOpen) => setErrorDialog(prev => ({ ...prev, isOpen }))}
+        title="Hata Oluştu"
+        description={errorDialog.message}
+        onConfirm={() => setErrorDialog(prev => ({ ...prev, isOpen: false }))}
+        confirmText="Tamam"
+        cancelText="Kapat"
+        variant="destructive"
+      />
     </div>
   );
 }

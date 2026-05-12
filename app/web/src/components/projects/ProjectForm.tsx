@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus } from "lucide-react"
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 
 export interface ProjectFormProps {
   customTrigger?: React.ReactNode;
@@ -19,6 +20,7 @@ export function ProjectForm({ customTrigger, open: controlledOpen, onOpenChange,
   const { addProject } = useProjectStore()
   const [internalOpen, setInternalOpen] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
+  const [errorDialog, setErrorDialog] = React.useState<{isOpen: boolean; message: string}>({isOpen: false, message: ''})
 
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
@@ -49,13 +51,13 @@ export function ProjectForm({ customTrigger, open: controlledOpen, onOpenChange,
       })
       const error = useProjectStore.getState().error
       if (error) {
-        alert("Firma eklenemedi: " + error)
+        setErrorDialog({ isOpen: true, message: "Firma eklenemedi: " + error })
       } else {
         setFormData({ name: "", color: "#3b82f6" })
         handleOpenChange(false)
       }
     } catch (e: any) {
-      alert("Firma eklenemedi: " + e.message)
+      setErrorDialog({ isOpen: true, message: "Firma eklenemedi: " + e.message })
     } finally {
       setLoading(false)
     }
@@ -114,6 +116,17 @@ export function ProjectForm({ customTrigger, open: controlledOpen, onOpenChange,
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        isOpen={errorDialog.isOpen}
+        onOpenChange={(isOpen) => setErrorDialog(prev => ({ ...prev, isOpen }))}
+        title="Hata Oluştu"
+        description={errorDialog.message}
+        onConfirm={() => setErrorDialog(prev => ({ ...prev, isOpen: false }))}
+        confirmText="Tamam"
+        cancelText="Kapat"
+        variant="destructive"
+      />
     </>
   )
 }

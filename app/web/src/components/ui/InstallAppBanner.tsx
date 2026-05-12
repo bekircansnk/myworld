@@ -29,6 +29,29 @@ export function InstallAppBanner() {
     // Eğer Android ise, ve PWA değilse, ve Capacitor Native değilse göster
     if (isAndroid && !isStandalone && !isNativeCapacitor) {
       setIsVisible(true);
+      
+      // 5 Dakika limiti
+      const sessionStart = sessionStorage.getItem("apkBannerStartTime");
+      const now = Date.now();
+      let startTime = sessionStart ? parseInt(sessionStart, 10) : now;
+      
+      if (!sessionStart) {
+         sessionStorage.setItem("apkBannerStartTime", startTime.toString());
+      }
+      
+      const timeElapsed = now - startTime;
+      const timeRemaining = (5 * 60 * 1000) - timeElapsed;
+      
+      if (timeRemaining <= 0) {
+         setIsDismissed(true);
+         sessionStorage.setItem("apkBannerDismissed", "true");
+      } else {
+         const timer = setTimeout(() => {
+            setIsDismissed(true);
+            sessionStorage.setItem("apkBannerDismissed", "true");
+         }, timeRemaining);
+         return () => clearTimeout(timer);
+      }
     }
   }, []);
 

@@ -6,6 +6,7 @@ import { AdReportTemplate, AdAIAnalysisReport } from '@/types/ads';
 import { AIAnalysisForm } from './AIAnalysisForm';
 import { useRouter } from 'next/navigation';
 import { AIReportDetailModal } from './AIReportDetailModal';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 const TEMPLATE_TYPES = [
   { value: 'weekly', label: 'Haftalık Rapor', icon: Calendar },
@@ -107,16 +108,32 @@ export function AdsReportCenter({ projectId }: { projectId: number | null }) {
   const [isAIFormOpen, setIsAIFormOpen] = useState(false);
   const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
   const [autoDownloadReport, setAutoDownloadReport] = useState<boolean>(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    description: '',
+    onConfirm: () => {},
+  });
 
   useEffect(() => {
     fetchReportTemplates(projectId || undefined);
     fetchAIReports(projectId || undefined);
   }, [projectId]);
 
-  const handleDelete = async (id: number) => {
-    if (confirm('Bu şablonu silmek istediğinize emin misiniz?')) {
-      await deleteReportTemplate(id);
-    }
+  const handleDelete = (id: number) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Şablonu Sil',
+      description: 'Bu şablonu silmek istediğinize emin misiniz?',
+      onConfirm: async () => {
+        await deleteReportTemplate(id);
+      }
+    });
   };
 
   const getTypeInfo = (t: string) => TEMPLATE_TYPES.find(tp => tp.value === t) || TEMPLATE_TYPES[3];
@@ -286,7 +303,15 @@ export function AdsReportCenter({ projectId }: { projectId: number | null }) {
                         <Download className="w-3.5 h-3.5" />
                       </button>
                     )}
-                    <button onClick={(e) => { e.stopPropagation(); if(confirm('Emin misiniz?')) deleteAIReport(report.id) }}
+                    <button onClick={(e) => { 
+                      e.stopPropagation(); 
+                      setConfirmDialog({
+                        isOpen: true,
+                        title: 'Raporu Sil',
+                        description: 'Emin misiniz?',
+                        onConfirm: () => deleteAIReport(report.id)
+                      });
+                    }}
                       className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded text-slate-400 hover:text-red-500 transition-colors" title="Sil">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -306,6 +331,16 @@ export function AdsReportCenter({ projectId }: { projectId: number | null }) {
           autoDownload={autoDownloadReport} 
         />
       )}
+      
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onOpenChange={(isOpen) => setConfirmDialog(prev => ({ ...prev, isOpen }))}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        onConfirm={confirmDialog.onConfirm}
+        confirmText="Sil"
+        variant="destructive"
+      />
     </div>
   );
 }

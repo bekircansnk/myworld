@@ -3,6 +3,7 @@ import { useAdsStore } from '@/stores/adsStore';
 import { useProjectStore } from '@/stores/projectStore';
 import { Plus, ListChecks, CheckCircle2, Circle, Trash2, X, ChevronDown, ChevronUp, ClipboardCheck } from 'lucide-react';
 import { AdOnboardingChecklist } from '@/types/ads';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 const DEFAULT_ITEMS = [
   { title: 'Reklam hesabı erişimi alındı', done: false },
@@ -83,6 +84,18 @@ export function OnboardingChecklist({ projectId }: { projectId: number | null })
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
   const [newItemTexts, setNewItemTexts] = useState<Record<number, string>>({});
+  
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    description: '',
+    onConfirm: () => {},
+  });
 
   useEffect(() => {
     fetchChecklists(projectId || undefined);
@@ -104,11 +117,16 @@ export function OnboardingChecklist({ projectId }: { projectId: number | null })
   };
 
   const handleDeleteItem = (checklist: AdOnboardingChecklist, index: number) => {
-    if (confirm('Bu maddeyi silmek istediğinize emin misiniz?')) {
-      const newItems = (checklist.items || []).filter((_, i) => i !== index);
-      const allDone = newItems.length > 0 && newItems.every(i => i.done);
-      updateChecklist(checklist.id, { items: newItems, status: allDone ? 'completed' : 'in_progress' });
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Maddeyi Sil',
+      description: 'Bu maddeyi silmek istediğinize emin misiniz?',
+      onConfirm: () => {
+        const newItems = (checklist.items || []).filter((_, i) => i !== index);
+        const allDone = newItems.length > 0 && newItems.every(i => i.done);
+        updateChecklist(checklist.id, { items: newItems, status: allDone ? 'completed' : 'in_progress' });
+      }
+    });
   };
 
   const handleAddItem = (checklist: AdOnboardingChecklist, e: React.FormEvent) => {
@@ -121,10 +139,15 @@ export function OnboardingChecklist({ projectId }: { projectId: number | null })
     setNewItemTexts(prev => ({ ...prev, [checklist.id]: '' }));
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm('Bu checklist\'i silmek istediğinize emin misiniz?')) {
-      await deleteChecklist(id);
-    }
+  const handleDelete = (id: number) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Devralma Listesini Sil',
+      description: 'Bu checklist\'i silmek istediğinize emin misiniz?',
+      onConfirm: async () => {
+        await deleteChecklist(id);
+      }
+    });
   };
 
   return (
@@ -256,6 +279,16 @@ export function OnboardingChecklist({ projectId }: { projectId: number | null })
       )}
 
       {isFormOpen && <ChecklistForm onClose={() => setIsFormOpen(false)} projectId={projectId} />}
+      
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onOpenChange={(isOpen) => setConfirmDialog(prev => ({ ...prev, isOpen }))}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        onConfirm={confirmDialog.onConfirm}
+        confirmText="Sil"
+        variant="destructive"
+      />
     </div>
   );
 }

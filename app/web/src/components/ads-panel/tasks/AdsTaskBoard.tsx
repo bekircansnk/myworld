@@ -4,6 +4,7 @@ import { useProjectStore } from '@/stores/projectStore';
 import { Plus, Target, Clock, CheckCircle2, AlertCircle, ChevronRight, X, Calendar, Flag, Bot, Wand2 } from 'lucide-react';
 import { AdAdsTask } from '@/types/ads';
 import { LinkedItemChip } from '../LinkedItemChip';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 const CATEGORIES = [
   { value: 'budget', label: 'Bütçe Kontrolü', color: 'bg-emerald-500' },
@@ -208,6 +209,17 @@ export function AdsTaskBoard({ projectId }: { projectId: number | null }) {
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<AdAdsTask | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    description: '',
+    onConfirm: () => {},
+  });
 
   useEffect(() => {
     fetchTasks(projectId || undefined);
@@ -228,10 +240,15 @@ export function AdsTaskBoard({ projectId }: { projectId: number | null }) {
     await updateTask(task.id, { status: newStatus });
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm('Bu görevi silmek istediğinize emin misiniz?')) {
-      await deleteTask(id);
-    }
+  const handleDelete = (id: number) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Görevi Sil',
+      description: 'Bu görevi silmek istediğinize emin misiniz?',
+      onConfirm: async () => {
+        await deleteTask(id);
+      }
+    });
   };
 
   const getPriorityInfo = (p: string) => PRIORITIES.find(pr => pr.value === p) || PRIORITIES[1];
@@ -375,6 +392,16 @@ export function AdsTaskBoard({ projectId }: { projectId: number | null }) {
       )}
 
       {isFormOpen && <TaskForm onClose={() => setIsFormOpen(false)} projectId={projectId} initial={editingTask} />}
+      
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onOpenChange={(isOpen) => setConfirmDialog(prev => ({ ...prev, isOpen }))}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        onConfirm={confirmDialog.onConfirm}
+        confirmText="Sil"
+        variant="destructive"
+      />
     </div>
   );
 }

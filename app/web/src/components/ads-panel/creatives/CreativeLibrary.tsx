@@ -4,6 +4,7 @@ import { useProjectStore } from '@/stores/projectStore';
 import { Plus, Image as ImageIcon, Video, Layers, CheckSquare, Star, Edit, Trash2, MessageSquare, X, Target } from 'lucide-react';
 import { CreativeForm } from './CreativeForm';
 import { AdCreative } from '@/types/ads';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 interface CreativeLibraryProps {
   projectId: number | null;
@@ -17,6 +18,17 @@ export function CreativeLibrary({ projectId }: CreativeLibraryProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCreative, setEditingCreative] = useState<AdCreative | null>(null);
   const [viewingCreative, setViewingCreative] = useState<AdCreative | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    description: '',
+    onConfirm: () => {},
+  });
 
   useEffect(() => {
     fetchCreatives(projectId || undefined);
@@ -43,10 +55,15 @@ export function CreativeLibrary({ projectId }: CreativeLibraryProps) {
     setIsFormOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm('Bu kreatifi kütüphaneden silmek istediğinize emin misiniz?')) {
-      await deleteCreative(id);
-    }
+  const handleDelete = (id: number) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Kreatifi Sil',
+      description: 'Bu kreatifi kütüphaneden silmek istediğinize emin misiniz?',
+      onConfirm: async () => {
+        await deleteCreative(id);
+      }
+    });
   };
 
   const renderIcon = (type: string) => {
@@ -276,6 +293,16 @@ export function CreativeLibrary({ projectId }: CreativeLibraryProps) {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onOpenChange={(isOpen) => setConfirmDialog(prev => ({ ...prev, isOpen }))}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        onConfirm={confirmDialog.onConfirm}
+        confirmText="Sil"
+        variant="destructive"
+      />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { AdExperiment } from '@/types/ads';
 import { TestForm } from './TestForm';
 import { LinkedItemChip } from '../LinkedItemChip';
 import { TestDetailModal } from './TestDetailModal';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 interface TestCenterProps {
   projectId: number | null;
@@ -20,6 +21,17 @@ export function TestCenter({ projectId }: TestCenterProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTest, setEditingTest] = useState<AdExperiment | null>(null);
   const [detailTest, setDetailTest] = useState<AdExperiment | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    description: '',
+    onConfirm: () => {},
+  });
 
   useEffect(() => {
     fetchExperiments(projectId || undefined);
@@ -45,11 +57,16 @@ export function TestCenter({ projectId }: TestCenterProps) {
     setIsFormOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm('Bu testi silmek istediğinize emin misiniz?')) {
-      const { deleteExperiment } = useAdsStore.getState();
-      await deleteExperiment(id);
-    }
+  const handleDelete = (id: number) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Testi Sil',
+      description: 'Bu testi silmek istediğinize emin misiniz?',
+      onConfirm: async () => {
+        const { deleteExperiment } = useAdsStore.getState();
+        await deleteExperiment(id);
+      }
+    });
   };
 
   const runningTests = experiments.filter(e => e.status === 'running');
@@ -204,6 +221,16 @@ export function TestCenter({ projectId }: TestCenterProps) {
           onClose={() => setDetailTest(null)}
         />
       )}
+      
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onOpenChange={(isOpen) => setConfirmDialog(prev => ({ ...prev, isOpen }))}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        onConfirm={confirmDialog.onConfirm}
+        confirmText="Sil"
+        variant="destructive"
+      />
     </div>
   );
 }

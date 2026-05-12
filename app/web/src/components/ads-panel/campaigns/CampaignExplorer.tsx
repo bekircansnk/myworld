@@ -4,6 +4,7 @@ import { useProjectStore } from '@/stores/projectStore';
 import { Plus, Search, Filter, MoreHorizontal, Edit, Trash2, Target, ExternalLink } from 'lucide-react';
 import { CampaignForm } from './CampaignForm';
 import { AdCampaign } from '@/types/ads';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 interface CampaignExplorerProps {
   projectId: number | null;
@@ -20,6 +21,18 @@ export function CampaignExplorer({ projectId }: CampaignExplorerProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [platformFilter, setPlatformFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    description: '',
+    onConfirm: () => {},
+  });
 
   useEffect(() => {
     if (selectedEntityToView?.type === 'campaigns') {
@@ -42,10 +55,15 @@ export function CampaignExplorer({ projectId }: CampaignExplorerProps) {
     setIsFormOpen(true);
   };
 
-  const handleDeleteCampaign = async (id: number) => {
-    if (confirm('Bu kampanyayı silmek istediğinize emin misiniz? Günlük harcama metrikleri varsa onlar da silinebilir.')) {
-      await deleteCampaign(id);
-    }
+  const handleDeleteCampaign = (id: number) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Kampanyayı Sil',
+      description: 'Bu kampanyayı silmek istediğinize emin misiniz? Günlük harcama metrikleri varsa onlar da silinebilir.',
+      onConfirm: async () => {
+        await deleteCampaign(id);
+      }
+    });
   };
 
   const filteredCampaigns = campaigns.filter(c => {
@@ -193,7 +211,10 @@ export function CampaignExplorer({ projectId }: CampaignExplorerProps) {
                            <Edit className="w-4 h-4" />
                          </button>
                          <button 
-                            onClick={() => handleDeleteCampaign(c.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteCampaign(c.id);
+                            }}
                             className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-500 rounded-lg transition-colors"
                             title="Sil"
                          >
@@ -219,6 +240,16 @@ export function CampaignExplorer({ projectId }: CampaignExplorerProps) {
           initialData={editingCampaign} 
         />
       )}
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onOpenChange={(isOpen) => setConfirmDialog(prev => ({ ...prev, isOpen }))}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        onConfirm={confirmDialog.onConfirm}
+        confirmText="Sil"
+        variant="destructive"
+      />
     </div>
   );
 }
