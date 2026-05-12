@@ -70,7 +70,8 @@ async def migrate():
                         UserCompanyAccess.project_id == proj.id
                     )
                 )
-                if not existing.scalars().first():
+                acc = existing.scalars().first()
+                if not acc:
                     # Firma sahibi mi?
                     is_owner = proj.user_id == usr.id
                     access = UserCompanyAccess(
@@ -84,10 +85,6 @@ async def migrate():
                     access_created += 1
                     print(f"  + Erişim oluşturuldu: {usr.username} → {proj.name} (owner={is_owner})")
                 else:
-                    # Mevcut erişim varsa izinleri güncelle
-                    acc = existing.scalars().first()
-                    if not acc:
-                        continue
                     # Sadece izinleri boş olanları güncelle
                     if not acc.permissions or acc.permissions == {}:
                         acc.permissions = FULL_PERMISSIONS

@@ -179,51 +179,64 @@ async def create_task(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_company_permission("tasks", "edit"))
 ):
-    # 1. Önce görevi veritabanına ekle
-    db_task = Task(**task.model_dump(), user_id=current_user.id)
-    db.add(db_task)
-    await db.commit()
-    await db.refresh(db_task)
-
-    # 2. AI Kategorizasyon ve Süre/Proje Tahminini Arka Plana At
     try:
-        # Kullanıcının erişebildiği TÜM aktif firmaları al (AI context için)
-        if current_user.role == "super_admin":
-            proj_query = select(Project).filter(Project.is_active == True)
-        else:
-            from app.models.user_company_access import UserCompanyAccess
-            proj_query = select(Project).join(UserCompanyAccess).filter(
-                UserCompanyAccess.user_id == current_user.id,
-                Project.is_active == True
-            )
+        # 1. Önce görevi veritabanına ekle
+        db_task = Task(**task.model_dump(), user_id=current_user.id)
+        db.add(db_task)
+        await db.commit()
+        await db.refresh(db_task)
+
+        # 2. AI Kategorizasyon ve Süre/Proje Tahminini Arka Plana At
+        try:
+            # Kullanıcının erişebildiği TÜM aktif firmaları al (AI context için)
+            if current_user.role == "super_admin":
+                proj_query = select(Project).filter(Project.is_active == True)
+            else:
+                from app.models.user_company_access import UserCompanyAccess
+                proj_query = select(Project).join(UserCompanyAccess).filter(
+                    UserCompanyAccess.user_id == current_user.id,
+                    Project.is_active == True
+                )
+                
+            proj_result = await db.execute(proj_query)
+            projects = proj_result.scalars().all()
+            project_context = "\\n".join([f"- ID: {p.id}, İsim: {p.name}" for p in projects])
+
+            # Kullanıcının bekleyen görevlerini al
+            tasks_result = await db.execute(select(Task).filter(Task.user_id == current_user.id, Task.status != "done"))
+            active_tasks = tasks_result.scalars().all()
+            tasks_context = "\\n".join([f"- {t.title} (Öncelik: {t.priority}, Bitiş: {t.due_date})" for t in active_tasks])
+
+            task_text = f"{task.title} {task.description or ''}"
             
-        proj_result = await db.execute(proj_query)
-        projects = proj_result.scalars().all()
-        project_context = "\\n".join([f"- ID: {p.id}, İsim: {p.name}" for p in projects])
+            # Asenkron arka plan görevine gönder
+            background_tasks.add_task(
+                background_categorize_task,
+                task_id=db_task.id,
+                task_text=task_text,
+                project_context=project_context,
+                tasks_context=tasks_context
+            )
+        except Exception as e:
+            print(f"Background task dispatch error: {e}")
 
-        # Kullanıcının bekleyen görevlerini al
-        tasks_result = await db.execute(select(Task).filter(Task.user_id == current_user.id, Task.status != "done"))
-        active_tasks = tasks_result.scalars().all()
-        tasks_context = "\\n".join([f"- {t.title} (Öncelik: {t.priority}, Bitiş: {t.due_date})" for t in active_tasks])
-
-        task_text = f"{task.title} {task.description or ''}"
-        
-        # Asenkron arka plan görevine gönder
-        background_tasks.add_task(
-            background_categorize_task,
-            task_id=db_task.id,
-            task_text=task_text,
-            project_context=project_context,
-            tasks_context=tasks_context
-        )
+        # selectinload project again to return nested object instead of none
+        query = select(Task).options(selectinload(Task.project)).where(Task.id == db_task.id)
+        result = await db.execute(query)
+        db_task_loaded = result.scalars().first()
+        return db_task_loaded
     except Exception as e:
-        print(f"Background task dispatch error: {e}")
-
-    # selectinload project again to return nested object instead of none
-    query = select(Task).options(selectinload(Task.project)).where(Task.id == db_task.id)
-    result = await db.execute(query)
-    db_task_loaded = result.scalars().first()
-    return db_task_loaded
+        from app.models.activity_log import ActivityLog
+        import traceback
+        error_log = ActivityLog(
+            user_id=current_user.id,
+            action="task_create_error",
+            module="tasks",
+            details={"error": str(e), "trace": traceback.format_exc(), "payload": task.model_dump()}
+        )
+        db.add(error_log)
+        await db.commit()
+        raise HTTPException(status_code=500, detail=f"Görev eklenirken hata oluştu: {str(e)}")
 
 @router.put("/{task_id}", response_model=TaskResponse)
 async def update_task(
