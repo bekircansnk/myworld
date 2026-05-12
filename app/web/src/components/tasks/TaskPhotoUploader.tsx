@@ -85,11 +85,18 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (previewIndex === null) return
+      
       if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        e.stopImmediatePropagation()
         setPreviewIndex(prev => (prev !== null && prev < photos.length - 1 ? prev + 1 : prev))
       } else if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        e.stopImmediatePropagation()
         setPreviewIndex(prev => (prev !== null && prev > 0 ? prev - 1 : prev))
       } else if (e.key === 'Escape') {
+        e.preventDefault()
+        e.stopImmediatePropagation()
         setPreviewIndex(null)
       }
     }
@@ -99,7 +106,8 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
     window.addEventListener('dragover', handleDragOver)
     window.addEventListener('dragleave', handleDragLeave)
     window.addEventListener('drop', handleDrop)
-    window.addEventListener('keydown', handleKeyDown)
+    // capture: true ile ESC eventinin parent modal'lara gitmesini engelliyoruz
+    window.addEventListener('keydown', handleKeyDown, { capture: true })
 
     return () => {
       window.removeEventListener('paste', handlePaste)
@@ -107,7 +115,7 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
       window.removeEventListener('dragover', handleDragOver)
       window.removeEventListener('dragleave', handleDragLeave)
       window.removeEventListener('drop', handleDrop)
-      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keydown', handleKeyDown, { capture: true })
     }
   }, [previewIndex, photos.length])
 
@@ -201,14 +209,19 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
 
   // İndirme
   const handleDownload = (photo: DrivePhoto) => {
+    // Doğrudan indirmeyi tetiklemek için gizli iframe yöntemi
     const url = getPhotoDownloadUrl(photo.drive_id)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = photo.name || 'photo.jpg'
-    a.target = '_blank'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
+    const iframe = document.createElement('iframe')
+    iframe.style.display = 'none'
+    iframe.src = url
+    document.body.appendChild(iframe)
+    
+    // 60 saniye sonra iframe'i temizle
+    setTimeout(() => {
+      if (document.body.contains(iframe)) {
+        document.body.removeChild(iframe)
+      }
+    }, 60000)
   }
 
   const hasPhotos = photos.length > 0 || uploading.length > 0
@@ -237,7 +250,10 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
 
       {/* Lightbox */}
       {previewIndex !== null && photos[previewIndex] && (
-        <div className="fixed inset-0 z-[70] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-200">
+        <div 
+          className="fixed inset-0 z-[70] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-200"
+          onClick={() => setPreviewIndex(null)}
+        >
           {/* Sol Ok */}
           <button
             onClick={(e) => { e.stopPropagation(); setPreviewIndex(prev => (prev !== null && prev > 0 ? prev - 1 : prev)) }}
@@ -250,7 +266,8 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
           <img
             src={getPhotoViewUrl(photos[previewIndex].drive_id)}
             alt={photos[previewIndex].name}
-            className="max-w-[85vw] max-h-[85vh] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-300"
+            className="max-w-[85vw] max-h-[85vh] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-300 cursor-zoom-out"
+            onClick={(e) => { e.stopPropagation(); setPreviewIndex(null); }}
           />
 
           {/* Sağ Ok */}
