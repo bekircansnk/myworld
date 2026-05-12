@@ -4,7 +4,7 @@ import * as React from "react"
 import { useProjectStore } from "@/stores/projectStore"
 import { useTaskStore } from "@/stores/taskStore"
 import { useTheme } from "next-themes"
-import { LayoutDashboard, ListTodo, CalendarDays, NotebookPen, Bot, Megaphone, Camera, Menu, Bell, Search, Plus, Loader2, PlayCircle, Clock, CheckCircle2, MoreVertical, X, Shield, Sun, Moon, User, ChevronDown, AlertTriangle, Check } from "lucide-react"
+import { LayoutDashboard, ListTodo, CalendarDays, NotebookPen, Bot, Megaphone, Camera, Menu, Bell, Search, Plus, Loader2, PlayCircle, Clock, CheckCircle2, MoreVertical, X, Shield, Sun, Moon, User, ChevronDown, AlertTriangle, Check, Smartphone } from "lucide-react"
 import { format, isToday, isTomorrow, isBefore, addDays } from "date-fns"
 import { tr } from "date-fns/locale"
 import { api } from "@/lib/api"
@@ -460,6 +460,13 @@ export function TopNavbar() {
                   </div>
                 </div>
                 <div className="py-1">
+                  <a
+                    href="/MyWorld.apk"
+                    download="MyWorld.apk"
+                    className="w-full text-left px-4 py-2.5 text-sm text-brand-dark dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-bold flex items-center gap-2"
+                  >
+                    <Smartphone className="w-4 h-4 text-indigo-500" /> Android APK İndir
+                  </a>
                   <button
                     onClick={() => { setIsProfileOpen(true); setShowUserPanel(false); }}
                     className="w-full text-left px-4 py-2.5 text-sm text-brand-gray dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-medium flex items-center gap-2"

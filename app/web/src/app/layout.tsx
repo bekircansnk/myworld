@@ -35,6 +35,7 @@ import { ClientOnly } from "@/components/providers/ClientOnly";
 import { CapacitorNativeProvider } from "@/components/providers/CapacitorNativeProvider";
 import { ContextMenuProvider } from "@/components/ui/ContextMenu";
 import { ToastProvider } from "@/components/ui/toast";
+import { InstallAppBanner } from "@/components/ui/InstallAppBanner";
 
 export default function RootLayout({
   children,
@@ -70,6 +71,7 @@ export default function RootLayout({
               <ChatWidget />
               <CapacitorNativeProvider />
               <ContextMenuProvider />
+              <InstallAppBanner />
             </ToastProvider>
           </ClientOnly>
         </ThemeProvider>
