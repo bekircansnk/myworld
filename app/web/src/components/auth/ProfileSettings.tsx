@@ -5,6 +5,7 @@ import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { createPortal } from 'react-dom'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 
 export function ProfileSettings({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
   const { user, updateUser } = useAuthStore()
@@ -18,6 +19,7 @@ export function ProfileSettings({ isOpen, onClose }: { isOpen: boolean, onClose:
   const { notificationsEnabled, setNotificationsEnabled, reminderOffsetMinutes, setReminderOffset } = useSettingsStore()
 
   const [mounted, setMounted] = React.useState(false)
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = React.useState(false)
 
   React.useEffect(() => {
     setMounted(true)
@@ -162,6 +164,20 @@ export function ProfileSettings({ isOpen, onClose }: { isOpen: boolean, onClose:
             )}
           </div>
 
+          <div className="pt-2 border-t border-slate-100 dark:border-white/10 mt-4">
+            <h3 className="text-sm font-bold text-slate-700 dark:text-white mb-3">Sistem & Önbellek</h3>
+            <button
+               type="button"
+               onClick={() => setIsResetConfirmOpen(true)}
+               className="w-full bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 font-bold text-sm hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors py-3 rounded-xl flex items-center justify-center gap-2"
+            >
+               🔄 Tüm Sistemi ve Önbelleği Temizle
+            </button>
+            <p className="text-[10px] text-slate-400 mt-2 text-center">
+              Eğer mobil cihazınızda veriler güncellenmiyorsa veya boş ekran hatası alıyorsanız bu butonu kullanın.
+            </p>
+          </div>
+
           <div className="pt-4 flex justify-end gap-3">
              <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-500 hover:text-slate-700 dark:hover:text-white transition-colors">
                İptal
@@ -190,6 +206,26 @@ export function ProfileSettings({ isOpen, onClose }: { isOpen: boolean, onClose:
           )}
         </form>
       </div>
+      
+      <ConfirmDialog
+        isOpen={isResetConfirmOpen}
+        onOpenChange={setIsResetConfirmOpen}
+        title="Sistemi ve Önbelleği Temizle"
+        description="Bu işlem cihazınızdaki tüm uygulama önbelleğini (Önceki sürümler, çevrimdışı veriler) silecek ve sistemi yeniden başlatacaktır. Kullanıcı bilgileriniz silinmeyecek. Onaylıyor musunuz?"
+        onConfirm={async () => {
+          localStorage.clear();
+          sessionStorage.clear();
+          if ('caches' in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(k => caches.delete(k)));
+          }
+          if ('serviceWorker' in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map(r => r.unregister()));
+          }
+          window.location.reload();
+        }}
+      />
     </div>
   )
 

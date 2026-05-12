@@ -214,7 +214,24 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
     toast.show("İndiriliyor...", "loading", 3000)
     const name = photo.name || 'fotograf.jpg'
     
-    // Yardımcı fonskiyon: Blob'u indir
+    // Mobil Uygulama (Capacitor) Kontrolü
+    // Webview içerisinde Blob veya iframe ile dosya indirme çalışmaz, doğrudan sistemi tetiklemeliyiz.
+    const isNative = typeof window !== 'undefined' && (window as any).Capacitor?.isNative;
+
+    if (isNative) {
+      try {
+        const nativeUrl = getPhotoDownloadUrl(photo.drive_id);
+        // '_system' veya '_blank' ile native tarayıcıyı/indirme yöneticisini tetikle
+        window.open(nativeUrl, '_system');
+        toast.success("İndirme yöneticisine iletildi");
+        return;
+      } catch (e) {
+        toast.error("İndirme başlatılamadı");
+        return;
+      }
+    }
+
+    // YARDIMCI: Web için Blob'u indir (Masaüstü/Mobil Tarayıcı)
     const triggerDownloadBlob = (blob: Blob) => {
       const objUrl = URL.createObjectURL(blob)
       const a = document.createElement('a')
