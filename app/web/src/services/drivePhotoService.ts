@@ -196,12 +196,14 @@ export async function deletePhotoFromDrive(driveId: string): Promise<void> {
  * Drive thumbnail URL üretir
  */
 export function getPhotoThumbnailUrl(driveId: string, size: number = 400): string {
-  return `https://drive.google.com/thumbnail?id=${driveId}&sz=w${size}`;
+  // lh3 URL'si auth sorunu olmadan daha stabil çalışır
+  return `https://lh3.googleusercontent.com/d/${driveId}=s${size}`;
 }
 
 /**
  * Drive tam boyut görüntüleme URL'si
  */
 export function getPhotoViewUrl(driveId: string): string {
+  // s0 orijinal boyutu getirir
   return `https://lh3.googleusercontent.com/d/${driveId}=s0`;
 }

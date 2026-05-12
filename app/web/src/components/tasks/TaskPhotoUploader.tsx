@@ -252,28 +252,28 @@ export function TaskPhotoUploader({ taskId, photos, onPhotosChange }: TaskPhotoU
                 {photos.map((photo) => (
                   <div
                     key={photo.drive_id}
-                    className="group relative aspect-square rounded-xl overflow-hidden bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 shadow-sm hover:shadow-md transition-all duration-300"
+                    className="group relative aspect-square rounded-xl overflow-hidden bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
+                    onClick={() => setPreviewUrl(getPhotoViewUrl(photo.drive_id))}
                   >
                     <img
-                      src={getPhotoThumbnailUrl(photo.drive_id, 300)}
+                      src={getPhotoThumbnailUrl(photo.drive_id, 400)}
                       alt={photo.name}
-                      className="w-full h-full object-cover cursor-zoom-in transition-transform duration-500 group-hover:scale-105"
-                      onClick={() => setPreviewUrl(getPhotoViewUrl(photo.drive_id))}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       loading="lazy"
+                      onError={(e) => {
+                        // Eğer lh3 URL'si çalışmazsa uc URL'sine fallback yap
+                        const target = e.target as HTMLImageElement;
+                        if (!target.src.includes('drive.google.com/uc')) {
+                          target.src = `https://drive.google.com/uc?export=view&id=${photo.drive_id}`;
+                        }
+                      }}
                     />
                     {/* Hover overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-between p-2">
                       <span className="text-[9px] font-semibold text-white/80 truncate max-w-[60%]">
                         {photo.name}
                       </span>
-                      <div className="flex gap-1">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setPreviewUrl(getPhotoViewUrl(photo.drive_id)) }}
-                          className="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30 transition-colors"
-                          title="Büyüt"
-                        >
-                          <ZoomIn className="w-3.5 h-3.5" />
-                        </button>
+                      <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={(e) => { e.stopPropagation(); handleDownload(photo) }}
                           className="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30 transition-colors"
