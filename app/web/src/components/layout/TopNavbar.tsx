@@ -59,23 +59,37 @@ export function TopNavbar() {
   // PWA Install Prompt
   const [deferredPrompt, setDeferredPrompt] = React.useState<any>(null)
   const [showInstallBtn, setShowInstallBtn] = React.useState(true)
+  const [isAndroid, setIsAndroid] = React.useState(false)
 
   React.useEffect(() => {
+    // Android tespiti
+    if (typeof navigator !== 'undefined') {
+      setIsAndroid(/android/i.test(navigator.userAgent))
+    }
+
     const handler = (e: any) => {
       e.preventDefault()
       setDeferredPrompt(e)
     }
     window.addEventListener('beforeinstallprompt', handler)
-    // 5 dakika sonra install butonunu gizle
+    
+    // 5 dakika sonra navbar'daki butonu gizle (profile taşınacak)
     const hideTimer = setTimeout(() => setShowInstallBtn(false), 5 * 60 * 1000)
-    return () => { window.removeEventListener('beforeinstallprompt', handler); clearTimeout(hideTimer) }
+    
+    return () => { 
+      window.removeEventListener('beforeinstallprompt', handler)
+      clearTimeout(hideTimer)
+    }
   }, [])
 
   const handleInstallApp = async () => {
     if (deferredPrompt) {
       deferredPrompt.prompt()
       const { outcome } = await deferredPrompt.userChoice
-      if (outcome === 'accepted') setDeferredPrompt(null)
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null)
+        setShowInstallBtn(false)
+      }
     }
   }
 
@@ -84,6 +98,29 @@ export function TopNavbar() {
   const [settingsProject, setSettingsProject] = React.useState<any>(null)
   const [isSettingsOpen, setIsSettingsOpen] = React.useState(false)
   const [isProjectFormOpen, setIsProjectFormOpen] = React.useState(false)
+
+  // Sağ taraftaki aksiyonlar kısmında PWA butonu gösterimi (Android değilse ve süre dolmadıysa)
+  const renderPwaInstallBtn = () => {
+    if (!deferredPrompt || !showInstallBtn || isAndroid) return null
+    
+    return (
+      <>
+        <button
+          onClick={handleInstallApp}
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all animate-pulse hover:animate-none mr-1"
+        >
+          Uygulamayı Yükle
+        </button>
+        <button
+          onClick={handleInstallApp}
+          className="sm:hidden flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all animate-pulse hover:animate-none"
+          title="Uygulamayı Yükle"
+        >
+          +
+        </button>
+      </>
+    )
+  }
 
   React.useEffect(() => {
     if (showUserPanel) {
@@ -273,23 +310,7 @@ export function TopNavbar() {
         {/* Sağ: Aksiyonlar */}
         <div className="flex items-center gap-1 md:gap-2 shrink-0">
           {/* PWA Yükleme Butonu */}
-          {deferredPrompt && showInstallBtn && (
-            <button
-              onClick={handleInstallApp}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all animate-pulse hover:animate-none mr-1"
-            >
-              Uygulamayı Yükle
-            </button>
-          )}
-          {deferredPrompt && showInstallBtn && (
-            <button
-              onClick={handleInstallApp}
-              className="sm:hidden flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all animate-pulse hover:animate-none"
-              title="Uygulamayı Yükle"
-            >
-              +
-            </button>
-          )}
+          {renderPwaInstallBtn()}
 
           {/* Firmalar — Click/Hover ile açılır */}
           <div
@@ -463,10 +484,18 @@ export function TopNavbar() {
                   <a
                     href="/MyWorld.apk"
                     download="MyWorld.apk"
-                    className="w-full text-left px-4 py-2.5 text-sm text-brand-dark dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-bold flex items-center gap-2"
+                    className="w-full text-left px-4 py-3 text-sm text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all font-black flex items-center gap-3 shadow-inner"
                   >
-                    <Smartphone className="w-4 h-4 text-indigo-500" /> Android APK İndir
+                    <Smartphone className="w-5 h-5" /> Android APK Yükle
                   </a>
+                  {deferredPrompt && (
+                    <button
+                      onClick={() => { handleInstallApp(); setShowUserPanel(false); }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors font-bold flex items-center gap-3"
+                    >
+                      <Plus className="w-4 h-4" /> Uygulamayı Yükle (PWA)
+                    </button>
+                  )}
                   <button
                     onClick={() => { setIsProfileOpen(true); setShowUserPanel(false); }}
                     className="w-full text-left px-4 py-2.5 text-sm text-brand-gray dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-medium flex items-center gap-2"

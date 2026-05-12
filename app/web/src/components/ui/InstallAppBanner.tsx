@@ -10,19 +10,21 @@ export function InstallAppBanner() {
   useEffect(() => {
     if (typeof window === "undefined" || typeof navigator === "undefined") return;
 
+    // Kapatıldıysa bu oturumda gösterme
     const dismissed = sessionStorage.getItem("apkBannerDismissed");
     if (dismissed === "true") {
       setIsDismissed(true);
       return;
     }
 
-    const isAndroid = /android/i.test(navigator.userAgent);
+    const ua = navigator.userAgent.toLowerCase();
+    const isAndroid = /android/.test(ua);
     
-    // Uygulama yüklüyse (PWA/Standalone) veya WebView içindeyse gizle (Native app)
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
-    const isWebView = /(wv|Version\/\d+.\d+.*Chrome\/\d+.\d+.\d+.\d+.*Mobile)/i.test(navigator.userAgent) || !!(window as any).Capacitor;
-
-    if (isAndroid && !isStandalone && !isWebView) {
+    // Uygulama yüklü mü kontrolü (PWA/Standalone)
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone === true;
+    
+    // Eğer Android ise ve PWA olarak açılmamışsa göster
+    if (isAndroid && !isStandalone) {
       setIsVisible(true);
     }
   }, []);
