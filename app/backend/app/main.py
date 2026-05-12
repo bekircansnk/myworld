@@ -1,8 +1,31 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from contextlib import asynccontextmanager
 from app.config import settings
+
+
+class BodyCachingMiddleware(BaseHTTPMiddleware):
+    """
+    POST/PUT isteklerinde request.json() body'yi consume eder.
+    Bu middleware body'yi önce okuyup cache'ler, sonra tekrar okunabilir yapar.
+    Böylece permissions.py'de request.json() okunduktan sonra
+    FastAPI hala Pydantic modeline parse edebilir.
+    """
+    async def dispatch(self, request: Request, call_next):
+        if request.method in ("POST", "PUT", "PATCH"):
+            # Body'yi oku ve cache'le
+            body = await request.body()
+            
+            # Yeni bir receive callable oluştur
+            async def receive():
+                return {"type": "http.request", "body": body, "more_body": False}
+            
+            # Request'in _receive'ini override et
+            request._receive = receive
+        
+        return await call_next(request)
 from app.routers.projects import router as projects_router
 from app.routers.tasks import router as tasks_router
 from app.routers.ai import router as ai_router
@@ -53,6 +76,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Body caching: POST/PUT isteklerinde request.json() ile body okunduğunda
+# FastAPI'nin Pydantic modeli için tekrar body okuyabilmesi sağlanır
+app.add_middleware(BodyCachingMiddleware)
 
 app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
 app.include_router(admin_router, prefix="/api/admin", tags=["Admin"])
