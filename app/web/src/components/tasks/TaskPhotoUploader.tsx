@@ -208,20 +208,43 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
   }
 
   // İndirme
-  const handleDownload = (photo: DrivePhoto) => {
-    // Doğrudan indirmeyi tetiklemek için gizli iframe yöntemi
-    const url = getPhotoDownloadUrl(photo.drive_id)
-    const iframe = document.createElement('iframe')
-    iframe.style.display = 'none'
-    iframe.src = url
-    document.body.appendChild(iframe)
-    
-    // 60 saniye sonra iframe'i temizle
-    setTimeout(() => {
-      if (document.body.contains(iframe)) {
-        document.body.removeChild(iframe)
-      }
-    }, 60000)
+  const handleDownload = async (photo: DrivePhoto) => {
+    try {
+      // 1. Google Drive LH3 altyapısından resmi doğrudan fetch ile al (CORS açık)
+      const url = getPhotoViewUrl(photo.drive_id)
+      const res = await fetch(url, { mode: 'cors', cache: 'no-cache' })
+      if (!res.ok) throw new Error('İndirme başarısız')
+      
+      const blob = await res.blob()
+      
+      // 2. Blob'u Object URL'e çevir
+      const objUrl = URL.createObjectURL(blob)
+      
+      // 3. Geçici bir <a> etiketi ile tetikle
+      const a = document.createElement('a')
+      a.href = objUrl
+      a.download = photo.name || 'fotograf.jpg'
+      document.body.appendChild(a)
+      a.click()
+      
+      // 4. Temizlik
+      setTimeout(() => {
+        document.body.removeChild(a)
+        URL.revokeObjectURL(objUrl)
+      }, 1000)
+    } catch (error) {
+      console.error('İndirme hatası:', error)
+      // Fallback: Gizli iframe yöntemi
+      const fallbackUrl = getPhotoDownloadUrl(photo.drive_id)
+      const iframe = document.createElement('iframe')
+      iframe.style.display = 'none'
+      iframe.src = fallbackUrl
+      document.body.appendChild(iframe)
+      
+      setTimeout(() => {
+        if (document.body.contains(iframe)) document.body.removeChild(iframe)
+      }, 60000)
+    }
   }
 
   const hasPhotos = photos.length > 0 || uploading.length > 0
@@ -283,7 +306,7 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
           <div className="absolute top-4 right-4 md:top-8 md:right-8 flex gap-3">
             <button
               onClick={() => handleDownload(photos[previewIndex])}
-              className="p-3 rounded-2xl bg-white/10 text-white hover:bg-white/25 transition-colors backdrop-blur-md flex items-center gap-2"
+              className="p-3 rounded-2xl bg-white/10 text-white hover:bg-white/30 active:scale-90 active:bg-indigo-500 transition-all backdrop-blur-md flex items-center gap-2 cursor-pointer shadow-lg"
               title="İndir"
             >
               <Download className="w-6 h-6" />
@@ -398,7 +421,7 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
                       <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={(e) => { e.stopPropagation(); handleDownload(photo) }}
-                          className="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+                          className="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/40 active:scale-90 active:bg-indigo-500 transition-all cursor-pointer shadow-md"
                           title="İndir"
                         >
                           <Download className="w-3.5 h-3.5" />
