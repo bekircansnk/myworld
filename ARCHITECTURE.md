@@ -1,4 +1,4 @@
-# Son Güncelleme: 2026-04-28T22:00+03:00
+# Son Güncelleme: 2026-05-12T10:30+03:00
 
 > **KRİTİK:** Bu dosya tüm sistemin TEK KAYNAĞI (Single Source of Truth) olarak tasarlanmıştır.
 > Herhangi bir AI ajanı bu projeye ilk kez girdiğinde **sadece bu dosyayı** okumalıdır.
@@ -310,6 +310,17 @@ TaskDetailPanel her zaman render edilir (global overlay — isDetailPanelOpen il
 | avatar_url      | VARCHAR       | Profil resmi yolu          |
 | settings        | JSON          | default {}                 |
 | created_at      | TIMESTAMP(tz) | Base'den gelir             |
+
+### user_company_access (Firma Bazlı Yetki)
+| Kolon       | Tip           | Not                           |
+|-------------|---------------|-------------------------------|
+| user_id     | INT FK        | users tablosu referansı       |
+| project_id  | INT FK        | projects tablosu (Firma)      |
+| can_view    | BOOL          | Görüntüleme yetkisi           |
+| can_edit    | BOOL          | Düzenleme yetkisi             |
+| can_delete  | BOOL          | Silme yetkisi                 |
+| is_admin    | BOOL          | Firma içi yönetici mi?        |
+| created_at  | TIMESTAMP(tz) |                               |
 
 ### projects
 | Kolon       | Tip           | Not                   |
@@ -667,8 +678,6 @@ npm run dev   # localhost:3000
 ## 12. BİLİNEN SORUNLAR VE TODO'LAR
 
 ### 🔴 Kritik
-- **Auth yok:** Tüm endpoint'ler MOCK_USER_ID=1 kullanıyor
-- **ESLint/TS hataları:** `next.config.ts` içinde `ignoreDuringBuilds: true` ile bypass ediliyor
 - **Chat geçmişi:** Sayfa yenilenince mesaj geçmişi kayboluyor (persistence yok)
 
 ### 🟡 Geliştirilecek
@@ -679,7 +688,11 @@ npm run dev   # localhost:3000
 - Chat mesaj geçmişi DB'ye kaydedilmeli
 
 ### 🟢 Tamamlanan
-- ✅ **SaaS Dönüşümü**: Çoklu kullanıcı desteği ve veri izolasyonu.
+- ✅ **Offline-First PWA Altyapısı**: Serwist Service Worker ile gelişmiş önbellekleme ve `idb-keyval` tabanlı çevrimdışı işlem (Offline Sync Queue) kuyruğu.
+- **ASGI Body Caching**: `app/main.py` üzerine yazılan middleware ile FastAPI 422 gövde tüketim hatası çözüldü.
+- ✅ **Resend API Entegrasyonu**: E-posta onay ve OTP süreçleri SMTP engellerine takılmaması için Resend'e taşındı.
+- ✅ **Firma Bazlı (Multi-Tenant) İzolasyon**: Bireysel rol (viewer, admin vb.) sisteminden tamamen çıkılıp `UserCompanyAccess` modeli üzerinden yetkilendirme sağlandı.
+- ✅ **SaaS Dönüşümü**: Çoklu kullanıcı desteği ve %100 veri izolasyonu (Tüm API'lerde `require_company_permission` denetimi).
 - ✅ **JWT Kimlik Doğrulama**: Kayıt ol/Giriş yap ve güvenli oturum yönetimi.
 - ✅ **Profil & Avatar**: Kullanıcı profil düzenleme ve sunucuya avatar yükleme.
 - ✅ **Takvim DB Senkronizasyonu**: Takvimin localStorage'dan PostgreSQL'e taşınması.

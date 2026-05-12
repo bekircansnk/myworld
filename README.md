@@ -23,7 +23,8 @@
 | Katman | Teknoloji |
 |--------|-----------|
 | **Frontend** | Next.js 15 (App Router) · TypeScript · Zustand · shadcn/ui · Tailwind CSS |
-| **Backend** | FastAPI · SQLAlchemy 2.0 · Python 3.14 · SQLite (`venus.db`, `myworld.db`) |
+| **Backend** | FastAPI · SQLAlchemy 2.0 · Python 3.14 · PostgreSQL (Neon Serverless) |
+| **Email & Auth**| Resend API (OTP & Doğrulama) · JWT Tabanlı Kimlik Doğrulama |
 | **AI** | Google Gemini API (Flash Lite) |
 | **Excel** | openpyxl (Çift yönlü senkronizasyon) |
 
@@ -45,7 +46,13 @@
 
 ## 📜 Versiyon & Güncelleme Geçmişi
 
-### v2.5.0 - Mobil ve Stabilizasyon Çağı (Son Güncellemeler)
+### v2.6.0 - Çevrimdışı PWA & Kurumsal Yetkilendirme
+- **Çevrimdışı Çalışma (Offline-First):** PWA Serwist entegrasyonu, IndexedDB kuyruklama sistemi ile internet koptuğunda veriyi saklama ve bağlantı geldiğinde eşitleme.
+- **Kurumsal Yetkilendirme (Firma Bazlı):** Bireysel "viewer/editor" rol sistemi tamamen kaldırılarak, izole "Firma (Proje)" tabanlı modern yetkilendirme altyapısına geçildi.
+- **E-posta Altyapısı:** SMTP sorunları aşılarak Resend API'ye geçildi.
+- **Body Caching Middleware:** FastAPI'de body tüketiminden kaynaklı 422 hatalarını kökten çözen ASGI ara katmanı eklendi.
+
+### v2.5.0 - Mobil ve Stabilizasyon Çağı
 - **Mobil Kanban Dönüşümü:** "İncelemede" durumu kaldırıldı, 3 sütunlu kaydırılabilir yapıya geçildi.
 - **Mobil Arayüz Fixleri:** Dashboard widget çakışmaları giderildi, robot simgesi sağa gizlendi.
 - **PWA & Bottom Nav:** Mobil kullanıcılar için uygulama deneyimi artırıldı.
@@ -62,8 +69,10 @@
 
 | Bileşen | Durum |
 |---------|-------|
-| SaaS Auth & İzolasyon | ✅ Yayında |
-| Mobil Uyumlu Kanban | ✅ Yayında |
+| Kurumsal (Firma) İzolasyon | ✅ Yayında |
+| Çevrimdışı PWA & IndexedDB | ✅ Yayında |
+| Resend Email Sistemi       | ✅ Yayında |
+| Mobil Uyumlu Kanban        | ✅ Yayında |
 | Dokunmatik Takvim | ✅ Yayında |
 | PWA & Mobil Navigasyon| ✅ Yayında |
 | AI Rapor Merkezi | ✅ Yayında |
