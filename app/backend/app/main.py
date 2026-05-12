@@ -65,6 +65,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         settings.frontend_url,
+        "https://pikselis-dashboard.vercel.app",
         "https://pikselai-dashboard.vercel.app",
         "http://localhost:3000",
         "https://localhost",
@@ -128,6 +129,7 @@ async def global_exception_handler(request, exc: Exception):
     origin = request.headers.get("origin", "")
     allowed_origins = [
         settings.frontend_url,
+        "https://pikselis-dashboard.vercel.app",
         "https://pikselai-dashboard.vercel.app",
         "http://localhost:3000",
         "https://localhost",
