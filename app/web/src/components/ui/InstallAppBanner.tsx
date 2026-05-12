@@ -23,8 +23,11 @@ export function InstallAppBanner() {
     // Uygulama yüklü mü kontrolü (PWA/Standalone)
     const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone === true;
     
-    // Eğer Android ise ve PWA olarak açılmamışsa göster
-    if (isAndroid && !isStandalone) {
+    // Capacitor (Native) içinden mi açılmış kontrolü
+    const isNativeCapacitor = !!(window as any).Capacitor?.isNativePlatform?.();
+
+    // Eğer Android ise, ve PWA değilse, ve Capacitor Native değilse göster
+    if (isAndroid && !isStandalone && !isNativeCapacitor) {
       setIsVisible(true);
     }
   }, []);
