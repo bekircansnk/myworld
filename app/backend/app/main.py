@@ -47,6 +47,25 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("🚀 Uygulama başlatılıyor, scheduler aktif ediliyor...")
     start_scheduler()
+    
+    # Otomatik DB migration — yeni kolonlar
+    try:
+        from sqlalchemy import text, inspect
+        from app.database import engine
+        async with engine.begin() as conn:
+            # task_photos kolonu var mı kontrol et
+            def check_column(connection):
+                insp = inspect(connection)
+                columns = [c['name'] for c in insp.get_columns('tasks')]
+                return 'task_photos' in columns
+            
+            has_column = await conn.run_sync(check_column)
+            if not has_column:
+                await conn.execute(text("ALTER TABLE tasks ADD COLUMN task_photos TEXT DEFAULT '[]'"))
+                logger.info("✅ task_photos kolonu otomatik eklendi")
+    except Exception as e:
+        logger.warning(f"DB migration kontrolü sırasında hata (kritik değil): {e}")
+    
     yield
     # Shutdown
     logger.info("🛑 Uygulama kapanıyor, scheduler durduruluyor...")

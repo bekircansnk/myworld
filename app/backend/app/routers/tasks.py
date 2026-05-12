@@ -273,6 +273,11 @@ async def update_task(
 
     for key, value in update_data.items():
         setattr(db_task, key, value)
+    
+    # JSON alanlarında değişiklik tespiti için flag_modified
+    if "task_photos" in update_data:
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(db_task, "task_photos")
         
     await db.commit()
     # Refresh via select
