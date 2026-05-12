@@ -1,4 +1,4 @@
-# 🌍 Pikseliş — PikselAI Dashboard
+# 🌍 Pikseliş — Pikseliş
 
 **Yapay Zeka Destekli Kişisel Yaşam, İş ve Fotoğraf Takip Yönetim Sistemi**
 
