@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Task } from "@/types"
 import { useTaskStore } from "@/stores/taskStore"
-import { Trash2, Calendar, MoreHorizontal, CheckSquare, Palette, Edit2 } from "lucide-react"
+import { Trash2, Calendar, MoreHorizontal, CheckSquare, Palette, Edit2, Camera } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { showContextMenu } from "@/components/ui/ContextMenu"
@@ -272,7 +272,7 @@ export function TaskCard({ task, subtaskCount = 0, doneSubtaskCount = 0, isProje
           )}
 
           {/* Bottom Row — compact metadata */}
-          {(task.due_date || hasSubtasks) && (
+          {(task.due_date || hasSubtasks || (task.task_photos && task.task_photos.length > 0)) && (
             <div className="flex justify-between items-center pt-2 mt-1 border-t border-black/[0.04] dark:border-white/[0.06]">
               <div />
               <div className="flex flex-wrap gap-1.5 text-[10px] text-gray-400 dark:text-gray-400 font-medium">
@@ -289,6 +289,13 @@ export function TaskCard({ task, subtaskCount = 0, doneSubtaskCount = 0, isProje
                   <span className="flex items-center gap-1 text-gray-400">
                     <CheckSquare className="w-2.5 h-2.5" />
                     {doneSubtaskCount}/{subtaskCount}
+                  </span>
+                )}
+
+                {task.task_photos && task.task_photos.length > 0 && (
+                  <span className="flex items-center gap-1 text-indigo-400">
+                    <Camera className="w-2.5 h-2.5" />
+                    {task.task_photos.length}
                   </span>
                 )}
               </div>

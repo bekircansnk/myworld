@@ -10,6 +10,12 @@ export interface Project {
   created_at: string;
 }
 
+export interface DrivePhoto {
+  drive_id: string;
+  name: string;
+  uploaded_at: string;
+}
+
 export interface Task {
   id: number;
   user_id: number;
@@ -26,6 +32,7 @@ export interface Task {
   ai_suggested_priority?: string;
   ai_analysis?: string;
   ai_analysis_history?: any[];
+  task_photos?: DrivePhoto[];
   sort_order: number;
   created_at: string;
   completed_at?: string;

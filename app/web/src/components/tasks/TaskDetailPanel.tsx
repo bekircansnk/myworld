@@ -6,8 +6,9 @@ import { useProjectStore } from "@/stores/projectStore"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Task } from "@/types"
+import { Task, DrivePhoto } from "@/types"
 import { api } from "@/lib/api"
+import { TaskPhotoUploader } from "./TaskPhotoUploader"
 import {
   Calendar, Sparkles, Loader2, CheckCircle2, Circle,
   AlignLeft, ListChecks, Plus, X, Clock, Pencil, Save, Trash2,
@@ -643,6 +644,28 @@ export function TaskDetailPanel() {
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* FOTOĞRAFLAR — Google Drive Entegrasyonu */}
+              <div className="p-4 md:p-7 border-b border-slate-100 dark:border-white/5">
+                <TaskPhotoUploader
+                  taskId={selectedTask.id}
+                  photos={selectedTask.task_photos || []}
+                  onPhotosChange={async (newPhotos: DrivePhoto[]) => {
+                    // Optimistic update
+                    const prevPhotos = selectedTask.task_photos || []
+                    try {
+                      await updateTask(selectedTask.id, { task_photos: newPhotos } as any)
+                      await fetchTasks()
+                      // Activity log
+                      if (newPhotos.length > prevPhotos.length) {
+                        addActivityEvent('description_edit', `Fotoğraf eklendi (${newPhotos.length} adet)`, 'indigo')
+                      } else if (newPhotos.length < prevPhotos.length) {
+                        addActivityEvent('description_edit', 'Fotoğraf silindi', 'amber')
+                      }
+                    } catch (e) { console.error('Fotoğraf güncelleme hatası:', e) }
+                  }}
+                />
               </div>
 
               {/* TÜM GÖREVLER (Alt Görevler) — Referans: "Tüm Görevler" */}

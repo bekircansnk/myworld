@@ -27,6 +27,7 @@ class TaskUpdate(BaseModel):
     project_id: Optional[int] = None
     parent_task_id: Optional[int] = None
     sort_order: Optional[int] = None
+    task_photos: Optional[List[Dict[str, Any]]] = None
 
 class TaskReorderItem(BaseModel):
     id: int
@@ -49,6 +50,7 @@ class TaskResponse(TaskBase):
     ai_suggested_priority: Optional[str] = None
     ai_analysis: Optional[str] = None
     ai_analysis_history: Optional[List[Dict[str, Any]]] = None
+    task_photos: Optional[List[Dict[str, Any]]] = None
     sort_order: int
     created_at: datetime
     completed_at: Optional[datetime] = None

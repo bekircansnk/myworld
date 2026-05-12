@@ -23,6 +23,7 @@ class Task(Base):
     sort_order = Column(Integer, default=0)
     completed_at = Column(DateTime(timezone=True), nullable=True)
     is_deleted = Column(Boolean, default=False)
+    task_photos = Column(JSON, default=list)  # Google Drive fotoğraf listesi [{drive_id, name, uploaded_at}]
 
     user = relationship("User", back_populates="tasks")
     project = relationship("Project", back_populates="tasks")
