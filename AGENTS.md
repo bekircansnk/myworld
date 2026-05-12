@@ -32,3 +32,19 @@ Bu uygulama kuralları, `/Users/bekir/.gemini/GEMINI.md` adresindeki ANA SİSTEM
 ## 🔄 Veri & Senkronizasyon
 - **Excel Entegrasyonu:** `openpyxl` ile çift yönlü, veri kaybı olmadan senkronizasyon sağlanır.
 - **Photo Tracking:** Model tamamlama, revize adetleri ve notları sağlam bir şema ile yönetilir.
+
+## 🛠️ ANDROID APK DERLEME KURALLARI (CRITICAL - İÇ İÇE MATRUŞKA HATASI ÖNLEMİ)
+Geçmişte `Pikselis.apk` dosyası `public/` klasöründe bırakıldığı için Capacitor sekronizasyonu sırasında yeni APK'nın içine eski APK'nın da dahil edilmesi (40MB+ şişme) hatası yapılmıştır. **Bir daha asla bu hata yapılmamalıdır.**
+
+Kullanıcı "APK'yı derle" veya "Android uygulamasını güncelle" dediğinde **KESİNLİKLE AŞAĞIDAKİ ADIMLAR SIRASIYLA UYGULANACAKTIR:**
+1. **ESKİ APK'YI TAŞI:** `mv public/Pikselis.apk ../../.silinecekler_cop_kutusu/` komutuyla eski APK'yı mutlaka projeden çıkar. Aksi takdirde iç içe paketlenir ve boyut katlanarak artar.
+2. **WEB BUILD:** `npm run build` komutu ile Next.js tarafını temiz bir şekilde derle.
+3. **CAPACITOR SYNC:** `npx cap sync android` komutunu çalıştır (eski APK silinmiş olduğu için sadece temiz dosyalar senkronize edilecek).
+4. **APK OLUŞTUR:** `cd android && ./gradlew assembleDebug` komutuyla yeni APK'yı derle. (Not: `build.gradle` içindeki `splits` bloğu kapatılmış veya `universalApk true` yapılmış olmalıdır).
+5. **YENİ APK'YI TAŞI:** `cp app/build/outputs/apk/debug/app-debug.apk ../public/Pikselis.apk` komutu ile yeni üretilen temiz APK'yı indirme klasörüne yerleştir.
+6. **COMMIT:** Bu işlemleri tamamladıktan sonra `git commit` atarak repoyu güncelle.
+
+## 📱 MOBİL UYUMLULUK VE TEST ZORUNLULUĞU (CRITICAL)
+- **Evrensel Kapsam:** Web tarafına yapılan her yeni özellik, geliştirme (örn: fotoğraf yükleme, sürükle-bırak, dosya indirme), görsel veya fonksiyonel yenilik **KESİNLİKLE** mobil sürümde (mobil web ve Android/Capacitor uygulaması) de eksiksiz ve hatasız çalışacak şekilde kodlanmalıdır.
+- **Hata Toleransı:** Masaüstünde çalışan ama mobilde ekranı bozan, verileri gizleyen veya React Hydration hatalarına sebep olan eksik kodlamalar KABUL EDİLEMEZ.
+- **Raporlama:** Bir görev tamamlandığında, değişikliklerin hem Web (Masaüstü) hem de Mobil (Responsive/Capacitor) platformlarda nasıl uyumlu hale getirildiği ve test edildiği kullanıcıya açıkça raporlanmalıdır.

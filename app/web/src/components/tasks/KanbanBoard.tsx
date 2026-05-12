@@ -213,7 +213,7 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
               <div
                 key={column.id}
                 id={`kanban-col-${column.id}`}
-                className={`flex flex-col transition-all duration-300 min-w-[85vw] md:min-w-0 snap-center ${isCollapsed ? 'h-auto' : 'md:h-[calc(100vh-140px)]'}`}
+                className={`flex flex-col transition-all duration-300 min-w-[85vw] md:min-w-0 snap-center ${isCollapsed ? 'h-auto' : 'h-[calc(100vh-200px)] md:h-[calc(100vh-140px)]'}`}
               >
                 {/* Column Header — minimal, flush with background */}
                 <div className="flex items-center justify-between mb-3">
