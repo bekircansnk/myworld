@@ -28,37 +28,74 @@ export function TaskPhotoUploader({ taskId, photos, onPhotosChange }: TaskPhotoU
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const dropZoneRef = React.useRef<HTMLDivElement>(null)
 
-  // Drag & Drop event handlers
-  const handleDragEnter = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(true)
-  }
+  const photosRef = React.useRef(photos)
+  React.useEffect(() => {
+    photosRef.current = photos
+  }, [photos])
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    // Sadece drop zone'dan çıkınca kapat
-    if (dropZoneRef.current && !dropZoneRef.current.contains(e.relatedTarget as Node)) {
+  // Global Drag & Drop & Paste event handlers
+  React.useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items
+      if (!items) return
+      
+      const files: File[] = []
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const file = items[i].getAsFile()
+          if (file) files.push(file)
+        }
+      }
+      
+      if (files.length > 0) {
+        e.preventDefault()
+        processFiles(files)
+      }
+    }
+
+    const handleDragEnter = (e: DragEvent) => {
+      if (e.dataTransfer?.types.includes('Files')) {
+        e.preventDefault()
+        setIsDragging(true)
+      }
+    }
+
+    const handleDragOver = (e: DragEvent) => {
+      e.preventDefault()
+    }
+
+    const handleDragLeave = (e: DragEvent) => {
+      e.preventDefault()
+      // Sadece pencereden dışarı çıkıldıysa iptal et
+      if (e.clientX === 0 || e.clientY === 0) {
+        setIsDragging(false)
+      }
+    }
+
+    const handleDrop = (e: DragEvent) => {
+      e.preventDefault()
       setIsDragging(false)
+      
+      const files = Array.from(e.dataTransfer?.files || []).filter(f => f.type.startsWith('image/'))
+      if (files.length > 0) {
+        processFiles(files)
+      }
     }
-  }
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-  }
+    window.addEventListener('paste', handlePaste)
+    window.addEventListener('dragenter', handleDragEnter)
+    window.addEventListener('dragover', handleDragOver)
+    window.addEventListener('dragleave', handleDragLeave)
+    window.addEventListener('drop', handleDrop)
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(false)
-
-    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'))
-    if (files.length > 0) {
-      processFiles(files)
+    return () => {
+      window.removeEventListener('paste', handlePaste)
+      window.removeEventListener('dragenter', handleDragEnter)
+      window.removeEventListener('dragover', handleDragOver)
+      window.removeEventListener('dragleave', handleDragLeave)
+      window.removeEventListener('drop', handleDrop)
     }
-  }
+  }, [])
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []).filter(f => f.type.startsWith('image/'))
@@ -80,6 +117,9 @@ export function TaskPhotoUploader({ taskId, photos, onPhotosChange }: TaskPhotoU
 
     setUploading(prev => [...prev, ...uploadEntries])
 
+    // State kapanımını (closure) aşmak için ref'ten o anki listeyi alıyoruz
+    let currentPhotos = [...photosRef.current]
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
       const entryId = uploadEntries[i].id
@@ -95,8 +135,9 @@ export function TaskPhotoUploader({ taskId, photos, onPhotosChange }: TaskPhotoU
 
         setUploading(prev => prev.map(u => u.id === entryId ? { ...u, status: 'done', progress: 100 } : u))
 
-        // Listeye ekle
-        onPhotosChange([...photos, drivePhoto])
+        // Listeyi güncelle ve yansıt
+        currentPhotos = [...currentPhotos, drivePhoto]
+        onPhotosChange(currentPhotos)
 
         // Tamamlanan girişi kısa süre sonra kaldır
         setTimeout(() => {
@@ -147,6 +188,17 @@ export function TaskPhotoUploader({ taskId, photos, onPhotosChange }: TaskPhotoU
         confirmText="Sil"
         onConfirm={handleDeletePhoto}
       />
+
+      {/* Global Drag Overlay */}
+      {isDragging && (
+        <div className="fixed inset-0 z-[100] bg-indigo-500/20 backdrop-blur-sm flex items-center justify-center border-[6px] border-indigo-500 border-dashed m-4 rounded-3xl animate-in fade-in duration-200 pointer-events-none">
+          <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-4 animate-bounce">
+            <ImagePlus className="w-16 h-16 text-indigo-500" />
+            <span className="text-xl font-bold text-slate-800 dark:text-white text-center">Fotoğrafı Buraya Bırakın</span>
+            <span className="text-sm text-slate-500 font-medium text-center">Göreve otomatik olarak yüklenecektir</span>
+          </div>
+        </div>
+      )}
 
       {/* Lightbox */}
       {previewUrl && (
@@ -199,13 +251,9 @@ export function TaskPhotoUploader({ taskId, photos, onPhotosChange }: TaskPhotoU
           onChange={handleFileSelect}
         />
 
-        {/* Drag & Drop Zone + Galeri */}
+        {/* Standart Yükleme Alanı (Drag over eventleri silindi, global çalışıyor) */}
         <div
           ref={dropZoneRef}
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
           className={`relative rounded-2xl border-2 border-dashed transition-all duration-300 ${
             isDragging
               ? 'border-indigo-400 bg-indigo-50/50 dark:bg-indigo-500/10 dark:border-indigo-500/50 scale-[1.01]'
@@ -214,16 +262,6 @@ export function TaskPhotoUploader({ taskId, photos, onPhotosChange }: TaskPhotoU
                 : 'border-slate-200 dark:border-white/10 bg-slate-50/30 dark:bg-white/5'
           }`}
         >
-          {/* Drag Overlay */}
-          {isDragging && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-indigo-500/10 dark:bg-indigo-500/20 backdrop-blur-sm">
-              <div className="flex flex-col items-center gap-2 text-indigo-500 dark:text-indigo-400">
-                <ImagePlus className="w-10 h-10 animate-bounce" />
-                <span className="text-sm font-bold">Fotoğrafları buraya bırakın</span>
-              </div>
-            </div>
-          )}
-
           {/* Boş durum */}
           {!hasPhotos && !isDragging && (
             <button
@@ -235,10 +273,10 @@ export function TaskPhotoUploader({ taskId, photos, onPhotosChange }: TaskPhotoU
               </div>
               <div className="text-center">
                 <p className="text-sm font-semibold text-slate-600 dark:text-white/70">
-                  Fotoğraf eklemek için tıklayın veya sürükleyin
+                  Fotoğraf eklemek için tıklayın, yapıştırın veya sürükleyin
                 </p>
                 <p className="text-[11px] text-slate-400 dark:text-white/30 mt-1">
-                  PNG, JPG, WEBP • Otomatik 1MB altına sıkıştırılır
+                  (Cmd+V) PNG, JPG, WEBP • Otomatik 1MB altına sıkıştırılır
                 </p>
               </div>
             </button>
