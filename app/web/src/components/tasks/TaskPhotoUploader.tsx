@@ -5,6 +5,7 @@ import { DrivePhoto } from "@/types"
 import { uploadPhotoToDrive, deletePhotoFromDrive, getPhotoThumbnailUrl, getPhotoViewUrl, getPhotoDownloadUrl } from "@/services/drivePhotoService"
 import { ImagePlus, X, Loader2, Trash2, Download, ZoomIn, Camera, ChevronLeft, ChevronRight } from "lucide-react"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
+import { useToast } from "@/components/ui/toast"
 
 interface TaskPhotoUploaderProps {
   taskId: number
@@ -28,6 +29,7 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
   const [deleteTarget, setDeleteTarget] = React.useState<DrivePhoto | null>(null)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const dropZoneRef = React.useRef<HTMLDivElement>(null)
+  const toast = useToast()
 
   const photosRef = React.useRef(photos)
   React.useEffect(() => {
@@ -209,32 +211,63 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
 
   // İndirme
   const handleDownload = async (photo: DrivePhoto) => {
-    try {
-      // 1. Google Drive LH3 altyapısından resmi doğrudan fetch ile al (CORS açık)
-      const url = getPhotoViewUrl(photo.drive_id)
-      const res = await fetch(url, { mode: 'cors', cache: 'no-cache' })
-      if (!res.ok) throw new Error('İndirme başarısız')
-      
-      const blob = await res.blob()
-      
-      // 2. Blob'u Object URL'e çevir
+    toast.show("İndiriliyor...", "loading", 3000)
+    const name = photo.name || 'fotograf.jpg'
+    
+    // Yardımcı fonskiyon: Blob'u indir
+    const triggerDownloadBlob = (blob: Blob) => {
       const objUrl = URL.createObjectURL(blob)
-      
-      // 3. Geçici bir <a> etiketi ile tetikle
       const a = document.createElement('a')
       a.href = objUrl
-      a.download = photo.name || 'fotograf.jpg'
+      a.download = name
       document.body.appendChild(a)
       a.click()
-      
-      // 4. Temizlik
       setTimeout(() => {
         document.body.removeChild(a)
         URL.revokeObjectURL(objUrl)
       }, 1000)
-    } catch (error) {
-      console.error('İndirme hatası:', error)
-      // Fallback: Gizli iframe yöntemi
+    }
+
+    try {
+      // =========================================================================
+      // KATMAN 1: LH3 Doğrudan Fetch (CORS Açık, En Hızlı)
+      // =========================================================================
+      const lh3Url = `https://lh3.googleusercontent.com/d/${photo.drive_id}=s0`
+      const res1 = await fetch(lh3Url, { mode: 'cors', cache: 'no-cache' })
+      if (res1.ok) {
+        const blob = await res1.blob()
+        if (blob.size > 1000) {
+          triggerDownloadBlob(blob)
+          toast.success("İndirme tamamlandı")
+          return
+        }
+      }
+    } catch (e) {
+      console.warn("Katman 1 (LH3) hatası:", e)
+    }
+
+    try {
+      // =========================================================================
+      // KATMAN 2: Drive UserContent Fetch (Redirect Takipli)
+      // =========================================================================
+      const userContentUrl = `https://drive.usercontent.google.com/download?id=${photo.drive_id}&export=download`
+      const res2 = await fetch(userContentUrl, { mode: 'cors', redirect: 'follow' })
+      if (res2.ok) {
+        const blob = await res2.blob()
+        if (blob.size > 1000) {
+          triggerDownloadBlob(blob)
+          toast.success("İndirme tamamlandı")
+          return
+        }
+      }
+    } catch (e) {
+      console.warn("Katman 2 (UserContent) hatası:", e)
+    }
+
+    try {
+      // =========================================================================
+      // KATMAN 3: Gizli Iframe (Popup Blocker Atlatma)
+      // =========================================================================
       const fallbackUrl = getPhotoDownloadUrl(photo.drive_id)
       const iframe = document.createElement('iframe')
       iframe.style.display = 'none'
@@ -244,6 +277,22 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
       setTimeout(() => {
         if (document.body.contains(iframe)) document.body.removeChild(iframe)
       }, 60000)
+      
+      toast.success("İndirme başlatıldı")
+      return
+    } catch (error) {
+      console.warn("Katman 3 (Iframe) hatası:", error)
+    }
+
+    // =========================================================================
+    // KATMAN 4: Yeni Sekme (Son Çare)
+    // =========================================================================
+    try {
+      const fallbackUrl2 = `https://drive.google.com/file/d/${photo.drive_id}/view`
+      window.open(fallbackUrl2, '_blank')
+      toast.success("Dosya yeni sekmede açıldı")
+    } catch (e) {
+      toast.error("İndirme başarısız oldu")
     }
   }
 
