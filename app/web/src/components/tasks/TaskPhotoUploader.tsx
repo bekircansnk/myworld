@@ -8,6 +8,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 
 interface TaskPhotoUploaderProps {
   taskId: number
+  taskTitle: string
   photos: DrivePhoto[]
   onPhotosChange: (photos: DrivePhoto[]) => void
 }
@@ -20,7 +21,7 @@ interface UploadingFile {
   errorMessage?: string
 }
 
-export function TaskPhotoUploader({ taskId, photos, onPhotosChange }: TaskPhotoUploaderProps) {
+export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }: TaskPhotoUploaderProps) {
   const [isDragging, setIsDragging] = React.useState(false)
   const [uploading, setUploading] = React.useState<UploadingFile[]>([])
   const [previewIndex, setPreviewIndex] = React.useState<number | null>(null)
@@ -121,21 +122,35 @@ export function TaskPhotoUploader({ taskId, photos, onPhotosChange }: TaskPhotoU
 
   // Dosyaları sırayla yükle
   const processFiles = async (files: File[]) => {
-    const uploadEntries: UploadingFile[] = files.map(f => ({
-      id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
-      name: f.name,
-      progress: 0,
-      status: 'compressing' as const,
-    }))
+    // Türkçe karakter vb. düzeltme için sanitize fonksiyonu
+    const sanitizeTitle = (title: string) => title.replace(/[/\\?%*:|"<>]/g, '-').trim()
+    const safeTitle = sanitizeTitle(taskTitle)
 
+    // Dosyaları yeni isimleriyle (Görev Adı-1.jpg vb.) oluştur
+    const renamedFilesAndEntries = files.map((f, i) => {
+      const ext = f.name.split('.').pop() || 'jpg'
+      const newIndex = photosRef.current.length + i + 1
+      const newName = `${safeTitle}-${newIndex}.${ext}`
+      const renamedFile = new File([f], newName, { type: f.type })
+
+      const entry: UploadingFile = {
+        id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
+        name: newName,
+        progress: 0,
+        status: 'compressing' as const,
+      }
+      return { file: renamedFile, entry }
+    })
+
+    const uploadEntries = renamedFilesAndEntries.map(x => x.entry)
     setUploading(prev => [...prev, ...uploadEntries])
 
     // State kapanımını (closure) aşmak için ref'ten o anki listeyi alıyoruz
     let currentPhotos = [...photosRef.current]
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i]
-      const entryId = uploadEntries[i].id
+    for (let i = 0; i < renamedFilesAndEntries.length; i++) {
+      const { file, entry } = renamedFilesAndEntries[i]
+      const entryId = entry.id
 
       try {
         // Sıkıştırma aşaması
@@ -144,6 +159,7 @@ export function TaskPhotoUploader({ taskId, photos, onPhotosChange }: TaskPhotoU
         // Yükleme aşaması
         setUploading(prev => prev.map(u => u.id === entryId ? { ...u, status: 'uploading', progress: 50 } : u))
 
+        // Yeni isimlendirilmiş dosyayı yükle
         const drivePhoto = await uploadPhotoToDrive(file)
 
         setUploading(prev => prev.map(u => u.id === entryId ? { ...u, status: 'done', progress: 100 } : u))

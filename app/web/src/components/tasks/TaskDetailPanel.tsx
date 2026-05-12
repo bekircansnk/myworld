@@ -650,6 +650,7 @@ export function TaskDetailPanel() {
               <div className="p-4 md:p-7 border-b border-slate-100 dark:border-white/5">
                 <TaskPhotoUploader
                   taskId={selectedTask.id}
+                  taskTitle={selectedTask.title}
                   photos={selectedTask.task_photos || []}
                   onPhotosChange={async (newPhotos: DrivePhoto[]) => {
                     // Optimistic update
