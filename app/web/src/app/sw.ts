@@ -51,7 +51,7 @@ const serwist = new Serwist({
     // "boş ekran" / "veri görünmüyor" hatası oluşur.
     // ============================================================================
     {
-      matcher: /\/api\/.*/,
+      matcher: ({ url }) => url.pathname.startsWith('/api/') || url.href.includes('/api/'),
       handler: new NetworkOnly(),
     },
     // Cross-origin istekler (harici API'ler) — ağ öncelikli ama önbellek YOK
