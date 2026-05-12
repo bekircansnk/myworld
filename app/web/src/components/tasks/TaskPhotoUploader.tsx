@@ -2,8 +2,8 @@
 
 import * as React from "react"
 import { DrivePhoto } from "@/types"
-import { uploadPhotoToDrive, deletePhotoFromDrive, getPhotoThumbnailUrl, getPhotoViewUrl } from "@/services/drivePhotoService"
-import { ImagePlus, X, Loader2, Trash2, Download, ZoomIn, Camera } from "lucide-react"
+import { uploadPhotoToDrive, deletePhotoFromDrive, getPhotoThumbnailUrl, getPhotoViewUrl, getPhotoDownloadUrl } from "@/services/drivePhotoService"
+import { ImagePlus, X, Loader2, Trash2, Download, ZoomIn, Camera, ChevronLeft, ChevronRight } from "lucide-react"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 
 interface TaskPhotoUploaderProps {
@@ -23,7 +23,7 @@ interface UploadingFile {
 export function TaskPhotoUploader({ taskId, photos, onPhotosChange }: TaskPhotoUploaderProps) {
   const [isDragging, setIsDragging] = React.useState(false)
   const [uploading, setUploading] = React.useState<UploadingFile[]>([])
-  const [previewUrl, setPreviewUrl] = React.useState<string | null>(null)
+  const [previewIndex, setPreviewIndex] = React.useState<number | null>(null)
   const [deleteTarget, setDeleteTarget] = React.useState<DrivePhoto | null>(null)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const dropZoneRef = React.useRef<HTMLDivElement>(null)
@@ -82,11 +82,23 @@ export function TaskPhotoUploader({ taskId, photos, onPhotosChange }: TaskPhotoU
       }
     }
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (previewIndex === null) return
+      if (e.key === 'ArrowRight') {
+        setPreviewIndex(prev => (prev !== null && prev < photos.length - 1 ? prev + 1 : prev))
+      } else if (e.key === 'ArrowLeft') {
+        setPreviewIndex(prev => (prev !== null && prev > 0 ? prev - 1 : prev))
+      } else if (e.key === 'Escape') {
+        setPreviewIndex(null)
+      }
+    }
+
     window.addEventListener('paste', handlePaste)
     window.addEventListener('dragenter', handleDragEnter)
     window.addEventListener('dragover', handleDragOver)
     window.addEventListener('dragleave', handleDragLeave)
     window.addEventListener('drop', handleDrop)
+    window.addEventListener('keydown', handleKeyDown)
 
     return () => {
       window.removeEventListener('paste', handlePaste)
@@ -94,8 +106,9 @@ export function TaskPhotoUploader({ taskId, photos, onPhotosChange }: TaskPhotoU
       window.removeEventListener('dragover', handleDragOver)
       window.removeEventListener('dragleave', handleDragLeave)
       window.removeEventListener('drop', handleDrop)
+      window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [])
+  }, [previewIndex, photos.length])
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []).filter(f => f.type.startsWith('image/'))
@@ -172,8 +185,14 @@ export function TaskPhotoUploader({ taskId, photos, onPhotosChange }: TaskPhotoU
 
   // İndirme
   const handleDownload = (photo: DrivePhoto) => {
-    const url = getPhotoViewUrl(photo.drive_id)
-    window.open(url, '_blank')
+    const url = getPhotoDownloadUrl(photo.drive_id)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = photo.name || 'photo.jpg'
+    a.target = '_blank'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
   }
 
   const hasPhotos = photos.length > 0 || uploading.length > 0
@@ -201,22 +220,54 @@ export function TaskPhotoUploader({ taskId, photos, onPhotosChange }: TaskPhotoU
       )}
 
       {/* Lightbox */}
-      {previewUrl && (
-        <div
-          className="fixed inset-0 z-[70] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-200"
-          onClick={() => setPreviewUrl(null)}
-        >
-          <img
-            src={previewUrl}
-            alt="Önizleme"
-            className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl ring-1 ring-white/20 animate-in zoom-in-95 duration-300"
-          />
+      {previewIndex !== null && photos[previewIndex] && (
+        <div className="fixed inset-0 z-[70] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-200">
+          {/* Sol Ok */}
           <button
-            onClick={() => setPreviewUrl(null)}
-            className="absolute top-4 right-4 p-3 rounded-2xl bg-white/10 text-white hover:bg-white/25 transition-colors backdrop-blur-md"
+            onClick={(e) => { e.stopPropagation(); setPreviewIndex(prev => (prev !== null && prev > 0 ? prev - 1 : prev)) }}
+            className={`absolute left-4 md:left-8 p-3 md:p-4 rounded-full bg-white/10 text-white hover:bg-white/25 transition-colors backdrop-blur-md ${previewIndex === 0 ? 'opacity-30 cursor-not-allowed' : ''}`}
+            disabled={previewIndex === 0}
           >
-            <X className="w-6 h-6" />
+            <ChevronLeft className="w-6 h-6 md:w-8 md:h-8" />
           </button>
+
+          <img
+            src={getPhotoViewUrl(photos[previewIndex].drive_id)}
+            alt={photos[previewIndex].name}
+            className="max-w-[85vw] max-h-[85vh] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-300"
+          />
+
+          {/* Sağ Ok */}
+          <button
+            onClick={(e) => { e.stopPropagation(); setPreviewIndex(prev => (prev !== null && prev < photos.length - 1 ? prev + 1 : prev)) }}
+            className={`absolute right-4 md:right-8 p-3 md:p-4 rounded-full bg-white/10 text-white hover:bg-white/25 transition-colors backdrop-blur-md ${previewIndex === photos.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}`}
+            disabled={previewIndex === photos.length - 1}
+          >
+            <ChevronRight className="w-6 h-6 md:w-8 md:h-8" />
+          </button>
+
+          {/* Sağ Üst Menü (Kapat / İndir) */}
+          <div className="absolute top-4 right-4 md:top-8 md:right-8 flex gap-3">
+            <button
+              onClick={() => handleDownload(photos[previewIndex])}
+              className="p-3 rounded-2xl bg-white/10 text-white hover:bg-white/25 transition-colors backdrop-blur-md flex items-center gap-2"
+              title="İndir"
+            >
+              <Download className="w-6 h-6" />
+            </button>
+            <button
+              onClick={() => setPreviewIndex(null)}
+              className="p-3 rounded-2xl bg-white/10 text-white hover:bg-white/25 transition-colors backdrop-blur-md"
+              title="Kapat"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          
+          {/* Alt Bilgi (Sayaç) */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-black/50 text-white text-sm font-medium backdrop-blur-md">
+            {previewIndex + 1} / {photos.length}
+          </div>
         </div>
       )}
 
@@ -287,11 +338,11 @@ export function TaskPhotoUploader({ taskId, photos, onPhotosChange }: TaskPhotoU
             <div className="p-3">
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
                 {/* Mevcut fotoğraflar */}
-                {photos.map((photo) => (
+                {photos.map((photo, index) => (
                   <div
                     key={photo.drive_id}
                     className="group relative aspect-square rounded-xl overflow-hidden bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
-                    onClick={() => setPreviewUrl(getPhotoViewUrl(photo.drive_id))}
+                    onClick={() => setPreviewIndex(index)}
                   >
                     <img
                       src={getPhotoThumbnailUrl(photo.drive_id, 400)}

@@ -207,3 +207,10 @@ export function getPhotoViewUrl(driveId: string): string {
   // s0 orijinal boyutu getirir
   return `https://lh3.googleusercontent.com/d/${driveId}=s0`;
 }
+
+/**
+ * Drive zorunlu indirme URL'si
+ */
+export function getPhotoDownloadUrl(driveId: string): string {
+  return `https://drive.google.com/uc?export=download&id=${driveId}`;
+}
