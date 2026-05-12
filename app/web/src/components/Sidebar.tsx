@@ -87,7 +87,7 @@ export function Sidebar() {
                 className={`flex items-center transition-all duration-300 btn-3d rounded-xl ${isExpanded ? 'w-full justify-start h-12 gap-3 px-4 text-sm' : 'w-12 h-12 justify-center mx-auto'} ${viewMode === 'dashboard' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm inner-shadow-box' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-slate-800/50'}`}
                 onClick={() => setViewMode('dashboard')}
             >
-                <LayoutDashboard className={`w-5 h-5 shrink-0 ${viewMode === 'dashboard' ? 'animate-pulse' : ''}`} />
+                <LayoutDashboard className={`w-5 h-5 shrink-0 ${viewMode === 'dashboard' ? 'scale-110' : ''} transition-transform`} />
                 {isExpanded && <span>Dashboard</span>}
             </Button>
             <Button 
@@ -96,7 +96,7 @@ export function Sidebar() {
                 className={`flex items-center transition-all duration-300 btn-3d rounded-xl ${isExpanded ? 'w-full justify-start h-12 gap-3 px-4 text-sm' : 'w-12 h-12 justify-center mx-auto'} ${viewMode === 'all_tasks' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm inner-shadow-box' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-slate-800/50'}`}
                 onClick={() => setViewMode('all_tasks')}
             >
-                <ListTodo className={`w-5 h-5 shrink-0 ${viewMode === 'all_tasks' ? 'animate-bounce' : ''}`} style={{ animationDuration: '2s' }} />
+                <ListTodo className={`w-5 h-5 shrink-0 ${viewMode === 'all_tasks' ? 'scale-110' : ''} transition-transform`} />
                 {isExpanded && <span>Tüm İşlerim</span>}
             </Button>
             <Button 
@@ -142,7 +142,6 @@ export function Sidebar() {
                     className={`flex items-center truncate ${isExpanded ? 'flex-1 gap-3 py-2 px-2' : 'justify-center w-full h-8'}`}
                   >
                      <div className="relative w-3 h-3 flex items-center justify-center flex-shrink-0">
-                       <div className="absolute inset-0 rounded-full animate-ping opacity-20" style={{ backgroundColor: proj.color, animationDuration: '3s' }}></div>
                        <div className="w-2.5 h-2.5 rounded-full shadow-sm z-10" style={{ backgroundColor: proj.color }}></div>
                      </div>
                      {isExpanded && <span className={`truncate font-medium transition-colors ${selectedProjectId === proj.id ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400'}`}>{proj.name}</span>}

@@ -45,11 +45,11 @@ export default function RootLayout({
   return (
     <html lang="tr" suppressHydrationWarning>
       <body className={`${inter.className} antialiased h-[100dvh] w-full bg-transparent text-foreground flex overflow-hidden transition-colors duration-500`} suppressHydrationWarning>
-        {/* Animated Background Patterns */}
+        {/* Arka Plan — Statik gradient (animate-pulse + blur kaldırıldı, CPU/GPU tasarrufu) */}
         <div className="fixed inset-0 -z-50 pointer-events-none" suppressHydrationWarning>
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 via-white to-sky-50/50 dark:from-[#080B14] dark:via-[#0F1423] dark:to-[#0A0D18] transition-colors duration-700" suppressHydrationWarning />
-          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-400/10 dark:bg-indigo-600/10 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-screen opacity-70 animate-pulse" style={{ animationDuration: '8s' }} suppressHydrationWarning />
-          <div className="absolute bottom-[-200px] left-[-200px] w-[600px] h-[600px] bg-purple-400/10 dark:bg-purple-600/10 blur-[100px] rounded-full mix-blend-multiply dark:mix-blend-screen opacity-60 animate-pulse" style={{ animationDuration: '10s' }} suppressHydrationWarning />
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-indigo-400/8 dark:bg-indigo-600/8 blur-[80px] rounded-full" suppressHydrationWarning />
+          <div className="absolute bottom-[-200px] left-[-200px] w-[400px] h-[400px] bg-purple-400/8 dark:bg-purple-600/8 blur-[60px] rounded-full" suppressHydrationWarning />
         </div>
 
         <ThemeProvider

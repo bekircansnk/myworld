@@ -55,15 +55,18 @@ export default function DashboardPage() {
       // Eğer kullanıcı henüz hiçbir firmaya sahip değilse, yetki gelmesini bekle (polling)
       // (WebSocket kapalıysa veya hata verdiyse yedek plan)
       const authPoll = setInterval(() => {
-        if (projects.length === 0) {
+        // Sayfa arka plandaysa gereksiz istek atma (CPU/enerji tasarrufu)
+        if (document.hidden) return
+        const currentProjects = useProjectStore.getState().projects
+        if (currentProjects.length === 0) {
            useAuthStore.getState().checkAuth();
            fetchProjects();
         }
-      }, 15000);
+      }, 30000); // 30 saniyede bir (eskiden 15 saniyeydi)
       
       return () => clearInterval(authPoll);
     }
-  }, [isAuthenticated, projects.length])
+  }, [isAuthenticated]) // projects.length bağımlılığı kaldırıldı — sonsuz döngü önlendi
 
   // Firma veya viewMode değiştiğinde tüm modül verilerini yeniden çek
   React.useEffect(() => {
@@ -71,6 +74,8 @@ export default function DashboardPage() {
 
     // ViewMode'a göre gerekli veriyi çek
     const refreshData = () => {
+      // Sayfa arka plandaysa gereksiz istek atma (CPU/enerji tasarrufu)
+      if (document.hidden) return
       if (viewMode === 'all_tasks' || viewMode === 'project' || viewMode === 'dashboard') {
         fetchTasks(selectedProjectId)
       }
@@ -87,8 +92,8 @@ export default function DashboardPage() {
     fetchEvents(selectedProjectId)
     fetchNotes(selectedProjectId)
 
-    // 15 saniyede bir sadece aktif modülü yenile
-    const pollInterval = setInterval(refreshData, 15000)
+    // 60 saniyede bir sadece aktif modülü yenile (eskiden 15 saniyeydi — gereksiz yük)
+    const pollInterval = setInterval(refreshData, 60000)
 
     return () => clearInterval(pollInterval)
   }, [isAuthenticated, selectedProjectId, viewMode])
