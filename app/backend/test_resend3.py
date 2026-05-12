@@ -8,7 +8,7 @@ async def test():
         "Content-Type": "application/json"
     }
     payload = {
-        "from": f"My World <info@pikselai.com>",
+        "from": f"Pikseliş <info@pikselai.com>",
         "to": ["sagnakbekircan@gmail.com"],
         "subject": "Resend Verified Domain Test",
         "html": "<p>E-posta testiniz basarili!</p>"

@@ -64,7 +64,7 @@ export function Sidebar() {
           </div>
           {isExpanded && (
             <span className="font-extrabold text-2xl tracking-tight text-gradient drop-shadow-sm whitespace-nowrap">
-              My World
+              Pikseliş
             </span>
           )}
         </div>

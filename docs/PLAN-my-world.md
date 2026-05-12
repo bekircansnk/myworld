@@ -1,6 +1,6 @@
-# 🌍 My World — Kapsamlı Proje Geliştirme Planı
+# 🌍 Pikseliş — Kapsamlı Proje Geliştirme Planı
 
-**Proje Adı:** My World — Kişisel Yapay Zeka Destekli Yaşam ve İş Yönetim Sistemi
+**Proje Adı:** Pikseliş — Yapay Zeka Destekli İş ve Maaş Yönetim Sistemi
 **Tarih:** 11 Mart 2026
 **Durum:** 📋 PLANLAMA (Geliştirmeye henüz başlanmadı)
 
@@ -8,7 +8,7 @@
 
 ## 📌 PROJE ÖZETİ
 
-**My World**, Bekircan Sağanak'ın günlük yaşamını, iş süreçlerini, motivasyonunu ve kişisel gelişimini yönetmek için tamamen kişiselleştirilmiş, yapay zeka destekli kapsamlı bir yaşam orkestratörü uygulamasıdır.
+**Pikseliş**, Bekircan Sağanak'ın günlük yaşamını, iş süreçlerini, motivasyonunu ve kişisel gelişimini yönetmek için tamamen kişiselleştirilmiş, yapay zeka destekli kapsamlı bir yaşam orkestratörü uygulamasıdır.
 
 **Temel Felsefe:** Sadece bir "yapılacaklar listesi" değil — kullanıcıyı tanıyan, davranışlarını analiz eden, onun adına düşünen, planlayan, motive eden ve takip eden akıllı bir yaşam arkadaşı.
 
@@ -81,7 +81,7 @@
 ├── README.md                        # Proje ana açıklaması
 │
 ├── docs/                            # Aktif dokümanlar
-│   ├── PLAN-my-world.md            # Bu plan dokümanı
+│   ├── PLAN-pikselis.md            # Bu plan dokümanı
 │   └── 07-nihai-kisisel-analiz-raporu.md  # AI kişilik referansı
 │
 ├── arsiv/                           # Tamamlanmış faz dokümanları
@@ -412,7 +412,7 @@ weekly_reports (id, user_id, week_start, week_end, tasks_completed,
 ```json
 {
   "personality": {
-    "name": "My World AI",
+    "name": "Pikseliş AI",
     "tone": "samimi, destekleyici, yapıcı",
     "language": "tr",
     "rules": [
@@ -667,8 +667,8 @@ services:
     ports: ["5432:5432"]
     volumes: [postgres_data:/var/lib/postgresql/data]
     environment:
-      POSTGRES_DB: myworld
-      POSTGRES_USER: myworld
+      POSTGRES_DB: pikselis
+      POSTGRES_USER: pikselis
       POSTGRES_PASSWORD: ${DB_PASSWORD}
 
   redis:
@@ -698,12 +698,12 @@ services:
 | **Veritabanı** | Supabase / Neon | Ücretsiz (başlangıç) | Yönetilen PostgreSQL |
 | **Redis** | Upstash | Ücretsiz (başlangıç) | Serverless Redis |
 | **Telegram Bot** | Mevcut n8n sunucusu | $0 | Zaten çalışan altyapı |
-| **Domain** | Cloudflare | ~$10/yıl | myworld.app veya benzeri |
+| **Domain** | Cloudflare | ~$10/yıl | pikselis.app veya benzeri |
 
 ### 12.2 — Deployment Adımları
 | Adım | Detay |
 |------|-------|
-| 1. Domain alma | myworld.app veya benzeri |
+| 1. Domain alma | pikselis.app veya benzeri |
 | 2. Veritabanı kurulumu | Supabase/Neon'da PostgreSQL instance |
 | 3. Redis kurulumu | Upstash'te Redis instance |
 | 4. Backend deploy | Railway/Render'a Dockerfile ile deploy |
@@ -736,7 +736,7 @@ services:
 | Durağanlık algılama | Son 6 saatte aktivite yoksa → Nazik dürtme |
 
 **🔑 Başarı Kriterleri (Faz 12):**
-- [ ] Uygulama internet üzerinden erişilebilir (https://myworld.app veya benzeri)
+- [ ] Uygulama internet üzerinden erişilebilir (https://pikselis.app veya benzeri)
 - [ ] Tüm servisler stabil çalışıyor
 - [ ] Telegram botu 7/24 aktif
 - [ ] Günlük otomatik yedekleme çalışıyor

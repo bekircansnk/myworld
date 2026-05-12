@@ -54,7 +54,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title=settings.project_name,
-    description="Kişisel Yapay Zeka Destekli Yaşam ve İş Yönetim Sistemi API",
+    description="Yapay Zeka Destekli İş ve Maaş Yönetim Sistemi API",
     version="1.0.0",
     lifespan=lifespan
 )

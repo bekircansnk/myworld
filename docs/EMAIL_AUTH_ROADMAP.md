@@ -1,4 +1,4 @@
-# 📧 My World — E-Posta Tabanlı Kimlik Doğrulama Yol Haritası
+# 📧 Pikseliş — E-Posta Tabanlı Kimlik Doğrulama Yol Haritası
 
 ## 🔍 Mevcut Durum Analizi
 
@@ -83,7 +83,7 @@ flowchart TB
 1. **Google Hesap Güvenliği**'ne git: https://myaccount.google.com/security
 2. **2 Adımlı Doğrulama**'yı aç (zaten açıksa geç)
 3. https://myaccount.google.com/apppasswords adresine git
-4. "Uygulama adı" olarak `MyWorld` yaz
+4. "Uygulama adı" olarak `Pikselis` yaz
 5. **"Oluştur"** butonuna bas
 6. Google sana **16 haneli bir şifre** verecek (örn: `abcd efgh ijkl mnop`)
 7. Bu şifreyi **güvenli bir yere not et**
@@ -98,7 +98,7 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=senin-email@gmail.com
 SMTP_PASSWORD=abcdefghijklmnop
-SMTP_FROM_NAME=My World
+SMTP_FROM_NAME=Pikseliş
 SMTP_FROM_EMAIL=senin-email@gmail.com
 ```
 
@@ -170,7 +170,7 @@ class EmailVerification(Base):
 +smtp_port: int = 587
 +smtp_user: str = ""
 +smtp_password: str = ""
-+smtp_from_name: str = "My World"
++smtp_from_name: str = "Pikseliş"
 +smtp_from_email: str = ""
 ```
 
@@ -286,7 +286,7 @@ alembic upgrade head
 | Google Workspace | 2000 e-posta/gün |
 | Alıcı başına | 500 alıcı/gün |
 
-> **My World gibi küçük-orta ölçekli bir panel için 500/gün fazlasıyla yeterli.**
+> **Pikseliş gibi küçük-orta ölçekli bir panel için 500/gün fazlasıyla yeterli.**
 
 ---
 
@@ -370,7 +370,7 @@ alembic upgrade head
 
 ### 1. Hesap Doğrulama E-postası
 ```
-Konu: My World — E-posta Adresinizi Doğrulayın
+Konu: Pikseliş — E-posta Adresinizi Doğrulayın
 İçerik: "Merhaba [Ad], hesabınızı doğrulamak için aşağıdaki linke tıklayın"
 Link: https://siteadresi.com/verify?token=xxx
 Geçerlilik: 24 saat
@@ -378,7 +378,7 @@ Geçerlilik: 24 saat
 
 ### 2. Şifre Sıfırlama E-postası
 ```
-Konu: My World — Şifre Sıfırlama Talebi
+Konu: Pikseliş — Şifre Sıfırlama Talebi
 İçerik: "Şifrenizi sıfırlamak için aşağıdaki linke tıklayın"
 Link: https://siteadresi.com/reset-password?token=xxx
 Geçerlilik: 1 saat
@@ -386,7 +386,7 @@ Geçerlilik: 1 saat
 
 ### 3. Yeni Kullanıcı Davet E-postası (Admin Panel)
 ```
-Konu: My World — Hesabınız Oluşturuldu
+Konu: Pikseliş — Hesabınız Oluşturuldu
 İçerik: "Admin tarafından hesabınız oluşturuldu. Giriş bilgileriniz..."
 Link: https://siteadresi.com/login
 ```

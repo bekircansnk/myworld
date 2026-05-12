@@ -2,7 +2,7 @@
 
 > **Tarih:** 14 Mart 2026  
 > **Durum:** Uygulama Canlı (Vercel + Render + Neon)  
-> **Amaç:** Yayına alınmış My World uygulamasını güvenli, temiz ve SaaS-uyumlu hale getirmek.
+> **Amaç:** Yayına alınmış Pikseliş uygulamasını güvenli, temiz ve SaaS-uyumlu hale getirmek.
 
 ---
 

@@ -33,7 +33,7 @@ export function LoginOverlay() {
 
   // Kaydedilmiş giriş bilgilerini yükle
   useEffect(() => {
-    const savedUser = localStorage.getItem('myworld_saved_user');
+    const savedUser = localStorage.getItem('pikselis_saved_user');
     if (savedUser) setIdentifier(savedUser);
   }, []);
 
@@ -79,7 +79,7 @@ export function LoginOverlay() {
            email: identifier,
            code: otpCode
         });
-        localStorage.setItem('myworld_saved_user', identifier);
+        localStorage.setItem('pikselis_saved_user', identifier);
         login(response.data.access_token, response.data.user);
       }
       else if (activeTab === 'login') {
@@ -91,7 +91,7 @@ export function LoginOverlay() {
         const response = await api.post('/api/auth/login', formData, {
            headers: { 'Content-Type': 'multipart/form-data' }
         });
-        localStorage.setItem('myworld_saved_user', identifier);
+        localStorage.setItem('pikselis_saved_user', identifier);
         login(response.data.access_token, response.data.user);
       } else {
         // Kayıt
@@ -117,7 +117,7 @@ export function LoginOverlay() {
         const loginResponse = await api.post('/api/auth/login', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
-        localStorage.setItem('myworld_saved_user', username);
+        localStorage.setItem('pikselis_saved_user', username);
         login(loginResponse.data.access_token, loginResponse.data.user);
         
         if (email) {
@@ -152,7 +152,7 @@ export function LoginOverlay() {
             
             {/* Header Section */}
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-extrabold bg-gradient-to-br from-indigo-500 to-violet-500 dark:from-indigo-400 dark:to-fuchsia-400 bg-clip-text text-transparent mb-2">My World</h1>
+              <h1 className="text-3xl font-extrabold bg-gradient-to-br from-indigo-500 to-violet-500 dark:from-indigo-400 dark:to-fuchsia-400 bg-clip-text text-transparent mb-2">Pikseliş</h1>
               <p className="text-sm text-slate-500 dark:text-slate-400">
                 {viewState === 'forgot' ? 'Şifrenizi sıfırlamak için e-postanızı girin.' 
                   : viewState === 'otp' ? 'E-postanıza gelen 6 haneli kodu girin.'

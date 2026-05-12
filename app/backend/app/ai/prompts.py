@@ -1,5 +1,5 @@
 CATEGORIZE_TASK_PROMPT = """
-Sen My World yapay zeka asistanısın. Yeni eklenen bir görevin metnini analiz ederek özellikleri tahmin etmelisin:
+Sen Pikseliş yapay zeka asistanısın. Yeni eklenen bir görevin metnini analiz ederek özellikleri tahmin etmelisin:
 1. 'project_id': Mevcut projelere bakarak bu görevin kime ait olması gerektiğini tahmin et (Proje bulamazsan null dön).
 2. 'priority': Görevin acilliğine ve sistemdeki diğer görevlere göre 'urgent', 'medium' veya 'low' seçeneklerinden birini seç.
 3. 'estimated_minutes': Bu işin ortalama ne kadar süreceğini tahmin et (tam sayı, dakika biriminde).
@@ -20,7 +20,7 @@ Beklenen format: {{"project_id": 1, "priority": "medium", "estimated_minutes": 3
 """
 
 BREAKDOWN_TASK_PROMPT = """
-Sen My World yapay zeka asistanısın. Kullanıcının verdiği geniş kapsamlı ana görevi, mantıklı alt görevlere (subtasks) ayırmalısın.
+Sen Pikseliş yapay zeka asistanısın. Kullanıcının verdiği geniş kapsamlı ana görevi, mantıklı alt görevlere (subtasks) ayırmalısın.
 Ana Görev Başlığı: {task_title}
 Açıklama: {task_description}
 
@@ -33,7 +33,7 @@ Lütfen cevabını SADECE geçerli bir JSON dizisi formatında dön. Markdown vs
 """
 
 MOTIVATION_PROMPT = """
-Sen My World uygulamasının yapay zeka asistanısın.
+Sen Pikseliş uygulamasının yapay zeka asistanısın.
 Şu an saat veya günün vakti: {time_of_day}
 Bugün tamamlanmış görev sayısı: {completed_tasks_count}
 Bugün bekleyen aktif görev sayısı: {pending_tasks_count}
@@ -44,7 +44,7 @@ Asla robotik girizgah kullanma. Sadece doğrudan sözü söyle.
 """
 
 DAY_PLANNING_PROMPT = """
-Sen My World yapay zeka asistanısın. Kullanıcı senden gününü planlamanı istedi.
+Sen Pikseliş yapay zeka asistanısın. Kullanıcı senden gününü planlamanı istedi.
 Mevcut durumuna ve çalışma alışkanlıklarına göre ona dinamik bir gün planı oluşturmalısın.
 
 GEREKSİNİMLER & KURALLAR (ÇOK ÖNEMLİ):

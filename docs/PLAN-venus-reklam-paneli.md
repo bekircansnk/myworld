@@ -1,9 +1,9 @@
 # PLAN: Venüs Reklam Operasyon Paneli
-## My World Dashboard'a Güvenli Entegrasyon
+## Pikseliş Dashboard'a Güvenli Entegrasyon
 
 > **Tarih:** 2026-03-15
 > **Durum:** PLAN AŞAMASI — Kod yazılmayacak, sadece yol haritası
-> **Hedef:** Mevcut My World projesini ASLA bozmadan, dashboard'un içine yeni sayfalar olarak Venüs Reklam Paneli'ni entegre etmek
+> **Hedef:** Mevcut Pikseliş projesini ASLA bozmadan, dashboard'un içine yeni sayfalar olarak Venüs Reklam Paneli'ni entegre etmek
 
 ---
 
@@ -13,7 +13,7 @@
 
 ### Entegrasyon Stratejisi (SIFIR RİSK)
 
-Mevcut My World projesi şu yapıda çalışıyor:
+Mevcut Pikseliş projesi şu yapıda çalışıyor:
 
 ```
 projectStore.ts → ViewMode = 'dashboard' | 'all_tasks' | 'project' | 'notes' | 'calendar' | 'ai_chat'
@@ -431,7 +431,7 @@ Venüs Reklam'a geçildiğinde render edilen ana container. Kendi iç navigasyon
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│ [My World Üst NavBar — mevcut, değişmez]                │
+│ [Pikseliş Üst NavBar — mevcut, değişmez]                │
 ├────────┬─────────────────────────────────────────────────┤
 │        │  [Venüs Üst Başlık + Tarih Filtresi]           │
 │  SOL   │─────────────────────────────────────────────────│
@@ -550,7 +550,7 @@ Venüs Reklam'a geçildiğinde render edilen ana container. Kendi iç navigasyon
 ## 🚀 FAZLI GELİŞTİRME PLANI
 
 ### Phase 1 — Temel Altyapı & Genel Bakış (Gün 1-2)
-> **Hedef:** Venüs panelinin iskeletini kurup, My World'e güvenle bağlamak
+> **Hedef:** Venüs panelinin iskeletini kurup, Pikseliş'e güvenle bağlamak
 
 **Yapılacaklar:**
 1. `ViewMode` tipine `'venus_ads'` eklenmesi
@@ -663,7 +663,7 @@ GA4:             #FF6D01 (GA4 rengi)
 ```
 
 ### UI İlkeleri
-- Mevcut My World tasarım dilini takip et (glassmorphism, yumuşak gölgeler, yuvarlatılmış köşeler)
+- Mevcut Pikseliş tasarım dilini takip et (glassmorphism, yumuşak gölgeler, yuvarlatılmış köşeler)
 - shadcn/ui bileşenlerini kullan
 - Tailwind CSS ile stil
 - Lucide ikonları
@@ -687,7 +687,7 @@ GA4:             #FF6D01 (GA4 rengi)
 ## ✅ DOĞRULAMA PLANI
 
 ### Phase 1 Sonrası Kontrol
-- [ ] My World dashboard'ı hâlâ çalışıyor mu? (görevler, notlar, takvim)
+- [ ] Pikseliş dashboard'ı hâlâ çalışıyor mu? (görevler, notlar, takvim)
 - [ ] Venüs Reklam menüsüne tıklayınca yeni ekran açılıyor mu?
 - [ ] İç navigasyon (sol menü) çalışıyor mu?
 - [ ] KPI kartları veritabanından veri çekiyor mu?

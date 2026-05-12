@@ -25,7 +25,7 @@ async def run_seed():
         user = result.scalars().first()
         
         if not user:
-            user = User(email="ozel@myworld.app", name="Bekircan Sağanak")
+            user = User(email="ozel@pikselis.app", name="Bekircan Sağanak")
             session.add(user)
             await session.commit()
             await session.refresh(user)

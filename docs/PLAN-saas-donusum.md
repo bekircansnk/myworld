@@ -1,7 +1,7 @@
-# 🚀 PLAN: My World SaaS Dönüşümü
+# 🚀 PLAN: Pikseliş SaaS Dönüşümü
 
 **Tarih:** 13 Mart 2026  
-**Amaç:** Mevcut tek kullanıcılı "My World" uygulamasını, çok kullanıcılı bir SaaS uygulamasına dönüştürmek.  
+**Amaç:** Mevcut tek kullanıcılı "Pikseliş" uygulamasını, çok kullanıcılı bir SaaS uygulamasına dönüştürmek.  
 **Hedef Kitle:** Kendi çevrenizdeki insanlar (sınırlı sayıda kullanıcı).
 
 ---
@@ -301,7 +301,7 @@ Bu yapı sayesinde, MOCK_USER_ID yerine `current_user.id` kullanıldığında ve
 Mevcut takvim etkinlikleri `localStorage`'da persist ediliyor (`calendarStore`). Bu SaaS'ta sorun yaratır çünkü farklı kullanıcılar aynı tarayıcıda farklı veriler görmeli.
 
 **Çözüm:**
-- CalendarStore'un persist key'ini `myworld-calendar-{userId}` olarak değiştir
+- CalendarStore'un persist key'ini `pikselis-calendar-{userId}` olarak değiştir
 - Login/logout sırasında store'u temizle/yükle
 
 ### 5.3 Chat Geçmişi

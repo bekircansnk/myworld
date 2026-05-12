@@ -1,4 +1,4 @@
-# 🌍 My World — PikselAI Dashboard
+# 🌍 Pikseliş — PikselAI Dashboard
 
 **Yapay Zeka Destekli Kişisel Yaşam, İş ve Fotoğraf Takip Yönetim Sistemi**
 
@@ -79,4 +79,4 @@
 | Photo Tracking | ✅ Yayında |
 
 ---
-© 2026 My World Project.
+© 2026 Pikseliş Project.

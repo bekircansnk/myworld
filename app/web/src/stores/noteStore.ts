@@ -90,7 +90,7 @@ export const useNoteStore = create<NoteStore>()(
       reset: () => set({ notes: [], selectedNote: null, isDetailPanelOpen: false })
     }),
     {
-      name: 'myworld-notes',
+      name: 'pikselis-notes',
       storage: createJSONStorage(() => idbStorage),
       partialize: (state) => ({
         notes: state.notes,

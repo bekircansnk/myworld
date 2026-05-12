@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "🌍 My World - Geliştirme Ortamı Başlatılıyor..."
+echo "🌍 Pikseliş - Geliştirme Ortamı Başlatılıyor..."
 
 cd "$(dirname "$0")/.."
 PROJECT_ROOT=$PWD

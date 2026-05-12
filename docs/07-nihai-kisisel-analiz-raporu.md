@@ -11,7 +11,7 @@
 
 Bu doküman, Bekircan Sağanak'ın kendini en iyi şekilde tanıması ve geliştirmesi için hazırlanmış **nihai kişisel analiz raporudur.** 3 farklı yapay zeka aracından (Gemini, Grok, OpenAI) alınan toplamda 6 bağımsız raporun karşılaştırmalı sentezi, Bekircan'ın kendi soru-cevapları ve ön profil raporunun birleştirilmesi ile oluşturulmuştur.
 
-Bu rapor aynı zamanda, geliştirilecek olan **"My World" uygulamasının yapay zeka motorunun Bekircan'ı tanıma kılavuzu** olarak da kullanılacaktır.
+Bu rapor aynı zamanda, geliştirilecek olan **"Pikseliş" uygulamasının yapay zeka motorunun Bekircan'ı tanıma kılavuzu** olarak da kullanılacaktır.
 
 ---
 
@@ -396,7 +396,7 @@ Tüm raporların ortak önerdiği adımlar:
 - [ ] Haftada 5 gün tutarlı çalışma (günde ortalama 5-6 saat).
 - [ ] Profesyonel ADHD değerlendirmesi tamamlanmış.
 - [ ] Sosyal medyada ilk görünürlük adımları atılmış.
-- [ ] "My World" uygulamasının MVP'si çalışır durumda.
+- [ ] "Pikseliş" uygulamasının MVP'si çalışır durumda.
 - [ ] Uyku düzeni kararlı (23:30-07:30 bandı).
 - [ ] Haftada 2-3 gün fiziksel aktivite (havuz veya fitness).
 
@@ -431,7 +431,7 @@ Bekircan'ın kendi ifadeleri ve tüm raporların önerileri birleştirilerek olu
 
 # BÖLÜM 11: UYGULAMA İÇİN YAPAY ZEKA KİŞİLİK REHBERİ
 
-Bu bölüm, "My World" uygulamasının yapay zeka asistanının Bekircan ile nasıl iletişim kurması gerektiğini tanımlar.
+Bu bölüm, "Pikseliş" uygulamasının yapay zeka asistanının Bekircan ile nasıl iletişim kurması gerektiğini tanımlar.
 
 ### Ton ve Üslup
 

@@ -320,5 +320,5 @@ Doğru Çalışan     : 0 dosya  (% 0)
 1. **Önce Faz 1 + Faz 2'yi birlikte uygula** — Bu iki faz ayrılamaz, biri olmadan diğerinin etkisi görülmez.
 2. **`ad_accounts.py`** dosyasındaki prefix `/venus/accounts` ile `main.py`'deki `/api/venus/ad-accounts` uyumsuzluğunu düzelt — ya dahili prefix'i kaldır ya da `main.py`'deki prefix'i `/api/venus/accounts` yap.
 3. Tüm değişiklikler sonrası **`git push`** yapılmalı.
-4. Render backend deploy edilince `https://myworld-xxx.onrender.com/docs` endpointinden swagger UI üzerinden endpoint'lerin doğru URL'lerle listelendiğini teyit et.
+4. Render backend deploy edilince `https://pikselis-xxx.onrender.com/docs` endpointinden swagger UI üzerinden endpoint'lerin doğru URL'lerle listelendiğini teyit et.
 5. Her router dosyasında `from sqlalchemy.orm import Session` → `from sqlalchemy.ext.asyncio import AsyncSession` dönüşümü yapılmalı.

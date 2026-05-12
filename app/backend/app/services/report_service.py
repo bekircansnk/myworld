@@ -55,7 +55,7 @@ async def generate_daily_report(db: AsyncSession, user_id: int, target_date: dat
     ai_summary = "İyi bir gündü, yarın daha da harika olacak!"
     try:
         if today_completed or today_added:
-             ai_summary = generate_chat_response([{"role": "user", "parts": prompt}], "Sen My World kullanıcısına günlük performansını özetleyen asistanısın.")
+             ai_summary = generate_chat_response([{"role": "user", "parts": prompt}], "Sen Pikseliş kullanıcısına günlük performansını özetleyen asistanısın.")
     except Exception as e:
         print("AI Review Error:", e)
 

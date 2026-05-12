@@ -40,7 +40,7 @@ export default function DashboardPage() {
     
     // Sabah Karşılama Kontrolü
     const todayStr = new Date().toDateString()
-    const lastGreet = localStorage.getItem("myworld_last_greet")
+    const lastGreet = localStorage.getItem("pikselis_last_greet")
     if (lastGreet !== todayStr) {
       setShowMorning(true)
     }
@@ -94,7 +94,7 @@ export default function DashboardPage() {
   }, [isAuthenticated, selectedProjectId, viewMode])
 
   const handleMorningDismiss = () => {
-    localStorage.setItem("myworld_last_greet", new Date().toDateString())
+    localStorage.setItem("pikselis_last_greet", new Date().toDateString())
     setShowMorning(false)
   }
 

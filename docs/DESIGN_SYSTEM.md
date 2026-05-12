@@ -1,4 +1,4 @@
-# My World — Tasarım Sistemi (Design System)
+# Pikseliş — Tasarım Sistemi (Design System)
 
 > **Bu dosya, uygulamanın standart renk paletini, kart stillerini ve tasarım kurallarını tanımlar.**
 > Yeni bir ekran, sayfa veya widget geliştirirken bu dosyaya referans verin.

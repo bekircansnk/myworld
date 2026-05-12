@@ -2,7 +2,7 @@
 // İnternet yokken yapılan API isteklerini kaydeder, internet gelince sırayla gönderir
 import { get, set } from 'idb-keyval';
 
-const QUEUE_KEY = 'myworld-sync-queue';
+const QUEUE_KEY = 'pikselis-sync-queue';
 const MAX_RETRIES = 5;
 
 export interface QueuedAction {

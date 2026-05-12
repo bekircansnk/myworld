@@ -211,7 +211,7 @@ export const useAuthStore = create<AuthState>()(
       }
     }),
     {
-      name: 'myworld-auth',
+      name: 'pikselis-auth',
       storage: createJSONStorage(() => idbStorage),
       partialize: (state) => ({
         token: state.token,

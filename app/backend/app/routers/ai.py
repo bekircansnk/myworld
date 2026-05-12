@@ -27,7 +27,7 @@ from app.models.chat_message import ChatMessage
 from app.services.location_service import local_to_utc, get_user_timezone, get_current_time_for_user
 from sqlalchemy import update
 
-logger = logging.getLogger("myworld.ai")
+logger = logging.getLogger("pikselis.ai")
 
 router = APIRouter()
 

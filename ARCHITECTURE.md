@@ -16,7 +16,7 @@
 
 | Bilgi              | Değer                                                     |
 |---------------------|-----------------------------------------------------------|
-| **Proje Adı**       | My World — Kişisel AI Destekli Yaşam ve İş Yönetim Sistemi |
+| **Proje Adı**       | Pikseliş — Kişisel AI Destekli Yaşam ve İş Yönetim Sistemi |
 | **Sahibi**          | Çoklu Kullanıcı (SaaS) — Herkesin verisi izole.            |
 | **Proje Kökü**      | `/Users/bekir/Uygulamalarım/2-My-World/`                   |
 | **Durum**           | SaaS Integrated (Local) — Auth & İzolasyon Tamamlandı      |
@@ -32,7 +32,7 @@
 | Framework     | **FastAPI**              | Async, Python 3.14          |
 | ORM           | **SQLAlchemy 2.0**       | AsyncSession, DeclarativeBase |
 | DB Driver     | **asyncpg**              | PostgreSQL async driver     |
-| Veritabanı    | **PostgreSQL**           | Port 5432, DB: `myworld`    |
+| Veritabanı    | **PostgreSQL**           | Port 5432, DB: `pikselis`    |
 | Yapay Zeka    | **Google Gemini API**    | `google-genai` SDK          |
 | Doğrulama     | **Pydantic v2**          | BaseModel, ConfigDict       |
 | Ayarlar       | **pydantic-settings**    | .env otomatik yükleme       |
@@ -232,7 +232,7 @@ Sağ tarafta: **Bildirim paneli** (yaklaşan görevlerden otomatik oluşur), **D
 ```
 page.tsx yüklendiğinde:
   → fetchProjects() + fetchTasks() + WebSocket.connect()
-  → Sabah karşılama kontrolü (localStorage: myworld_last_greet)
+  → Sabah karşılama kontrolü (localStorage: pikselis_last_greet)
 
 viewMode State'e göre render:
   dashboard  → DashboardWidgets (overflow-hidden, full-height grid)
@@ -637,9 +637,9 @@ interface Note { id, user_id, project_id?, content, title?, ai_category?, ai_tag
 ```env
 ENVIRONMENT=development
 FRONTEND_URL=http://localhost:3000
-DB_USER=myworld
-DB_PASSWORD=myworld_secret
-DB_NAME=myworld
+DB_USER=pikselis
+DB_PASSWORD=pikselis_secret
+DB_NAME=pikselis
 DB_HOST=localhost
 DB_PORT=5432
 DATABASE_URL=postgresql+asyncpg://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}

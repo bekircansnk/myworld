@@ -1,6 +1,6 @@
 # PLAN: YapayZeka Destekli Gelişmiş Rapor Merkezi
 
-> **Proje:** My World – Venus Ads Raporlama Sistemi
+> **Proje:** Pikseliş – Venus Ads Raporlama Sistemi
 > **Tarih:** 15 Mart 2026
 > **Durum:** PLANLAMA (Kod yazılmayacak – Onay bekleniyor)
 
@@ -616,7 +616,7 @@ AI'ın ürettiği her JSON alanı, dashboard'daki karşılık gelen bileşene ot
 
 ### 2.5 Tasarım Prensipleri
 
-- **Genel tasarım bütünlüğüne uyum:** My World'ün mevcut dark/light mode yapısıyla uyumlu
+- **Genel tasarım bütünlüğüne uyum:** Pikseliş'ün mevcut dark/light mode yapısıyla uyumlu
 - **Renk paleti:** Mevcut `brand-dark`, `brand-gray` + yeşil (pozitif), kırmızı (negatif), sarı (uyarı)
 - **Kart yapısı:** Mevcut `rounded-2xl shadow-sm border` stiliyle uyumlu
 - **Responsive:** Desktop-first ama mobilde de kullanılabilir akıcı grid

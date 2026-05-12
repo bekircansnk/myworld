@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.bekirsagank.myworld',
-  appName: 'My World',
+  appId: 'com.pikselai.pikselis',
+  appName: 'Pikseliş',
   webDir: 'out'
 };
 

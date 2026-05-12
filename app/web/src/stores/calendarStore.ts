@@ -164,7 +164,7 @@ export const useCalendarStore = create<CalendarState>()(
       })
     }),
     {
-      name: 'myworld-calendar',
+      name: 'pikselis-calendar',
       storage: createJSONStorage(() => idbStorage),
       partialize: (state) => ({
         events: state.events,

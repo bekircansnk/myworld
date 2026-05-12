@@ -58,7 +58,7 @@ def _base_template(content: str) -> str:
 
             <!-- Başlık -->
             <div style="background:#1a1a1a;padding:18px 24px;text-align:center;">
-                <span style="color:#f59e0b;font-size:17px;font-weight:800;letter-spacing:-0.3px;">My World</span>
+                <span style="color:#f59e0b;font-size:17px;font-weight:800;letter-spacing:-0.3px;">Pikseliş</span>
             </div>
 
             <!-- İçerik -->
@@ -69,7 +69,7 @@ def _base_template(content: str) -> str:
             <!-- Footer -->
             <div style="padding:12px 24px;border-top:1px solid #f0ede1;background:#faf9f5;">
                 <p style="margin:0;color:#9ca3af;font-size:11px;text-align:center;line-height:1.5;">
-                    My World tarafından otomatik gönderilmiştir &mdash; lütfen yanıtlamayınız. &copy; {datetime.now().year}
+                    Pikseliş tarafından otomatik gönderilmiştir &mdash; lütfen yanıtlamayınız. &copy; {datetime.now().year}
                 </p>
             </div>
 
@@ -97,7 +97,7 @@ async def send_verification_email(to: str, name: str, token: str) -> bool:
         Buton çalışmıyorsa: <a href="{verify_url}" style="color:#f59e0b;">{verify_url}</a>
     </p>
     """
-    return await send_email(to, "My World — E-posta Doğrulama", _base_template(content))
+    return await send_email(to, "Pikseliş — E-posta Doğrulama", _base_template(content))
 
 
 async def send_password_reset_email(to: str, name: str, token: str) -> bool:
@@ -118,7 +118,7 @@ async def send_password_reset_email(to: str, name: str, token: str) -> bool:
         <p style="margin:0;color:#92400e;font-size:12px;line-height:1.5;">Bu talebi siz yapmadıysanız bu e-postayı görmezden gelebilirsiniz.</p>
     </div>
     """
-    return await send_email(to, "My World — Şifre Sıfırlama", _base_template(content))
+    return await send_email(to, "Pikseliş — Şifre Sıfırlama", _base_template(content))
 
 
 async def send_welcome_email(to: str, name: str, username: str, temp_password: Optional[str] = None) -> bool:
@@ -140,7 +140,7 @@ async def send_welcome_email(to: str, name: str, username: str, temp_password: O
 
     content = f"""
     <p style="margin:0 0 4px;color:#1a1a1a;font-size:16px;font-weight:700;">Hoş Geldiniz, {name}!</p>
-    <p style="margin:0 0 14px;color:#6b7280;font-size:14px;line-height:1.6;">My World hesabınız oluşturuldu. Kişisel yönetim sistemine hemen erişebilirsiniz.</p>
+    <p style="margin:0 0 14px;color:#6b7280;font-size:14px;line-height:1.6;">Pikseliş hesabınız oluşturuldu. Kişisel yönetim sistemine hemen erişebilirsiniz.</p>
 
     {password_info}
 
@@ -150,7 +150,7 @@ async def send_welcome_email(to: str, name: str, username: str, temp_password: O
         </a>
     </div>
     """
-    return await send_email(to, "My World — Hesabınız Hazır", _base_template(content))
+    return await send_email(to, "Pikseliş — Hesabınız Hazır", _base_template(content))
 
 
 def generate_numeric_otp(length: int = 6) -> str:
@@ -175,4 +175,4 @@ async def send_login_otp_email(to: str, name: str, otp_code: str) -> bool:
         Bu kod <strong style="color:#1a1a1a;">5 dakika</strong> geçerlidir. Kimseyle paylaşmayın.
     </p>
     """
-    return await send_email(to, "My World — Giriş Kodunuz", _base_template(content))
+    return await send_email(to, "Pikseliş — Giriş Kodunuz", _base_template(content))

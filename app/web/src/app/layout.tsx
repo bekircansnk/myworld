@@ -17,13 +17,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "My World",
-  description: "Kişisel Yapay Zeka Destekli Yaşam ve İş Yönetim Sistemi",
+  title: "Pikseliş",
+  description: "Yapay Zeka Destekli İş ve Maaş Yönetim Sistemi",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "My World",
+    title: "Pikseliş",
   },
   icons: {
     apple: "/icons/icon-192x192.png",

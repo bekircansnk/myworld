@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# My World - Veritabanı Geri Yükleme (Restore) Scripti
+# Pikseliş - Veritabanı Geri Yükleme (Restore) Scripti
 # Bu script yereldeki bir .sql yedeğini Neon PostgreSQL veritabanına geri yükler.
 
 # Scriptin bulunduğu dizini al

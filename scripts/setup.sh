@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🌍 My World - Kurulum Başlatılıyor..."
+echo "🌍 Pikseliş - Kurulum Başlatılıyor..."
 
 cd "$(dirname "$0")/.."
 

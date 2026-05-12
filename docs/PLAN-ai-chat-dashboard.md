@@ -6,7 +6,7 @@
 
 ## 📋 Özet
 
-Bu plan, mevcut My World uygulamasına tam ekran bir **AI Chat Dashboard** ekranı ekler. Kullanıcı:
+Bu plan, mevcut Pikseliş uygulamasına tam ekran bir **AI Chat Dashboard** ekranı ekler. Kullanıcı:
 - **Sol panelde** AI ile sohbet eder (görev planlama, takvim, not defteri)
 - **Sağ panelde** tüm sohbet geçmişini kalıcı olarak görür (asla silinmez)
 - **Üst merkez kategori switcher** ile sohbetleri filtreler: Görev Planlama, Takvim Planlama, Not Defteri, Tüm Sohbetler

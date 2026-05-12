@@ -48,7 +48,7 @@ function VerifyEmailContent() {
       <div className="w-full max-w-md bg-[#1e293b] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
         {/* Başlık */}
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-center">
-          <h1 className="text-2xl font-bold text-white">🌍 My World</h1>
+          <h1 className="text-2xl font-bold text-white">🌍 Pikseliş</h1>
           <p className="text-indigo-200 text-sm mt-1">E-posta Doğrulama</p>
         </div>
 

@@ -285,7 +285,7 @@ export function TopNavbar() {
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-xs shadow-md">
             MW
           </div>
-          <span className="text-sm font-bold text-brand-dark dark:text-white">My World</span>
+          <span className="text-sm font-bold text-brand-dark dark:text-white">Pikseliş</span>
         </div>
         <nav className="hidden md:flex items-center gap-1 overflow-visible">
           {navItems.map(item => {
@@ -482,8 +482,8 @@ export function TopNavbar() {
                 </div>
                 <div className="py-1">
                   <a
-                    href="/MyWorld.apk"
-                    download="MyWorld.apk"
+                    href="/Pikselis.apk"
+                    download="Pikselis.apk"
                     className="w-full text-left px-4 py-3 text-sm text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all font-black flex items-center gap-3 shadow-inner"
                   >
                     <Smartphone className="w-5 h-5" /> Android APK Yükle

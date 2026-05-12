@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# My World - Veritabanı Yedekleme Scripti (Python-JSON Versiyonu)
+# Pikseliş - Veritabanı Yedekleme Scripti (Python-JSON Versiyonu)
 # Bu script pg_dump bağımlılığı olmadan verileri JSON olarak yedekler.
 
 # Scriptin bulunduğu dizini al

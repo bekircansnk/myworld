@@ -1,4 +1,4 @@
-# My World — Proje Bazlı AI Konfigürasyonu
+# Pikseliş — Proje Bazlı AI Konfigürasyonu
 
 > **BU DOSYA PROJE BAZLI KURALLAR İÇERİR.**
 > Merkezi kurallar `/Users/bekir/.gemini/GEMINI.md` dosyasındadır.

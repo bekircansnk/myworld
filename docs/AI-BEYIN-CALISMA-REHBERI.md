@@ -1,4 +1,4 @@
-# 🧠 AI BEYİN ÇALIŞMA REHBERİ — My World Yapay Zeka Sistemi
+# 🧠 AI BEYİN ÇALIŞMA REHBERİ — Pikseliş Yapay Zeka Sistemi
 
 **Son Güncelleme:** 12 Mart 2026
 **Versiyon:** 1.0
@@ -8,7 +8,7 @@
 
 ## 📖 BU DOKÜMAN NEDİR?
 
-Bu doküman, My World uygulamasının **yapay zeka beyin sisteminin** nasıl çalıştığını, nasıl yönlendirildiğini ve nasıl geliştirilmesi gerektiğini kapsamlı bir şekilde tanımlar. AI modeline, geliştiricilere ve Bekircan'a özel hazırlanmış kalıcı bir rehber belgesidir.
+Bu doküman, Pikseliş uygulamasının **yapay zeka beyin sisteminin** nasıl çalıştığını, nasıl yönlendirildiğini ve nasıl geliştirilmesi gerektiğini kapsamlı bir şekilde tanımlar. AI modeline, geliştiricilere ve Bekircan'a özel hazırlanmış kalıcı bir rehber belgesidir.
 
 ### Hedef Kitle
 | Kim | Ne için okuyacak |
@@ -127,7 +127,7 @@ AI'ın kişiliği **üç kaynaktan** beslenir:
 | System Prompt | `personality.py` | PLAN formatı, aksiyon kuralları, proaktif davranışlar |
 
 **AI'ın temel kimliği:**
-- **Adı:** My World AI
+- **Adı:** Pikseliş AI
 - **Rolü:** Bekircan'ın dijital kurucu ortağı (sohbet botu DEĞİL)
 - **Dili:** Türkçe, samimi, kısa, aksiyon odaklı
 - **Yasak:** Robotik konuşma, "Nasıl yardımcı olabilirim?" gibi ifadeler
@@ -650,4 +650,4 @@ Motivasyon = (Yenilik + Yapı + Değer Görme) - (Belirsizlik + Monotonluk + İz
 
 ---
 
-*Bu doküman, My World AI beyin sisteminin yaşayan belgesidir. Her geliştirme fazı sonrası güncellenecektir.*
+*Bu doküman, Pikseliş AI beyin sisteminin yaşayan belgesidir. Her geliştirme fazı sonrası güncellenecektir.*

@@ -1,7 +1,7 @@
 {
-  "name": "My World — Yaşam & İş Yönetim Sistemi",
-  "short_name": "My World",
-  "description": "Kişisel Yapay Zeka Destekli Yaşam ve İş Yönetim Sistemi",
+  "name": "Pikseliş — İş & Maaş Yönetim Sistemi",
+  "short_name": "Pikseliş",
+  "description": "Yapay Zeka Destekli İş ve Maaş Yönetim Sistemi",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f4f1e6",
