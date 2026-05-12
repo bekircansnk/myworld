@@ -84,6 +84,10 @@ export const isAdmin = (user: User | null): boolean => {
   return user?.role === 'super_admin' || user?.role === 'admin';
 };
 
+export const isSuperAdmin = (user: User | null): boolean => {
+  return user?.role === 'super_admin';
+};
+
 interface AuthState {
   user: User | null;
   token: string | null;
