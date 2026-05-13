@@ -410,64 +410,67 @@ export function TaskDetailPanel() {
     const encodedText = encodeURIComponent(text);
     setIsShareMenuOpen(false);
     
-    // Masaüstü ve Mobil Tarayıcılar (Browser)
-    // Asenkron işlemler pop-up engelleyiciye takılır. 
-    // Bu yüzden TIKLANDIĞI AN WhatsApp sekmesini açıyoruz.
-    let waWindow: Window | null = null;
+    // MASAÜSTÜ / MOBİL TARAYICI POP-UP BLOCKER ENGELİNİ AŞMA:
+    // Herhangi bir asenkron await (fetch vb.) yapmadan doğrudan TIKLAMA handler'ı içinde sekme açıyoruz.
     if (!isNative) {
       if (isMobileBrowser) {
-        waWindow = window.open(`whatsapp://send?text=${encodedText}`, '_self');
+        window.location.href = `whatsapp://send?text=${encodedText}`;
       } else {
-        waWindow = window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+        window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
       }
     }
 
     const filesToShare: string[] = []; 
-
+    
+    // Fotoğrafları arka planda indir (Web'de beklemiyoruz, Native'de ShareSheet öncesi beklemek zorundayız)
     if (selectedTask?.task_photos && selectedTask.task_photos.length > 0) {
-      toast.show("Fotoğraflar indiriliyor, lütfen bekleyin...", "loading", 4000);
-      
-      for (const photo of selectedTask.task_photos) {
-        try {
-          const lh3Url = `https://lh3.googleusercontent.com/d/${photo.drive_id}=s0`;
-          
-          if (isNative) {
-             const response = await fetch(lh3Url, { mode: 'cors' });
-             const blob = await response.blob();
-             const pureBase64 = await new Promise<string>((resolve) => {
-                 const reader = new FileReader();
-                 reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
-                 reader.readAsDataURL(blob);
-             });
-             
-             const ext = photo.name?.split('.').pop() || 'jpg';
-             const fileName = `share_${Date.now()}_${photo.drive_id}.${ext}`;
-             
-             const { Filesystem, Directory } = await import('@capacitor/filesystem');
-             const writeResult = await Filesystem.writeFile({
-                 path: fileName,
-                 data: pureBase64,
-                 directory: Directory.Cache
-             });
-             filesToShare.push(writeResult.uri);
-          } else {
-             fetch(lh3Url, { mode: 'cors', cache: 'no-cache' })
-                .then(res => res.blob())
-                .then(blob => {
-                   if(blob.size > 1000) {
-                      const objUrl = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = objUrl;
-                      a.download = photo.name || 'foto.jpg';
-                      document.body.appendChild(a);
-                      a.click();
-                      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(objUrl); }, 1000);
-                   }
-                }).catch(e => console.warn(e));
+      if (isNative) {
+        const loadingToastId = toast.show("Fotoğraflar hazırlanıyor, lütfen bekleyin...", "loading", 4000);
+        for (const photo of selectedTask.task_photos) {
+          try {
+            const lh3Url = `https://lh3.googleusercontent.com/d/${photo.drive_id}=s0`;
+            const response = await fetch(lh3Url, { mode: 'cors' });
+            const blob = await response.blob();
+            const pureBase64 = await new Promise<string>((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+                reader.readAsDataURL(blob);
+            });
+            
+            const ext = photo.name?.split('.').pop() || 'jpg';
+            const fileName = `share_${Date.now()}_${photo.drive_id}.${ext}`;
+            
+            const { Filesystem, Directory } = await import('@capacitor/filesystem');
+            const writeResult = await Filesystem.writeFile({
+                path: fileName,
+                data: pureBase64,
+                directory: Directory.Cache
+            });
+            filesToShare.push(writeResult.uri);
+          } catch (error) {
+             console.warn("Fotoğraf işleme hatası", error);
           }
-        } catch (error) {
-           console.warn("Fotoğraf işleme hatası", error);
         }
+        toast.dismiss(loadingToastId);
+      } else {
+        // WEB/MASAÜSTÜ: Arka planda indirme tetikle (Kullanıcıyı ve ana akışı asla bekletme!)
+        toast.show("Fotoğraflar bilgisayarınıza indiriliyor...", "info", 3000);
+        selectedTask.task_photos.forEach(photo => {
+          const lh3Url = `https://lh3.googleusercontent.com/d/${photo.drive_id}=s0`;
+          fetch(lh3Url, { mode: 'cors', cache: 'no-cache' })
+            .then(res => res.blob())
+            .then(blob => {
+               if(blob.size > 1000) {
+                  const objUrl = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = objUrl;
+                  a.download = photo.name || 'foto.jpg';
+                  document.body.appendChild(a);
+                  a.click();
+                  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(objUrl); }, 1000);
+               }
+            }).catch(e => console.warn("Arka plan indirme hatası:", e));
+        });
       }
     }
 
@@ -486,9 +489,6 @@ export function TaskDetailPanel() {
          window.open(`whatsapp://send?text=${encodedText}`, '_system');
       }
     } else {
-      if (selectedTask?.task_photos && selectedTask.task_photos.length > 0) {
-         toast.show("Metin WhatsApp'a aktarıldı, fotoğraflar cihazınıza/bilgisayarınıza indirildi.", "success", 5000);
-      }
       addActivityEvent('status_change', 'WhatsApp paylaşımı başlatıldı', 'emerald');
     }
   };

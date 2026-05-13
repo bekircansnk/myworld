@@ -9,6 +9,13 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v1.3
+**Tarih:** 13 Mayıs 2026
+**Değişiklikler:**
+- **[Düzeltme]** Masaüstü ortamında asenkron popup engelleme sorunu çözüldü; tıkladığınız an WhatsApp anında açılarak fotoğraf indirme işlemleri arka planda devam edecek şekilde uyarlandı.
+- **[Düzeltme]** Kopyalama (Clipboard) özelliği geri getirildi ve Web/Masaüstü panoya kopyalama işlemine "Google Drive Görüntüleme Linkleri" eklendi.
+- **[Kural İhlali Giderimi]** APK çıktısı artık manuel kurallara tam uyumlu olarak sürüm ismini barındıracak şekilde (Örn: Pikselis_v1.3.apk) yapılandırıldı ve AGENTS.md uyumluluğu kontrol edildi.
+
 ### v1.2
 **Tarih:** 13 Mayıs 2026
 **Değişiklikler:**

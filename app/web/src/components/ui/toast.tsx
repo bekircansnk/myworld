@@ -14,9 +14,10 @@ interface Toast {
 }
 
 interface ToastContextType {
-  show: (message: string, type?: ToastType, duration?: number) => void
+  show: (message: string, type?: ToastType, duration?: number) => string
   success: (message: string, duration?: number) => void
   error: (message: string, duration?: number) => void
+  dismiss: (id: string) => void
 }
 
 const ToastContext = React.createContext<ToastContextType | null>(null)
@@ -37,11 +38,15 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     return id
   }, [])
 
-  const success = (message: string, duration?: number) => show(message, 'success', duration)
-  const error = (message: string, duration?: number) => show(message, 'error', duration)
+  const dismiss = React.useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id))
+  }, [])
+
+  const success = (message: string, duration?: number) => { show(message, 'success', duration) }
+  const error = (message: string, duration?: number) => { show(message, 'error', duration) }
 
   return (
-    <ToastContext.Provider value={{ show, success, error }}>
+    <ToastContext.Provider value={{ show, success, error, dismiss }}>
       {children}
       <ToastContainer toasts={toasts} remove={(id) => setToasts(prev => prev.filter(t => t.id !== id))} />
     </ToastContext.Provider>
