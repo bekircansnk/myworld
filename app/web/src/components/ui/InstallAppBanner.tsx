@@ -76,15 +76,33 @@ export function InstallAppBanner() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <a
-            href="/Pikselis_v2.2.apk"
-            download="Pikselis_v2.2.apk"
-            onClick={() => setTimeout(handleDismiss, 1000)}
+          <button
+            onClick={async (e) => {
+              e.preventDefault();
+              try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                const res = await fetch(`${apiUrl}/api/app-version`, { cache: 'no-store' });
+                if (res.ok) {
+                  const data = await res.json();
+                  const a = document.createElement("a");
+                  a.href = data.download_url;
+                  a.download = `Pikselis_v${data.version}.apk`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                } else {
+                  window.open("/Pikselis_v2.2.apk", "_blank");
+                }
+              } catch (err) {
+                window.open("/Pikselis_v2.2.apk", "_blank");
+              }
+              setTimeout(handleDismiss, 1000);
+            }}
             className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-500/30 transition-all whitespace-nowrap"
           >
             <Download className="w-4 h-4" />
             İndir
-          </a>
+          </button>
           <button 
             onClick={handleDismiss}
             className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
