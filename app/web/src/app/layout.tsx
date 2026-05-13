@@ -36,6 +36,7 @@ import { CapacitorNativeProvider } from "@/components/providers/CapacitorNativeP
 import { ContextMenuProvider } from "@/components/ui/ContextMenu";
 import { ToastProvider } from "@/components/ui/toast";
 import { InstallAppBanner } from "@/components/ui/InstallAppBanner";
+import { AppUpdateChecker } from "@/components/providers/AppUpdateChecker";
 
 export default function RootLayout({
   children,
@@ -70,6 +71,7 @@ export default function RootLayout({
               {/* Global Widgets */}
               <ChatWidget />
               <CapacitorNativeProvider />
+              <AppUpdateChecker />
               <ContextMenuProvider />
               <InstallAppBanner />
             </ToastProvider>

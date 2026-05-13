@@ -178,6 +178,18 @@ async def global_exception_handler(request, exc: Exception):
         headers=headers,
     )
 
+@app.get("/api/app-version")
+async def get_app_version():
+    """Mobil uygulama sürüm kontrolü — public endpoint (auth gerektirmez)"""
+    return {
+        "version": "1.4",
+        "version_code": 5,
+        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v1.4.apk",
+        "changelog": "• WhatsApp paylaşım iyileştirmeleri\n• Clipboard yedekleme sistemi",
+        "force_update": False,
+        "min_supported_version": "1.0"
+    }
+
 @app.get("/api/health")
 async def health_check():
     return {

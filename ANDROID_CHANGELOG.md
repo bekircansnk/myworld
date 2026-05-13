@@ -9,6 +9,11 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v1.4
+**Tarih:** 13 Mayıs 2026
+**Değişiklikler:**
+- **[Yeni Özellik/Güvenli Yedek]** "WhatsApp ile Paylaş" seçeneği tıklandığı an, görev metni otomatik olarak arka planda cihazın panosuna (Clipboard) kopyalanıyor ve "Görev metni otomatik olarak panoya kopyalandı!" toast bildirimi çıkıyor. Böylece WhatsApp'ın açılmadığı veya desteklenmediği eski/kısıtlı cihazlarda dahi veriler güvenceye alınmış oluyor; kullanıcı dilediği sohbet ekranına girip doğrudan yapıştırarak (Paste) paylaşım yapabiliyor.
+
 ### v1.3
 **Tarih:** 13 Mayıs 2026
 **Değişiklikler:**
