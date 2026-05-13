@@ -1,6 +1,7 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
+import json
 from app.schemas.project import ProjectResponse
 
 class TaskBase(BaseModel):
@@ -58,3 +59,12 @@ class TaskResponse(TaskBase):
     project: Optional[ProjectResponse] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_validator('task_photos', 'ai_analysis_history', mode='before')
+    def parse_json_fields(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                return []
+        return v
