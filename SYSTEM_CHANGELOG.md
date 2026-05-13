@@ -2,6 +2,15 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-13] - Kanban Drag&Drop (Manuel Sıralama) ve v2.4
+
+### Eklendi
+- **Manuel Sıralama:** Kanban board üzerindeki görevlerin sürükle bırak mantığıyla manuel olarak sıralanabilmesi ve bu sıranın backend üzerinde (`sort_order`) kalıcı olarak saklanması sağlandı.
+- **Optimistic UI Reordering:** Zustand `taskStore.ts` içerisine `reorderTasks` action'ı eklenerek, sıralama değişikliğinin arayüze anında yansıması ve ardından arka planda API isteği yapılması sağlandı.
+
+### Çözüldü
+- **Yeni Görevlerin Konumu:** Önceden yeni eklenen görevler `created_at` sırasına göre en üste gelebiliyordu. Artık `sort_order` birincil sıralama ölçütü oldu ve yeni görevler listenin en altına eklenecek şekilde iyileştirildi.
+
 ## [2026-05-13] - Android Titreme (Flicker) ve Sessiz Senkronizasyon Düzeltmeleri
 
 ### Çözüldü

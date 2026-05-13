@@ -9,6 +9,13 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v2.4
+**Tarih:** 13 Mayıs 2026
+**Değişiklikler:**
+- **[Yeni Özellik]** Kanban (Görevler) ekranına manuel sürükle-bırak (Drag & Drop) ile tam serbest sıralama yeteneği eklendi. Artık görevleri istediğiniz sıraya göre dizebilirsiniz.
+- **[İyileştirme]** Yeni eklenen görevler artık varsayılan olarak listenin en sonuna (en alta) düşecek şekilde optimize edildi, böylece listenin üst kısımlarındaki sıralamanız bozulmuyor.
+- **[Senkronizasyon]** Manuel sıralama değişiklikleri anında arka planda buluta senkronize edilir.
+
 ### v2.3
 **Tarih:** 13 Mayıs 2026
 **Değişiklikler:**

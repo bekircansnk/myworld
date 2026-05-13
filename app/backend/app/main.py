@@ -184,12 +184,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "2.3",
-        "version_code": 14,
-        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v2.3.apk",
+        "version": "2.4",
+        "version_code": 15,
+        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v2.4.apk",
         "min_supported_version": "1.0",
         "force_update": True, # OTA ZORUNLU KURALI
-        "changelog": "- Arka planda sessiz senkronizasyon yeteneği eklendi.\n- Görev açılışındaki ekran titreme sorunu giderildi.\n- Fotoğrafların görünmeme sorunu kalıcı olarak çözüldü."
+        "changelog": "- Kanban görev kartlarında tam serbest manuel sıralama (Sürükle & Bırak) eklendi.\n- Yeni görevler otomatik olarak listenin sonuna (en alta) eklenecek şekilde optimize edildi."
     }
 
 @app.get("/api/link-preview")

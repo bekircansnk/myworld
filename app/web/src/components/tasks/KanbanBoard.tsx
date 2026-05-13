@@ -69,7 +69,11 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
     return mainTasks
       .filter(t => t.status === status)
       .sort((a, b) => {
-        // En eski görevler en üstte olacak şekilde sıralama
+        // Öncelik: Kullanıcının manuel belirlediği sort_order
+        if ((a.sort_order ?? 0) !== (b.sort_order ?? 0)) {
+            return (a.sort_order ?? 0) - (b.sort_order ?? 0)
+        }
+        // İkinci Öncelik: En eski görevler en üstte olacak şekilde (yeni eklenenler alta gelsin)
         const dateA = new Date(a.created_at ?? 0).getTime()
         const dateB = new Date(b.created_at ?? 0).getTime()
         return dateA - dateB
@@ -152,10 +156,39 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
 
     const taskId = parseInt(draggableId)
     const newStatus = destination.droppableId as any
+    const { updateTaskStatus, reorderTasks } = useTaskStore.getState()
 
-    if (source.droppableId !== destination.droppableId) {
-       // Update status in store immediately for optimistic UI
+    if (source.droppableId === destination.droppableId) {
+       // Aynı sütun içinde sıralama
+       const currentTasks = getColumnTasks(source.droppableId)
+       const items = Array.from(currentTasks)
+       const [reorderedItem] = items.splice(source.index, 1)
+       items.splice(destination.index, 0, reorderedItem)
+       
+       const reorderData = items.map((t, index) => ({ id: t.id, sort_order: index }))
+       reorderTasks(reorderData)
+    } else {
+       // Farklı sütuna taşıma
+       // 1. Önce store'daki status'u güncelle
        updateTaskStatus(taskId, newStatus)
+       
+       // 2. Status güncellendikten hemen sonra yeni sütundaki sıralamayı yap
+       // Zustand optimistic olduğu için getColumnTasks yeni listeyi verir ama sırası hatalı olabilir.
+       setTimeout(() => {
+           const destTasks = getColumnTasks(destination.droppableId)
+           const items = Array.from(destTasks)
+           
+           // Task'i bul (yeni eklenen genelde created_at nedeniyle bir yere yerleşir)
+           const taskIndex = items.findIndex(t => t.id === taskId)
+           if (taskIndex !== -1) {
+               const [movedItem] = items.splice(taskIndex, 1)
+               items.splice(destination.index, 0, movedItem)
+               
+               // Tüm hedef sütunu yeniden indeksle
+               const reorderData = items.map((t, index) => ({ id: t.id, sort_order: index }))
+               reorderTasks(reorderData)
+           }
+       }, 10) // State'in DOM'a değil ama store'a yansıması için ufak bir bekleme
     }
   }
 

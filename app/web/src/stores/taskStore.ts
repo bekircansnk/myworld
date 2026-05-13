@@ -14,6 +14,7 @@ interface TaskState {
   addTask: (data: Partial<Task>) => Promise<void>;
   updateTask: (id: number, data: Partial<Task>) => Promise<void>;
   updateTaskStatus: (id: number, status: 'todo' | 'in_progress' | 'done') => Promise<void>;
+  reorderTasks: (items: { id: number; sort_order: number }[]) => Promise<void>;
   deleteTask: (id: number) => Promise<void>;
   selectedTask: Task | null;
   isDetailPanelOpen: boolean;
@@ -148,6 +149,31 @@ export const useTaskStore = create<TaskState>()(
           if (error.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
             enqueue('PATCH', `/api/tasks/${id}/status?status=${status}`);
           } else {
+            set({ tasks: previousTasks, error: error.message });
+          }
+        }
+      },
+
+      reorderTasks: async (items) => {
+        const previousTasks = get().tasks;
+        // Optimistic update: sort_order değerlerini güncelle
+        const updatedTasks = previousTasks.map((t) => {
+          const reorderItem = items.find((i) => i.id === t.id);
+          if (reorderItem) {
+            return { ...t, sort_order: reorderItem.sort_order };
+          }
+          return t;
+        });
+
+        set({ tasks: updatedTasks });
+
+        try {
+          await api.post('/api/tasks/reorder', { items });
+        } catch (error: any) {
+          if (error.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+            enqueue('POST', '/api/tasks/reorder', { items });
+          } else {
+            // Hata durumunda geri al
             set({ tasks: previousTasks, error: error.message });
           }
         }
