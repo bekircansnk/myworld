@@ -116,6 +116,11 @@ export function TaskDetailPanel() {
   const [isPhotosOpen, setIsPhotosOpen] = React.useState(true)
   const [isHistoryOpen, setIsHistoryOpen] = React.useState(false)
   const [activeMobileTab, setActiveMobileTab] = React.useState<'photos'|'progress'|'ai'|'history'|null>('photos')
+  
+  const toggleMobileTab = (tab: 'photos'|'progress'|'ai'|'history') => {
+    setActiveMobileTab(activeMobileTab === tab ? null : tab)
+  }
+
   const subtaskInputRef = React.useRef<HTMLInputElement>(null)
   const priorityMenuRef = React.useRef<HTMLDivElement>(null)
   const hasFetchedAI = React.useRef(false)
@@ -797,7 +802,7 @@ export function TaskDetailPanel() {
             <div className="flex-1 flex flex-col overflow-y-auto md:border-r border-slate-200/50 dark:border-white/5 pb-24 md:pb-0">
               
               {/* BAŞLIK — Kocaman, sade */}
-              <div className="px-5 md:px-8 pt-5 md:pt-7 pb-2 relative">
+              <div className="px-5 md:px-8 pt-16 md:pt-7 pb-2 relative">
                 {isEditingTitle ? (
                   <div className="flex items-center gap-2">
                     <Input value={titleDraft} onChange={e => setTitleDraft(e.target.value)}
@@ -999,7 +1004,7 @@ export function TaskDetailPanel() {
             </div>
 
             {/* ===== SAĞ PANEL (Masaüstü) / ALT BAR (Mobil) ===== */}
-            <div className="w-full md:w-[360px] shrink-0 flex flex-col fixed md:relative bottom-0 left-0 right-0 z-40 md:z-auto bg-white md:bg-slate-50/30 dark:bg-slate-900 md:dark:bg-black/10 border-t md:border-0 border-slate-200 dark:border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:shadow-none">
+            <div className="w-full md:w-[360px] shrink-0 flex flex-col fixed md:relative bottom-0 left-0 right-0 z-40 md:z-auto bg-white/70 md:bg-slate-50/30 dark:bg-slate-900/80 md:dark:bg-black/10 backdrop-blur-2xl md:backdrop-blur-none border-t md:border-0 border-slate-200/50 dark:border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:shadow-none transition-all duration-300 rounded-t-3xl md:rounded-none">
               
               {/* HEDEF TARİH + ÖNCELİK — Her zaman açık (Masaüstü) */}
               <div className="hidden md:block">
@@ -1007,7 +1012,7 @@ export function TaskDetailPanel() {
               </div>
 
               {/* İÇERİK ALANI */}
-              <div className="flex-1 overflow-y-auto max-h-[60vh] md:max-h-full">
+              <div className={`flex-1 overflow-y-auto ${activeMobileTab ? 'max-h-[50vh] md:max-h-full' : 'max-h-0 md:max-h-full'} transition-all duration-300 ease-in-out`}>
 
 
               {/* FOTOĞRAFLAR — Google Drive Entegrasyonu */}
@@ -1190,22 +1195,22 @@ export function TaskDetailPanel() {
               </div> {/* İçerik alanı bitiş */}
 
               {/* MOBİL TAB BAR */}
-              <div className="flex md:hidden items-center justify-around px-2 py-3 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 pb-safe">
-                 <button onClick={() => setActiveMobileTab('photos')} className={`flex flex-col items-center gap-1.5 transition-colors flex-1 ${activeMobileTab === 'photos' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'}`}>
-                   <ImagePlus className="w-[22px] h-[22px]"/>
-                   <span className="text-[10px] font-bold">Fotoğraflar</span>
+              <div className="flex md:hidden items-center justify-around px-2 py-2 border-t border-slate-200/50 dark:border-white/10 bg-transparent pb-safe">
+                 <button onClick={() => toggleMobileTab('photos')} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${activeMobileTab === 'photos' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-500'}`}>
+                   <ImagePlus className="w-5 h-5"/>
+                   <span className="text-[9px] font-bold">Fotoğraflar</span>
                  </button>
-                 <button onClick={() => setActiveMobileTab('progress')} className={`flex flex-col items-center gap-1.5 transition-colors flex-1 ${activeMobileTab === 'progress' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
-                   <TrendingUp className="w-[22px] h-[22px]"/>
-                   <span className="text-[10px] font-bold">İlerleme</span>
+                 <button onClick={() => toggleMobileTab('progress')} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${activeMobileTab === 'progress' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-500'}`}>
+                   <TrendingUp className="w-5 h-5"/>
+                   <span className="text-[9px] font-bold">İlerleme</span>
                  </button>
-                 <button onClick={() => setActiveMobileTab('ai')} className={`flex flex-col items-center gap-1.5 transition-colors flex-1 ${activeMobileTab === 'ai' ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400 dark:text-slate-500'}`}>
-                   <Bot className="w-[22px] h-[22px]"/>
-                   <span className="text-[10px] font-bold">Yapay Zeka</span>
+                 <button onClick={() => toggleMobileTab('ai')} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${activeMobileTab === 'ai' ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-500'}`}>
+                   <Bot className="w-5 h-5"/>
+                   <span className="text-[9px] font-bold">Yapay Zeka</span>
                  </button>
-                 <button onClick={() => setActiveMobileTab('history')} className={`flex flex-col items-center gap-1.5 transition-colors flex-1 ${activeMobileTab === 'history' ? 'text-slate-800 dark:text-slate-300' : 'text-slate-400 dark:text-slate-500'}`}>
-                   <History className="w-[22px] h-[22px]"/>
-                   <span className="text-[10px] font-bold">Geçmiş</span>
+                 <button onClick={() => toggleMobileTab('history')} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${activeMobileTab === 'history' ? 'text-slate-800 dark:text-slate-300' : 'text-slate-400 dark:text-slate-500 hover:text-slate-500'}`}>
+                   <History className="w-5 h-5"/>
+                   <span className="text-[9px] font-bold">Geçmiş</span>
                  </button>
               </div>
 

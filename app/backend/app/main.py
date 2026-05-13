@@ -182,10 +182,10 @@ async def global_exception_handler(request, exc: Exception):
 async def get_app_version():
     """Mobil uygulama sürüm kontrolü — public endpoint (auth gerektirmez)"""
     return {
-        "version": "1.7",
-        "version_code": 8,
-        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v1.7.apk",
-        "changelog": "• Görev detay arayüzü mobil için tab-bar'lı yapıya dönüştürülerek modernize edildi.\n• Fotoğraf yükleme ve görüntüleme tasarımı tamamen yenilendi.\n• Açıklama alanı ve alt görevler Trello stili sade bir görünüme kavuştu.",
+        "version": "1.8",
+        "version_code": 9,
+        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v1.8.apk",
+        "changelog": "• Görev detayındaki alt menü (Tab Bar) tasarımı Apple stili cam efektiyle (Glassmorphism) yenilendi ve çok daha az yer kaplayacak şekilde küçültüldü.\n• Alt menülere tekrar tıklandığında ekranın tam görünmesi için menülerin otomatik gizlenmesi sağlandı.\n• Mobil görünümdeki fotoğraf galerisi, ekranı daha az kaplaması için küçük grid'lere bölündü ve başlık ile paylaş butonlarının iç içe geçme hatası düzeltildi.",
         "force_update": False,
         "min_supported_version": "1.0"
     }
