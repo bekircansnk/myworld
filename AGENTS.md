@@ -44,7 +44,8 @@ Kullanıcı "APK'yı derle" veya "Android uygulamasını güncelle" dediğinde *
 5. **APK OLUŞTUR:** `cd android && ./gradlew assembleDebug` komutuyla yeni APK'yı derle. (Not: `build.gradle` içindeki `splits` bloğu kapatılmış veya `universalApk true` yapılmış olmalıdır).
 6. **YENİ APK'YI TAŞI:** `cp app/build/outputs/apk/debug/app-debug.apk ../public/Pikselis_v[SÜRÜM].apk` komutu ile yeni üretilen temiz APK'yı indirme klasörüne yerleştir (Örn: `Pikselis_v1.1.apk`).
 7. **BACKEND SÜRÜM GÜNCELLE:** `app/backend/app/main.py` içindeki `@app.get("/api/app-version")` endpoint'indeki sürüm bilgilerini (version, version_code, download_url) yeni APK'ya göre güncelle.
-8. **COMMIT:** Bu işlemleri tamamladıktan sonra `git commit` atarak repoyu güncelle.
+8. **FRONTEND LİNKLERİNİ GÜNCELLE:** `TopNavbar.tsx` ve `InstallAppBanner.tsx` gibi frontend dosyalarındaki hardcoded `href="/Pikselis_vX.X.apk"` ve `download="..."` linklerini mutlaka yeni sürümle değiştir.
+9. **COMMIT:** Bu işlemleri tamamladıktan sonra `git commit` atarak repoyu güncelle.
 
 
 ## 📱 MOBİL UYUMLULUK VE TEST ZORUNLULUĞU (CRITICAL)
