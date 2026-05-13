@@ -252,105 +252,109 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
 
   // İndirme
   const handleDownload = async (photo: DrivePhoto) => {
-    toast.show("İndiriliyor...", "loading", 3000)
+    const loadingToastId = toast.show("İndiriliyor...", "loading", 3000)
     const name = photo.name || 'fotograf.jpg'
     
     // Mobil Uygulama (Capacitor) Kontrolü
     // Webview içerisinde Blob veya iframe ile dosya indirme çalışmaz, doğrudan sistemi tetiklemeliyiz.
     const isNative = typeof window !== 'undefined' && (window as any).Capacitor?.isNative;
 
-    if (isNative) {
+    try {
+      if (isNative) {
+        try {
+          const nativeUrl = getPhotoDownloadUrl(photo.drive_id);
+          // '_system' veya '_blank' ile native tarayıcıyı/indirme yöneticisini tetikle
+          window.open(nativeUrl, '_system');
+          toast.success("İndirme yöneticisine iletildi");
+          return;
+        } catch (e) {
+          toast.error("İndirme başlatılamadı");
+          return;
+        }
+      }
+
+      // YARDIMCI: Web için Blob'u indir (Masaüstü/Mobil Tarayıcı)
+      const triggerDownloadBlob = (blob: Blob) => {
+        const objUrl = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = objUrl
+        a.download = name
+        document.body.appendChild(a)
+        a.click()
+        setTimeout(() => {
+          document.body.removeChild(a)
+          URL.revokeObjectURL(objUrl)
+        }, 1000)
+      }
+
       try {
-        const nativeUrl = getPhotoDownloadUrl(photo.drive_id);
-        // '_system' veya '_blank' ile native tarayıcıyı/indirme yöneticisini tetikle
-        window.open(nativeUrl, '_system');
-        toast.success("İndirme yöneticisine iletildi");
-        return;
+        // =========================================================================
+        // KATMAN 1: LH3 Doğrudan Fetch (CORS Açık, En Hızlı)
+        // =========================================================================
+        const lh3Url = `https://lh3.googleusercontent.com/d/${photo.drive_id}=s0`
+        const res1 = await fetch(lh3Url, { mode: 'cors', cache: 'no-cache' })
+        if (res1.ok) {
+          const blob = await res1.blob()
+          if (blob.size > 1000) {
+            triggerDownloadBlob(blob)
+            toast.success("İndirme tamamlandı")
+            return
+          }
+        }
       } catch (e) {
-        toast.error("İndirme başlatılamadı");
-        return;
+        console.warn("Katman 1 (LH3) hatası:", e)
       }
-    }
 
-    // YARDIMCI: Web için Blob'u indir (Masaüstü/Mobil Tarayıcı)
-    const triggerDownloadBlob = (blob: Blob) => {
-      const objUrl = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = objUrl
-      a.download = name
-      document.body.appendChild(a)
-      a.click()
-      setTimeout(() => {
-        document.body.removeChild(a)
-        URL.revokeObjectURL(objUrl)
-      }, 1000)
-    }
-
-    try {
-      // =========================================================================
-      // KATMAN 1: LH3 Doğrudan Fetch (CORS Açık, En Hızlı)
-      // =========================================================================
-      const lh3Url = `https://lh3.googleusercontent.com/d/${photo.drive_id}=s0`
-      const res1 = await fetch(lh3Url, { mode: 'cors', cache: 'no-cache' })
-      if (res1.ok) {
-        const blob = await res1.blob()
-        if (blob.size > 1000) {
-          triggerDownloadBlob(blob)
-          toast.success("İndirme tamamlandı")
-          return
+      try {
+        // =========================================================================
+        // KATMAN 2: Drive UserContent Fetch (Redirect Takipli)
+        // =========================================================================
+        const userContentUrl = `https://drive.usercontent.google.com/download?id=${photo.drive_id}&export=download`
+        const res2 = await fetch(userContentUrl, { mode: 'cors', redirect: 'follow' })
+        if (res2.ok) {
+          const blob = await res2.blob()
+          if (blob.size > 1000) {
+            triggerDownloadBlob(blob)
+            toast.success("İndirme tamamlandı")
+            return
+          }
         }
+      } catch (e) {
+        console.warn("Katman 2 (UserContent) hatası:", e)
       }
-    } catch (e) {
-      console.warn("Katman 1 (LH3) hatası:", e)
-    }
 
-    try {
-      // =========================================================================
-      // KATMAN 2: Drive UserContent Fetch (Redirect Takipli)
-      // =========================================================================
-      const userContentUrl = `https://drive.usercontent.google.com/download?id=${photo.drive_id}&export=download`
-      const res2 = await fetch(userContentUrl, { mode: 'cors', redirect: 'follow' })
-      if (res2.ok) {
-        const blob = await res2.blob()
-        if (blob.size > 1000) {
-          triggerDownloadBlob(blob)
-          toast.success("İndirme tamamlandı")
-          return
-        }
+      try {
+        // =========================================================================
+        // KATMAN 3: Gizli Iframe (Popup Blocker Atlatma)
+        // =========================================================================
+        const fallbackUrl = getPhotoDownloadUrl(photo.drive_id)
+        const iframe = document.createElement('iframe')
+        iframe.style.display = 'none'
+        iframe.src = fallbackUrl
+        document.body.appendChild(iframe)
+        
+        setTimeout(() => {
+          if (document.body.contains(iframe)) document.body.removeChild(iframe)
+        }, 60000)
+        
+        toast.success("İndirme başlatıldı")
+        return
+      } catch (error) {
+        console.warn("Katman 3 (Iframe) hatası:", error)
       }
-    } catch (e) {
-      console.warn("Katman 2 (UserContent) hatası:", e)
-    }
 
-    try {
       // =========================================================================
-      // KATMAN 3: Gizli Iframe (Popup Blocker Atlatma)
+      // KATMAN 4: Yeni Sekme (Son Çare)
       // =========================================================================
-      const fallbackUrl = getPhotoDownloadUrl(photo.drive_id)
-      const iframe = document.createElement('iframe')
-      iframe.style.display = 'none'
-      iframe.src = fallbackUrl
-      document.body.appendChild(iframe)
-      
-      setTimeout(() => {
-        if (document.body.contains(iframe)) document.body.removeChild(iframe)
-      }, 60000)
-      
-      toast.success("İndirme başlatıldı")
-      return
-    } catch (error) {
-      console.warn("Katman 3 (Iframe) hatası:", error)
-    }
-
-    // =========================================================================
-    // KATMAN 4: Yeni Sekme (Son Çare)
-    // =========================================================================
-    try {
-      const fallbackUrl2 = `https://drive.google.com/file/d/${photo.drive_id}/view`
-      window.open(fallbackUrl2, '_blank')
-      toast.success("Dosya yeni sekmede açıldı")
-    } catch (e) {
-      toast.error("İndirme başarısız oldu")
+      try {
+        const fallbackUrl2 = `https://drive.google.com/file/d/${photo.drive_id}/view`
+        window.open(fallbackUrl2, '_blank')
+        toast.success("Dosya yeni sekmede açıldı")
+      } catch (e) {
+        toast.error("İndirme başarısız oldu")
+      }
+    } finally {
+      toast.dismiss(loadingToastId)
     }
   }
 

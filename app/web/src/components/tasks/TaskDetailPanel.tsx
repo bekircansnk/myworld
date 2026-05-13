@@ -197,24 +197,73 @@ export function TaskDetailPanel() {
     }
   }, [selectedTask?.id, isDetailPanelOpen])
 
-  // ESC key to close panel or lightbox
+  // ---- GERİ TUŞU / MOBİL GEZİNTİ ORKESTRASYONU ----
+  const handleCloseDetail = React.useCallback(() => {
+    if (typeof window !== 'undefined' && window.location.hash.startsWith('#task-')) {
+      window.history.back();
+    } else {
+      closeTaskDetail();
+    }
+  }, [closeTaskDetail]);
+
+  const handleCloseImagePreview = React.useCallback(() => {
+    if (typeof window !== 'undefined' && window.location.hash === '#image-preview') {
+      window.history.back();
+    } else {
+      setImagePreview(null);
+    }
+  }, []);
+
+  // 1. Görev detay paneli açıldığında history state push et ve popstate olaylarını yakala
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!isDetailPanelOpen) return;
+
+    if (!window.location.hash.startsWith('#task-')) {
+      window.history.pushState({ type: 'task-detail', taskId: selectedTask?.id }, '', `#task-${selectedTask?.id}`);
+    }
+
+    const handlePopState = (e: PopStateEvent) => {
+      // Eğer resim önizlemesi açıksa, önce resmi kapat ve detay panelini koru
+      if (imagePreview) {
+        setImagePreview(null);
+        return;
+      }
+      closeTaskDetail();
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [isDetailPanelOpen, selectedTask?.id, imagePreview, closeTaskDetail]);
+
+  // 2. Resim önizlemesi açıldığında history state push et
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (imagePreview) {
+      if (window.location.hash !== '#image-preview') {
+        window.history.pushState({ type: 'image-preview' }, '', '#image-preview');
+      }
+    }
+  }, [imagePreview]);
+
+  // ESC tuşu ile paneli veya resim önizlemesini kapatma
   React.useEffect(() => {
     if (!isDetailPanelOpen) return
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        // Priority: close lightbox first
-        if (imagePreview) { setImagePreview(null); return }
+        if (imagePreview) { handleCloseImagePreview(); return }
         if (editingSubtaskId) { setEditingSubtaskId(null); return }
-        // Don't close panel if user is editing
         if (isEditingDesc || isAddingSubtask || editingDueDate) return
-        closeTaskDetail()
+        handleCloseDetail()
       }
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isDetailPanelOpen, isEditingDesc, isAddingSubtask, editingDueDate, imagePreview, editingSubtaskId, closeTaskDetail])
+  }, [isDetailPanelOpen, isEditingDesc, isAddingSubtask, editingDueDate, imagePreview, editingSubtaskId, handleCloseDetail, handleCloseImagePreview])
 
-  // Close priority and share menus on outside click
+  // Menülerin dışına tıklanınca kapatma
   React.useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (priorityMenuRef.current && !priorityMenuRef.current.contains(e.target as Node)) {
@@ -600,13 +649,13 @@ export function TaskDetailPanel() {
         confirmText="Sil"
         onConfirm={async () => {
            await deleteTask(selectedTask.id);
-           closeTaskDetail();
+           handleCloseDetail();
         }}
       />
       {/* Fullscreen Overlay */}
       <div
         className="fixed inset-0 z-50 bg-black/50 dark:bg-black/70 backdrop-blur-md animate-in fade-in duration-200"
-        onClick={closeTaskDetail}
+        onClick={handleCloseDetail}
       />
 
       {/* Modal Container — BÜYÜTÜLMÜŞ */}
@@ -725,7 +774,7 @@ export function TaskDetailPanel() {
                   </div>
                 )}
 
-                <button onClick={closeTaskDetail}
+                <button onClick={handleCloseDetail}
                   className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white/40 dark:hover:text-white transition-all shadow-sm"
                   title="Kapat"
                 >
@@ -1130,9 +1179,9 @@ export function TaskDetailPanel() {
       {/* ============ IMAGE PREVIEW LIGHTBOX ============ */}
       {imagePreview && (
         <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-xl flex items-center justify-center p-8 animate-in fade-in duration-200"
-          onClick={() => setImagePreview(null)}>
+          onClick={handleCloseImagePreview}>
           <img src={imagePreview} alt="Preview" className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl ring-1 ring-white/20 animate-in zoom-in-95 duration-300" />
-          <button onClick={() => setImagePreview(null)} className="absolute top-6 right-6 p-3 rounded-2xl bg-white/10 text-white hover:bg-white/25 transition-colors backdrop-blur-md">
+          <button onClick={handleCloseImagePreview} className="absolute top-6 right-6 p-3 rounded-2xl bg-white/10 text-white hover:bg-white/25 transition-colors backdrop-blur-md">
             <X className="w-6 h-6" />
           </button>
         </div>
