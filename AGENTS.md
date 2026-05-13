@@ -6,6 +6,12 @@ Bu uygulama kuralları, `/Users/bekir/.gemini/GEMINI.md` adresindeki ANA SİSTEM
 1. **Build Kontrolü:** Commit ve Push atmadan önce `npm run build` (frontend) ve backend kontrolleri yapılmalıdır. Hata varsa commit atılamaz.
 2. **Otomatik Yayın:** Başarılı her görev sonunda `git commit` ve `git push` otomatik olarak yapılacaktır (Kullanıcıdan onay beklemeden).
 
+## 📊 Kayıt, Günlük ve Hata Yönetimi (ZORUNLU)
+1. **ANDROID_CHANGELOG.md:** Her APK güncellemesinde sürüm notları buraya eklenmelidir.
+2. **SYSTEM_CHANGELOG.md:** Her önemli mimari, UX veya fonksiyonel değişiklik (Web/Backend) buraya kaydedilmelidir.
+3. **DEBUG_PROTOCOL.md:** Çözülen karmaşık veya kronik sorunlar, bir daha yaşanmaması için buraya çözüm yöntemiyle not edilmelidir.
+4. **Kural:** Herhangi bir geliştirme bittiğinde AI, "Hangi günlükleri güncellemeliyim?" diye kontrol etmeli ve kullanıcı hatırlatmadan bu dosyaları güncellemelidir.
+
 ## 💻 Teknoloji Yığını & Klasör Yapısı
 - **Frontend:** Next.js 15 (App Router), TypeScript, Tailwind CSS, Zustand (`app/web/`)
 - **Backend:** FastAPI, Python 3.14, SQLAlchemy, SQLite (`app/backend/`)

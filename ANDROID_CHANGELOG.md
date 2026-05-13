@@ -9,6 +9,30 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v1.9
+**Tarih:** 13 Mayıs 2026
+**Değişiklikler:**
+- **[İyileştirme]** Görev detayındaki alt menü tasarımı daha saydam (Apple Glass stili) ve kompakt hale getirildi.
+- **[Yeni Özellik]** Alt menüler açıkken ekrana tekrar basıldığında otomatik gizlenme özelliği eklendi.
+- **[UX]** Mobilde fotoğraf hover butonları kaldırıldı, silme ve indirme işlemleri tam ekran lightbox'a taşındı.
+- **[İyileştirme]** Sol panel, alt menü açıkken bile ekranı kaydırarak tamamen görülebilir hale getirildi (dinamik padding eklendi).
+
+### v1.8
+**Tarih:** 13 Mayıs 2026
+**Değişiklikler:**
+- **[Tasarım]** Görev detayındaki alt menü (Tab Bar) tasarımı Apple stili cam efektiyle (Glassmorphism) yenilendi.
+- **[UX]** Alt menülere tekrar tıklandığında ekranın tam görünmesi için menülerin otomatik gizlenmesi sağlandı.
+- **[Tasarım]** Mobil görünümdeki fotoğraf galerisi, ekranı daha az kaplaması için 4'lü küçük grid'lere bölündü.
+- **[Düzeltme]** Başlık ile paylaş butonlarının üst üste geçme hatası düzeltildi.
+
+### v1.7
+**Tarih:** 13 Mayıs 2026
+**Değişiklikler:**
+- **[Tasarım]** Görev detay arayüzü mobil için tab-bar'lı yapıya dönüştürülerek modernize edildi.
+- **[Tasarım]** Fotoğraf yükleme ve görüntüleme tasarımı tamamen yenilendi (Sade ve büyük kareli).
+- **[UX]** Açıklama alanı ve alt görevler Trello stili daha temiz, sola dayalı ve kompakt bir görünüme kavuştu.
+- **[Düzeltme]** Görev detayında yer alan buton taşma hataları düzeltildi.
+
 ### v1.6
 **Tarih:** 13 Mayıs 2026
 **Değişiklikler:**
