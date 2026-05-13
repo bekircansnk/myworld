@@ -385,6 +385,7 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
       {/* Lightbox */}
       {previewIndex !== null && photos[previewIndex] && (
         <div 
+          role="dialog"
           className="fixed inset-0 z-[70] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-200"
           onClick={closeLightbox}
         >

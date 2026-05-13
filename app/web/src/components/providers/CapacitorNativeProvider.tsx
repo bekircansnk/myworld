@@ -45,14 +45,8 @@ export function CapacitorNativeProvider() {
     
     // 2. Android Geri Tuşu Davranışı
     const backButtonListener = App.addListener('backButton', () => {
-      // 2.1. Görev Detay Paneli var mı kontrol et (Global Store)
-      const isTaskDetailOpen = useTaskStore.getState().isDetailPanelOpen;
-      if (isTaskDetailOpen) {
-        useTaskStore.getState().closeTaskDetail();
-        return;
-      }
-
-      // 2.2. Modal var mı kontrol et (shadcn dialog veya drawer)
+      // 2.1. Modal var mı kontrol et (shadcn dialog, drawer, lightbox vs)
+      // Görev detayından önce mutlaka üstte açık olan dialog/fotoğraf ekranı varsa onu kapat.
       const openModal = document.querySelector('[role="dialog"]') || 
                         document.querySelector('[data-state="open"]');
                         
@@ -60,6 +54,13 @@ export function CapacitorNativeProvider() {
         // Modalın kapatma butonunu veya escape tuşunu tetikle.
         const event = new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true });
         document.dispatchEvent(event);
+        return;
+      }
+
+      // 2.2. Görev Detay Paneli var mı kontrol et (Global Store)
+      const isTaskDetailOpen = useTaskStore.getState().isDetailPanelOpen;
+      if (isTaskDetailOpen) {
+        useTaskStore.getState().closeTaskDetail();
         return;
       }
 
