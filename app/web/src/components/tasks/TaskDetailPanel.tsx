@@ -249,13 +249,22 @@ export function TaskDetailPanel() {
     }
 
     const handlePopState = (e: PopStateEvent) => {
-      // Eğer geri döndüğümüz state 'task-detail' ise, demek ki Lightbox gibi 
-      // üstüne açılmış bir state'den geri geldik. Paneli açık tutmaya devam et.
       if (e.state?.type === 'task-detail' && e.state?.taskId === selectedTask?.id) {
         return;
       }
 
-      // Eğer eski tip resim önizlemesi açıksa
+      // Düzenleme modları açıksa paneli kapatmak yerine düzenleme modunu kapat
+      if (isEditingDesc || isEditingTitle || isAddingSubtask || editingDueDate || editingSubtaskId !== null) {
+         // Tarayıcı history'de bir adım geri gitmiş olduğu için, URL'yi tekrar görev detayı URL'sine çekerek paneli açık tutuyoruz.
+         window.history.pushState({ type: 'task-detail', taskId: selectedTask?.id }, '', `#task-${selectedTask?.id}`);
+         setIsEditingDesc(false);
+         setIsEditingTitle(false);
+         setIsAddingSubtask(false);
+         setEditingDueDate(false);
+         setEditingSubtaskId(null);
+         return;
+      }
+
       if (imagePreview) {
         setImagePreview(null);
         return;
@@ -267,7 +276,7 @@ export function TaskDetailPanel() {
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [isDetailPanelOpen, selectedTask?.id, imagePreview, closeTaskDetail]);
+  }, [isDetailPanelOpen, selectedTask?.id, imagePreview, closeTaskDetail, isEditingDesc, isEditingTitle, isAddingSubtask, editingDueDate, editingSubtaskId]);
 
   // 2. Resim önizlemesi açıldığında history state push et
   React.useEffect(() => {

@@ -2,6 +2,14 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-13] - Mimari Refactoring ve Titreme (Flicker) Çözümleri
+
+### Çözüldü
+- **Ekran Titremesi (Flickering):** Next.js App Router yapısındaki ekran geçişlerinde (Görevler, Takvim, Dashboard vb.) yaşanan "ani sayfa yenilenmesi ve beyaz ekran titremesi" sorunu `animate-in fade-in duration-300` Tailwind animasyonları ile sarılarak yumuşak (smooth) geçişli hale getirildi.
+- **Web History (Geri Tuşu) Tutarsızlığı:** Web / PWA ortamında geri tuşuna (popstate) basıldığında görev detay panelinin komple kapanmasını engellemek için, `TaskDetailPanel` içerisindeki history mantığı güçlendirildi. Artık "Açıklama Düzenle" gibi modlar açıkken web tarayıcısında geri gidildiğinde panel açık kalır, sadece edit modu kapatılır.
+
+---
+
 ## [2026-05-13] - Navigasyon (Geri Tuşu) ve Klavye Optimizasyonları
 
 ### Çözüldü

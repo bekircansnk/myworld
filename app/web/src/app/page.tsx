@@ -204,46 +204,48 @@ export default function DashboardPage() {
       {showMorning && <MorningScreen onDismiss={handleMorningDismiss} />}
 
       {/* ANA İÇERİK */}
-      {isAdminPanel ? (
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-slate-50/50 dark:bg-slate-900/50">
-           <AdminPanel />
-        </div>
-      ) : isCalendar ? (
-        <CalendarPage />
-      ) : isAIChat ? (
-        <div className="flex-1 overflow-hidden p-3 md:p-5 lg:p-8 mobile-content-area">
-          <AIChatDashboard />
-        </div>
-      ) : isReklamAds ? (
-        <AdsLayout projectId={selectedProjectId} />
-      ) : isPhotoTracking ? (
-        <PhotoTrackingLayout projectId={selectedProjectId} />
-      ) : (
-        <div className={`flex-1 flex flex-col mobile-content-area ${isDashboard ? 'overflow-y-auto lg:overflow-hidden p-3 md:p-5 lg:p-8' : 'overflow-y-auto overflow-x-hidden p-3 md:p-5 lg:p-8'}`}>
+      <div key={viewMode} className="flex-1 overflow-hidden flex flex-col animate-in fade-in duration-300 ease-out">
+        {isAdminPanel ? (
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-slate-50/50 dark:bg-slate-900/50">
+             <AdminPanel />
+          </div>
+        ) : isCalendar ? (
+          <CalendarPage />
+        ) : isAIChat ? (
+          <div className="flex-1 overflow-hidden p-3 md:p-5 lg:p-8 mobile-content-area">
+            <AIChatDashboard />
+          </div>
+        ) : isReklamAds ? (
+          <AdsLayout projectId={selectedProjectId} />
+        ) : isPhotoTracking ? (
+          <PhotoTrackingLayout projectId={selectedProjectId} />
+        ) : (
+          <div className={`flex-1 flex flex-col mobile-content-area ${isDashboard ? 'overflow-y-auto lg:overflow-hidden p-3 md:p-5 lg:p-8' : 'overflow-y-auto overflow-x-hidden p-3 md:p-5 lg:p-8'}`}>
 
-          {/* Dashboard */}
-          {isDashboard && canViewModule('dashboard') ? (
-            <DashboardWidgets />
-          ) : !canViewModule('dashboard') && isDashboard ? (
-             <div className="flex-1 flex items-center justify-center text-slate-400">Dashboard erişiminiz kapalı. Menüden yetkili olduğunuz bir modülü seçin.</div>
-          ) : (
-            <>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                <div>
-                  <h1 className="text-xl lg:text-2xl font-bold tracking-tight">{pageTitle}</h1>
-                  <p className="text-muted-foreground text-sm mt-0.5">{pageDescription}</p>
+            {/* Dashboard */}
+            {isDashboard && canViewModule('dashboard') ? (
+              <DashboardWidgets />
+            ) : !canViewModule('dashboard') && isDashboard ? (
+               <div className="flex-1 flex items-center justify-center text-slate-400">Dashboard erişiminiz kapalı. Menüden yetkili olduğunuz bir modülü seçin.</div>
+            ) : (
+              <>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                  <div>
+                    <h1 className="text-xl lg:text-2xl font-bold tracking-tight">{pageTitle}</h1>
+                    <p className="text-muted-foreground text-sm mt-0.5">{pageDescription}</p>
+                  </div>
+                  {(viewMode === 'all_tasks' || viewMode === 'project') && canEditModule('tasks') && <TaskForm />}
                 </div>
-                {(viewMode === 'all_tasks' || viewMode === 'project') && canEditModule('tasks') && <TaskForm />}
-              </div>
-              {viewMode === 'notes' ? (
-                 canViewModule('notes') ? <NotesList /> : <div className="text-red-500">Notlar modülüne erişiminiz yok.</div>
-              ) : (
-                 canViewModule('tasks') ? <KanbanBoard projectId={selectedProjectId} /> : <div className="text-red-500">Görevler modülüne erişiminiz yok.</div>
-              )}
-            </>
-          )}
-        </div>
-      )}
+                {viewMode === 'notes' ? (
+                   canViewModule('notes') ? <NotesList /> : <div className="text-red-500">Notlar modülüne erişiminiz yok.</div>
+                ) : (
+                   canViewModule('tasks') ? <KanbanBoard projectId={selectedProjectId} /> : <div className="text-red-500">Görevler modülüne erişiminiz yok.</div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Görev Detay Paneli */}
       <TaskDetailPanel />
