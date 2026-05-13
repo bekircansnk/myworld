@@ -379,10 +379,7 @@ export function TaskDetailPanel() {
     }
     
     if (selectedTask.task_photos && selectedTask.task_photos.length > 0) {
-      text += `🖼️ Fotoğraflar:\n`;
-      selectedTask.task_photos.forEach((photo, i) => {
-         text += `${i+1}. ${photo.name}: https://drive.google.com/uc?export=view&id=${photo.drive_id}\n`;
-      });
+      text += `🖼️ ${selectedTask.task_photos.length} adet fotoğraf (dosya olarak/ekli) mevcuttur.\n`;
     }
     return text;
   };
@@ -412,18 +409,42 @@ export function TaskDetailPanel() {
       waWindow = window.open('about:blank', '_blank');
     }
 
+    const filesToShare: string[] = []; // Native tarafı için indirilen dosya URI'leri
+
     // Otomatik İndirme Tetiklemesi
     if (selectedTask?.task_photos && selectedTask.task_photos.length > 0) {
-      toast.show("Fotoğraflar indiriliyor, lütfen bekleyin...", "loading", 3000);
+      toast.show("Fotoğraflar hazırlanıyor, lütfen bekleyin...", "loading", 4000);
       
       for (const photo of selectedTask.task_photos) {
         try {
+          const lh3Url = `https://lh3.googleusercontent.com/d/${photo.drive_id}=s0`;
+          
           if (isNative) {
-             const dlUrl = `https://drive.google.com/uc?export=download&id=${photo.drive_id}`;
-             window.open(dlUrl, '_system');
+             // NATIVE: Fotoğrafı base64 olarak indir ve cihaz önbelleğine (Cache) yaz.
+             const response = await fetch(lh3Url, { mode: 'cors' });
+             const blob = await response.blob();
+             
+             const pureBase64 = await new Promise<string>((resolve) => {
+                 const reader = new FileReader();
+                 reader.onloadend = () => {
+                     const dataUrl = reader.result as string;
+                     resolve(dataUrl.split(',')[1]); // Virgül sonrasını al
+                 };
+                 reader.readAsDataURL(blob);
+             });
+             
+             const ext = photo.name?.split('.').pop() || 'jpg';
+             const fileName = `share_${Date.now()}_${photo.drive_id}.${ext}`;
+             
+             const { Filesystem, Directory } = await import('@capacitor/filesystem');
+             const writeResult = await Filesystem.writeFile({
+                 path: fileName,
+                 data: pureBase64,
+                 directory: Directory.Cache
+             });
+             filesToShare.push(writeResult.uri);
           } else {
-             // Browser fallback
-             const lh3Url = `https://lh3.googleusercontent.com/d/${photo.drive_id}=s0`;
+             // WEB/MASAÜSTÜ: Doğrudan browser'a indir (Mevcut mantık)
              fetch(lh3Url, { mode: 'cors', cache: 'no-cache' })
                 .then(res => res.blob())
                 .then(blob => {
@@ -442,32 +463,40 @@ export function TaskDetailPanel() {
                 }).catch(e => console.warn("Otomatik indirme hatası", e));
           }
         } catch (error) {
-           console.warn(error);
+           console.warn("Fotoğraf işleme hatası", error);
         }
-        await new Promise(r => setTimeout(r, 500));
       }
     }
 
     if (isNative) {
       // Mobilde Native Share Modal'ını çıkar (Böylece kullanıcı WA vs WA Business seçebilir)
+      // Dosyalar da direkt paylaşıma (WhatsApp) eklenir!
       try {
          const { Share } = await import('@capacitor/share');
          await Share.share({
             title: selectedTask?.title || 'Görev',
             text: text,
-            dialogTitle: 'Şununla Paylaş',
+            url: '',
+            files: filesToShare.length > 0 ? filesToShare : undefined,
+            dialogTitle: 'Şununla Paylaş (WhatsApp Seçin)',
          });
-         addActivityEvent('status_change', 'Görev paylaşıldı', 'emerald');
+         addActivityEvent('status_change', 'Fotoğraflı görev paylaşıldı', 'emerald');
       } catch (e) {
          window.open(`whatsapp://send?text=${encodedText}`, '_system');
       }
     } else {
       // Masaüstünde yönlendirmeyi önceden açılmış sekme üzerinden yapıyoruz
+      // api.whatsapp.com adresi, bilgisayarda WhatsApp uygulaması varsa doğrudan uygulamayı açmayı tetikler!
       if (waWindow) {
-         waWindow.location.href = `https://wa.me/?text=${encodedText}`;
+         waWindow.location.href = `https://api.whatsapp.com/send?text=${encodedText}`;
       } else {
-         window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+         window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
       }
+      
+      if (selectedTask?.task_photos && selectedTask.task_photos.length > 0) {
+         toast.show("Metin WhatsApp'a aktarıldı, fotoğraflar bilgisayarınıza indirildi.", "success", 5000);
+      }
+      
       addActivityEvent('status_change', 'WhatsApp paylaşımı başlatıldı', 'emerald');
     }
   };
