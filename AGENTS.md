@@ -48,3 +48,11 @@ Kullanıcı "APK'yı derle" veya "Android uygulamasını güncelle" dediğinde *
 - **Evrensel Kapsam:** Web tarafına yapılan her yeni özellik, geliştirme (örn: fotoğraf yükleme, sürükle-bırak, dosya indirme), görsel veya fonksiyonel yenilik **KESİNLİKLE** mobil sürümde (mobil web ve Android/Capacitor uygulaması) de eksiksiz ve hatasız çalışacak şekilde kodlanmalıdır.
 - **Hata Toleransı:** Masaüstünde çalışan ama mobilde ekranı bozan, verileri gizleyen veya React Hydration hatalarına sebep olan eksik kodlamalar KABUL EDİLEMEZ.
 - **Raporlama:** Bir görev tamamlandığında, değişikliklerin hem Web (Masaüstü) hem de Mobil (Responsive/Capacitor) platformlarda nasıl uyumlu hale getirildiği ve test edildiği kullanıcıya açıkça raporlanmalıdır.
+
+## 🕵️ HATA AYIKLAMA (DEBUGGING) VE SORUN ÇÖZME PROTOKOLÜ (P0++ - CRITICAL)
+Saatlerce süren hata arayışlarını engellemek ve "Bilgisayarda çalışıyor, telefonda çalışmıyor" (ya da "Yeni cihazda görevler 0 gözüküyor") gibi kronik veri yüklenmeme sorunlarını anında çözmek için aşağıdaki protokol **TAVİZ VERİLMEDEN** uygulanacaktır:
+
+1. **FRONTEND YANILTMASINA KANMA:** Bir cihazda veriler tam görünürken yeni cihazda (veya incognito modda) veri 0 görünüyorsa, çalışan cihazdaki veriler **IndexedDB/Zustand Cache** üzerinden geliyordur. Sorun kesinlikle frontend değil, backend'in `500 Internal Server Error` döndürmesidir.
+2. **DOĞRUDAN PRODUCTION API TESTİ:** Hata ayıklarken tarayıcı konsolu veya Vercel loglarıyla zaman kaybetme! Hemen `.env` dosyasındaki production `SECRET_KEY`'i kullanarak bir JWT token üret ve doğrudan Render (veya aktif backend) URL'sine terminalden `curl` isteği at. Dönüş yapan ham JSON hatasını (`details`) oku.
+3. **VERİTABANI MİMARİSİ FARKI (SQLite vs PostgreSQL):** Local ortamda SQLite, Production'da PostgreSQL kullanıldığı için; sonradan eklenen `JSON`, `JSONB` veya `Datetime` kolonları PostgreSQL'den Pydantic'e **TEXT (String)** olarak gelebilir. Bu durum `Input should be a valid list` gibi Pydantic validation hatalarına yol açar.
+4. **PYDANTIC & FRONTEND NULL-SAFE KURALI:** Backend şemalarında (`schemas/`) liste beklenen alanlara DAİMA `@field_validator` ekleyerek string'ten JSON parse işlemini güvenceye al. Frontend tarafında ise `.sort()` veya `.filter()` işlemlerinde tarihler ve objeler için mutlaka null-safe (`created_at ?? 0`) operatörlerini kullan.

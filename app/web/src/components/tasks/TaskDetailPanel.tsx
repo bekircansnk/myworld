@@ -9,11 +9,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { Task, DrivePhoto } from "@/types"
 import { api } from "@/lib/api"
 import { TaskPhotoUploader } from "./TaskPhotoUploader"
+import { useToast } from "@/components/ui/toast"
 import {
   Calendar, Sparkles, Loader2, CheckCircle2, Circle,
   AlignLeft, ListChecks, Plus, X, Clock, Pencil, Save, Trash2,
   Bot, Activity, CalendarClock, Timer, Target, TrendingUp,
-  ChevronRight, ChevronDown, FileText, Paperclip, History, Flag
+  ChevronRight, ChevronDown, FileText, Paperclip, History, Flag,
+  Share2, Copy, Mail, MessageCircle, Download
 } from "lucide-react"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { format, formatDistanceToNow } from "date-fns"
@@ -114,6 +116,11 @@ export function TaskDetailPanel() {
   const priorityMenuRef = React.useRef<HTMLDivElement>(null)
   const hasFetchedAI = React.useRef(false)
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false)
+  const toast = useToast()
+
+  // Share Menu States
+  const [isShareMenuOpen, setIsShareMenuOpen] = React.useState(false)
+  const shareMenuRef = React.useRef<HTMLDivElement>(null)
 
   // Derived data
   const subtasks = React.useMemo(() => {
@@ -207,16 +214,19 @@ export function TaskDetailPanel() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isDetailPanelOpen, isEditingDesc, isAddingSubtask, editingDueDate, imagePreview, editingSubtaskId, closeTaskDetail])
 
-  // Close priority menu on outside click
+  // Close priority and share menus on outside click
   React.useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (priorityMenuRef.current && !priorityMenuRef.current.contains(e.target as Node)) {
         setShowPriorityMenu(false)
       }
+      if (shareMenuRef.current && !shareMenuRef.current.contains(e.target as Node)) {
+        setIsShareMenuOpen(false)
+      }
     }
-    if (showPriorityMenu) document.addEventListener('mousedown', handleClickOutside)
+    if (showPriorityMenu || isShareMenuOpen) document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [showPriorityMenu])
+  }, [showPriorityMenu, isShareMenuOpen])
 
   if (!selectedTask || !isDetailPanelOpen) return null
 
@@ -341,6 +351,129 @@ export function TaskDetailPanel() {
     const pLabel = priorityConfig[priority]?.label || priority
     addActivityEvent('status_change', `Öncelik "${pLabel}" olarak değiştirildi`, 'amber')
   }
+
+  // ---- Share Action Handlers ----
+  const generateShareText = () => {
+    if (!selectedTask) return "";
+    let text = `📌 Görev: ${selectedTask.title}\n`;
+    if (selectedTask.due_date) {
+      text += `📅 Hedef Tarih: ${format(new Date(selectedTask.due_date), "dd MMM yyyy", { locale: tr })}\n`;
+    }
+    
+    // Status/Priority labels can be derived from Config objects safely
+    const pConfigItem = priorityConfig[selectedTask.priority] || priorityConfig['medium'];
+    text += `⚡ Öncelik: ${pConfigItem.label}\n`;
+    const sConfigItem = statusConfig[selectedTask.status] || statusConfig['todo'];
+    text += `🚥 Durum: ${sConfigItem.label}\n\n`;
+
+    if (selectedTask.description) {
+      text += `📝 Açıklama:\n${selectedTask.description}\n\n`;
+    }
+
+    if (subtasks.length > 0) {
+      text += `✅ Alt Görevler:\n`;
+      subtasks.forEach(st => {
+        text += `- [${st.status === 'done' ? 'x' : ' '}] ${st.title}\n`;
+      });
+      text += '\n';
+    }
+    
+    if (selectedTask.task_photos && selectedTask.task_photos.length > 0) {
+      text += `🖼️ Fotoğraflar:\n`;
+      selectedTask.task_photos.forEach((photo, i) => {
+         text += `${i+1}. ${photo.name}: https://drive.google.com/uc?export=view&id=${photo.drive_id}\n`;
+      });
+    }
+    return text;
+  };
+
+  const handleCopyText = async () => {
+    const text = generateShareText();
+    try {
+      await navigator.clipboard.writeText(text);
+      setIsShareMenuOpen(false);
+      addActivityEvent('status_change', 'Görev metni panoya kopyalandı', 'blue');
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleShareWhatsApp = async () => {
+    const text = generateShareText();
+    setIsShareMenuOpen(false);
+    
+    // Otomatik İndirme Tetiklemesi
+    if (selectedTask?.task_photos && selectedTask.task_photos.length > 0) {
+      toast.show("Fotoğraflar indiriliyor, lütfen bekleyin...", "loading", 3000);
+      
+      const isNative = typeof window !== 'undefined' && (window as any).Capacitor?.isNative;
+      
+      for (const photo of selectedTask.task_photos) {
+        try {
+          if (isNative) {
+             const dlUrl = `https://drive.google.com/uc?export=download&id=${photo.drive_id}`;
+             window.open(dlUrl, '_system');
+          } else {
+             // Browser fallback
+             const lh3Url = `https://lh3.googleusercontent.com/d/${photo.drive_id}=s0`;
+             fetch(lh3Url, { mode: 'cors', cache: 'no-cache' })
+                .then(res => res.blob())
+                .then(blob => {
+                   if(blob.size > 1000) {
+                      const objUrl = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = objUrl;
+                      a.download = photo.name || 'foto.jpg';
+                      document.body.appendChild(a);
+                      a.click();
+                      setTimeout(() => {
+                         document.body.removeChild(a);
+                         URL.revokeObjectURL(objUrl);
+                      }, 1000);
+                   }
+                }).catch(e => console.warn("Otomatik indirme hatası", e));
+          }
+        } catch (error) {
+           console.warn(error);
+        }
+        await new Promise(r => setTimeout(r, 500));
+      }
+    }
+
+    const encodedText = encodeURIComponent(text);
+    const isNative = typeof window !== 'undefined' && (window as any).Capacitor?.isNative;
+    const waUrl = isNative ? `whatsapp://send?text=${encodedText}` : `https://wa.me/?text=${encodedText}`;
+    
+    setTimeout(() => {
+      window.open(waUrl, isNative ? '_system' : '_blank');
+      addActivityEvent('status_change', 'WhatsApp paylaşımı başlatıldı', 'emerald');
+    }, 500);
+  };
+
+  const handleShareEmail = () => {
+    const text = generateShareText();
+    setIsShareMenuOpen(false);
+    const subject = encodeURIComponent(`Görev: ${selectedTask?.title}`);
+    const body = encodeURIComponent(text);
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    addActivityEvent('status_change', 'E-posta oluşturuldu', 'blue');
+  };
+
+  const handleNativeShare = async () => {
+    const text = generateShareText();
+    setIsShareMenuOpen(false);
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({
+          title: selectedTask?.title || 'Görev Paylaşımı',
+          text: text,
+        });
+        addActivityEvent('status_change', 'Görev paylaşıldı', 'blue');
+      } catch (err) {
+        console.error("Native share failed", err);
+      }
+    }
+  };
 
 
   // ---- Config ----
@@ -513,7 +646,32 @@ export function TaskDetailPanel() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2 mt-1">
+              <div className="flex flex-col gap-2 mt-1 relative" ref={shareMenuRef}>
+                <button onClick={() => setIsShareMenuOpen(!isShareMenuOpen)}
+                  className="p-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-500 hover:text-indigo-700 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 dark:text-indigo-400 dark:hover:text-indigo-300 transition-all shadow-sm"
+                  title="Görevi Paylaş"
+                >
+                  <Share2 className="w-5 h-5" />
+                </button>
+                {isShareMenuOpen && (
+                  <div className="absolute top-0 right-12 z-50 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-1 animate-in fade-in slide-in-from-right-2 duration-150">
+                    <button onClick={handleCopyText} className="w-full text-left px-3 py-2 text-xs font-semibold flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-slate-700 dark:text-white/90">
+                      <Copy className="w-4 h-4 text-slate-400" /> Panoya Kopyala
+                    </button>
+                    <button onClick={handleShareWhatsApp} className="w-full text-left px-3 py-2 text-xs font-semibold flex items-center gap-2 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors text-emerald-700 dark:text-emerald-400">
+                      <MessageCircle className="w-4 h-4 text-emerald-500" /> WhatsApp'ta Paylaş
+                    </button>
+                    <button onClick={handleShareEmail} className="w-full text-left px-3 py-2 text-xs font-semibold flex items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-blue-700 dark:text-blue-400">
+                      <Mail className="w-4 h-4 text-blue-500" /> E-posta Gönder
+                    </button>
+                    {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
+                      <button onClick={handleNativeShare} className="w-full text-left px-3 py-2 text-xs font-semibold flex items-center gap-2 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors text-purple-700 dark:text-purple-400 border-t border-slate-100 dark:border-slate-700/50 mt-1 pt-2">
+                        <Share2 className="w-4 h-4 text-purple-500" /> Diğer...
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 <button onClick={closeTaskDetail}
                   className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white/40 dark:hover:text-white transition-all shadow-sm"
                   title="Kapat"
