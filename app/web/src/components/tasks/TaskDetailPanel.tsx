@@ -671,7 +671,7 @@ export function TaskDetailPanel() {
   };
 
   const renderMetaInfo = () => (
-    <div className="p-4 md:p-5 border-b md:border-b border-slate-100 dark:border-white/5 space-y-3 bg-slate-50/50 md:bg-transparent dark:bg-white/5 md:dark:bg-transparent rounded-xl md:rounded-none">
+    <div className="p-4 md:px-6 md:pb-5 md:pt-16 border-b border-slate-100 dark:border-white/5 space-y-3 bg-slate-50/50 md:bg-transparent dark:bg-white/5 md:dark:bg-transparent rounded-xl md:rounded-none">
       {/* Hedef Tarih */}
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-bold text-slate-500 dark:text-white/40 tracking-wider flex items-center gap-1.5">
