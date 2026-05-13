@@ -190,6 +190,37 @@ async def get_app_version():
         "min_supported_version": "1.0"
     }
 
+@app.get("/api/link-preview")
+async def link_preview(url: str):
+    """URL'den sayfa başlığı ve favicon çeker — LinkBreeze özelliği için"""
+    import httpx
+    from urllib.parse import urlparse
+    try:
+        parsed = urlparse(url)
+        if not parsed.scheme:
+            url = f"https://{url}"
+            parsed = urlparse(url)
+        
+        async with httpx.AsyncClient(timeout=3.0, follow_redirects=True) as client:
+            resp = await client.get(url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
+            html = resp.text[:10000]  # İlk 10KB yeterli
+        
+        # Title çıkar
+        import re
+        title_match = re.search(r'<title[^>]*>(.*?)</title>', html, re.IGNORECASE | re.DOTALL)
+        title = title_match.group(1).strip() if title_match else parsed.netloc
+        
+        # HTML entity decode
+        from html import unescape
+        title = unescape(title)
+        
+        favicon = f"{parsed.scheme}://{parsed.netloc}/favicon.ico"
+        
+        return {"title": title, "url": url, "favicon": favicon, "domain": parsed.netloc}
+    except Exception:
+        parsed = urlparse(url)
+        return {"title": parsed.netloc or url, "url": url, "favicon": "", "domain": parsed.netloc or ""}
+
 @app.get("/api/health")
 async def health_check():
     return {

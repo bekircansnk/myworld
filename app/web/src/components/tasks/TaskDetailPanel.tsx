@@ -15,7 +15,7 @@ import {
   AlignLeft, ListChecks, Plus, X, Clock, Pencil, Save, Trash2,
   Bot, Activity, CalendarClock, Timer, Target, TrendingUp,
   ChevronRight, ChevronDown, FileText, Paperclip, History, Flag,
-  Share2, Copy, Mail, MessageCircle, Download
+  Share2, Copy, Mail, MessageCircle, Download, ImagePlus
 } from "lucide-react"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { format, formatDistanceToNow } from "date-fns"
