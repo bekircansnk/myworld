@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { createPortal } from "react-dom"
 import { DrivePhoto } from "@/types"
 import { uploadPhotoToDrive, deletePhotoFromDrive, getPhotoThumbnailUrl, getPhotoViewUrl, getPhotoDownloadUrl } from "@/services/drivePhotoService"
 import { ImagePlus, X, Loader2, Trash2, Download, ZoomIn, Camera, ChevronLeft, ChevronRight } from "lucide-react"
@@ -382,11 +383,11 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
         </div>
       )}
 
-      {/* Lightbox */}
-      {previewIndex !== null && photos[previewIndex] && (
+      {/* Lightbox — createPortal ile body'ye taşıyoruz ki parent overflow tarafından kısıtlanmasın */}
+      {previewIndex !== null && photos[previewIndex] && typeof document !== 'undefined' && createPortal(
         <div 
           role="dialog"
-          className="fixed inset-0 z-[70] bg-black/95 flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-200"
+          className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-200"
           onClick={closeLightbox}
         >
           {/* Sol Ok */}
@@ -401,10 +402,9 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
           <img
             src={`${getPhotoViewUrl(photos[previewIndex].drive_id)}`}
             alt={photos[previewIndex].name}
-            className="max-w-[95vw] max-h-[95vh] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-300 cursor-zoom-out"
-            onClick={(e) => { e.stopPropagation(); setPreviewIndex(null); }}
+            className="max-w-[95vw] max-h-[90vh] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-300 cursor-zoom-out"
+            onClick={(e) => { e.stopPropagation(); closeLightbox(); }}
             onError={(e) => {
-              // Eğer yüklenemezse (offline vs), src'yi yenilemek için cache-buster ekle
               const target = e.target as HTMLImageElement;
               if (!target.src.includes('retry=')) {
                 setTimeout(() => { target.src = target.src + '?retry=' + Date.now(); }, 2000);
@@ -421,7 +421,7 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
             <ChevronRight className="w-6 h-6 md:w-8 md:h-8" />
           </button>
 
-          {/* Sağ Üst Menü (Kapat / İndir / Sil) */}
+          {/* Sağ Üst Menü (İndir / Sil / Kapat) */}
           <div className="absolute top-4 right-4 md:top-8 md:right-8 flex gap-2 md:gap-3">
             <button
               onClick={(e) => { e.stopPropagation(); handleDownload(photos[previewIndex]) }}
@@ -450,7 +450,8 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-black/50 text-white text-sm font-medium backdrop-blur-md">
             {previewIndex + 1} / {photos.length}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <div className="space-y-2">

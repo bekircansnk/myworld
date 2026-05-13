@@ -48,55 +48,68 @@ export function AppUpdateChecker() {
     return false;
   }, []);
 
-  // Sürüm kontrolü
-  useEffect(() => {
+  // Sürüm kontrolü fonksiyonu — hem ilk açılışta hem resume'da çağrılır
+  const checkVersion = useCallback(async () => {
     if (!Capacitor.isNativePlatform()) return;
 
-    // 24 saat bekleme kontrolü
+    // 1 saat bekleme kontrolü (kullanıcı "Sonra" dediyse)
     const skipUntil = localStorage.getItem("updateSkipUntil");
     if (skipUntil && Date.now() < parseInt(skipUntil, 10)) return;
 
-    const checkVersion = async () => {
-      try {
-        setState("checking");
+    try {
+      setState("checking");
 
-        // Cihazın mevcut sürümünü al
-        const appInfo = await App.getInfo();
-        setCurrentVersion(appInfo.version);
+      // Cihazın mevcut sürümünü al
+      const appInfo = await App.getInfo();
+      setCurrentVersion(appInfo.version);
 
-        // Backend'den son sürüm bilgisini çek
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
+      // Backend'den son sürüm bilgisini çek
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-        const res = await fetch(`${apiUrl}/api/app-version`, {
-          signal: controller.signal,
-        });
-        clearTimeout(timeoutId);
+      const res = await fetch(`${apiUrl}/api/app-version`, {
+        signal: controller.signal,
+        cache: "no-store", // Her zaman güncel veri çek
+      });
+      clearTimeout(timeoutId);
 
-        if (!res.ok) {
-          setState("idle");
-          return;
-        }
+      if (!res.ok) {
+        setState("idle");
+        return;
+      }
 
-        const data: VersionInfo = await res.json();
+      const data: VersionInfo = await res.json();
 
-        if (isNewerVersion(appInfo.version, data.version)) {
-          setVersionInfo(data);
-          setState("available");
-        } else {
-          setState("idle");
-        }
-      } catch {
-        // Ağ hatası — sessizce geç
+      if (isNewerVersion(appInfo.version, data.version)) {
+        setVersionInfo(data);
+        setState("available");
+      } else {
         setState("idle");
       }
-    };
-
-    // 2 saniye gecikme — uygulama açılış animasyonları bitsin
-    const timer = setTimeout(checkVersion, 2000);
-    return () => clearTimeout(timer);
+    } catch {
+      // Ağ hatası — sessizce geç
+      setState("idle");
+    }
   }, [isNewerVersion]);
+
+  // İlk açılışta kontrol et
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const timer = setTimeout(checkVersion, 1500);
+    return () => clearTimeout(timer);
+  }, [checkVersion]);
+
+  // Uygulama ön plana geldiğinde tekrar kontrol et
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const listener = App.addListener("appStateChange", ({ isActive }) => {
+      if (isActive) {
+        setTimeout(checkVersion, 1000);
+      }
+    });
+    return () => { listener.then(l => l.remove()); };
+  }, [checkVersion]);
 
   // APK indirme ve yükleme
   const handleUpdate = useCallback(async () => {
@@ -190,9 +203,9 @@ export function AppUpdateChecker() {
     }
   }, [versionInfo]);
 
-  // "Sonra Hatırlat" — 24 saat boyunca gösterme
+  // "Sonra Hatırlat" — 1 saat boyunca gösterme (her uygulama açılışında tekrar sorsun)
   const handleSkip = useCallback(() => {
-    localStorage.setItem("updateSkipUntil", String(Date.now() + 24 * 60 * 60 * 1000));
+    localStorage.setItem("updateSkipUntil", String(Date.now() + 1 * 60 * 60 * 1000));
     setState("idle");
   }, []);
 

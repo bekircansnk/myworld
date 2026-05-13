@@ -9,6 +9,15 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v2.0
+**Tarih:** 13 Mayıs 2026
+**Değişiklikler:**
+- **[Kritik Düzeltme]** Fotoğraf lightbox'ı artık TAM EKRAN açılıyor — alt panelde sıkışan küçük görüntü sorunu `createPortal` ile kökten çözüldü.
+- **[Tasarım]** Alt menü paneli gerçek saydam (Apple Glass / macOS 26 stili) efektiyle yenilendi — arkasındaki yazılar artık tamamen okunabiliyor.
+- **[İyileştirme]** Otomatik güncelleme sistemi güçlendirildi: 24 saat bekleme 1 saate düşürüldü, `appStateChange` dinleyicisi ile her ön plana gelişte kontrol yapılıyor, `cache: "no-store"` ile her zaman güncel veri çekiliyor.
+- **[UX]** Mobilde fotoğraf üzerindeki hover butonları kaldırılarak yanlışlıkla silme/indirme tıklamaları engellendi; bu işlevler lightbox'a taşındı.
+- **[İyileştirme]** Alt panel açıkken sol taraftaki içerik kaydırma miktarı dengelenerek aşırı padding sorunu giderildi.
+
 ### v1.9
 **Tarih:** 13 Mayıs 2026
 **Değişiklikler:**
