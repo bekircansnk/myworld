@@ -12,10 +12,11 @@ import { TaskPhotoUploader } from "./TaskPhotoUploader"
 import { useToast } from "@/components/ui/toast"
 import {
   Calendar, Sparkles, Loader2, CheckCircle2, Circle,
-  AlignLeft, ListChecks, Plus, X, Clock, Pencil, Save, Trash2,
-  Bot, Activity, CalendarClock, Timer, Target, TrendingUp,
+  ListChecks, Plus, X, Pencil, Save, Trash2,
+  Bot, Activity, CalendarClock, Target, TrendingUp,
   ChevronRight, ChevronDown, FileText, Paperclip, History, Flag,
-  Share2, Copy, Mail, MessageCircle, Download, ImagePlus
+  Share2, Copy, Mail, MessageCircle, ImagePlus, Link,
+  ExternalLink
 } from "lucide-react"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { format, formatDistanceToNow } from "date-fns"
@@ -113,6 +114,7 @@ export function TaskDetailPanel() {
   const [isProgressOpen, setIsProgressOpen] = React.useState(false)
   const [isAIOpen, setIsAIOpen] = React.useState(false)
   const [isPhotosOpen, setIsPhotosOpen] = React.useState(true)
+  const [isHistoryOpen, setIsHistoryOpen] = React.useState(false)
   const subtaskInputRef = React.useRef<HTMLInputElement>(null)
   const priorityMenuRef = React.useRef<HTMLDivElement>(null)
   const hasFetchedAI = React.useRef(false)
@@ -141,10 +143,26 @@ export function TaskDetailPanel() {
     return selectedTask.description.match(imgRegex) || []
   }, [selectedTask?.description])
 
-  const elapsedTime = React.useMemo(() => {
-    if (!selectedTask?.created_at) return ""
-    return formatDistanceToNow(new Date(selectedTask.created_at), { locale: tr, addSuffix: true })
-  }, [selectedTask?.created_at])
+  // LinkBreeze — URL önizleme cache
+  const [linkPreviews, setLinkPreviews] = React.useState<Record<string, {title: string, domain: string, favicon: string}>>({})
+
+  // LinkBreeze — Açıklamadaki URL'lerden sayfa başlığı çek
+  React.useEffect(() => {
+    if (!selectedTask?.description) return
+    const urlRegex = /https?:\/\/[^\s]+/g
+    const urls = selectedTask.description.match(urlRegex) || []
+    const newUrls = urls.filter(u => !linkPreviews[u])
+    if (newUrls.length === 0) return
+    
+    newUrls.forEach(async (url) => {
+      try {
+        const res = await api.get(`/api/link-preview?url=${encodeURIComponent(url)}`)
+        if (res.data?.title) {
+          setLinkPreviews(prev => ({ ...prev, [url]: res.data }))
+        }
+      } catch { /* sessiz geç */ }
+    })
+  }, [selectedTask?.description])
 
   // Effects
   React.useEffect(() => {
@@ -665,192 +683,157 @@ export function TaskDetailPanel() {
         onClick={handleCloseDetail}
       />
 
-      {/* Modal Container — BÜYÜTÜLMÜŞ */}
+      {/* Modal Container — TEK SCROLL, SABİT HEADER YOK */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-5 pointer-events-none">
         <div
           className="pointer-events-auto w-full max-w-full md:max-w-[1280px] h-[100dvh] md:h-[92vh] rounded-none md:rounded-3xl overflow-hidden animate-in zoom-in-95 fade-in duration-300 border-0 md:border border-slate-200/60 dark:border-white/10 shadow-2xl shadow-indigo-500/10 bg-white dark:bg-slate-900 flex flex-col"
           onClick={e => e.stopPropagation()}
         >
-          {/* ============ HEADER ============ */}
-          <div className="relative px-4 md:px-8 pt-4 md:pt-6 pb-3 md:pb-5 border-b border-slate-200/50 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 shrink-0">
-            <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${pConfig.gradient}`} />
+          {/* Öncelik gradient çizgisi */}
+          <div className={`h-1 bg-gradient-to-r ${pConfig.gradient} shrink-0`} />
+          
+          {/* Floating aksiyon butonları — sağ üst */}
+          <div className="absolute top-3 right-3 md:top-7 md:right-7 z-10 flex items-center gap-1.5" ref={shareMenuRef}>
+            <button onClick={() => setIsShareMenuOpen(!isShareMenuOpen)}
+              className="p-2 rounded-xl bg-white/80 hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 dark:bg-white/5 dark:hover:bg-indigo-500/20 dark:text-white/40 dark:hover:text-indigo-400 transition-all shadow-sm backdrop-blur-sm"
+              title="Paylaş">
+              <Share2 className="w-4 h-4" />
+            </button>
+            {isShareMenuOpen && (
+              <div className="absolute top-10 right-0 z-50 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-1 animate-in fade-in slide-in-from-top-2 duration-150">
+                <button onClick={handleCopyText} className="w-full text-left px-3 py-2 text-xs font-semibold flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-slate-700 dark:text-white/90">
+                  <Copy className="w-4 h-4 text-slate-400" /> Panoya Kopyala
+                </button>
+                <button onClick={handleShareWhatsApp} className="w-full text-left px-3 py-2 text-xs font-semibold flex items-center gap-2 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors text-emerald-700 dark:text-emerald-400">
+                  <MessageCircle className="w-4 h-4 text-emerald-500" /> WhatsApp
+                </button>
+                <button onClick={handleShareEmail} className="w-full text-left px-3 py-2 text-xs font-semibold flex items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-blue-700 dark:text-blue-400">
+                  <Mail className="w-4 h-4 text-blue-500" /> E-posta
+                </button>
+                {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
+                  <button onClick={handleNativeShare} className="w-full text-left px-3 py-2 text-xs font-semibold flex items-center gap-2 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors text-purple-700 dark:text-purple-400 border-t border-slate-100 dark:border-slate-700/50 mt-1 pt-2">
+                    <Share2 className="w-4 h-4 text-purple-500" /> Diğer...
+                  </button>
+                )}
+              </div>
+            )}
+            <button onClick={handleCloseDetail}
+              className="p-2 rounded-xl bg-white/80 hover:bg-slate-200 text-slate-400 hover:text-slate-600 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white/40 dark:hover:text-white transition-all shadow-sm backdrop-blur-sm"
+              title="Kapat">
+              <X className="w-4 h-4" />
+            </button>
+            <button onClick={() => setIsDeleteConfirmOpen(true)}
+              className="p-2 rounded-xl bg-white/80 hover:bg-red-50 text-slate-400 hover:text-red-500 dark:bg-white/5 dark:hover:bg-red-500/20 dark:text-white/40 dark:hover:text-red-400 transition-all shadow-sm backdrop-blur-sm"
+              title="Sil">
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
 
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                {/* Badges */}
-                <div className="flex flex-wrap items-center gap-2 mb-3">
-                  {project && (
-                    <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white shadow-sm"
-                      style={{ backgroundColor: project.color || '#6366f1' }}>
-                      {project.name}
-                    </span>
-                  )}
-                  <span className={`flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest ${sConfig.color}`}>
-                    <span className={`w-2 h-2 rounded-full ${sConfig.bg} shadow-sm`} />
-                    {sConfig.label}
-                  </span>
-                  {/* Tıklanabilir Öncelik Badge */}
-                  <div className="relative" ref={priorityMenuRef}>
-                    <button
-                      onClick={() => setShowPriorityMenu(!showPriorityMenu)}
-                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full bg-gradient-to-r ${pConfig.gradient} text-white shadow-sm flex items-center gap-1 hover:opacity-90 transition-opacity cursor-pointer`}
-                    >
-                      <Flag className="w-3 h-3" />
-                      {pConfig.label}
-                      <ChevronDown className="w-3 h-3" />
-                    </button>
-                    {showPriorityMenu && (
-                      <div className="absolute top-full left-0 mt-1 z-20 w-36 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-1 animate-in fade-in slide-in-from-top-2 duration-150">
-                        {Object.entries(priorityConfig).filter(([k]) => k !== 'normal').map(([key, cfg]) => (
-                          <button
-                            key={key}
-                            onClick={() => handlePriorityChange(key)}
-                            className={`w-full text-left px-3 py-2 text-xs font-semibold flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors ${
-                              selectedTask.priority === key ? 'bg-slate-50 dark:bg-slate-700' : ''
-                            }`}
-                          >
-                            <Flag className={`w-3 h-3 ${cfg.flagColor}`} />
-                            {cfg.label}
-                            {selectedTask.priority === key && <CheckCircle2 className="w-3 h-3 text-indigo-500 ml-auto" />}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Title */}
+          {/* ============ TEK SCROLLABLE BODY — SOL + SAĞ ============ */}
+          <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
+            
+            {/* ===== SOL PANEL — BÜYÜK ===== */}
+            <div className="flex-1 flex flex-col overflow-y-auto md:border-r border-slate-200/50 dark:border-white/5 pb-24 md:pb-0">
+              
+              {/* BAŞLIK — Kocaman, sade */}
+              <div className="px-5 md:px-8 pt-5 md:pt-7 pb-2">
                 {isEditingTitle ? (
-                  <div className="flex items-center gap-2 mt-1 mb-2">
+                  <div className="flex items-center gap-2">
                     <Input value={titleDraft} onChange={e => setTitleDraft(e.target.value)}
-                           className="text-xl md:text-2xl font-black text-slate-800 dark:text-white/95 h-12 bg-white dark:bg-black/20"
+                           className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white/95 h-14 bg-white dark:bg-black/20"
                            autoFocus
                            onKeyDown={e => { if (e.key === 'Enter') saveTitle(); if (e.key === 'Escape') { setIsEditingTitle(false); setTitleDraft(selectedTask.title); } }} />
                     <Button onClick={saveTitle} size="sm" className="bg-indigo-500 hover:bg-indigo-600 text-white shrink-0">Kaydet</Button>
                     <button onClick={() => { setIsEditingTitle(false); setTitleDraft(selectedTask.title); }} className="p-2 text-slate-400 hover:text-slate-600 shrink-0"><X className="w-5 h-5"/></button>
                   </div>
                 ) : (
-                  <h2 className="text-2xl font-black text-slate-800 dark:text-white/95 leading-tight group flex items-center gap-2 cursor-pointer transition-colors hover:text-indigo-600 dark:hover:text-indigo-400" onClick={() => setIsEditingTitle(true)}>
+                  <h2 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white/95 leading-tight group flex items-start gap-2 cursor-pointer transition-colors hover:text-indigo-600 dark:hover:text-indigo-400 pr-24" onClick={() => setIsEditingTitle(true)}>
                     {selectedTask.title}
-                    <Pencil className="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <Pencil className="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity mt-2 shrink-0" />
                   </h2>
                 )}
-
-                {/* Meta Row */}
-                <div className="flex flex-wrap items-center gap-4 mt-3 text-xs font-semibold text-slate-500 dark:text-white/40">
-                  <span className="flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5" />
-                    Oluşturulma: {selectedTask.created_at ? format(new Date(selectedTask.created_at), "dd MMM yyyy HH:mm", { locale: tr }) : "—"}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5" />
-                    {elapsedTime}
-                  </span>
-                  {selectedTask.due_date && (
-                    <span className="flex items-center gap-1.5 text-orange-500 dark:text-orange-400">
-                      <Target className="w-3.5 h-3.5" />
-                      Hedef: {format(new Date(selectedTask.due_date), "dd MMM yyyy", { locale: tr })}
-                    </span>
-                  )}
-                </div>
               </div>
 
-              <div className="flex flex-col gap-2 mt-1 relative" ref={shareMenuRef}>
-                <button onClick={() => setIsShareMenuOpen(!isShareMenuOpen)}
-                  className="p-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-500 hover:text-indigo-700 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 dark:text-indigo-400 dark:hover:text-indigo-300 transition-all shadow-sm"
-                  title="Görevi Paylaş"
-                >
-                  <Share2 className="w-5 h-5" />
-                </button>
-                {isShareMenuOpen && (
-                  <div className="absolute top-0 right-12 z-50 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-1 animate-in fade-in slide-in-from-right-2 duration-150">
-                    <button onClick={handleCopyText} className="w-full text-left px-3 py-2 text-xs font-semibold flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-slate-700 dark:text-white/90">
-                      <Copy className="w-4 h-4 text-slate-400" /> Panoya Kopyala
+              {/* AÇIKLAMA — LinkBreeze destekli */}
+              <div className="px-5 md:px-8 pb-5">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-bold text-slate-500 dark:text-white/50 uppercase tracking-wider">Açıklama</h3>
+                  {!isEditingDesc && (
+                    <button onClick={() => setIsEditingDesc(true)}
+                      className="text-xs font-semibold text-slate-400 hover:text-slate-800 dark:text-white/30 dark:hover:text-white/80 flex items-center gap-1.5 transition-colors">
+                      <Pencil className="w-3.5 h-3.5" /> Düzenle
                     </button>
-                    <button onClick={handleShareWhatsApp} className="w-full text-left px-3 py-2 text-xs font-semibold flex items-center gap-2 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors text-emerald-700 dark:text-emerald-400">
-                      <MessageCircle className="w-4 h-4 text-emerald-500" /> WhatsApp'ta Paylaş
-                    </button>
-                    <button onClick={handleShareEmail} className="w-full text-left px-3 py-2 text-xs font-semibold flex items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-blue-700 dark:text-blue-400">
-                      <Mail className="w-4 h-4 text-blue-500" /> E-posta Gönder
-                    </button>
-                    {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
-                      <button onClick={handleNativeShare} className="w-full text-left px-3 py-2 text-xs font-semibold flex items-center gap-2 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors text-purple-700 dark:text-purple-400 border-t border-slate-100 dark:border-slate-700/50 mt-1 pt-2">
-                        <Share2 className="w-4 h-4 text-purple-500" /> Diğer...
-                      </button>
+                  )}
+                </div>
+
+                {isEditingDesc ? (
+                  <div className="space-y-3">
+                    <Textarea value={descriptionDraft} onChange={e => setDescriptionDraft(e.target.value)}
+                      placeholder="Açıklama, linkler, notlar ekleyin..."
+                      className="min-h-[160px] text-sm bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-800 dark:text-white/90 resize-none focus:ring-2 focus:ring-indigo-500/50 rounded-xl shadow-inner font-medium"
+                      autoFocus />
+                    <div className="flex items-center justify-end gap-2">
+                       <Button size="sm" variant="ghost" className="h-8 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:text-white/50 rounded-xl px-4" onClick={() => setIsEditingDesc(false)}>
+                         İptal
+                       </Button>
+                       <Button size="sm" className="h-8 text-xs font-bold gap-1.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white px-5" onClick={saveDescription}>
+                         <Save className="w-3.5 h-3.5" /> Kaydet
+                       </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl bg-slate-50/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 p-5 cursor-text hover:bg-slate-100/50 dark:hover:bg-white/10 transition-all min-h-[60px] shadow-sm"
+                    onClick={() => setIsEditingDesc(true)}>
+                    {selectedTask.description ? (
+                      <div className="text-sm font-medium text-slate-600 dark:text-white/70 whitespace-pre-wrap break-words leading-relaxed">
+                        {selectedTask.description.split(/(https?:\/\/[^\s]+)/g).map((part, i) => {
+                          if (/^https?:\/\//.test(part)) {
+                            const preview = linkPreviews[part]
+                            const displayText = preview?.title || part
+                            return (
+                              <a key={i} href={part} target="_blank" rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 underline decoration-indigo-300/50 hover:decoration-indigo-500 transition-colors break-all"
+                                onClick={e => e.stopPropagation()}>
+                                <ExternalLink className="w-3 h-3 shrink-0" />
+                                {displayText}
+                              </a>
+                            )
+                          }
+                          return <span key={i}>{part}</span>
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-sm font-medium text-slate-400 dark:text-white/30 italic">Açıklama eklemek için tıklayın...</p>
                     )}
                   </div>
                 )}
 
-                <button onClick={handleCloseDetail}
-                  className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white/40 dark:hover:text-white transition-all shadow-sm"
-                  title="Kapat"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-                <button onClick={() => setIsDeleteConfirmOpen(true)}
-                  className="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-400 hover:text-red-600 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 dark:hover:text-red-300 transition-all shadow-sm"
-                  title="Görevi Sil"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Status + Due Date */}
-            <div className="flex items-center gap-1.5 md:gap-2 mt-3 md:mt-4 overflow-x-auto pb-1 scrollbar-none">
-              {(['todo', 'in_progress', 'done'] as const).map(s => (
-                <button key={s} onClick={() => handleStatusChange(s)}
-                  className={`px-3 md:px-4 py-1.5 md:py-2 text-[10px] md:text-xs font-bold rounded-lg md:rounded-xl whitespace-nowrap transition-all shadow-sm ${
-                    selectedTask.status === s
-                      ? 'bg-indigo-600 text-white shadow-indigo-500/30'
-                      : 'bg-white dark:bg-white/5 text-slate-600 dark:text-white/60 hover:bg-slate-50 dark:hover:bg-white/10 border border-slate-200 dark:border-transparent'
-                  }`}
-                >
-                  {statusConfig[s].label}
-                </button>
-              ))}
-              <div className="flex-1" />
-              {editingDueDate ? (
-                <div className="flex items-center gap-2">
-                  <input type="date" value={dueDateDraft} onChange={e => setDueDateDraft(e.target.value)}
-                    className="px-3 py-1.5 text-xs font-bold rounded-xl bg-white dark:bg-black/20 border border-slate-200 dark:border-white/20 text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-inner" />
-                  <Button size="sm" className="h-8 text-xs font-bold rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white px-4" onClick={saveDueDate}>Kaydet</Button>
-                  <button onClick={() => setEditingDueDate(false)} className="text-slate-400 hover:text-slate-600 dark:text-white/30"><X className="w-4 h-4" /></button>
+                {/* Cross-reference badges */}
+                <div className="flex flex-wrap items-center gap-2 mt-3">
+                  <LinkedItemsBadges taskId={selectedTask.id} />
                 </div>
-              ) : (
-                <button onClick={() => setEditingDueDate(true)}
-                  className="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-white dark:bg-white/5 text-slate-600 dark:text-white/60 hover:bg-slate-50 dark:hover:bg-white/10 transition-all border border-slate-200 dark:border-white/10 shadow-sm"
-                >
-                  <CalendarClock className="w-4 h-4 opacity-70" />
-                  {selectedTask.due_date ? 'Tarihi Düzenle' : 'Hedef Tarih Ekle'}
-                </button>
-              )}
-            </div>
 
-            {/* Progress Bar */}
-            {subtasks.length > 0 && (
-              <div className="flex items-center gap-4 mt-4">
-                <div className="flex-1 h-2 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden shadow-inner">
-                  <div className={`h-full transition-all duration-700 ease-out ${progress === 100 ? 'bg-gradient-to-r from-emerald-400 to-green-500' : 'bg-gradient-to-r from-indigo-500 to-purple-500'}`}
-                    style={{ width: `${progress}%` }} />
-                </div>
-                <span className={`text-sm font-black min-w-[36px] ${progress === 100 ? 'text-emerald-500' : 'text-indigo-600 dark:text-indigo-400'}`}>
-                  {progress}%
-                </span>
+                {/* Gömülü Resimler */}
+                {descImages.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-xs font-bold text-slate-500 dark:text-white/50 flex items-center gap-1.5 mb-2">
+                      <Paperclip className="w-3 h-3" /> Eklentiler ({descImages.length})
+                    </h4>
+                    <div className="flex flex-wrap gap-3">
+                      {descImages.map((url, i) => (
+                        <img key={i} src={url} alt={`Ek ${i + 1}`}
+                          className="w-24 h-24 object-cover rounded-xl border border-slate-200 dark:border-white/10 shadow-sm cursor-zoom-in hover:scale-105 transition-transform duration-300"
+                          onClick={() => setImagePreview(url)} />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          {/* ============ BODY — SOL / SAĞ LAYOUT ============ */}
-          <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
-            
-            {/* ===== SOL PANEL — BÜYÜK ===== */}
-            <div className="flex-1 flex flex-col overflow-y-auto md:border-r border-slate-200/50 dark:border-white/5 pb-24 md:pb-0">
-              
-              {/* TÜM GÖREVLER (Alt Görevler) — Referans: "Tüm Görevler" */}
-              <div className="p-4 md:p-7 border-b border-slate-100 dark:border-white/5">
+              {/* ALT GÖREVLER (Kontrol Listesi) */}
+              <div className="px-5 md:px-8 pb-6 border-t border-slate-100 dark:border-white/5 pt-5">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base font-bold text-slate-800 dark:text-white/90 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-slate-500 dark:text-white/50 uppercase tracking-wider flex items-center gap-2">
                     <ListChecks className="w-4 h-4 text-blue-500" />
                     Alt Görevler
                     {subtasks.length > 0 && (
@@ -873,7 +856,20 @@ export function TaskDetailPanel() {
                   </button>
                 </div>
 
-                {/* Subtask List — referans tarzı: her satır ayrı, sağda tarih */}
+                {/* Alt görev ilerleme çubuğu */}
+                {subtasks.length > 0 && (
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex-1 h-1.5 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
+                      <div className={`h-full transition-all duration-700 ease-out ${progress === 100 ? 'bg-gradient-to-r from-emerald-400 to-green-500' : 'bg-gradient-to-r from-indigo-500 to-purple-500'}`}
+                        style={{ width: `${progress}%` }} />
+                    </div>
+                    <span className={`text-xs font-black min-w-[30px] ${progress === 100 ? 'text-emerald-500' : 'text-indigo-600 dark:text-indigo-400'}`}>
+                      {progress}%
+                    </span>
+                  </div>
+                )}
+
+                {/* Subtask List */}
                 <div className="space-y-1">
                   {subtasks.map((st) => (
                     editingSubtaskId === st.id ? (
@@ -886,7 +882,7 @@ export function TaskDetailPanel() {
                         </div>
                       </div>
                     ) : (
-                    <div key={st.id} className="group flex items-center gap-3 py-3 px-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border border-transparent hover:border-slate-200/50 dark:hover:border-white/10 cursor-pointer" onClick={() => openSubtaskEdit(st)}>
+                    <div key={st.id} className="group flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border border-transparent hover:border-slate-200/50 dark:hover:border-white/10 cursor-pointer" onClick={() => openSubtaskEdit(st)}>
                       <button onClick={(e) => { e.stopPropagation(); handleSubtaskToggle(st); }} className="flex-shrink-0">
                         {st.status === 'done'
                           ? <CheckCircle2 className="w-5 h-5 text-emerald-500" />
@@ -894,25 +890,13 @@ export function TaskDetailPanel() {
                         }
                       </button>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          {st.description && <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-white/30 flex-shrink-0" />}
-                          <span className={`text-sm font-medium ${st.status === 'done' ? 'line-through text-slate-400 dark:text-white/40' : 'text-slate-700 dark:text-white/90'}`}>
-                            {st.title}
-                          </span>
-                        </div>
+                        <span className={`text-sm font-medium ${st.status === 'done' ? 'line-through text-slate-400 dark:text-white/40' : 'text-slate-700 dark:text-white/90'}`}>
+                          {st.title}
+                        </span>
                         {st.description && (
-                          <p className="text-[11px] text-slate-500 dark:text-white/40 mt-0.5 ml-5 leading-snug">{st.description}</p>
+                          <p className="text-[11px] text-slate-500 dark:text-white/40 mt-0.5 leading-snug">{st.description}</p>
                         )}
                       </div>
-                      {st.estimated_minutes && (
-                        <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 px-2 py-0.5 bg-slate-100 dark:bg-black/20 rounded-md">
-                          {st.estimated_minutes}dk
-                        </span>
-                      )}
-                      <button onClick={(e) => { e.stopPropagation(); openSubtaskEdit(st); }}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-indigo-600 p-1 rounded-lg">
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
                       <button onClick={(e) => handleDeleteSubtask(st.id, e)}
                         className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-600 p-1 rounded-lg">
                         <X className="w-4 h-4" />
@@ -946,79 +930,71 @@ export function TaskDetailPanel() {
                 )}
               </div>
 
-              {/* AÇIKLAMA */}
-              <div className="p-4 md:p-7 flex-1">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base font-bold text-slate-800 dark:text-white/90">Görev Açıklaması</h3>
-                  {!isEditingDesc && (
-                    <button onClick={() => setIsEditingDesc(true)}
-                      className="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-white/40 dark:hover:text-white/80 flex items-center gap-1.5 transition-colors">
-                      <Pencil className="w-3.5 h-3.5" /> Düzenle
+            </div>
+
+            {/* ===== SAĞ PANEL — KOMPAK BİLGİ KARTLARI ===== */}
+            <div className="w-full md:w-[360px] shrink-0 flex flex-col overflow-y-auto bg-slate-50/30 dark:bg-black/10">
+              
+              {/* HEDEF TARİH + ÖNCELİK — Her zaman açık */}
+              <div className="p-4 md:p-5 border-b border-slate-100 dark:border-white/5 space-y-3">
+                {/* Hedef Tarih */}
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-wider flex items-center gap-1.5">
+                    <Target className="w-3.5 h-3.5 text-orange-500" /> Hedef Tarih
+                  </span>
+                  {editingDueDate ? (
+                    <div className="flex items-center gap-1.5">
+                      <input type="date" value={dueDateDraft} onChange={e => setDueDateDraft(e.target.value)}
+                        className="px-2 py-1 text-xs font-bold rounded-lg bg-white dark:bg-black/20 border border-slate-200 dark:border-white/20 text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50" />
+                      <button onClick={saveDueDate} className="text-xs font-bold text-indigo-500 hover:text-indigo-700">✓</button>
+                      <button onClick={() => setEditingDueDate(false)} className="text-slate-400 hover:text-slate-600"><X className="w-3.5 h-3.5" /></button>
+                    </div>
+                  ) : (
+                    <button onClick={() => setEditingDueDate(true)}
+                      className="text-xs font-bold text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                      {selectedTask.due_date ? format(new Date(selectedTask.due_date), 'dd MMM yyyy', { locale: tr }) : '+ Ekle'}
                     </button>
                   )}
                 </div>
 
-                {isEditingDesc ? (
-                  <div className="space-y-3">
-                    <Textarea value={descriptionDraft} onChange={e => setDescriptionDraft(e.target.value)}
-                      placeholder="Açıklama, linkler, notlar ekleyin..."
-                      className="min-h-[160px] text-sm bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-800 dark:text-white/90 resize-none focus:ring-2 focus:ring-indigo-500/50 rounded-xl shadow-inner font-medium"
-                      autoFocus />
-                    <div className="flex items-center justify-end gap-2 sticky bottom-0 z-10 backdrop-blur-md bg-white/80 dark:bg-slate-900/80 py-4 border-t border-slate-100 dark:border-white/5 -mx-7 px-7 mt-2">
-                       <Button size="sm" variant="ghost" className="h-8 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:text-white/50 rounded-xl px-4" onClick={() => setIsEditingDesc(false)}>
-                         İptal
-                       </Button>
-                       <Button size="sm" className="h-8 text-xs font-bold gap-1.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white px-5" onClick={saveDescription}>
-                         <Save className="w-3.5 h-3.5" /> Kaydet
-                       </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="rounded-2xl bg-slate-50/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 p-5 cursor-text hover:bg-slate-100/50 dark:hover:bg-white/10 transition-all min-h-[100px] shadow-sm"
-                    onClick={() => setIsEditingDesc(true)}>
-                    {selectedTask.description ? (
-                      <div className="text-sm font-medium text-slate-600 dark:text-white/70 whitespace-pre-wrap break-words leading-relaxed">
-                        {selectedTask.description}
-                      </div>
-                    ) : (
-                      <p className="text-sm font-medium text-slate-400 dark:text-white/30 italic">Açıklama eklemek için tıklayın...</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Durum + Tarih Info + Cross-reference badges */}
-                <div className="flex flex-wrap items-center gap-4 mt-4 text-xs font-semibold text-slate-500 dark:text-white/50">
-                  <span>Durum: <span className={`${sConfig.color} font-bold`}>{sConfig.label}</span></span>
-                  {selectedTask.due_date && (
-                    <span>Tarih: <span className="text-slate-700 dark:text-white/70 font-bold">{format(new Date(selectedTask.due_date), 'dd MMM yyyy', { locale: tr })}</span></span>
-                  )}
-                  <span>Öncelik: <span className="font-bold text-slate-700 dark:text-white/70">{pConfig.label}</span></span>
-                  <LinkedItemsBadges taskId={selectedTask.id} />
-                </div>
-
-                {/* Gömülü Resimler */}
-                {descImages.length > 0 && (
-                  <div className="mt-4">
-                    <h4 className="text-xs font-bold text-slate-500 dark:text-white/50 flex items-center gap-1.5 mb-2">
-                      <Paperclip className="w-3 h-3" /> Eklentiler ({descImages.length})
-                    </h4>
-                    <div className="flex flex-wrap gap-3">
-                      {descImages.map((url, i) => (
-                        <img key={i} src={url} alt={`Ek ${i + 1}`}
-                          className="w-24 h-24 object-cover rounded-xl border border-slate-200 dark:border-white/10 shadow-sm cursor-zoom-in hover:scale-105 transition-transform duration-300"
-                          onClick={() => setImagePreview(url)} />
+                {/* Öncelik */}
+                <div className="flex items-center justify-between relative" ref={priorityMenuRef}>
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-wider flex items-center gap-1.5">
+                    <Flag className={`w-3.5 h-3.5 ${pConfig.flagColor}`} /> Öncelik
+                  </span>
+                  <button onClick={() => setShowPriorityMenu(!showPriorityMenu)}
+                    className={`text-xs font-bold px-2.5 py-1 rounded-lg bg-gradient-to-r ${pConfig.gradient} text-white flex items-center gap-1 hover:opacity-90 transition-opacity`}>
+                    {pConfig.label}
+                    <ChevronDown className="w-3 h-3" />
+                  </button>
+                  {showPriorityMenu && (
+                    <div className="absolute top-full right-0 mt-1 z-20 w-36 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-1 animate-in fade-in slide-in-from-top-2 duration-150">
+                      {Object.entries(priorityConfig).filter(([k]) => k !== 'normal').map(([key, cfg]) => (
+                        <button key={key} onClick={() => handlePriorityChange(key)}
+                          className={`w-full text-left px-3 py-2 text-xs font-semibold flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors ${selectedTask.priority === key ? 'bg-slate-50 dark:bg-slate-700' : ''}`}>
+                          <Flag className={`w-3 h-3 ${cfg.flagColor}`} />
+                          {cfg.label}
+                          {selectedTask.priority === key && <CheckCircle2 className="w-3 h-3 text-indigo-500 ml-auto" />}
+                        </button>
                       ))}
                     </div>
+                  )}
+                </div>
+
+                {/* Oluşturma Tarihi — küçük */}
+                {selectedTask.created_at && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-wider flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-slate-400" /> Oluşturulma
+                    </span>
+                    <span className="text-[11px] font-medium text-slate-500 dark:text-white/40">
+                      {format(new Date(selectedTask.created_at), 'dd MMM yyyy', { locale: tr })}
+                    </span>
                   </div>
                 )}
               </div>
 
-            </div>
-
-            {/* ===== SAĞ PANEL — YENİDEN DÜZENLENDİ ===== */}
-            <div className="w-full md:w-[400px] shrink-0 flex flex-col overflow-hidden bg-slate-50/30 dark:bg-black/10">
-              
-              {/* FOTOĞRAFLAR — Google Drive Entegrasyonu (EN ÜSTTE) */}
+              {/* FOTOĞRAFLAR — Google Drive Entegrasyonu */}
               <div 
                 className="border-b border-slate-100 dark:border-white/5 shrink-0 cursor-pointer select-none"
                 onClick={() => setIsPhotosOpen(!isPhotosOpen)}
@@ -1078,7 +1054,7 @@ export function TaskDetailPanel() {
                     </div>
                   </div>
                   
-                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isProgressOpen ? 'max-h-[300px] mt-3' : 'max-h-0 md:max-h-[300px] md:mt-3'}`}>
+                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isProgressOpen ? 'max-h-[300px] mt-3' : 'max-h-0'}`}>
                     <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50/50 dark:from-emerald-500/10 dark:to-teal-500/5 border border-emerald-100 dark:border-emerald-500/20 p-4">
                       <p className="text-[11px] font-medium text-emerald-800/80 dark:text-emerald-100/60 leading-relaxed">
                         {subtasks.length > 0
@@ -1130,7 +1106,7 @@ export function TaskDetailPanel() {
                     </div>
                   </div>
 
-                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isAIOpen ? 'max-h-[500px] mt-3' : 'max-h-0 md:max-h-[100px] md:mt-3'}`}>
+                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isAIOpen ? 'max-h-[500px] mt-3' : 'max-h-0'}`}>
                     <div className="rounded-xl bg-gradient-to-br from-purple-100/80 to-indigo-100/60 dark:from-purple-500/15 dark:to-indigo-500/10 border border-purple-200/50 dark:border-purple-500/20 p-3 md:p-4 shadow-sm relative overflow-hidden">
                       <div className="absolute -top-10 -right-10 w-24 h-24 bg-purple-400/20 blur-3xl rounded-full pointer-events-none" />
                       {isAnalyzing ? (
@@ -1161,40 +1137,40 @@ export function TaskDetailPanel() {
                 </div>
               </div>
 
-              {/* ALT: İŞLEM GEÇMİŞİ — SADECE DESKTOP */}
-              <div className="hidden md:flex flex-1 flex-col overflow-hidden min-h-0">
-                <div className="px-5 pt-5 pb-2 shrink-0">
-                  <h3 className="text-sm font-bold text-slate-700 dark:text-white/80 flex items-center gap-2">
-                    <History className="w-4 h-4 text-emerald-500" />
-                    İşlem Geçmişi
-                  </h3>
-                </div>
+              {/* ALT: İŞLEM GEÇMİŞİ — ACCORDION, VARSAYILAN KAPALI */}
+              <div 
+                className="border-b border-slate-100 dark:border-white/5 cursor-pointer select-none"
+                onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+              >
+                <div className="p-3 md:p-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-700 dark:text-white/80 flex items-center gap-2">
+                      <History className="w-4 h-4 text-emerald-500" />
+                      İşlem Geçmişi
+                    </h3>
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform text-slate-400 ${isHistoryOpen ? 'rotate-180' : ''}`} />
+                  </div>
 
-                <div className="flex-1 overflow-y-auto px-5 pb-5 min-h-0">
-                  <div className="relative">
-                    {/* Timeline Line */}
-                    <div className="absolute left-[13px] top-2 bottom-2 w-px bg-slate-200 dark:bg-white/10" />
-
-                    <div className="space-y-4 pt-1">
-                      {activityLog.map(event => (
-                        <div key={event.id} className="flex items-start gap-3 relative">
-                          {getActivityIcon(event)}
-                          <div className="flex-1 min-w-0 pt-0.5">
-                            <p className="text-[12px] font-medium text-slate-700 dark:text-white/80 leading-snug">{event.text}</p>
-                            <p className="text-[10px] text-slate-400 dark:text-white/40 mt-0.5 font-semibold">
-                              {format(event.timestamp, "dd MMM yyyy, HH:mm", { locale: tr })}
-                            </p>
+                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isHistoryOpen ? 'max-h-[400px] mt-3' : 'max-h-0'}`}
+                    onClick={e => e.stopPropagation()}>
+                    <div className="relative">
+                      <div className="absolute left-[13px] top-2 bottom-2 w-px bg-slate-200 dark:bg-white/10" />
+                      <div className="space-y-3 pt-1">
+                        {activityLog.map(event => (
+                          <div key={event.id} className="flex items-start gap-3 relative">
+                            {getActivityIcon(event)}
+                            <div className="flex-1 min-w-0 pt-0.5">
+                              <p className="text-[11px] font-medium text-slate-700 dark:text-white/80 leading-snug">{event.text}</p>
+                              <p className="text-[10px] text-slate-400 dark:text-white/40 mt-0.5 font-semibold">
+                                {format(event.timestamp, "dd MMM yyyy, HH:mm", { locale: tr })}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                      
-                      {activityLog.length === 0 && (
-                        <div className="text-center py-8">
-                          <Activity className="w-8 h-8 text-slate-200 dark:text-white/10 mx-auto mb-3" />
-                          <p className="text-xs text-slate-400 dark:text-white/30 font-medium">Henüz işlem geçmişi yok</p>
-                          <p className="text-[10px] text-slate-300 dark:text-white/20 mt-1">Görevde değişiklik yapıldığında burada görünecek</p>
-                        </div>
-                      )}
+                        ))}
+                        {activityLog.length === 0 && (
+                          <p className="text-[11px] text-slate-400 dark:text-white/30 py-3 text-center">Henüz işlem yok</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
