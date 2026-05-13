@@ -21,8 +21,19 @@ const serwist = new Serwist({
   // Navigation preload ile hızlı ilk yükleme
   navigationPreload: true,
   // ÖZELLEŞTİRİLMİŞ CACHE KURALLARI
-  // defaultCache KULLANILMIYOR — API isteklerinin önbelleklenmesini tamamen engellemek için
   runtimeCaching: [
+    // ============================================================================
+    // KRİTİK (1. ÖNCELIK): API istekleri ASLA önbelleklenmeyecek
+    // Hem aynı origin (/api/*) hem Render.com farklı origin kapsanıyor
+    // Bu kural EN BAŞTA olmalı — başka hiçbir kural API isteklerini yakalamasın
+    // ============================================================================
+    {
+      matcher: ({ url }: { url: URL }) =>
+        url.pathname.startsWith('/api/') ||
+        url.href.includes('/api/') ||
+        url.hostname.includes('onrender.com'),
+      handler: new NetworkOnly(),
+    },
     // Google Fonts (Web fontları) — 1 yıl önbellekle (statik dosya, değişmez)
     {
       matcher: /^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,
@@ -45,27 +56,8 @@ const serwist = new Serwist({
         })],
       }),
     },
-    // ============================================================================
-    // KRİTİK: API istekleri ASLA önbelleklenmeyecek
-    // Bu kural olmazsa Service Worker eski API yanıtlarını cacheler ve mobilde
-    // "boş ekran" / "veri görünmüyor" hatası oluşur.
-    // ============================================================================
-    {
-      matcher: ({ url }) => url.pathname.startsWith('/api/') || url.href.includes('/api/'),
-      handler: new NetworkOnly(),
-    },
-    // Cross-origin istekler (harici API'ler) — ağ öncelikli ama önbellek YOK
-    {
-      matcher: ({ sameOrigin }: { sameOrigin: boolean }) => !sameOrigin,
-      handler: new NetworkFirst({
-        cacheName: "cross-origin",
-        plugins: [new ExpirationPlugin({
-          maxEntries: 32,
-          maxAgeSeconds: 3600,
-        })],
-        networkTimeoutSeconds: 10,
-      }),
-    },
+
+
     // Geri kalan her şey (statik dosyalar vs.) — ağ öncelikli
     {
       matcher: /.*/i,

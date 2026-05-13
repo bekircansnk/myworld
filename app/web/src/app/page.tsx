@@ -27,7 +27,7 @@ import { AdminPanel } from "@/components/admin/AdminPanel"
 export default function DashboardPage() {
   const { user, isAuthenticated, isLoading: authLoading, checkAuth, _hasHydrated: authHydrated } = useAuthStore()
   const { tasks, fetchTasks } = useTaskStore()
-  const { projects, fetchProjects, selectedProjectId, viewMode } = useProjectStore()
+  const { projects, fetchProjects, selectedProjectId, viewMode, _hasHydrated: projectHydrated } = useProjectStore()
   const { fetchEvents } = useCalendarStore()
   const { fetchNotes } = useNoteStore()
 
@@ -52,30 +52,28 @@ export default function DashboardPage() {
       fetchProjects()
       useWebSocketStore.getState().connect()
       
-      // Eğer kullanıcı henüz hiçbir firmaya sahip değilse, yetki gelmesini bekle (polling)
-      // (WebSocket kapalıysa veya hata verdiyse yedek plan)
+      // Backend'i uyandır (Render.com cold start önlemi)
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/health`).catch(() => {});
+      
       const authPoll = setInterval(() => {
-        // Sayfa arka plandaysa gereksiz istek atma (CPU/enerji tasarrufu)
         if (document.hidden) return
         const currentProjects = useProjectStore.getState().projects
         if (currentProjects.length === 0) {
            useAuthStore.getState().checkAuth();
            fetchProjects();
         }
-      }, 30000); // 30 saniyede bir (eskiden 15 saniyeydi)
+      }, 30000);
       
       return () => clearInterval(authPoll);
     }
-  }, [isAuthenticated]) // projects.length bağımlılığı kaldırıldı — sonsuz döngü önlendi
+  }, [isAuthenticated])
 
   // Firma veya viewMode değiştiğinde tüm modül verilerini yeniden çek
   React.useEffect(() => {
-    if (!isAuthenticated || !selectedProjectId) return
+    if (!isAuthenticated || !selectedProjectId || !projectHydrated) return
 
-    // ViewMode'a göre gerekli veriyi çek
-    const refreshData = () => {
-      // Sayfa arka plandaysa gereksiz istek atma (CPU/enerji tasarrufu)
-      if (document.hidden) return
+    const refreshData = (isInitial = false) => {
+      if (!isInitial && document.hidden) return
       if (viewMode === 'all_tasks' || viewMode === 'project' || viewMode === 'dashboard') {
         fetchTasks(selectedProjectId)
       }
@@ -87,16 +85,12 @@ export default function DashboardPage() {
       }
     }
 
-    // İlk yükleme — her zaman tüm verileri çek
-    fetchTasks(selectedProjectId)
-    fetchEvents(selectedProjectId)
-    fetchNotes(selectedProjectId)
+    refreshData(true)
 
-    // 60 saniyede bir sadece aktif modülü yenile (eskiden 15 saniyeydi — gereksiz yük)
-    const pollInterval = setInterval(refreshData, 60000)
+    const pollInterval = setInterval(() => refreshData(false), 60000)
 
     return () => clearInterval(pollInterval)
-  }, [isAuthenticated, selectedProjectId, viewMode])
+  }, [isAuthenticated, selectedProjectId, viewMode, projectHydrated])
 
   const handleMorningDismiss = () => {
     localStorage.setItem("pikselis_last_greet", new Date().toDateString())
@@ -104,16 +98,23 @@ export default function DashboardPage() {
   }
 
   // Hydrate olmadan önce kısa bir splash göster
+  // Auth henüz hazır değilse bekle
   if (!authHydrated || (!isAuthenticated && authLoading)) {
     return <div className="flex-1 flex flex-col items-center justify-center p-8 h-full">Yükleniyor...</div>
   }
 
+  // Giriş yapılmamışsa direkt login — project hydration bekleme
   if (!isAuthenticated) {
     return (
       <div className="flex flex-col h-screen w-full relative">
          <LoginOverlay />
       </div>
     )
+  }
+
+  // Giriş yapılmış ama project store henüz hydrate olmamışsa kısa bekle
+  if (!projectHydrated) {
+    return <div className="flex-1 flex flex-col items-center justify-center p-8 h-full">Yükleniyor...</div>
   }
 
   const currentProject = projects.find(p => p.id === selectedProjectId)
