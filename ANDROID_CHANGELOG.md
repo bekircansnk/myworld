@@ -9,6 +9,12 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v2.1
+**Tarih:** 13 Mayıs 2026
+**Değişiklikler:**
+- **[UX/Navigasyon]** Donanımsal geri tuşuna basıldığında tüm görev detayının aniden kapanması sorunu düzeltildi. Artık görev içindeki düzenleme alanları açıkken geri tuşu sadece o alanları kapatır, takvimde gün/hafta görünümündeyken ise ay görünümüne döner.
+- **[UX/Klavye]** Tüm ekranlarda bir giriş alanına (açıklama, görev başlığı vb.) tıklandığında klavyenin açılıp metin alanını örtmesi sorunu düzeltildi. Aktif giriş alanları artık otomatik olarak ekranın ortasına kaydırılır (scrollIntoView).
+
 ### v2.0
 **Tarih:** 13 Mayıs 2026
 **Değişiklikler:**

@@ -286,13 +286,16 @@ export function TaskDetailPanel() {
       if (e.key === 'Escape') {
         if (imagePreview) { handleCloseImagePreview(); return }
         if (editingSubtaskId) { setEditingSubtaskId(null); return }
-        if (isEditingDesc || isAddingSubtask || editingDueDate) return
+        if (isEditingDesc) { setIsEditingDesc(false); return }
+        if (isEditingTitle) { setIsEditingTitle(false); return }
+        if (isAddingSubtask) { setIsAddingSubtask(false); return }
+        if (editingDueDate) { setEditingDueDate(false); return }
         handleCloseDetail()
       }
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isDetailPanelOpen, isEditingDesc, isAddingSubtask, editingDueDate, imagePreview, editingSubtaskId, handleCloseDetail, handleCloseImagePreview])
+  }, [isDetailPanelOpen, isEditingDesc, isEditingTitle, isAddingSubtask, editingDueDate, imagePreview, editingSubtaskId, handleCloseDetail, handleCloseImagePreview])
 
   // Menülerin dışına tıklanınca kapatma
   React.useEffect(() => {

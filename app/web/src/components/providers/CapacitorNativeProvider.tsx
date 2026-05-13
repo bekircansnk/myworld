@@ -60,13 +60,29 @@ export function CapacitorNativeProvider() {
       // 2.2. Görev Detay Paneli var mı kontrol et (Global Store)
       const isTaskDetailOpen = useTaskStore.getState().isDetailPanelOpen;
       if (isTaskDetailOpen) {
-        useTaskStore.getState().closeTaskDetail();
+        // Eğer bir input'ta yazıyorsa klavyeyi kapatmak/blur yapmak iyi olur
+        const activeElement = document.activeElement as HTMLElement;
+        if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.isContentEditable)) {
+           activeElement.blur();
+        }
+        // Paneli veya içindeki aktif düzenleme modunu kapatmak için Escape fırlat
+        const event = new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true });
+        document.dispatchEvent(event);
         return;
       }
 
-      // 2.2. ViewMode kontrolü
-      const currentViewMode = useProjectStore.getState().viewMode;
-      if (currentViewMode !== 'dashboard') {
+      // 2.2. Calendar ViewMode (month) kontrolü
+      const projectViewMode = useProjectStore.getState().viewMode;
+      if (projectViewMode === 'calendar') {
+        const calendarViewMode = useCalendarStore.getState().viewMode;
+        if (calendarViewMode !== 'month') {
+          useCalendarStore.getState().setViewMode('month');
+          return;
+        }
+      }
+
+      // 2.3. Proje ViewMode kontrolü
+      if (projectViewMode !== 'dashboard') {
         useProjectStore.getState().setViewMode('dashboard');
         return;
       }
@@ -81,8 +97,20 @@ export function CapacitorNativeProvider() {
       }
     });
 
+    // 3. Klavye açıldığında input'ları görünür yap (Scroll into view)
+    const handleFocus = (e: FocusEvent) => {
+      const target = e.target as HTMLElement;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+        setTimeout(() => {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300); // Klavyenin açılması için biraz süre tanı
+      }
+    };
+    window.addEventListener('focus', handleFocus, true); // capture phase
+
     return () => {
       backButtonListener.then(listener => listener.remove());
+      window.removeEventListener('focus', handleFocus, true);
     };
   }, []);
 
