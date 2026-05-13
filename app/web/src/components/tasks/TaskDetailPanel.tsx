@@ -353,7 +353,7 @@ export function TaskDetailPanel() {
   }
 
   // ---- Share Action Handlers ----
-  const generateShareText = () => {
+  const generateShareText = (includeLinks = true) => {
     if (!selectedTask) return "";
     let text = `📌 Görev: ${selectedTask.title}\n`;
     if (selectedTask.due_date) {
@@ -379,7 +379,12 @@ export function TaskDetailPanel() {
     }
     
     if (selectedTask.task_photos && selectedTask.task_photos.length > 0) {
-      text += `🖼️ ${selectedTask.task_photos.length} adet fotoğraf (dosya olarak/ekli) mevcuttur.\n`;
+      text += `🖼️ ${selectedTask.task_photos.length} adet fotoğraf eklidir.\n`;
+      if (includeLinks) {
+        selectedTask.task_photos.forEach((photo, i) => {
+          text += `${i+1}. ${photo.name}: https://drive.google.com/uc?export=view&id=${photo.drive_id}\n`;
+        });
+      }
     }
     return text;
   };
@@ -396,41 +401,42 @@ export function TaskDetailPanel() {
   };
 
   const handleShareWhatsApp = async () => {
-    const text = generateShareText();
-    setIsShareMenuOpen(false);
-    
     const isNative = typeof window !== 'undefined' && (window as any).Capacitor?.isNative;
     const isMobileBrowser = typeof window !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const encodedText = encodeURIComponent(text);
     
-    // MAC/WEB İÇİN POPUP BLOCKER'DAN KAÇIŞ
-    // Sadece masaüstünde sekme açıyoruz. Mobil tarayıcıda doğrudan uygulama açılacağı için sekme gerekmez.
+    // Native (Capacitor) için dosyaları paylaşıma ekleyeceğimizden link koymuyoruz.
+    // Web/Tarayıcı için resim gönderimi (API gereği) mümkün olmadığından link bırakıyoruz.
+    const text = generateShareText(!isNative);
+    const encodedText = encodeURIComponent(text);
+    setIsShareMenuOpen(false);
+    
+    // Masaüstü ve Mobil Tarayıcılar (Browser)
+    // Asenkron işlemler pop-up engelleyiciye takılır. 
+    // Bu yüzden TIKLANDIĞI AN WhatsApp sekmesini açıyoruz.
     let waWindow: Window | null = null;
-    if (!isNative && !isMobileBrowser) {
-      waWindow = window.open('about:blank', '_blank');
+    if (!isNative) {
+      if (isMobileBrowser) {
+        waWindow = window.open(`whatsapp://send?text=${encodedText}`, '_self');
+      } else {
+        waWindow = window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+      }
     }
 
-    const filesToShare: string[] = []; // Native tarafı için indirilen dosya URI'leri
+    const filesToShare: string[] = []; 
 
-    // Otomatik İndirme Tetiklemesi
     if (selectedTask?.task_photos && selectedTask.task_photos.length > 0) {
-      toast.show("Fotoğraflar hazırlanıyor, lütfen bekleyin...", "loading", 4000);
+      toast.show("Fotoğraflar indiriliyor, lütfen bekleyin...", "loading", 4000);
       
       for (const photo of selectedTask.task_photos) {
         try {
           const lh3Url = `https://lh3.googleusercontent.com/d/${photo.drive_id}=s0`;
           
           if (isNative) {
-             // NATIVE: Fotoğrafı base64 olarak indir ve cihaz önbelleğine (Cache) yaz.
              const response = await fetch(lh3Url, { mode: 'cors' });
              const blob = await response.blob();
-             
              const pureBase64 = await new Promise<string>((resolve) => {
                  const reader = new FileReader();
-                 reader.onloadend = () => {
-                     const dataUrl = reader.result as string;
-                     resolve(dataUrl.split(',')[1]); // Virgül sonrasını al
-                 };
+                 reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
                  reader.readAsDataURL(blob);
              });
              
@@ -445,7 +451,6 @@ export function TaskDetailPanel() {
              });
              filesToShare.push(writeResult.uri);
           } else {
-             // WEB/MASAÜSTÜ: Doğrudan browser'a indir (Mevcut mantık)
              fetch(lh3Url, { mode: 'cors', cache: 'no-cache' })
                 .then(res => res.blob())
                 .then(blob => {
@@ -456,12 +461,9 @@ export function TaskDetailPanel() {
                       a.download = photo.name || 'foto.jpg';
                       document.body.appendChild(a);
                       a.click();
-                      setTimeout(() => {
-                         document.body.removeChild(a);
-                         URL.revokeObjectURL(objUrl);
-                      }, 1000);
+                      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(objUrl); }, 1000);
                    }
-                }).catch(e => console.warn("Otomatik indirme hatası", e));
+                }).catch(e => console.warn(e));
           }
         } catch (error) {
            console.warn("Fotoğraf işleme hatası", error);
@@ -470,8 +472,6 @@ export function TaskDetailPanel() {
     }
 
     if (isNative) {
-      // Mobilde Native Share Modal'ını çıkar (Böylece kullanıcı WA vs WA Business seçebilir)
-      // Dosyalar da direkt paylaşıma (WhatsApp) eklenir!
       try {
          const { Share } = await import('@capacitor/share');
          await Share.share({
@@ -485,28 +485,10 @@ export function TaskDetailPanel() {
       } catch (e) {
          window.open(`whatsapp://send?text=${encodedText}`, '_system');
       }
-    } else if (isMobileBrowser) {
-      // MOBİL TARAYICI (PWA vs) YÖNLENDİRMESİ
-      // Doğrudan whatsapp URI tetikle, böylece web sitesine gitmeden uygulama açılır
-      window.location.href = `whatsapp://send?text=${encodedText}`;
-      
-      if (selectedTask?.task_photos && selectedTask.task_photos.length > 0) {
-         toast.show("Metin WhatsApp'a aktarıldı, fotoğraflar cihazınıza indirildi.", "success", 5000);
-      }
-      addActivityEvent('status_change', 'WhatsApp (Mobil) paylaşıldı', 'emerald');
     } else {
-      // MASAÜSTÜ TARAYICI YÖNLENDİRMESİ
-      // api.whatsapp.com adresi, bilgisayarda WhatsApp uygulaması varsa doğrudan uygulamayı açmayı tetikler!
-      if (waWindow) {
-         waWindow.location.href = `https://api.whatsapp.com/send?text=${encodedText}`;
-      } else {
-         window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
-      }
-      
       if (selectedTask?.task_photos && selectedTask.task_photos.length > 0) {
-         toast.show("Metin WhatsApp'a aktarıldı, fotoğraflar bilgisayarınıza indirildi.", "success", 5000);
+         toast.show("Metin WhatsApp'a aktarıldı, fotoğraflar cihazınıza/bilgisayarınıza indirildi.", "success", 5000);
       }
-      
       addActivityEvent('status_change', 'WhatsApp paylaşımı başlatıldı', 'emerald');
     }
   };
