@@ -52,10 +52,6 @@ export function AppUpdateChecker() {
   const checkVersion = useCallback(async () => {
     if (!Capacitor.isNativePlatform()) return;
 
-    // 1 saat bekleme kontrolü (kullanıcı "Sonra" dediyse)
-    const skipUntil = localStorage.getItem("updateSkipUntil");
-    if (skipUntil && Date.now() < parseInt(skipUntil, 10)) return;
-
     try {
       setState("checking");
 
@@ -203,9 +199,8 @@ export function AppUpdateChecker() {
     }
   }, [versionInfo]);
 
-  // "Sonra Hatırlat" — 1 saat boyunca gösterme (her uygulama açılışında tekrar sorsun)
-  const handleSkip = useCallback(() => {
-    localStorage.setItem("updateSkipUntil", String(Date.now() + 1 * 60 * 60 * 1000));
+  // Modalı sadece hata durumunda kapatmaya izin veriyoruz, "Sonra Hatırlat" kapatıldı
+  const handleCloseError = useCallback(() => {
     setState("idle");
   }, []);
 
@@ -219,14 +214,15 @@ export function AppUpdateChecker() {
     return null;
   }
 
-  const isForceUpdate = versionInfo?.force_update ?? false;
+  // Artık tüm güncellemeler zorunlu (forceUpdate = true) olarak davranacak.
+  const isForceUpdate = true;
 
   const content = (
     <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={!isForceUpdate && state === "available" ? handleSkip : undefined}
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+        onClick={state === "error" ? handleCloseError : undefined}
       />
 
       {/* Modal */}
@@ -328,14 +324,6 @@ export function AppUpdateChecker() {
         <div className="bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-white/10 px-6 py-4">
           {state === "available" && (
             <div className="flex gap-3">
-              {!isForceUpdate && (
-                <button
-                  onClick={handleSkip}
-                  className="flex-1 py-3 px-4 rounded-xl text-sm font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-700 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors"
-                >
-                  Sonra
-                </button>
-              )}
               <button
                 onClick={handleUpdate}
                 className="flex-1 py-3 px-4 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 shadow-lg shadow-indigo-500/30 transition-all flex items-center justify-center gap-2"
@@ -349,7 +337,7 @@ export function AppUpdateChecker() {
           {state === "error" && (
             <div className="flex gap-3">
               <button
-                onClick={handleSkip}
+                onClick={handleCloseError}
                 className="flex-1 py-3 px-4 rounded-xl text-sm font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-700 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors"
               >
                 Kapat

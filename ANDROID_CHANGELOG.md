@@ -9,6 +9,12 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v2.2
+**Tarih:** 13 Mayıs 2026
+**Değişiklikler:**
+- **[Kritik/Evrensel Sistem Kuralı]** `AGENTS.md` ve `GEMINI.md` kuralları güncellenerek tüm arayüz geliştirmeleri (PWA, Masaüstü, Native) "Evrensel Kapsam" altına alındı. Titreme (flickering) sorunları çözüldü.
+- **[Yeni Özellik]** Uygulama içi (OTA) güncellemeler zorunlu kılındı. Artık bir güncelleme yayınlandığında ekranı kapatmak (Sonra hatırlat) mümkün olmayıp, kullanıcıların her zaman en son sürümde (bugsız) kalması garanti altına alındı.
+
 ### v2.1
 **Tarih:** 13 Mayıs 2026
 **Değişiklikler:**

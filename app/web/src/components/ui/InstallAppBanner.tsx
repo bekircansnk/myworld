@@ -77,8 +77,8 @@ export function InstallAppBanner() {
 
         <div className="flex items-center gap-2 shrink-0">
           <a
-            href="/Pikselis_v2.0.apk"
-            download="Pikselis_v2.0.apk"
+            href="/Pikselis_v2.2.apk"
+            download="Pikselis_v2.2.apk"
             onClick={() => setTimeout(handleDismiss, 1000)}
             className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-500/30 transition-all whitespace-nowrap"
           >
