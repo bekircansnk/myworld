@@ -186,7 +186,7 @@ async def get_app_version():
     return {
         "version": "2.3",
         "version_code": 14,
-        "download_url": "https://pikselis.pikselai.com/Pikselis_v2.3.apk",
+        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v2.3.apk",
         "min_supported_version": "1.0",
         "force_update": True, # OTA ZORUNLU KURALI
         "changelog": "- Arka planda sessiz senkronizasyon yeteneği eklendi.\n- Görev açılışındaki ekran titreme sorunu giderildi.\n- Fotoğrafların görünmeme sorunu kalıcı olarak çözüldü."
