@@ -34,8 +34,9 @@ export interface Task {
   ai_analysis_history?: any[];
   task_photos?: DrivePhoto[];
   sort_order: number;
-  created_at: string;
+  created_at?: string;  // Optional — backend'de eski kayıtlarda null olabilir
   completed_at?: string;
+  is_deleted?: boolean;
   project?: Project;
 }
 export interface Note {

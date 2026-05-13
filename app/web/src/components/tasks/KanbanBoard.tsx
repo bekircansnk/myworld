@@ -70,10 +70,11 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
       .filter(t => t.status === status)
       .sort((a, b) => {
         // En eski görevler en üstte olacak şekilde sıralama
-        const dateA = new Date(a.created_at).getTime()
-        const dateB = new Date(b.created_at).getTime()
+        const dateA = new Date(a.created_at ?? 0).getTime()
+        const dateB = new Date(b.created_at ?? 0).getTime()
         return dateA - dateB
       })
+
   }
 
   const handleQuickAdd = async (columnStatus: string) => {

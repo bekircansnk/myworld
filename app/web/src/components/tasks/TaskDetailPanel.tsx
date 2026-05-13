@@ -165,7 +165,7 @@ export function TaskDetailPanel() {
         id: 'created',
         type: 'created',
         text: 'Görev oluşturuldu',
-        timestamp: new Date(selectedTask.created_at),
+        timestamp: new Date(selectedTask.created_at ?? 0),
         color: 'blue'
       }]
       if (selectedTask.ai_analysis) {
@@ -173,11 +173,12 @@ export function TaskDetailPanel() {
           id: 'ai_init',
           type: 'ai_analysis',
           text: 'AI analizi oluşturuldu',
-          timestamp: new Date(selectedTask.created_at),
+          timestamp: new Date(selectedTask.created_at ?? 0),
           color: 'purple'
         })
       }
       setActivityLog(initLogs.reverse())
+
     }
     return () => {
       setIsEditingDesc(false)
@@ -389,7 +390,7 @@ export function TaskDetailPanel() {
   const totalActual = selectedTask.actual_minutes || subtasks.reduce((acc, st) => acc + (st.actual_minutes || 0), 0);
 
   const calculateTotalDuration = () => {
-    if (selectedTask.status !== 'done' || !selectedTask.completed_at) return "—";
+    if (selectedTask.status !== 'done' || !selectedTask.completed_at || !selectedTask.created_at) return "—";
     const start = new Date(selectedTask.created_at).getTime();
     const end = new Date(selectedTask.completed_at).getTime();
     const diffMins = Math.max(0, Math.round((end - start) / 60000));

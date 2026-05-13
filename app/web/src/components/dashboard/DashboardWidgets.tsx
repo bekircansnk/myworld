@@ -277,9 +277,10 @@ export function DashboardWidgets() {
   // Recent tasks
   const recentTasks = React.useMemo(() => {
     return [...mainTasks]
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime())
       .slice(0, 6)
   }, [mainTasks])
+
 
   // Handle task complete toggle
   const handleToggleTask = async (taskId: number, currentStatus: string) => {

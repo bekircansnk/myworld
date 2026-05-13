@@ -384,7 +384,7 @@ export function CalendarPage() {
           {isBekleyenGorevlerOpen && (
             <div className="space-y-1.5 overflow-y-auto pr-1 flex-1 custom-scrollbar">
               {pendingTasksToShow
-                .sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                .sort((a,b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime())
                 .map(t => (
                 <div key={t.id} 
                   draggable

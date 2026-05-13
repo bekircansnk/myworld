@@ -48,21 +48,33 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 Uygulama başlatılıyor, scheduler aktif ediliyor...")
     start_scheduler()
     
-    # Otomatik DB migration — yeni kolonlar
+    # Otomatik DB migration — yeni kolonlar (PostgreSQL uyumlu, IF NOT EXISTS)
     try:
-        from sqlalchemy import text, inspect
+        from sqlalchemy import text
         from app.database import engine
         async with engine.begin() as conn:
-            # task_photos kolonu var mı kontrol et
-            def check_column(connection):
-                insp = inspect(connection)
-                columns = [c['name'] for c in insp.get_columns('tasks')]
-                return 'task_photos' in columns
-            
-            has_column = await conn.run_sync(check_column)
-            if not has_column:
-                await conn.execute(text("ALTER TABLE tasks ADD COLUMN task_photos TEXT DEFAULT '[]'"))
-                logger.info("✅ task_photos kolonu otomatik eklendi")
+            # task_photos kolonu — JSONB (PostgreSQL) veya TEXT (SQLite) olarak ekle
+            try:
+                await conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS task_photos JSONB DEFAULT '[]'::jsonb"))
+                logger.info("✅ task_photos kolonu (JSONB) kontrol edildi")
+            except Exception:
+                try:
+                    await conn.execute(text("ALTER TABLE tasks ADD COLUMN task_photos TEXT DEFAULT '[]'"))
+                    logger.info("✅ task_photos (TEXT) kolonu eklendi")
+                except Exception:
+                    pass  # Zaten var
+
+            # created_at kolonu — eksikse ekle
+            try:
+                await conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()"))
+                logger.info("✅ created_at kolonu kontrol edildi")
+            except Exception:
+                try:
+                    await conn.execute(text("ALTER TABLE tasks ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP"))
+                    logger.info("✅ created_at (DATETIME) kolonu eklendi")
+                except Exception:
+                    pass  # Zaten var
+
     except Exception as e:
         logger.warning(f"DB migration kontrolü sırasında hata (kritik değil): {e}")
     

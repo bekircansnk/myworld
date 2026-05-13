@@ -52,8 +52,9 @@ class TaskResponse(TaskBase):
     ai_analysis_history: Optional[List[Dict[str, Any]]] = None
     task_photos: Optional[List[Dict[str, Any]]] = None
     sort_order: int
-    created_at: datetime
+    created_at: Optional[datetime] = None  # Optional — eski kayıtlarda None olabilir
     completed_at: Optional[datetime] = None
+    is_deleted: Optional[bool] = None
     project: Optional[ProjectResponse] = None
 
     model_config = ConfigDict(from_attributes=True)
