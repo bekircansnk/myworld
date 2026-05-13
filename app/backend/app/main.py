@@ -182,10 +182,10 @@ async def global_exception_handler(request, exc: Exception):
 async def get_app_version():
     """Mobil uygulama sürüm kontrolü — public endpoint (auth gerektirmez)"""
     return {
-        "version": "1.4",
-        "version_code": 5,
-        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v1.4.apk",
-        "changelog": "• WhatsApp paylaşım iyileştirmeleri\n• Clipboard yedekleme sistemi",
+        "version": "1.5",
+        "version_code": 6,
+        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v1.5.apk",
+        "changelog": "• Uygulama içi otomatik güncelleme sistemi (OTA) eklendi.\n• Yeni sürüm tespit edildiğinde anında bildirim ve kolay yükleme desteği.",
         "force_update": False,
         "min_supported_version": "1.0"
     }

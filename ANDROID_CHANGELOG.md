@@ -9,6 +9,11 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v1.5
+**Tarih:** 13 Mayıs 2026
+**Değişiklikler:**
+- **[Yeni Özellik]** Uygulama içi otomatik güncelleme sistemi (OTA) eklendi. Artık uygulama açıldığında yeni bir sürüm varsa otomatik olarak tespit edilecek ve tek tıkla yükleme yapılabilecek.
+
 ### v1.4
 **Tarih:** 13 Mayıs 2026
 **Değişiklikler:**
