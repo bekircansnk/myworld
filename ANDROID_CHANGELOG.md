@@ -9,6 +9,14 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v1.2
+**Tarih:** 13 Mayıs 2026
+**Değişiklikler:**
+- **[Yeni Özellik]** Görev detayları WhatsApp üzerinden paylaşılırken fotoğraflar artık doğrudan dosya (image) formatında mesaja eklenerek (Native Share ile) iletiliyor.
+- **[İyileştirme]** Web ve Mobil uyumluluğu artırıldı; native uygulamada doğrudan cihaz önbelleğine kaydedilip paylaşılıyor, web'de ise bilgisayara indirilip WhatsApp Desktop entegrasyonu sağlanıyor.
+
+---
+
 ### v1.1
 **Tarih:** 13 Mayıs 2026
 **Değişiklikler:**
