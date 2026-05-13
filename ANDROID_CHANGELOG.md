@@ -9,6 +9,12 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v1.6
+**Tarih:** 13 Mayıs 2026
+**Değişiklikler:**
+- **[Düzeltme]** Görev detayındaki fotoğraftan çıkarken geri tuşunun tüm görevi kapatması sorunu tamamen çözüldü.
+- **[Performans]** Android cihazlarda ekran titremesine (flickering) neden olan arkaplan bulanıklık efektleri optimize edildi.
+
 ### v1.5
 **Tarih:** 13 Mayıs 2026
 **Değişiklikler:**

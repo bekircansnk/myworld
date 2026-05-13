@@ -386,7 +386,7 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
       {previewIndex !== null && photos[previewIndex] && (
         <div 
           role="dialog"
-          className="fixed inset-0 z-[70] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-200"
+          className="fixed inset-0 z-[70] bg-black/95 flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-200"
           onClick={closeLightbox}
         >
           {/* Sol Ok */}
@@ -446,26 +446,7 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
         </div>
       )}
 
-      <div className="space-y-3">
-        {/* Başlık + Ekle Butonu */}
-        <div className="flex items-center justify-between">
-          <h3 className="text-base font-bold text-slate-800 dark:text-white/90 flex items-center gap-2">
-            <Camera className="w-4 h-4 text-indigo-500" />
-            Fotoğraflar
-            {photos.length > 0 && (
-              <span className="text-[10px] bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full font-black">
-                {photos.length}
-              </span>
-            )}
-          </h3>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="text-xs font-semibold text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 flex items-center gap-1.5 transition-colors"
-          >
-            <ImagePlus className="w-3.5 h-3.5" />
-            Fotoğraf Ekle
-          </button>
-        </div>
+      <div className="space-y-2">
 
         {/* Gizli file input */}
         <input
@@ -492,17 +473,17 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
           {!hasPhotos && !isDragging && (
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="w-full p-8 flex flex-col items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 rounded-2xl transition-colors"
+              className="w-full p-4 flex items-center justify-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 rounded-2xl transition-colors"
             >
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-500/20 dark:to-purple-500/20 flex items-center justify-center">
-                <ImagePlus className="w-7 h-7 text-indigo-500 dark:text-indigo-400" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-500/20 dark:to-purple-500/20 flex items-center justify-center shrink-0">
+                <ImagePlus className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
               </div>
-              <div className="text-center">
-                <p className="text-sm font-semibold text-slate-600 dark:text-white/70">
-                  Fotoğraf eklemek için tıklayın, yapıştırın veya sürükleyin
+              <div className="text-left flex-1">
+                <p className="text-xs font-bold text-slate-700 dark:text-white/80">
+                  Fotoğraf Ekle
                 </p>
-                <p className="text-[11px] text-slate-400 dark:text-white/30 mt-1">
-                  (Cmd+V) PNG, JPG, WEBP • Otomatik 1MB altına sıkıştırılır
+                <p className="text-[10px] font-medium text-slate-400 dark:text-white/40 leading-snug mt-0.5">
+                  Tıklayın, yapıştırın veya sürükleyin (Cmd+V)
                 </p>
               </div>
             </button>
@@ -511,7 +492,7 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
           {/* Fotoğraf Galerisi */}
           {hasPhotos && (
             <div className="p-3">
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-4 lg:grid-cols-5 gap-2">
                 {/* Mevcut fotoğraflar */}
                 {photos.map((photo, index) => (
                   <div

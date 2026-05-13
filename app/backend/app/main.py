@@ -182,10 +182,10 @@ async def global_exception_handler(request, exc: Exception):
 async def get_app_version():
     """Mobil uygulama sürüm kontrolü — public endpoint (auth gerektirmez)"""
     return {
-        "version": "1.5",
-        "version_code": 6,
-        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v1.5.apk",
-        "changelog": "• Uygulama içi otomatik güncelleme sistemi (OTA) eklendi.\n• Yeni sürüm tespit edildiğinde anında bildirim ve kolay yükleme desteği.",
+        "version": "1.6",
+        "version_code": 7,
+        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v1.6.apk",
+        "changelog": "• Görev detayındaki fotoğraftan çıkarken geri tuşunun tüm görevi kapatması sorunu tamamen çözüldü.\n• Android cihazlarda ekran titremesine (flickering) neden olan arkaplan bulanıklık efektleri optimize edildi.",
         "force_update": False,
         "min_supported_version": "1.0"
     }

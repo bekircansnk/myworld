@@ -112,6 +112,7 @@ export function TaskDetailPanel() {
   const [showPriorityMenu, setShowPriorityMenu] = React.useState(false)
   const [isProgressOpen, setIsProgressOpen] = React.useState(false)
   const [isAIOpen, setIsAIOpen] = React.useState(false)
+  const [isPhotosOpen, setIsPhotosOpen] = React.useState(true)
   const subtaskInputRef = React.useRef<HTMLInputElement>(null)
   const priorityMenuRef = React.useRef<HTMLDivElement>(null)
   const hasFetchedAI = React.useRef(false)
@@ -224,7 +225,13 @@ export function TaskDetailPanel() {
     }
 
     const handlePopState = (e: PopStateEvent) => {
-      // Eğer resim önizlemesi açıksa, önce resmi kapat ve detay panelini koru
+      // Eğer geri döndüğümüz state 'task-detail' ise, demek ki Lightbox gibi 
+      // üstüne açılmış bir state'den geri geldik. Paneli açık tutmaya devam et.
+      if (e.state?.type === 'task-detail' && e.state?.taskId === selectedTask?.id) {
+        return;
+      }
+
+      // Eğer eski tip resim önizlemesi açıksa
       if (imagePreview) {
         setImagePreview(null);
         return;
@@ -654,7 +661,7 @@ export function TaskDetailPanel() {
       />
       {/* Fullscreen Overlay */}
       <div
-        className="fixed inset-0 z-50 bg-black/50 dark:bg-black/70 backdrop-blur-md animate-in fade-in duration-200"
+        className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 animate-in fade-in duration-200"
         onClick={handleCloseDetail}
       />
 
@@ -840,98 +847,8 @@ export function TaskDetailPanel() {
             {/* ===== SOL PANEL — BÜYÜK ===== */}
             <div className="flex-1 flex flex-col overflow-y-auto md:border-r border-slate-200/50 dark:border-white/5 pb-24 md:pb-0">
               
-              {/* AÇIKLAMA */}
-              <div className="p-4 md:p-7 border-b border-slate-100 dark:border-white/5">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base font-bold text-slate-800 dark:text-white/90">Görev Açıklaması</h3>
-                  {!isEditingDesc && (
-                    <button onClick={() => setIsEditingDesc(true)}
-                      className="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-white/40 dark:hover:text-white/80 flex items-center gap-1.5 transition-colors">
-                      <Pencil className="w-3.5 h-3.5" /> Düzenle
-                    </button>
-                  )}
-                </div>
-
-                {isEditingDesc ? (
-                  <div className="space-y-3">
-                    <Textarea value={descriptionDraft} onChange={e => setDescriptionDraft(e.target.value)}
-                      placeholder="Açıklama, linkler, notlar ekleyin..."
-                      className="min-h-[160px] text-sm bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-800 dark:text-white/90 resize-none focus:ring-2 focus:ring-indigo-500/50 rounded-xl shadow-inner font-medium"
-                      autoFocus />
-                    <div className="flex items-center justify-end gap-2 sticky bottom-0 z-10 backdrop-blur-md bg-white/80 dark:bg-slate-900/80 py-4 border-t border-slate-100 dark:border-white/5 -mx-7 px-7 mt-2">
-                       <Button size="sm" variant="ghost" className="h-8 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:text-white/50 rounded-xl px-4" onClick={() => setIsEditingDesc(false)}>
-                         İptal
-                       </Button>
-                       <Button size="sm" className="h-8 text-xs font-bold gap-1.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white px-5" onClick={saveDescription}>
-                         <Save className="w-3.5 h-3.5" /> Kaydet
-                       </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="rounded-2xl bg-slate-50/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 p-5 cursor-text hover:bg-slate-100/50 dark:hover:bg-white/10 transition-all min-h-[100px] shadow-sm"
-                    onClick={() => setIsEditingDesc(true)}>
-                    {selectedTask.description ? (
-                      <div className="text-sm font-medium text-slate-600 dark:text-white/70 whitespace-pre-wrap break-words leading-relaxed">
-                        {selectedTask.description}
-                      </div>
-                    ) : (
-                      <p className="text-sm font-medium text-slate-400 dark:text-white/30 italic">Açıklama eklemek için tıklayın...</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Durum + Tarih Info + Cross-reference badges */}
-                <div className="flex flex-wrap items-center gap-4 mt-4 text-xs font-semibold text-slate-500 dark:text-white/50">
-                  <span>Durum: <span className={`${sConfig.color} font-bold`}>{sConfig.label}</span></span>
-                  {selectedTask.due_date && (
-                    <span>Tarih: <span className="text-slate-700 dark:text-white/70 font-bold">{format(new Date(selectedTask.due_date), 'dd MMM yyyy', { locale: tr })}</span></span>
-                  )}
-                  <span>Öncelik: <span className="font-bold text-slate-700 dark:text-white/70">{pConfig.label}</span></span>
-                  <LinkedItemsBadges taskId={selectedTask.id} />
-                </div>
-
-                {/* Gömülü Resimler */}
-                {descImages.length > 0 && (
-                  <div className="mt-4">
-                    <h4 className="text-xs font-bold text-slate-500 dark:text-white/50 flex items-center gap-1.5 mb-2">
-                      <Paperclip className="w-3 h-3" /> Eklentiler ({descImages.length})
-                    </h4>
-                    <div className="flex flex-wrap gap-3">
-                      {descImages.map((url, i) => (
-                        <img key={i} src={url} alt={`Ek ${i + 1}`}
-                          className="w-24 h-24 object-cover rounded-xl border border-slate-200 dark:border-white/10 shadow-sm cursor-zoom-in hover:scale-105 transition-transform duration-300"
-                          onClick={() => setImagePreview(url)} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* FOTOĞRAFLAR — Google Drive Entegrasyonu */}
-              <div className="p-4 md:p-7 border-b border-slate-100 dark:border-white/5">
-                <TaskPhotoUploader
-                  taskId={selectedTask.id}
-                  taskTitle={selectedTask.title}
-                  photos={selectedTask.task_photos || []}
-                  onPhotosChange={async (newPhotos: DrivePhoto[]) => {
-                    // Optimistic update
-                    const prevPhotos = selectedTask.task_photos || []
-                    try {
-                      await updateTask(selectedTask.id, { task_photos: newPhotos } as any)
-                      // Activity log
-
-                      if (newPhotos.length > prevPhotos.length) {
-                        addActivityEvent('description_edit', `Fotoğraf eklendi (${newPhotos.length} adet)`, 'indigo')
-                      } else if (newPhotos.length < prevPhotos.length) {
-                        addActivityEvent('description_edit', 'Fotoğraf silindi', 'amber')
-                      }
-                    } catch (e) { console.error('Fotoğraf güncelleme hatası:', e) }
-                  }}
-                />
-              </div>
-
               {/* TÜM GÖREVLER (Alt Görevler) — Referans: "Tüm Görevler" */}
-              <div className="p-7 flex-1">
+              <div className="p-4 md:p-7 border-b border-slate-100 dark:border-white/5">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-base font-bold text-slate-800 dark:text-white/90 flex items-center gap-2">
                     <ListChecks className="w-4 h-4 text-blue-500" />
@@ -1028,10 +945,121 @@ export function TaskDetailPanel() {
                   </p>
                 )}
               </div>
+
+              {/* AÇIKLAMA */}
+              <div className="p-4 md:p-7 flex-1">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base font-bold text-slate-800 dark:text-white/90">Görev Açıklaması</h3>
+                  {!isEditingDesc && (
+                    <button onClick={() => setIsEditingDesc(true)}
+                      className="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-white/40 dark:hover:text-white/80 flex items-center gap-1.5 transition-colors">
+                      <Pencil className="w-3.5 h-3.5" /> Düzenle
+                    </button>
+                  )}
+                </div>
+
+                {isEditingDesc ? (
+                  <div className="space-y-3">
+                    <Textarea value={descriptionDraft} onChange={e => setDescriptionDraft(e.target.value)}
+                      placeholder="Açıklama, linkler, notlar ekleyin..."
+                      className="min-h-[160px] text-sm bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-800 dark:text-white/90 resize-none focus:ring-2 focus:ring-indigo-500/50 rounded-xl shadow-inner font-medium"
+                      autoFocus />
+                    <div className="flex items-center justify-end gap-2 sticky bottom-0 z-10 backdrop-blur-md bg-white/80 dark:bg-slate-900/80 py-4 border-t border-slate-100 dark:border-white/5 -mx-7 px-7 mt-2">
+                       <Button size="sm" variant="ghost" className="h-8 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:text-white/50 rounded-xl px-4" onClick={() => setIsEditingDesc(false)}>
+                         İptal
+                       </Button>
+                       <Button size="sm" className="h-8 text-xs font-bold gap-1.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white px-5" onClick={saveDescription}>
+                         <Save className="w-3.5 h-3.5" /> Kaydet
+                       </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl bg-slate-50/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 p-5 cursor-text hover:bg-slate-100/50 dark:hover:bg-white/10 transition-all min-h-[100px] shadow-sm"
+                    onClick={() => setIsEditingDesc(true)}>
+                    {selectedTask.description ? (
+                      <div className="text-sm font-medium text-slate-600 dark:text-white/70 whitespace-pre-wrap break-words leading-relaxed">
+                        {selectedTask.description}
+                      </div>
+                    ) : (
+                      <p className="text-sm font-medium text-slate-400 dark:text-white/30 italic">Açıklama eklemek için tıklayın...</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Durum + Tarih Info + Cross-reference badges */}
+                <div className="flex flex-wrap items-center gap-4 mt-4 text-xs font-semibold text-slate-500 dark:text-white/50">
+                  <span>Durum: <span className={`${sConfig.color} font-bold`}>{sConfig.label}</span></span>
+                  {selectedTask.due_date && (
+                    <span>Tarih: <span className="text-slate-700 dark:text-white/70 font-bold">{format(new Date(selectedTask.due_date), 'dd MMM yyyy', { locale: tr })}</span></span>
+                  )}
+                  <span>Öncelik: <span className="font-bold text-slate-700 dark:text-white/70">{pConfig.label}</span></span>
+                  <LinkedItemsBadges taskId={selectedTask.id} />
+                </div>
+
+                {/* Gömülü Resimler */}
+                {descImages.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-xs font-bold text-slate-500 dark:text-white/50 flex items-center gap-1.5 mb-2">
+                      <Paperclip className="w-3 h-3" /> Eklentiler ({descImages.length})
+                    </h4>
+                    <div className="flex flex-wrap gap-3">
+                      {descImages.map((url, i) => (
+                        <img key={i} src={url} alt={`Ek ${i + 1}`}
+                          className="w-24 h-24 object-cover rounded-xl border border-slate-200 dark:border-white/10 shadow-sm cursor-zoom-in hover:scale-105 transition-transform duration-300"
+                          onClick={() => setImagePreview(url)} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
             </div>
 
             {/* ===== SAĞ PANEL — YENİDEN DÜZENLENDİ ===== */}
             <div className="w-full md:w-[400px] shrink-0 flex flex-col overflow-hidden bg-slate-50/30 dark:bg-black/10">
+              
+              {/* FOTOĞRAFLAR — Google Drive Entegrasyonu (EN ÜSTTE) */}
+              <div 
+                className="border-b border-slate-100 dark:border-white/5 shrink-0 cursor-pointer select-none"
+                onClick={() => setIsPhotosOpen(!isPhotosOpen)}
+              >
+                <div className="p-3 md:p-5">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-[10px] md:text-xs font-bold uppercase tracking-widest md:tracking-normal md:normal-case text-slate-700 dark:text-white/80 flex items-center gap-2">
+                      <ImagePlus className="w-4 h-4 text-indigo-500" />
+                      Fotoğraflar
+                      {selectedTask.task_photos && selectedTask.task_photos.length > 0 && (
+                        <span className="text-[10px] bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full font-black ml-1">
+                          {selectedTask.task_photos.length}
+                        </span>
+                      )}
+                    </h3>
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform text-slate-400 ${isPhotosOpen ? 'rotate-180' : ''}`} />
+                  </div>
+                  
+                  <div 
+                    className={`overflow-hidden transition-all duration-300 ease-in-out ${isPhotosOpen ? 'opacity-100 mt-2' : 'max-h-0 opacity-0'}`} 
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <TaskPhotoUploader
+                      taskId={selectedTask.id}
+                      taskTitle={selectedTask.title}
+                      photos={selectedTask.task_photos || []}
+                      onPhotosChange={async (newPhotos: DrivePhoto[]) => {
+                        const prevPhotos = selectedTask.task_photos || []
+                        try {
+                          await updateTask(selectedTask.id, { task_photos: newPhotos } as any)
+                          if (newPhotos.length > prevPhotos.length) {
+                            addActivityEvent('description_edit', `Fotoğraf eklendi (${newPhotos.length} adet)`, 'indigo')
+                          } else if (newPhotos.length < prevPhotos.length) {
+                            addActivityEvent('description_edit', 'Fotoğraf silindi', 'amber')
+                          }
+                        } catch (e) { console.error('Fotoğraf güncelleme hatası:', e) }
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
               
               {/* ÜST: İLERLEME ÖZETİ + SÜRE */}
               <div 
