@@ -394,10 +394,17 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
           </button>
 
           <img
-            src={getPhotoViewUrl(photos[previewIndex].drive_id)}
+            src={`${getPhotoViewUrl(photos[previewIndex].drive_id)}`}
             alt={photos[previewIndex].name}
-            className="max-w-[85vw] max-h-[85vh] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-300 cursor-zoom-out"
-            onClick={(e) => { e.stopPropagation(); closeLightbox(); }}
+            className="max-w-[95vw] max-h-[95vh] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-300 cursor-zoom-out"
+            onClick={(e) => { e.stopPropagation(); setPreviewIndex(null); }}
+            onError={(e) => {
+              // Eğer yüklenemezse (offline vs), src'yi yenilemek için cache-buster ekle
+              const target = e.target as HTMLImageElement;
+              if (!target.src.includes('retry=')) {
+                setTimeout(() => { target.src = target.src + '?retry=' + Date.now(); }, 2000);
+              }
+            }}
           />
 
           {/* Sağ Ok */}

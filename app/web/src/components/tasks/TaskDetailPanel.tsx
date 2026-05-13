@@ -400,12 +400,13 @@ export function TaskDetailPanel() {
     setIsShareMenuOpen(false);
     
     const isNative = typeof window !== 'undefined' && (window as any).Capacitor?.isNative;
+    const isMobileBrowser = typeof window !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const encodedText = encodeURIComponent(text);
     
     // MAC/WEB İÇİN POPUP BLOCKER'DAN KAÇIŞ
-    // Tıklanır tıklanmaz sekme açıyoruz, yoksa setTimeout sonrası pop-up engellenebilir.
+    // Sadece masaüstünde sekme açıyoruz. Mobil tarayıcıda doğrudan uygulama açılacağı için sekme gerekmez.
     let waWindow: Window | null = null;
-    if (!isNative) {
+    if (!isNative && !isMobileBrowser) {
       waWindow = window.open('about:blank', '_blank');
     }
 
@@ -484,8 +485,17 @@ export function TaskDetailPanel() {
       } catch (e) {
          window.open(`whatsapp://send?text=${encodedText}`, '_system');
       }
+    } else if (isMobileBrowser) {
+      // MOBİL TARAYICI (PWA vs) YÖNLENDİRMESİ
+      // Doğrudan whatsapp URI tetikle, böylece web sitesine gitmeden uygulama açılır
+      window.location.href = `whatsapp://send?text=${encodedText}`;
+      
+      if (selectedTask?.task_photos && selectedTask.task_photos.length > 0) {
+         toast.show("Metin WhatsApp'a aktarıldı, fotoğraflar cihazınıza indirildi.", "success", 5000);
+      }
+      addActivityEvent('status_change', 'WhatsApp (Mobil) paylaşıldı', 'emerald');
     } else {
-      // Masaüstünde yönlendirmeyi önceden açılmış sekme üzerinden yapıyoruz
+      // MASAÜSTÜ TARAYICI YÖNLENDİRMESİ
       // api.whatsapp.com adresi, bilgisayarda WhatsApp uygulaması varsa doğrudan uygulamayı açmayı tetikler!
       if (waWindow) {
          waWindow.location.href = `https://api.whatsapp.com/send?text=${encodedText}`;
