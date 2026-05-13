@@ -799,7 +799,7 @@ export function TaskDetailPanel() {
           <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
             
             {/* ===== SOL PANEL — BÜYÜK ===== */}
-            <div className="flex-1 flex flex-col overflow-y-auto md:border-r border-slate-200/50 dark:border-white/5 pb-24 md:pb-0">
+            <div className={`flex-1 flex flex-col overflow-y-auto md:border-r border-slate-200/50 dark:border-white/5 ${activeMobileTab ? 'pb-[55vh]' : 'pb-20'} md:pb-0 transition-[padding] duration-300`}>
               
               {/* BAŞLIK — Kocaman, sade */}
               <div className="px-5 md:px-8 pt-16 md:pt-7 pb-2 relative">
@@ -1004,7 +1004,7 @@ export function TaskDetailPanel() {
             </div>
 
             {/* ===== SAĞ PANEL (Masaüstü) / ALT BAR (Mobil) ===== */}
-            <div className="w-full md:w-[360px] shrink-0 flex flex-col fixed md:relative bottom-0 left-0 right-0 z-40 md:z-auto bg-white/70 md:bg-slate-50/30 dark:bg-slate-900/80 md:dark:bg-black/10 backdrop-blur-2xl md:backdrop-blur-none border-t md:border-0 border-slate-200/50 dark:border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:shadow-none transition-all duration-300 rounded-t-3xl md:rounded-none">
+            <div className="w-full md:w-[360px] shrink-0 flex flex-col fixed md:relative bottom-0 left-0 right-0 z-40 md:z-auto bg-white/50 md:bg-slate-50/30 dark:bg-slate-900/60 md:dark:bg-black/10 backdrop-blur-2xl md:backdrop-blur-none border-t md:border-0 border-white/30 dark:border-white/10 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] md:shadow-none transition-all duration-300 rounded-t-2xl md:rounded-none">
               
               {/* HEDEF TARİH + ÖNCELİK — Her zaman açık (Masaüstü) */}
               <div className="hidden md:block">
@@ -1012,7 +1012,7 @@ export function TaskDetailPanel() {
               </div>
 
               {/* İÇERİK ALANI */}
-              <div className={`flex-1 overflow-y-auto ${activeMobileTab ? 'max-h-[50vh] md:max-h-full' : 'max-h-0 md:max-h-full'} transition-all duration-300 ease-in-out`}>
+              <div className={`flex-1 overflow-y-auto ${activeMobileTab ? 'max-h-[35vh] md:max-h-full' : 'max-h-0 md:max-h-full'} transition-all duration-300 ease-in-out`}>
 
 
               {/* FOTOĞRAFLAR — Google Drive Entegrasyonu */}

@@ -421,21 +421,28 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
             <ChevronRight className="w-6 h-6 md:w-8 md:h-8" />
           </button>
 
-          {/* Sağ Üst Menü (Kapat / İndir) */}
-          <div className="absolute top-4 right-4 md:top-8 md:right-8 flex gap-3">
+          {/* Sağ Üst Menü (Kapat / İndir / Sil) */}
+          <div className="absolute top-4 right-4 md:top-8 md:right-8 flex gap-2 md:gap-3">
             <button
-              onClick={() => handleDownload(photos[previewIndex])}
+              onClick={(e) => { e.stopPropagation(); handleDownload(photos[previewIndex]) }}
               className="p-3 rounded-2xl bg-white/10 text-white hover:bg-white/30 active:scale-90 active:bg-indigo-500 transition-all backdrop-blur-md flex items-center gap-2 cursor-pointer shadow-lg"
               title="İndir"
             >
-              <Download className="w-6 h-6" />
+              <Download className="w-5 h-5 md:w-6 md:h-6" />
             </button>
             <button
-              onClick={closeLightbox}
+              onClick={(e) => { e.stopPropagation(); setDeleteTarget(photos[previewIndex]); closeLightbox(); }}
+              className="p-3 rounded-2xl bg-red-500/20 text-white hover:bg-red-500/40 active:scale-90 transition-all backdrop-blur-md flex items-center gap-2 cursor-pointer shadow-lg"
+              title="Sil"
+            >
+              <Trash2 className="w-5 h-5 md:w-6 md:h-6" />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); closeLightbox(); }}
               className="p-3 rounded-2xl bg-white/10 text-white hover:bg-white/25 transition-colors backdrop-blur-md"
               title="Kapat"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 md:w-6 md:h-6" />
             </button>
           </div>
           
@@ -513,8 +520,8 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
                         }
                       }}
                     />
-                    {/* Hover overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-between p-2">
+                    {/* Hover overlay — sadece masaüstünde göster, mobilde yanlışlıkla tıklama olmasın */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden md:flex items-end justify-between p-2">
                       <span className="text-[9px] font-semibold text-white/80 truncate max-w-[60%]">
                         {photo.name}
                       </span>
