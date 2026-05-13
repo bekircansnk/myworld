@@ -402,11 +402,19 @@ export function TaskDetailPanel() {
     const text = generateShareText();
     setIsShareMenuOpen(false);
     
+    const isNative = typeof window !== 'undefined' && (window as any).Capacitor?.isNative;
+    const encodedText = encodeURIComponent(text);
+    
+    // MAC/WEB İÇİN POPUP BLOCKER'DAN KAÇIŞ
+    // Tıklanır tıklanmaz sekme açıyoruz, yoksa setTimeout sonrası pop-up engellenebilir.
+    let waWindow: Window | null = null;
+    if (!isNative) {
+      waWindow = window.open('about:blank', '_blank');
+    }
+
     // Otomatik İndirme Tetiklemesi
     if (selectedTask?.task_photos && selectedTask.task_photos.length > 0) {
       toast.show("Fotoğraflar indiriliyor, lütfen bekleyin...", "loading", 3000);
-      
-      const isNative = typeof window !== 'undefined' && (window as any).Capacitor?.isNative;
       
       for (const photo of selectedTask.task_photos) {
         try {
@@ -440,14 +448,28 @@ export function TaskDetailPanel() {
       }
     }
 
-    const encodedText = encodeURIComponent(text);
-    const isNative = typeof window !== 'undefined' && (window as any).Capacitor?.isNative;
-    const waUrl = isNative ? `whatsapp://send?text=${encodedText}` : `https://wa.me/?text=${encodedText}`;
-    
-    setTimeout(() => {
-      window.open(waUrl, isNative ? '_system' : '_blank');
+    if (isNative) {
+      // Mobilde Native Share Modal'ını çıkar (Böylece kullanıcı WA vs WA Business seçebilir)
+      try {
+         const { Share } = await import('@capacitor/share');
+         await Share.share({
+            title: selectedTask?.title || 'Görev',
+            text: text,
+            dialogTitle: 'Şununla Paylaş',
+         });
+         addActivityEvent('status_change', 'Görev paylaşıldı', 'emerald');
+      } catch (e) {
+         window.open(`whatsapp://send?text=${encodedText}`, '_system');
+      }
+    } else {
+      // Masaüstünde yönlendirmeyi önceden açılmış sekme üzerinden yapıyoruz
+      if (waWindow) {
+         waWindow.location.href = `https://wa.me/?text=${encodedText}`;
+      } else {
+         window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+      }
       addActivityEvent('status_change', 'WhatsApp paylaşımı başlatıldı', 'emerald');
-    }, 500);
+    }
   };
 
   const handleShareEmail = () => {
