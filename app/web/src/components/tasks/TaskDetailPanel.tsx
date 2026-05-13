@@ -409,6 +409,16 @@ export function TaskDetailPanel() {
     const text = generateShareText(!isNative);
     const encodedText = encodeURIComponent(text);
     setIsShareMenuOpen(false);
+
+    // KORUMALI FALLBACK YÖNTEMİ: WhatsApp açılsın ya da açılmasın, metni otomatik panoya kopyalıyoruz!
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(text);
+        toast.show("Görev metni otomatik olarak panoya kopyalandı!", "success", 3000);
+      }
+    } catch (clipErr) {
+      console.warn("Otomatik kopyalama hatası:", clipErr);
+    }
     
     // MASAÜSTÜ / MOBİL TARAYICI POP-UP BLOCKER ENGELİNİ AŞMA:
     // Herhangi bir asenkron await (fetch vb.) yapmadan doğrudan TIKLAMA handler'ı içinde sekme açıyoruz.
