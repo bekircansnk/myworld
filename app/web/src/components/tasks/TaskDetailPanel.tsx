@@ -816,8 +816,8 @@ export function TaskDetailPanel() {
                     const prevPhotos = selectedTask.task_photos || []
                     try {
                       await updateTask(selectedTask.id, { task_photos: newPhotos } as any)
-                      await fetchTasks()
                       // Activity log
+
                       if (newPhotos.length > prevPhotos.length) {
                         addActivityEvent('description_edit', `Fotoğraf eklendi (${newPhotos.length} adet)`, 'indigo')
                       } else if (newPhotos.length < prevPhotos.length) {

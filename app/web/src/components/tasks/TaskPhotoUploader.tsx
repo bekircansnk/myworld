@@ -34,7 +34,48 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
   const photosRef = React.useRef(photos)
   React.useEffect(() => {
     photosRef.current = photos
+    
+    // OFFLINE DESTEĞİ: Fotoğrafları Cache'e at
+    if (photos.length > 0 && typeof caches !== 'undefined') {
+      caches.open('task-photos-cache').then(cache => {
+        photos.forEach(photo => {
+          const thumbUrl = getPhotoThumbnailUrl(photo.drive_id, 400);
+          const fullUrl = getPhotoViewUrl(photo.drive_id);
+          
+          cache.match(thumbUrl).then(res => {
+            if (!res) fetch(thumbUrl, { mode: 'no-cors' }).then(fetchRes => cache.put(thumbUrl, fetchRes)).catch(()=>{});
+          });
+          
+          cache.match(fullUrl).then(res => {
+            if (!res) fetch(fullUrl, { mode: 'no-cors' }).then(fetchRes => cache.put(fullUrl, fetchRes)).catch(()=>{});
+          });
+        });
+      }).catch(() => {});
+    }
   }, [photos])
+
+  // BACK BUTTON DESTEĞİ: Sadece lightbox'ı kapat
+  React.useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      if (previewIndex !== null) {
+        setPreviewIndex(null)
+      }
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [previewIndex])
+
+  const openLightbox = (index: number) => {
+    window.history.pushState({ lightbox: true }, '')
+    setPreviewIndex(index)
+  }
+
+  const closeLightbox = () => {
+    if (previewIndex !== null) {
+      window.history.back() // Bu popstate tetikler ve previewIndex'i null yapar
+    }
+  }
+
 
   // Global Drag & Drop & Paste event handlers
   React.useEffect(() => {
@@ -99,7 +140,7 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
       } else if (e.key === 'Escape') {
         e.preventDefault()
         e.stopImmediatePropagation()
-        setPreviewIndex(null)
+        closeLightbox()
       }
     }
 
@@ -341,7 +382,7 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
       {previewIndex !== null && photos[previewIndex] && (
         <div 
           className="fixed inset-0 z-[70] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-200"
-          onClick={() => setPreviewIndex(null)}
+          onClick={closeLightbox}
         >
           {/* Sol Ok */}
           <button
@@ -356,7 +397,7 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
             src={getPhotoViewUrl(photos[previewIndex].drive_id)}
             alt={photos[previewIndex].name}
             className="max-w-[85vw] max-h-[85vh] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-300 cursor-zoom-out"
-            onClick={(e) => { e.stopPropagation(); setPreviewIndex(null); }}
+            onClick={(e) => { e.stopPropagation(); closeLightbox(); }}
           />
 
           {/* Sağ Ok */}
@@ -378,7 +419,7 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
               <Download className="w-6 h-6" />
             </button>
             <button
-              onClick={() => setPreviewIndex(null)}
+              onClick={closeLightbox}
               className="p-3 rounded-2xl bg-white/10 text-white hover:bg-white/25 transition-colors backdrop-blur-md"
               title="Kapat"
             >
@@ -464,7 +505,7 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
                   <div
                     key={photo.drive_id}
                     className="group relative aspect-square rounded-xl overflow-hidden bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
-                    onClick={() => setPreviewIndex(index)}
+                    onClick={() => openLightbox(index)}
                   >
                     <img
                       src={getPhotoThumbnailUrl(photo.drive_id, 400)}
