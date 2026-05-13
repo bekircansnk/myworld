@@ -492,12 +492,12 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
           {/* Fotoğraf Galerisi */}
           {hasPhotos && (
             <div className="p-3">
-              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-4 lg:grid-cols-5 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 {/* Mevcut fotoğraflar */}
                 {photos.map((photo, index) => (
                   <div
                     key={photo.drive_id}
-                    className="group relative aspect-square rounded-xl overflow-hidden bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
+                    className="group relative aspect-square rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-[0_4px_12px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.2)] hover:shadow-lg transition-all duration-300 cursor-pointer"
                     onClick={() => openLightbox(index)}
                   >
                     <img
@@ -572,10 +572,10 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
                 {/* Yeni ekleme butonu (fotoğraf varsa küçük + kutusu) */}
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="aspect-square rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10 flex flex-col items-center justify-center gap-1.5 hover:border-indigo-400 dark:hover:border-indigo-500/50 hover:bg-indigo-50/30 dark:hover:bg-indigo-500/10 transition-all cursor-pointer"
+                  className="aspect-square rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-2 hover:border-indigo-400 dark:hover:border-indigo-500/50 hover:bg-indigo-50/30 dark:hover:bg-indigo-500/10 transition-all cursor-pointer"
                 >
-                  <ImagePlus className="w-5 h-5 text-slate-300 dark:text-white/20" />
-                  <span className="text-[9px] font-bold text-slate-300 dark:text-white/20">Ekle</span>
+                  <ImagePlus className="w-6 h-6 text-slate-400 dark:text-slate-500" />
+                  <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500">Yeni Ekle</span>
                 </button>
               </div>
             </div>

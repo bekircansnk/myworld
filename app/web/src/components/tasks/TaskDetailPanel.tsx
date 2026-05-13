@@ -115,6 +115,7 @@ export function TaskDetailPanel() {
   const [isAIOpen, setIsAIOpen] = React.useState(false)
   const [isPhotosOpen, setIsPhotosOpen] = React.useState(true)
   const [isHistoryOpen, setIsHistoryOpen] = React.useState(false)
+  const [activeMobileTab, setActiveMobileTab] = React.useState<'photos'|'progress'|'ai'|'history'|null>('photos')
   const subtaskInputRef = React.useRef<HTMLInputElement>(null)
   const priorityMenuRef = React.useRef<HTMLDivElement>(null)
   const hasFetchedAI = React.useRef(false)
@@ -664,6 +665,66 @@ export function TaskDetailPanel() {
     return `${days}g ${remainingHours}s`;
   };
 
+  const renderMetaInfo = () => (
+    <div className="p-4 md:p-5 border-b md:border-b border-slate-100 dark:border-white/5 space-y-3 bg-slate-50/50 md:bg-transparent dark:bg-white/5 md:dark:bg-transparent rounded-xl md:rounded-none">
+      {/* Hedef Tarih */}
+      <div className="flex items-center justify-between">
+        <span className="text-[11px] font-bold text-slate-500 dark:text-white/40 tracking-wider flex items-center gap-1.5">
+          <Target className="w-3.5 h-3.5 text-orange-500" /> Hedef Tarih
+        </span>
+        {editingDueDate ? (
+          <div className="flex items-center gap-1.5">
+            <input type="date" value={dueDateDraft} onChange={e => setDueDateDraft(e.target.value)}
+              className="px-2 py-1 text-xs font-bold rounded-lg bg-white dark:bg-black/20 border border-slate-200 dark:border-white/20 text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50" />
+            <button onClick={saveDueDate} className="text-xs font-bold text-indigo-500 hover:text-indigo-700">✓</button>
+            <button onClick={() => setEditingDueDate(false)} className="text-slate-400 hover:text-slate-600"><X className="w-3.5 h-3.5" /></button>
+          </div>
+        ) : (
+          <button onClick={() => setEditingDueDate(true)}
+            className="text-xs font-bold text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+            {selectedTask.due_date ? format(new Date(selectedTask.due_date), 'dd MMM yyyy', { locale: tr }) : '+ Ekle'}
+          </button>
+        )}
+      </div>
+
+      {/* Öncelik */}
+      <div className="flex items-center justify-between relative" ref={priorityMenuRef}>
+        <span className="text-[11px] font-bold text-slate-500 dark:text-white/40 tracking-wider flex items-center gap-1.5">
+          <Flag className={`w-3.5 h-3.5 ${pConfig.flagColor}`} /> Öncelik
+        </span>
+        <button onClick={() => setShowPriorityMenu(!showPriorityMenu)}
+          className={`text-xs font-bold px-2.5 py-1 rounded-lg bg-gradient-to-r ${pConfig.gradient} text-white flex items-center gap-1 hover:opacity-90 transition-opacity`}>
+          {pConfig.label}
+          <ChevronDown className="w-3 h-3" />
+        </button>
+        {showPriorityMenu && (
+          <div className="absolute top-full right-0 mt-1 z-20 w-36 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-1 animate-in fade-in slide-in-from-top-2 duration-150">
+            {Object.entries(priorityConfig).filter(([k]) => k !== 'normal').map(([key, cfg]) => (
+              <button key={key} onClick={() => handlePriorityChange(key)}
+                className={`w-full text-left px-3 py-2 text-xs font-semibold flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors ${selectedTask.priority === key ? 'bg-slate-50 dark:bg-slate-700' : ''}`}>
+                <Flag className={`w-3 h-3 ${cfg.flagColor}`} />
+                {cfg.label}
+                {selectedTask.priority === key && <CheckCircle2 className="w-3 h-3 text-indigo-500 ml-auto" />}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Oluşturma Tarihi */}
+      {selectedTask.created_at && (
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-bold text-slate-500 dark:text-white/40 tracking-wider flex items-center gap-1.5">
+            <Calendar className="w-3.5 h-3.5 text-slate-400" /> Oluşturulma
+          </span>
+          <span className="text-[11px] font-medium text-slate-500 dark:text-white/40">
+            {format(new Date(selectedTask.created_at), 'dd MMM yyyy', { locale: tr })}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <>
       <ConfirmDialog 
@@ -686,14 +747,14 @@ export function TaskDetailPanel() {
       {/* Modal Container — TEK SCROLL, SABİT HEADER YOK */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-5 pointer-events-none">
         <div
-          className="pointer-events-auto w-full max-w-full md:max-w-[1280px] h-[100dvh] md:h-[92vh] rounded-none md:rounded-3xl overflow-hidden animate-in zoom-in-95 fade-in duration-300 border-0 md:border border-slate-200/60 dark:border-white/10 shadow-2xl shadow-indigo-500/10 bg-white dark:bg-slate-900 flex flex-col"
+          className="relative pointer-events-auto w-full max-w-full md:max-w-[1280px] h-[100dvh] md:h-[92vh] rounded-none md:rounded-3xl overflow-hidden animate-in zoom-in-95 fade-in duration-300 border-0 md:border border-slate-200/60 dark:border-white/10 shadow-2xl shadow-indigo-500/10 bg-white dark:bg-slate-900 flex flex-col"
           onClick={e => e.stopPropagation()}
         >
           {/* Öncelik gradient çizgisi */}
           <div className={`h-1 bg-gradient-to-r ${pConfig.gradient} shrink-0`} />
           
           {/* Floating aksiyon butonları — sağ üst */}
-          <div className="absolute top-3 right-3 md:top-7 md:right-7 z-10 flex items-center gap-1.5" ref={shareMenuRef}>
+          <div className="absolute top-4 right-4 md:top-6 md:right-6 z-20 flex items-center gap-1.5" ref={shareMenuRef}>
             <button onClick={() => setIsShareMenuOpen(!isShareMenuOpen)}
               className="p-2 rounded-xl bg-white/80 hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 dark:bg-white/5 dark:hover:bg-indigo-500/20 dark:text-white/40 dark:hover:text-indigo-400 transition-all shadow-sm backdrop-blur-sm"
               title="Paylaş">
@@ -736,7 +797,7 @@ export function TaskDetailPanel() {
             <div className="flex-1 flex flex-col overflow-y-auto md:border-r border-slate-200/50 dark:border-white/5 pb-24 md:pb-0">
               
               {/* BAŞLIK — Kocaman, sade */}
-              <div className="px-5 md:px-8 pt-5 md:pt-7 pb-2">
+              <div className="px-5 md:px-8 pt-5 md:pt-7 pb-2 relative">
                 {isEditingTitle ? (
                   <div className="flex items-center gap-2">
                     <Input value={titleDraft} onChange={e => setTitleDraft(e.target.value)}
@@ -747,17 +808,22 @@ export function TaskDetailPanel() {
                     <button onClick={() => { setIsEditingTitle(false); setTitleDraft(selectedTask.title); }} className="p-2 text-slate-400 hover:text-slate-600 shrink-0"><X className="w-5 h-5"/></button>
                   </div>
                 ) : (
-                  <h2 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white/95 leading-tight group flex items-start gap-2 cursor-pointer transition-colors hover:text-indigo-600 dark:hover:text-indigo-400 pr-24" onClick={() => setIsEditingTitle(true)}>
+                  <h2 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white/95 leading-tight group flex items-start gap-2 cursor-pointer transition-colors hover:text-indigo-600 dark:hover:text-indigo-400 pr-24 md:pr-24" onClick={() => setIsEditingTitle(true)}>
                     {selectedTask.title}
                     <Pencil className="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity mt-2 shrink-0" />
                   </h2>
                 )}
+                
+                {/* MOBİL META (Sadece Mobilde) */}
+                <div className="md:hidden mt-4">
+                  {renderMetaInfo()}
+                </div>
               </div>
 
               {/* AÇIKLAMA — LinkBreeze destekli */}
-              <div className="px-5 md:px-8 pb-5">
+              <div className="px-5 md:px-8 pb-5 pt-3">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-bold text-slate-500 dark:text-white/50 uppercase tracking-wider">Açıklama</h3>
+                  <h3 className="text-[15px] font-bold text-slate-800 dark:text-white/90">Açıklama</h3>
                   {!isEditingDesc && (
                     <button onClick={() => setIsEditingDesc(true)}
                       className="text-xs font-semibold text-slate-400 hover:text-slate-800 dark:text-white/30 dark:hover:text-white/80 flex items-center gap-1.5 transition-colors">
@@ -782,10 +848,10 @@ export function TaskDetailPanel() {
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-2xl bg-slate-50/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 p-5 cursor-text hover:bg-slate-100/50 dark:hover:bg-white/10 transition-all min-h-[60px] shadow-sm"
+                  <div className="cursor-text group min-h-[60px] py-1 transition-all"
                     onClick={() => setIsEditingDesc(true)}>
                     {selectedTask.description ? (
-                      <div className="text-sm font-medium text-slate-600 dark:text-white/70 whitespace-pre-wrap break-words leading-relaxed">
+                      <div className="text-[15px] font-medium text-slate-700 dark:text-white/80 whitespace-pre-wrap break-words leading-relaxed">
                         {selectedTask.description.split(/(https?:\/\/[^\s]+)/g).map((part, i) => {
                           if (/^https?:\/\//.test(part)) {
                             const preview = linkPreviews[part]
@@ -803,7 +869,7 @@ export function TaskDetailPanel() {
                         })}
                       </div>
                     ) : (
-                      <p className="text-sm font-medium text-slate-400 dark:text-white/30 italic">Açıklama eklemek için tıklayın...</p>
+                      <p className="text-[15px] font-medium text-slate-400 dark:text-white/30 italic">Açıklama eklemek için tıklayın...</p>
                     )}
                   </div>
                 )}
@@ -833,7 +899,7 @@ export function TaskDetailPanel() {
               {/* ALT GÖREVLER (Kontrol Listesi) */}
               <div className="px-5 md:px-8 pb-6 border-t border-slate-100 dark:border-white/5 pt-5">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold text-slate-500 dark:text-white/50 uppercase tracking-wider flex items-center gap-2">
+                  <h3 className="text-[15px] font-bold text-slate-800 dark:text-white/90 flex items-center gap-2">
                     <ListChecks className="w-4 h-4 text-blue-500" />
                     Alt Görevler
                     {subtasks.length > 0 && (
@@ -870,7 +936,7 @@ export function TaskDetailPanel() {
                 )}
 
                 {/* Subtask List */}
-                <div className="space-y-1">
+                <div className="space-y-1 max-w-4xl">
                   {subtasks.map((st) => (
                     editingSubtaskId === st.id ? (
                       <div key={st.id} className="flex flex-col gap-2 p-3 rounded-xl bg-slate-50 dark:bg-black/20 border border-indigo-200 dark:border-indigo-500/30 shadow-sm animate-in fade-in">
@@ -932,75 +998,24 @@ export function TaskDetailPanel() {
 
             </div>
 
-            {/* ===== SAĞ PANEL — KOMPAK BİLGİ KARTLARI ===== */}
-            <div className="w-full md:w-[360px] shrink-0 flex flex-col overflow-y-auto bg-slate-50/30 dark:bg-black/10">
+            {/* ===== SAĞ PANEL (Masaüstü) / ALT BAR (Mobil) ===== */}
+            <div className="w-full md:w-[360px] shrink-0 flex flex-col fixed md:relative bottom-0 left-0 right-0 z-40 md:z-auto bg-white md:bg-slate-50/30 dark:bg-slate-900 md:dark:bg-black/10 border-t md:border-0 border-slate-200 dark:border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:shadow-none">
               
-              {/* HEDEF TARİH + ÖNCELİK — Her zaman açık */}
-              <div className="p-4 md:p-5 border-b border-slate-100 dark:border-white/5 space-y-3">
-                {/* Hedef Tarih */}
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-wider flex items-center gap-1.5">
-                    <Target className="w-3.5 h-3.5 text-orange-500" /> Hedef Tarih
-                  </span>
-                  {editingDueDate ? (
-                    <div className="flex items-center gap-1.5">
-                      <input type="date" value={dueDateDraft} onChange={e => setDueDateDraft(e.target.value)}
-                        className="px-2 py-1 text-xs font-bold rounded-lg bg-white dark:bg-black/20 border border-slate-200 dark:border-white/20 text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50" />
-                      <button onClick={saveDueDate} className="text-xs font-bold text-indigo-500 hover:text-indigo-700">✓</button>
-                      <button onClick={() => setEditingDueDate(false)} className="text-slate-400 hover:text-slate-600"><X className="w-3.5 h-3.5" /></button>
-                    </div>
-                  ) : (
-                    <button onClick={() => setEditingDueDate(true)}
-                      className="text-xs font-bold text-slate-700 dark:text-white/70 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                      {selectedTask.due_date ? format(new Date(selectedTask.due_date), 'dd MMM yyyy', { locale: tr }) : '+ Ekle'}
-                    </button>
-                  )}
-                </div>
-
-                {/* Öncelik */}
-                <div className="flex items-center justify-between relative" ref={priorityMenuRef}>
-                  <span className="text-[11px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-wider flex items-center gap-1.5">
-                    <Flag className={`w-3.5 h-3.5 ${pConfig.flagColor}`} /> Öncelik
-                  </span>
-                  <button onClick={() => setShowPriorityMenu(!showPriorityMenu)}
-                    className={`text-xs font-bold px-2.5 py-1 rounded-lg bg-gradient-to-r ${pConfig.gradient} text-white flex items-center gap-1 hover:opacity-90 transition-opacity`}>
-                    {pConfig.label}
-                    <ChevronDown className="w-3 h-3" />
-                  </button>
-                  {showPriorityMenu && (
-                    <div className="absolute top-full right-0 mt-1 z-20 w-36 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-1 animate-in fade-in slide-in-from-top-2 duration-150">
-                      {Object.entries(priorityConfig).filter(([k]) => k !== 'normal').map(([key, cfg]) => (
-                        <button key={key} onClick={() => handlePriorityChange(key)}
-                          className={`w-full text-left px-3 py-2 text-xs font-semibold flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors ${selectedTask.priority === key ? 'bg-slate-50 dark:bg-slate-700' : ''}`}>
-                          <Flag className={`w-3 h-3 ${cfg.flagColor}`} />
-                          {cfg.label}
-                          {selectedTask.priority === key && <CheckCircle2 className="w-3 h-3 text-indigo-500 ml-auto" />}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Oluşturma Tarihi — küçük */}
-                {selectedTask.created_at && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-wider flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-slate-400" /> Oluşturulma
-                    </span>
-                    <span className="text-[11px] font-medium text-slate-500 dark:text-white/40">
-                      {format(new Date(selectedTask.created_at), 'dd MMM yyyy', { locale: tr })}
-                    </span>
-                  </div>
-                )}
+              {/* HEDEF TARİH + ÖNCELİK — Her zaman açık (Masaüstü) */}
+              <div className="hidden md:block">
+                {renderMetaInfo()}
               </div>
+
+              {/* İÇERİK ALANI */}
+              <div className="flex-1 overflow-y-auto max-h-[60vh] md:max-h-full">
+
 
               {/* FOTOĞRAFLAR — Google Drive Entegrasyonu */}
               <div 
-                className="border-b border-slate-100 dark:border-white/5 shrink-0 cursor-pointer select-none"
-                onClick={() => setIsPhotosOpen(!isPhotosOpen)}
+                className={`border-b border-slate-100 dark:border-white/5 shrink-0 select-none ${activeMobileTab === 'photos' ? 'block' : 'hidden md:block'}`}
               >
                 <div className="p-3 md:p-5">
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="hidden md:flex items-center justify-between mb-2 cursor-pointer" onClick={() => setIsPhotosOpen(!isPhotosOpen)}>
                     <h3 className="text-[10px] md:text-xs font-bold uppercase tracking-widest md:tracking-normal md:normal-case text-slate-700 dark:text-white/80 flex items-center gap-2">
                       <ImagePlus className="w-4 h-4 text-indigo-500" />
                       Fotoğraflar
@@ -1014,7 +1029,7 @@ export function TaskDetailPanel() {
                   </div>
                   
                   <div 
-                    className={`overflow-hidden transition-all duration-300 ease-in-out ${isPhotosOpen ? 'opacity-100 mt-2' : 'max-h-0 opacity-0'}`} 
+                    className={`overflow-hidden transition-all duration-300 ease-in-out ${isPhotosOpen ? 'opacity-100 md:mt-2' : 'max-h-0 opacity-0 md:max-h-0 md:opacity-0'} max-h-none opacity-100 md:opacity-auto md:max-h-auto pt-2 md:pt-0`} 
                     onClick={e => e.stopPropagation()}
                   >
                     <TaskPhotoUploader
@@ -1039,22 +1054,20 @@ export function TaskDetailPanel() {
               
               {/* ÜST: İLERLEME ÖZETİ + SÜRE */}
               <div 
-                className="border-b border-slate-100 dark:border-white/5 shrink-0 cursor-pointer select-none"
-                onClick={() => setIsProgressOpen(!isProgressOpen)}
+                className={`border-b border-slate-100 dark:border-white/5 shrink-0 select-none ${activeMobileTab === 'progress' ? 'block' : 'hidden md:block'}`}
               >
                 <div className="p-3 md:p-5">
-                  <div className="flex items-center justify-between">
+                  <div className="hidden md:flex items-center justify-between cursor-pointer" onClick={() => setIsProgressOpen(!isProgressOpen)}>
                     <div className="flex items-center gap-2">
                       <TrendingUp className="w-4 h-4 text-emerald-500" />
                       <span className="text-[10px] md:text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400/80">İlerleme Özeti</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold text-emerald-600 md:hidden">{progress}%</span>
                       <ChevronDown className={`w-3.5 h-3.5 transition-transform text-slate-400 ${isProgressOpen ? 'rotate-180' : ''}`} />
                     </div>
                   </div>
                   
-                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isProgressOpen ? 'max-h-[300px] mt-3' : 'max-h-0'}`}>
+                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isProgressOpen ? 'md:max-h-[300px] md:mt-3' : 'md:max-h-0'} max-h-none mt-2 md:mt-0`}>
                     <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50/50 dark:from-emerald-500/10 dark:to-teal-500/5 border border-emerald-100 dark:border-emerald-500/20 p-4">
                       <p className="text-[11px] font-medium text-emerald-800/80 dark:text-emerald-100/60 leading-relaxed">
                         {subtasks.length > 0
@@ -1087,11 +1100,10 @@ export function TaskDetailPanel() {
 
               {/* ORTA: YAPAY ZEKA — Tıklanabilir (Accordion) */}
               <div 
-                className="border-b border-slate-100 dark:border-white/5 shrink-0 cursor-pointer select-none"
-                onClick={() => setIsAIOpen(!isAIOpen)}
+                className={`border-b border-slate-100 dark:border-white/5 shrink-0 select-none ${activeMobileTab === 'ai' ? 'block' : 'hidden md:block'}`}
               >
                 <div className="p-3 md:p-4">
-                  <div className="flex items-center justify-between">
+                  <div className="hidden md:flex items-center justify-between cursor-pointer" onClick={() => setIsAIOpen(!isAIOpen)}>
                     <h3 className="text-[10px] md:text-xs font-bold uppercase tracking-widest md:tracking-normal md:normal-case text-slate-700 dark:text-white/80 flex items-center gap-2">
                       <Bot className="w-4 h-4 text-purple-500" />
                       Yapay Zeka
@@ -1106,7 +1118,7 @@ export function TaskDetailPanel() {
                     </div>
                   </div>
 
-                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isAIOpen ? 'max-h-[500px] mt-3' : 'max-h-0'}`}>
+                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isAIOpen ? 'md:max-h-[500px] md:mt-3' : 'md:max-h-0'} max-h-none mt-2 md:mt-0`}>
                     <div className="rounded-xl bg-gradient-to-br from-purple-100/80 to-indigo-100/60 dark:from-purple-500/15 dark:to-indigo-500/10 border border-purple-200/50 dark:border-purple-500/20 p-3 md:p-4 shadow-sm relative overflow-hidden">
                       <div className="absolute -top-10 -right-10 w-24 h-24 bg-purple-400/20 blur-3xl rounded-full pointer-events-none" />
                       {isAnalyzing ? (
@@ -1139,11 +1151,10 @@ export function TaskDetailPanel() {
 
               {/* ALT: İŞLEM GEÇMİŞİ — ACCORDION, VARSAYILAN KAPALI */}
               <div 
-                className="border-b border-slate-100 dark:border-white/5 cursor-pointer select-none"
-                onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+                className={`border-b border-slate-100 dark:border-white/5 select-none ${activeMobileTab === 'history' ? 'block' : 'hidden md:block'}`}
               >
                 <div className="p-3 md:p-4">
-                  <div className="flex items-center justify-between">
+                  <div className="hidden md:flex items-center justify-between cursor-pointer" onClick={() => setIsHistoryOpen(!isHistoryOpen)}>
                     <h3 className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-700 dark:text-white/80 flex items-center gap-2">
                       <History className="w-4 h-4 text-emerald-500" />
                       İşlem Geçmişi
@@ -1151,7 +1162,7 @@ export function TaskDetailPanel() {
                     <ChevronDown className={`w-3.5 h-3.5 transition-transform text-slate-400 ${isHistoryOpen ? 'rotate-180' : ''}`} />
                   </div>
 
-                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isHistoryOpen ? 'max-h-[400px] mt-3' : 'max-h-0'}`}
+                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isHistoryOpen ? 'md:max-h-[400px] md:mt-3' : 'md:max-h-0'} max-h-none mt-2 md:mt-0`}
                     onClick={e => e.stopPropagation()}>
                     <div className="relative">
                       <div className="absolute left-[13px] top-2 bottom-2 w-px bg-slate-200 dark:bg-white/10" />
@@ -1175,6 +1186,29 @@ export function TaskDetailPanel() {
                   </div>
                 </div>
               </div>
+
+              </div> {/* İçerik alanı bitiş */}
+
+              {/* MOBİL TAB BAR */}
+              <div className="flex md:hidden items-center justify-around px-2 py-3 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 pb-safe">
+                 <button onClick={() => setActiveMobileTab('photos')} className={`flex flex-col items-center gap-1.5 transition-colors flex-1 ${activeMobileTab === 'photos' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                   <ImagePlus className="w-[22px] h-[22px]"/>
+                   <span className="text-[10px] font-bold">Fotoğraflar</span>
+                 </button>
+                 <button onClick={() => setActiveMobileTab('progress')} className={`flex flex-col items-center gap-1.5 transition-colors flex-1 ${activeMobileTab === 'progress' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                   <TrendingUp className="w-[22px] h-[22px]"/>
+                   <span className="text-[10px] font-bold">İlerleme</span>
+                 </button>
+                 <button onClick={() => setActiveMobileTab('ai')} className={`flex flex-col items-center gap-1.5 transition-colors flex-1 ${activeMobileTab === 'ai' ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                   <Bot className="w-[22px] h-[22px]"/>
+                   <span className="text-[10px] font-bold">Yapay Zeka</span>
+                 </button>
+                 <button onClick={() => setActiveMobileTab('history')} className={`flex flex-col items-center gap-1.5 transition-colors flex-1 ${activeMobileTab === 'history' ? 'text-slate-800 dark:text-slate-300' : 'text-slate-400 dark:text-slate-500'}`}>
+                   <History className="w-[22px] h-[22px]"/>
+                   <span className="text-[10px] font-bold">Geçmiş</span>
+                 </button>
+              </div>
+
             </div>
           </div>
         </div>

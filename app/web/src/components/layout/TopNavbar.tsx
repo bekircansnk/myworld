@@ -482,8 +482,8 @@ export function TopNavbar() {
                 </div>
                 <div className="py-1">
                   <a
-                    href="/Pikselis_v1.6.apk"
-                    download="Pikselis_v1.6.apk"
+                    href="/Pikselis_v1.7.apk"
+                    download="Pikselis_v1.7.apk"
                     className="w-full text-left px-4 py-3 text-sm text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all font-black flex items-center gap-3 shadow-inner"
                   >
                     <Smartphone className="w-5 h-5" /> Android APK Yükle
