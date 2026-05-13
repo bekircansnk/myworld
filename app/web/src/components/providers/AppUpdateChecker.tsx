@@ -7,6 +7,8 @@ import { App } from "@capacitor/app";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import { Download, RefreshCw, Sparkles, X, AlertCircle, CheckCircle2 } from "lucide-react";
 
+import { useTaskStore } from "@/stores/taskStore";
+
 // Native plugin bridge — Android tarafındaki ApkInstallerPlugin'e erişim
 const ApkInstaller = Capacitor.isNativePlatform()
   ? Capacitor.registerPlugin("ApkInstaller")
@@ -51,6 +53,10 @@ export function AppUpdateChecker() {
   // Sürüm kontrolü fonksiyonu — hem ilk açılışta hem resume'da çağrılır
   const checkVersion = useCallback(async () => {
     if (!Capacitor.isNativePlatform()) return;
+
+    // KULLANICIYI BÖLMEMEK İÇİN: Görev detay paneli açıksa güncellemeyi GÖSTERME (sessiz bekle)
+    const isBusy = useTaskStore.getState().isDetailPanelOpen;
+    if (isBusy) return;
 
     try {
       setState("checking");

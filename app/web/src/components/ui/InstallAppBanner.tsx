@@ -91,10 +91,10 @@ export function InstallAppBanner() {
                   a.click();
                   document.body.removeChild(a);
                 } else {
-                  window.open("/Pikselis_v2.2.apk", "_blank");
+                  window.open("/Pikselis_v2.3.apk", "_blank");
                 }
               } catch (err) {
-                window.open("/Pikselis_v2.2.apk", "_blank");
+                window.open("/Pikselis_v2.3.apk", "_blank");
               }
               setTimeout(handleDismiss, 1000);
             }}

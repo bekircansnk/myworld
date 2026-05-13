@@ -38,20 +38,23 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
     
     // OFFLINE DESTEĞİ: Fotoğrafları Cache'e at
     if (photos.length > 0 && typeof caches !== 'undefined') {
-      caches.open('task-photos-cache').then(cache => {
-        photos.forEach(photo => {
-          const thumbUrl = getPhotoThumbnailUrl(photo.drive_id, 400);
-          const fullUrl = getPhotoViewUrl(photo.drive_id);
-          
-          cache.match(thumbUrl).then(res => {
-            if (!res) fetch(thumbUrl, { mode: 'no-cors' }).then(fetchRes => cache.put(thumbUrl, fetchRes)).catch(()=>{});
+      import('@capacitor/core').then(({ Capacitor }) => {
+        if (Capacitor.isNativePlatform()) return; // Native ortamda caching opaque blobları bozuyor (görünmeme hatası)
+        caches.open('task-photos-cache').then(cache => {
+          photos.forEach(photo => {
+            const thumbUrl = getPhotoThumbnailUrl(photo.drive_id, 400);
+            const fullUrl = getPhotoViewUrl(photo.drive_id);
+            
+            cache.match(thumbUrl).then(res => {
+              if (!res) fetch(thumbUrl, { mode: 'no-cors' }).then(fetchRes => cache.put(thumbUrl, fetchRes)).catch(()=>{});
+            });
+            
+            cache.match(fullUrl).then(res => {
+              if (!res) fetch(fullUrl, { mode: 'no-cors' }).then(fetchRes => cache.put(fullUrl, fetchRes)).catch(()=>{});
+            });
           });
-          
-          cache.match(fullUrl).then(res => {
-            if (!res) fetch(fullUrl, { mode: 'no-cors' }).then(fetchRes => cache.put(fullUrl, fetchRes)).catch(()=>{});
-          });
-        });
-      }).catch(() => {});
+        }).catch(() => {});
+      });
     }
   }, [photos])
 
@@ -374,7 +377,7 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
 
       {/* Global Drag Overlay */}
       {isDragging && (
-        <div className="fixed inset-0 z-[100] bg-indigo-500/20 backdrop-blur-sm flex items-center justify-center border-[6px] border-indigo-500 border-dashed m-4 rounded-3xl animate-in fade-in duration-200 pointer-events-none">
+        <div className="fixed inset-0 z-[100] bg-indigo-500/20 flex items-center justify-center border-[6px] border-indigo-500 border-dashed m-4 rounded-3xl pointer-events-none">
           <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-4 animate-bounce">
             <ImagePlus className="w-16 h-16 text-indigo-500" />
             <span className="text-xl font-bold text-slate-800 dark:text-white text-center">Fotoğrafı Buraya Bırakın</span>
@@ -387,7 +390,7 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
       {previewIndex !== null && photos[previewIndex] && typeof document !== 'undefined' && createPortal(
         <div 
           role="dialog"
-          className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-200"
+          className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-4 md:p-8"
           onClick={closeLightbox}
         >
           {/* Sol Ok */}
@@ -402,8 +405,9 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
           <img
             src={`${getPhotoViewUrl(photos[previewIndex].drive_id)}`}
             alt={photos[previewIndex].name}
-            className="max-w-[95vw] max-h-[90vh] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-300 cursor-zoom-out"
+            className="max-w-[95vw] max-h-[90vh] object-contain rounded-xl shadow-2xl cursor-zoom-out will-change-transform"
             onClick={(e) => { e.stopPropagation(); closeLightbox(); }}
+            referrerPolicy="no-referrer"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               if (!target.src.includes('retry=')) {
@@ -513,6 +517,7 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
                       alt={photo.name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       loading="lazy"
+                      referrerPolicy="no-referrer"
                       onError={(e) => {
                         // Eğer lh3 URL'si çalışmazsa uc URL'sine fallback yap
                         const target = e.target as HTMLImageElement;

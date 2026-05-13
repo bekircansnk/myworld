@@ -346,6 +346,26 @@
   * {
     -webkit-tap-highlight-color: transparent;
   }
+
+  /* ===== ANDROİD WEBVIEW FLICKER (TİTREME) ÖNLEYİCİLER ===== */
+  /* fixed öğelerde GPU katmanını aç — Android'de kaydırma sırasında titreme önlenir */
+  .fixed {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+  /* backdrop-blur Android WebView'de ağır GPU kullanımı yaratır — tüm mobilde sınırla */
+  .backdrop-blur-xl, .backdrop-blur-lg, .backdrop-blur-md, .backdrop-blur-sm {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background-opacity: 0.95;
+  }
+  /* Panel/kart açılış animasyonlarında ekran kayması engeli */
+  [style*="transform"] {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
 }
 
 /* Mobil yatay scroll önleyici (güvenlik ağı) */

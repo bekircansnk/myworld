@@ -9,11 +9,14 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
-### v2.2
+### v2.3
 **Tarih:** 13 Mayıs 2026
 **Değişiklikler:**
-- **[Kritik/Evrensel Sistem Kuralı]** `AGENTS.md` ve `GEMINI.md` kuralları güncellenerek tüm arayüz geliştirmeleri (PWA, Masaüstü, Native) "Evrensel Kapsam" altına alındı. Titreme (flickering) sorunları çözüldü.
-- **[Yeni Özellik]** Uygulama içi (OTA) güncellemeler zorunlu kılındı. Artık bir güncelleme yayınlandığında ekranı kapatmak (Sonra hatırlat) mümkün olmayıp, kullanıcıların her zaman en son sürümde (bugsız) kalması garanti altına alındı.
+- **[Performans/Kritik]** Android WebView (Capacitor) üzerindeki tüm titreme (flickering) sorunları, GPU katmanları ve animasyon optimizasyonları ile kökten çözüldü. Artık görev kartları ve paneller takılmadan/titremeden açılıyor.
+- **[Sessiz Senkronizasyon]** Arka planda veri senkronizasyonu veya güncelleme kontrolü yapılırken kullanıcının ana sayfaya atılması veya işinin bölünmesi engellendi. Uygulama artık çok daha kararlı ve sessiz çalışıyor.
+- **[Görsel Düzeltme]** Android native uygulamada fotoğrafların görünmemesine neden olan CORS/Referrer engeli `no-referrer` politikası ile aşıldı; fotoğraflar artık anında yükleniyor.
+
+### v2.2
 
 ### v2.1
 **Tarih:** 13 Mayıs 2026

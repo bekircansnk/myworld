@@ -180,14 +180,16 @@ async def global_exception_handler(request, exc: Exception):
 
 @app.get("/api/app-version")
 async def get_app_version():
-    """Mobil uygulama sürüm kontrolü — public endpoint (auth gerektirmez)"""
+    """
+    Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
+    """
     return {
-        "version": "2.2",
-        "version_code": 13,
-        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v2.2.apk",
-        "changelog": "• OTA güncellemeler zorunlu hale getirildi, her açılışta güncellemeler garantilendi.\n• Geri tuşu titreme ve kapanma sorunları tüm cihazlar (Web/Android) için çözüldü.\n• Evrensel Kapsam kuralı getirilerek tüm ekranlarda uyumluluk sağlandı.",
-        "force_update": True,
-        "min_supported_version": "1.0"
+        "version": "2.3",
+        "version_code": 14,
+        "download_url": "https://pikselis.pikselai.com/Pikselis_v2.3.apk",
+        "min_supported_version": "1.0",
+        "force_update": True, # OTA ZORUNLU KURALI
+        "changelog": "- Arka planda sessiz senkronizasyon yeteneği eklendi.\n- Görev açılışındaki ekran titreme sorunu giderildi.\n- Fotoğrafların görünmeme sorunu kalıcı olarak çözüldü."
     }
 
 @app.get("/api/link-preview")

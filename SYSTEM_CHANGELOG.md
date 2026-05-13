@@ -2,11 +2,14 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
-## [2026-05-13] - Mimari Refactoring ve Titreme (Flicker) Çözümleri
+## [2026-05-13] - Android Titreme (Flicker) ve Sessiz Senkronizasyon Düzeltmeleri
 
 ### Çözüldü
-- **Ekran Titremesi (Flickering):** Next.js App Router yapısındaki ekran geçişlerinde (Görevler, Takvim, Dashboard vb.) yaşanan "ani sayfa yenilenmesi ve beyaz ekran titremesi" sorunu `animate-in fade-in duration-300` Tailwind animasyonları ile sarılarak yumuşak (smooth) geçişli hale getirildi.
-- **Web History (Geri Tuşu) Tutarsızlığı:** Web / PWA ortamında geri tuşuna (popstate) basıldığında görev detay panelinin komple kapanmasını engellemek için, `TaskDetailPanel` içerisindeki history mantığı güçlendirildi. Artık "Açıklama Düzenle" gibi modlar açıkken web tarayıcısında geri gidildiğinde panel açık kalır, sadece edit modu kapatılır.
+- **Android Titreme (Flicker) Çözümü:** Android WebView (Capacitor) cihazlarda görev kartı açılırken yaşanan ekran titremesi; URL hash tabanlı navigasyonun (`#task-id`) kaldırılıp `history.state` yapısına geçilmesi ve GPU katman (translateZ) optimizasyonları ile tamamen giderildi.
+- **Sessiz Senkronizasyon (Kesintisiz UX):** Arka planda veri çekilirken veya güncelleme kontrolü yapılırken kullanıcının ana sayfaya atılması/işinin bölünmesi sorunu çözüldü. Artık senkronizasyonlar kullanıcıyı rahatsız etmeden arka planda gerçekleşiyor.
+- **Android Fotoğraf CORS Sorunu:** Android native uygulamada Google Drive fotoğraflarının görünmemesine neden olan referrer engeli, tüm fotoğraf bileşenlerine `referrerPolicy="no-referrer"` eklenerek aşıldı.
+
+## [2026-05-13] - Mimari Refactoring ve Titreme (Flicker) Çözümleri
 
 ---
 

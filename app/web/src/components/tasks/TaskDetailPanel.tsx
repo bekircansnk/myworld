@@ -224,7 +224,7 @@ export function TaskDetailPanel() {
 
   // ---- GERİ TUŞU / MOBİL GEZİNTİ ORKESTRASYONU ----
   const handleCloseDetail = React.useCallback(() => {
-    if (typeof window !== 'undefined' && window.location.hash.startsWith('#task-')) {
+    if (typeof window !== 'undefined' && window.history.state?.type === 'task-detail') {
       window.history.back();
     } else {
       closeTaskDetail();
@@ -232,7 +232,7 @@ export function TaskDetailPanel() {
   }, [closeTaskDetail]);
 
   const handleCloseImagePreview = React.useCallback(() => {
-    if (typeof window !== 'undefined' && window.location.hash === '#image-preview') {
+    if (typeof window !== 'undefined' && window.history.state?.type === 'image-preview') {
       window.history.back();
     } else {
       setImagePreview(null);
@@ -244,8 +244,11 @@ export function TaskDetailPanel() {
     if (typeof window === 'undefined') return;
     if (!isDetailPanelOpen) return;
 
-    if (!window.location.hash.startsWith('#task-')) {
-      window.history.pushState({ type: 'task-detail', taskId: selectedTask?.id }, '', `#task-${selectedTask?.id}`);
+    // SADECE STATE PUSH EDİYORUZ, HASH DEĞİŞTİRMİYORUZ Kİ SAYFA TİTREMESİN (SCROLL JUMP OLMASIN)
+    // Sadece henüz task-detail state'i yoksa push et
+    const currentState = window.history.state;
+    if (currentState?.type !== 'task-detail' || currentState?.taskId !== selectedTask?.id) {
+      window.history.pushState({ type: 'task-detail', taskId: selectedTask?.id }, '', window.location.pathname + window.location.search);
     }
 
     const handlePopState = (e: PopStateEvent) => {
@@ -255,8 +258,8 @@ export function TaskDetailPanel() {
 
       // Düzenleme modları açıksa paneli kapatmak yerine düzenleme modunu kapat
       if (isEditingDesc || isEditingTitle || isAddingSubtask || editingDueDate || editingSubtaskId !== null) {
-         // Tarayıcı history'de bir adım geri gitmiş olduğu için, URL'yi tekrar görev detayı URL'sine çekerek paneli açık tutuyoruz.
-         window.history.pushState({ type: 'task-detail', taskId: selectedTask?.id }, '', `#task-${selectedTask?.id}`);
+         // Tarayıcı history'de bir adım geri gitmiş olduğu için, URL'yi tekrar push ederek paneli açık tutuyoruz.
+         window.history.pushState({ type: 'task-detail', taskId: selectedTask?.id }, '', window.location.pathname + window.location.search);
          setIsEditingDesc(false);
          setIsEditingTitle(false);
          setIsAddingSubtask(false);
@@ -278,12 +281,13 @@ export function TaskDetailPanel() {
     };
   }, [isDetailPanelOpen, selectedTask?.id, imagePreview, closeTaskDetail, isEditingDesc, isEditingTitle, isAddingSubtask, editingDueDate, editingSubtaskId]);
 
-  // 2. Resim önizlemesi açıldığında history state push et
+  // 2. Resim önizlemesi açıldığında history state push et (Hash'siz)
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
     if (imagePreview) {
-      if (window.location.hash !== '#image-preview') {
-        window.history.pushState({ type: 'image-preview' }, '', '#image-preview');
+      const currentState = window.history.state;
+      if (currentState?.type !== 'image-preview') {
+        window.history.pushState({ type: 'image-preview' }, '', window.location.pathname + window.location.search);
       }
     }
   }, [imagePreview]);
@@ -757,14 +761,14 @@ export function TaskDetailPanel() {
       />
       {/* Fullscreen Overlay */}
       <div
-        className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 animate-in fade-in duration-200"
+        className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 transition-opacity duration-200"
         onClick={handleCloseDetail}
       />
 
       {/* Modal Container — TEK SCROLL, SABİT HEADER YOK */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-5 pointer-events-none">
         <div
-          className="relative pointer-events-auto w-full max-w-full md:max-w-[1280px] h-[100dvh] md:h-[92vh] rounded-none md:rounded-3xl overflow-hidden animate-in zoom-in-95 fade-in duration-300 border-0 md:border border-slate-200/60 dark:border-white/10 shadow-2xl shadow-indigo-500/10 bg-white dark:bg-slate-900 flex flex-col"
+          className="relative pointer-events-auto w-full max-w-full md:max-w-[1280px] h-[100dvh] md:h-[92vh] rounded-none md:rounded-3xl overflow-hidden border-0 md:border border-slate-200/60 dark:border-white/10 shadow-2xl shadow-indigo-500/10 bg-white dark:bg-slate-900 flex flex-col will-change-transform"
           onClick={e => e.stopPropagation()}
         >
           {/* Öncelik gradient çizgisi */}
@@ -1233,7 +1237,7 @@ export function TaskDetailPanel() {
 
       {/* ============ IMAGE PREVIEW LIGHTBOX ============ */}
       {imagePreview && (
-        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-xl flex items-center justify-center p-8 animate-in fade-in duration-200"
+        <div className="fixed inset-0 z-[60] bg-black/85 flex items-center justify-center p-8 transition-opacity duration-200"
           onClick={handleCloseImagePreview}>
           <img src={imagePreview} alt="Preview" className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl ring-1 ring-white/20 animate-in zoom-in-95 duration-300" />
           <button onClick={handleCloseImagePreview} className="absolute top-6 right-6 p-3 rounded-2xl bg-white/10 text-white hover:bg-white/25 transition-colors backdrop-blur-md">
