@@ -38,11 +38,11 @@ Geçmişte `Pikselis.apk` dosyası `public/` klasöründe bırakıldığı için
 
 Kullanıcı "APK'yı derle" veya "Android uygulamasını güncelle" dediğinde **KESİNLİKLE AŞAĞIDAKİ ADIMLAR SIRASIYLA UYGULANACAKTIR:**
 1. **SÜRÜMÜ GÜNCELLE:** `app/web/android/app/build.gradle` içindeki `versionCode` (örn: 2) ve `versionName` (örn: "1.1") değerlerini artır. (Sürüm 1.9'dan sonra 2.0 olur, 2.9'dan sonra 3.0 olur vb. 2 haneli kural). Ardından yapılan değişiklikleri mutlaka `/ANDROID_CHANGELOG.md` dosyasına kaydet.
-2. **ESKİ APK'YI TAŞI:** `mv public/Pikselis.apk ../../.silinecekler_cop_kutusu/` komutuyla eski APK'yı mutlaka projeden çıkar. Aksi takdirde iç içe paketlenir ve boyut katlanarak artar.
+2. **ESKİ APK'YI TAŞI:** `mv public/*.apk ../../.silinecekler_cop_kutusu/` komutuyla (eğer varsa) tüm eski APK'ları mutlaka projeden çıkar. Aksi takdirde iç içe paketlenir ve boyut katlanarak artar.
 3. **WEB BUILD:** `npm run build` komutu ile Next.js tarafını temiz bir şekilde derle.
 4. **CAPACITOR SYNC:** `npx cap sync android` komutunu çalıştır (eski APK silinmiş olduğu için sadece temiz dosyalar senkronize edilecek).
 5. **APK OLUŞTUR:** `cd android && ./gradlew assembleDebug` komutuyla yeni APK'yı derle. (Not: `build.gradle` içindeki `splits` bloğu kapatılmış veya `universalApk true` yapılmış olmalıdır).
-6. **YENİ APK'YI TAŞI:** `cp app/build/outputs/apk/debug/app-debug.apk ../public/Pikselis.apk` komutu ile yeni üretilen temiz APK'yı indirme klasörüne yerleştir.
+6. **YENİ APK'YI TAŞI:** `cp app/build/outputs/apk/debug/app-debug.apk ../public/Pikselis_v[SÜRÜM].apk` komutu ile yeni üretilen temiz APK'yı indirme klasörüne yerleştir (Örn: `Pikselis_v1.1.apk`).
 7. **COMMIT:** Bu işlemleri tamamladıktan sonra `git commit` atarak repoyu güncelle.
 
 
