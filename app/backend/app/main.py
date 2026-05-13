@@ -182,10 +182,10 @@ async def global_exception_handler(request, exc: Exception):
 async def get_app_version():
     """Mobil uygulama sürüm kontrolü — public endpoint (auth gerektirmez)"""
     return {
-        "version": "1.8",
-        "version_code": 9,
-        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v1.8.apk",
-        "changelog": "• Görev detayındaki alt menü (Tab Bar) tasarımı Apple stili cam efektiyle (Glassmorphism) yenilendi ve çok daha az yer kaplayacak şekilde küçültüldü.\n• Alt menülere tekrar tıklandığında ekranın tam görünmesi için menülerin otomatik gizlenmesi sağlandı.\n• Mobil görünümdeki fotoğraf galerisi, ekranı daha az kaplaması için küçük grid'lere bölündü ve başlık ile paylaş butonlarının iç içe geçme hatası düzeltildi.",
+        "version": "1.9",
+        "version_code": 10,
+        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v1.9.apk",
+        "changelog": "• Görev detayındaki alt menü tasarımı daha saydam (Apple Glass stili) ve kompakt hale getirildi.\n• Alt menüler açıkken ekrana tekrar basıldığında otomatik gizlenme özelliği eklendi.\n• Mobilde fotoğraf hover butonları kaldırıldı, silme ve indirme işlemleri tam ekran lightbox'a taşındı.\n• Sol panel, alt menü açıkken bile ekranı kaydırarak tamamen görülebilir hale getirildi.",
         "force_update": False,
         "min_supported_version": "1.0"
     }
