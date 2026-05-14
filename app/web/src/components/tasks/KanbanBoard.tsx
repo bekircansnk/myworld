@@ -452,8 +452,10 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`flex-1 overflow-y-auto kanban-column-scroll flex flex-col gap-2 rounded-lg p-1.5 transition-colors ${
-                        snapshot.isDraggingOver ? 'bg-blue-50/40 dark:bg-blue-500/5' : 'bg-gray-50/50 dark:bg-white/[0.02]'
+                      className={`flex-1 overflow-y-auto kanban-column-scroll flex flex-col gap-2 rounded-xl p-2 transition-all duration-300 min-h-[200px] border-2 border-transparent ${
+                        snapshot.isDraggingOver 
+                          ? 'bg-indigo-50/50 dark:bg-indigo-500/10 border-indigo-200/50 dark:border-indigo-500/20 shadow-lg scale-[1.01]' 
+                          : 'bg-gray-50/50 dark:bg-white/[0.02]'
                       }`}
                     >
                       {columnTasks.map((task, index) => (

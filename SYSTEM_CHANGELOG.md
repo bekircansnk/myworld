@@ -2,12 +2,16 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
-## [2026-05-15] - Güvenlik ve Yönetim Paneli Kısıtlaması
+## [2026-05-15] - Kanban Sürükle-Bırak Deneyimi ve Boş Sütun Optimizasyonu
+
+### Çözüldü
+- **Boş Sütunlara Bırakma Sorunu:** Daha önce hiç kart olmayan (boş) sütunlara kart taşırken yaşanan algılama sorunu ve kartın "havada kalıp geri dönmesi" problemi giderildi.
+- **Dinamik Yükseklik:** Sütunların (kanban-column) her zaman tam dikey yüksekliği kaplaması sağlandı (`height: 100%`).
+- **Droppable Alan Genişletme:** Kart bırakma alanına (`Droppable`) minimum 200px yükseklik eklenerek boş sütunların her zaman geçerli bir hedef olması sağlandı.
 
 ### Güncellendi
-- **Yönetim Paneli Erişimi (Kritik):** Yönetim paneli (Admin Panel) artık sadece kullanıcı adı `bekir` olan kullanıcıya özel hale getirildi. 
-- **Frontend Kısıtlaması:** Diğer tüm kullanıcılar (admin ve super_admin rollerine sahip olsalar bile) artık navigasyon barlarında "Yönetim" tabını görmeyecekler. URL üzerinden doğrudan erişim durumunda ise "Yetkiniz yok" hatasıyla karşılaşacaklar.
-- **Backend Kısıtlaması:** `require_admin` ve `require_super_admin` bağımlılıkları güncellenerek, API düzeyinde de kullanıcı adı kontrolü eklendi. Bu sayede sistem sahibi haricindeki hiç kimse administrative API uç noktalarını kullanamayacak.
+- **Görsel Geri Bildirim:** Bir kart bir sütun üzerine getirildiğinde sütun artık daha belirgin bir şekilde parlıyor ve hafifçe ölçeklenerek kullanıcıya kartı nereye bırakabileceğini net bir şekilde gösteriyor.
+- **Aesthetic Refinement:** Sütun kenarları daha yumuşak (`rounded-xl`) hale getirildi ve sürükleme sırasında gölge (shadow) efektleri eklendi.
 
 ## [2026-05-15] - Terminal Problemleri ve Build Optimizasyonu
 
