@@ -2,6 +2,25 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-15] - Kanban Board Trello Tarzı Tam Yeniden Tasarım
+
+### Eklendi
+- **Dinamik Sütun Sistemi:** Kullanıcılar artık sütun isimlerini düzenleyebilir ve yeni sütunlar ekleyebilir. Sütun yapılandırması `localStorage`'da proje bazlı saklanır.
+- **Bağımsız Sütun Scroll:** Her sütun kendi içinde bağımsız dikey scroll yapar, sayfa seviyesinde scroll tamamen kaldırıldı.
+- **Yatay Kaydırma:** Sütunlar arası yatay kaydırma ile Trello tarzı navigasyon. Mobilde snap-scroll desteği.
+- **Trello Tarzı "Kart Ekle":** Her sütunun altında Trello benzeri `+ Kart ekle` linki.
+- **Sütun Menüsü:** Üç nokta menüsünden "İsmini Değiştir", "Tümünü Sil", "Sütunu Kaldır" seçenekleri.
+
+### Güncellendi
+- **TaskCard Kompakt Tasarım:** Başlıklar `text-sm font-semibold` ile daha okunaklı, not alanı `text-[12px]` ile 2 satır `line-clamp`. İlerleme çubuğu dot-style'dan ince bar'a dönüştürüldü.
+- **Sayfa Layout:** Görevler ekranındaki büyük başlık + açıklama alanı kaldırıldı, minimal toolbar ile yer tasarrufu sağlandı.
+
+### Kaldırıldı
+- **Mükerrer Başlıklar:** Üstteki büyük tab bar ve alttaki sütun başlıkları tekrarı giderildi.
+- **Arşivle Seçeneği:** Arşiv sistemi olmadığından kart ve sütun menülerinden "Arşivle" kaldırıldı.
+- **Renk Seçici:** Kart bazlı renk seçici gereksiz karmaşıklık olarak değerlendirilip kaldırıldı.
+
+
 ## [2026-05-14] - Vercel SPA Yönlendirmeleri (404 Çözümü)
 
 ### Çözüldü
