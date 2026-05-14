@@ -75,7 +75,7 @@ export const useTaskStore = create<TaskState>()(
         const tempId = Date.now();
         const tempTask = { ...data, id: tempId, status: data.status || 'todo', created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as Task;
         set((state) => ({
-          tasks: [tempTask, ...state.tasks],
+          tasks: [...state.tasks, tempTask],
         }));
         try {
           // project_id'yi hem URL query param hem body'de gönder - backend izin kontrolü için

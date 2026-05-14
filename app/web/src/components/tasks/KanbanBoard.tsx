@@ -87,6 +87,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
   // Auto-scroll logic for drag
   const scrollIntervalRef = React.useRef<NodeJS.Timeout | null>(null)
   const [isDragging, setIsDragging] = React.useState(false)
+  const pointerXRef = React.useRef<number>(0) // Global pointer position tracking
 
   // Sütun değişikliklerini localStorage'a kaydet
   React.useEffect(() => {
@@ -234,13 +235,14 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
     toast.success("Tüm görevler silindi")
   }
 
-  // Auto-scroll handler
+  // Auto-scroll handler (DragUpdate'ten görünür koordinat oku)
   const handleDragUpdate = (update: any) => {
-    if (!update.clientOffset || !boardRef.current) return;
+    // clientOffset sadece desktop'ta güvenilir, mobilde pointerXRef kullanıyoruz
+    const x = update.clientOffset?.x ?? pointerXRef.current;
+    if (!boardRef.current || !x) return;
     
-    const { x } = update.clientOffset;
-    const threshold = 60; // Edge threshold in pixels
-    const speed = 15; // Scroll speed
+    const threshold = 80;
+    const speed = 12;
     const windowWidth = window.innerWidth;
 
     if (scrollIntervalRef.current) {
@@ -249,12 +251,10 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
     }
 
     if (x < threshold) {
-      // Scroll left
       scrollIntervalRef.current = setInterval(() => {
         if (boardRef.current) boardRef.current.scrollLeft -= speed;
       }, 16);
     } else if (x > windowWidth - threshold) {
-      // Scroll right
       scrollIntervalRef.current = setInterval(() => {
         if (boardRef.current) boardRef.current.scrollLeft += speed;
       }, 16);
@@ -263,11 +263,31 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
 
   const handleDragStart = () => {
     setIsDragging(true);
+    // Pointer/touch olaylarından X pozisyonunu yakala (mobil için)
+    const onPointerMove = (e: PointerEvent | TouchEvent) => {
+      if (e instanceof TouchEvent) {
+        pointerXRef.current = e.touches[0]?.clientX ?? 0;
+      } else {
+        pointerXRef.current = e.clientX;
+      }
+    };
+    window.addEventListener('pointermove', onPointerMove as EventListener);
+    window.addEventListener('touchmove', onPointerMove as EventListener, { passive: true });
+    // handleDragEnd'de temizle
+    (window as any)._kanbanCleanup = () => {
+      window.removeEventListener('pointermove', onPointerMove as EventListener);
+      window.removeEventListener('touchmove', onPointerMove as EventListener);
+    };
   };
 
   // Drag & Drop
   const handleDragEnd = (result: DropResult) => {
     setIsDragging(false);
+    // Pointer event listener'ları temizle
+    if ((window as any)._kanbanCleanup) {
+      (window as any)._kanbanCleanup();
+      delete (window as any)._kanbanCleanup;
+    }
     if (scrollIntervalRef.current) {
       clearInterval(scrollIntervalRef.current);
       scrollIntervalRef.current = null;
@@ -338,7 +358,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
       >
         <div
           ref={boardRef}
-          className={`flex-1 flex flex-row gap-3 md:gap-4 overflow-x-auto px-3 md:px-5 pb-3 kanban-board-scroll touch-pan-x overscroll-x-contain ${isDragging ? 'cursor-grabbing' : ''}`}
+          className={`flex-1 flex flex-row gap-3 md:gap-4 overflow-x-auto px-3 md:px-5 pb-3 kanban-board-scroll touch-pan-x overscroll-x-contain ${isDragging ? 'cursor-grabbing is-dragging' : ''}`}
           style={{ 
             WebkitOverflowScrolling: 'touch',
             scrollbarWidth: 'none',

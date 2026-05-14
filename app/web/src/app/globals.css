@@ -266,6 +266,14 @@ html, body {
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
   }
+  /* Sürükleme sırasında snap-scroll'u kapat ki board özgürce kayssın */
+  .kanban-board-scroll.is-dragging {
+    scroll-snap-type: none !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .kanban-board-scroll.is-dragging .kanban-column {
+    scroll-snap-align: none !important;
+  }
 }
 
 /* Tablet: biraz daha geniş sütunlar */
