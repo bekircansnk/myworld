@@ -15,7 +15,7 @@ import {
   ShieldAlert
 } from "lucide-react"
 
-import { useAuthStore, canViewCompany, isAdmin } from "@/store/authStore"
+import { useAuthStore, canViewCompany, isAdmin, canAccessAdminPanel } from "@/store/authStore"
 
 export function MobileBottomNav() {
   const { viewMode, setViewMode, selectedProjectId } = useProjectStore()
@@ -39,7 +39,7 @@ export function MobileBottomNav() {
     ...allMainTabs.slice(5),
     ...(canViewCompany(user, 'ads', selectedProjectId) ? [{ id: 'ads', label: 'Reklam', icon: Megaphone }] : []),
     ...(canViewCompany(user, 'photo_tracking', selectedProjectId) ? [{ id: 'photo_tracking', label: 'Fotoğraf', icon: Camera }] : []),
-    ...(isAdmin(user) ? [{ id: 'admin', label: 'Yönetim', icon: ShieldAlert }] : [])
+    ...(canAccessAdminPanel(user) ? [{ id: 'admin', label: 'Yönetim', icon: ShieldAlert }] : [])
   ]
 
   // "Daha Fazla" menüsündeki bir sekme aktifse, o ikonu göster

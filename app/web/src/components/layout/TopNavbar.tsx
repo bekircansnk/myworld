@@ -11,7 +11,7 @@ import { api } from "@/lib/api"
 import { ProjectForm } from "@/components/projects/ProjectForm"
 import { Pencil, Trash2, LogOut } from "lucide-react"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
-import { useAuthStore, canViewCompany, isAdmin, isSuperAdmin } from "@/store/authStore"
+import { useAuthStore, canViewCompany, isAdmin, isSuperAdmin, canAccessAdminPanel } from "@/store/authStore"
 import { ProfileSettings } from "@/components/auth/ProfileSettings"
 import { ProjectSettingsModal } from "@/components/projects/ProjectSettingsModal"
 
@@ -267,7 +267,7 @@ export function TopNavbar() {
     ...(canViewCompany(user, 'ai_chat', selectedProjectId) ? [{ id: 'ai_chat', label: 'AI Sohbet', icon: Bot }] : []),
     ...(canViewCompany(user, 'ads', selectedProjectId) ? [{ id: 'ads', label: 'Reklam', icon: Megaphone }] : []),
     ...(canViewCompany(user, 'photo_tracking', selectedProjectId) ? [{ id: 'photo_tracking', label: 'Fotoğraf Takip', icon: Camera }] : []),
-    ...(isSuperAdmin(user) ? [{ id: 'admin', label: 'Yönetim', icon: Shield }] : []),
+    ...(canAccessAdminPanel(user) ? [{ id: 'admin', label: 'Yönetim', icon: Shield }] : []),
   ]
 
   const notifTypeIcon: Record<string, React.ReactNode> = {

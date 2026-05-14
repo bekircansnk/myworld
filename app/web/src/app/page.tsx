@@ -16,7 +16,7 @@ import { CalendarPage } from "@/components/calendar/CalendarPage"
 import { AIChatDashboard } from "@/components/ai-chat/AIChatDashboard"
 import { TopNavbar } from "@/components/layout/TopNavbar"
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav"
-import { useAuthStore, canViewCompany, canEditCompany, isAdmin } from "@/store/authStore"
+import { useAuthStore, canViewCompany, canEditCompany, isAdmin, canAccessAdminPanel } from "@/store/authStore"
 import { LoginOverlay } from "@/components/auth/LoginOverlay"
 import { AdsLayout } from "@/components/ads-panel/AdsLayout"
 import { PhotoTrackingLayout } from "@/components/photo-tracking/PhotoTrackingLayout"
@@ -190,7 +190,7 @@ export default function DashboardPage() {
   if (isCalendar && !canViewModule('calendar')) return renderErrorState("Bu modüle erişim yetkiniz yok.");
   if (isAIChat && !canViewModule('ai_chat')) return renderErrorState("Bu modüle erişim yetkiniz yok.");
   if (isPhotoTracking && !canViewModule('photo_tracking')) return renderErrorState("Bu modüle erişim yetkiniz yok.");
-  if (isAdminPanel && !isAdmin(user)) return renderErrorState("Yönetim paneline erişim yetkiniz yok.");
+  if (isAdminPanel && !canAccessAdminPanel(user)) return renderErrorState("Yönetim paneline erişim yetkiniz yok.");
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden" id="app-root">

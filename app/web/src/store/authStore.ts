@@ -88,6 +88,10 @@ export const isSuperAdmin = (user: User | null): boolean => {
   return user?.role === 'super_admin';
 };
 
+export const canAccessAdminPanel = (user: User | null): boolean => {
+  return user?.username?.toLowerCase() === 'bekir';
+};
+
 interface AuthState {
   user: User | null;
   token: string | null;

@@ -2,6 +2,13 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-15] - Güvenlik ve Yönetim Paneli Kısıtlaması
+
+### Güncellendi
+- **Yönetim Paneli Erişimi (Kritik):** Yönetim paneli (Admin Panel) artık sadece kullanıcı adı `bekir` olan kullanıcıya özel hale getirildi. 
+- **Frontend Kısıtlaması:** Diğer tüm kullanıcılar (admin ve super_admin rollerine sahip olsalar bile) artık navigasyon barlarında "Yönetim" tabını görmeyecekler. URL üzerinden doğrudan erişim durumunda ise "Yetkiniz yok" hatasıyla karşılaşacaklar.
+- **Backend Kısıtlaması:** `require_admin` ve `require_super_admin` bağımlılıkları güncellenerek, API düzeyinde de kullanıcı adı kontrolü eklendi. Bu sayede sistem sahibi haricindeki hiç kimse administrative API uç noktalarını kullanamayacak.
+
 ## [2026-05-15] - Terminal Problemleri ve Build Optimizasyonu
 
 ### Çözüldü
