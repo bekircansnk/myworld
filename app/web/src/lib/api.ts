@@ -21,8 +21,8 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Ağ hatası (çevrimdışı) → sessizce geç, mevcut cache kullanılsın
-    if (!error.response) {
+    // Ağ hatası (çevrimdışı) veya Sunucu Hatası (Backend Uykuya Geçmesi/5xx) → sessizce geç, mevcut cache kullanılsın
+    if (!error.response || error.response.status >= 500 || error.response.status === 408) {
       error.isOfflineError = true;
       return Promise.reject(error);
     }

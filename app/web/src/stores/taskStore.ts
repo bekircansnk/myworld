@@ -91,6 +91,7 @@ export const useTaskStore = create<TaskState>()(
             }));
             // Güncel veriyi yenile
             get().fetchTasks(data.project_id as number | undefined);
+            throw error;
           }
         }
       },
@@ -121,6 +122,7 @@ export const useTaskStore = create<TaskState>()(
             enqueue('PUT', `/api/tasks/${id}`, data);
           } else {
             set({ tasks: previousTasks, selectedTask: previousSelected, error: error.message });
+            throw error;
           }
         }
       },
@@ -150,6 +152,7 @@ export const useTaskStore = create<TaskState>()(
             enqueue('PATCH', `/api/tasks/${id}/status?status=${status}`);
           } else {
             set({ tasks: previousTasks, error: error.message });
+            throw error;
           }
         }
       },
@@ -175,6 +178,7 @@ export const useTaskStore = create<TaskState>()(
           } else {
             // Hata durumunda geri al
             set({ tasks: previousTasks, error: error.message });
+            throw error;
           }
         }
       },
@@ -199,6 +203,7 @@ export const useTaskStore = create<TaskState>()(
           } else {
             set({ error: error.message });
             get().fetchTasks();
+            throw error;
           }
         }
       },
@@ -226,6 +231,7 @@ export const useTaskStore = create<TaskState>()(
               tasks: state.tasks.filter((t) => t.id !== tempId),
               error: error.message
             }));
+            throw error;
           }
         }
       },

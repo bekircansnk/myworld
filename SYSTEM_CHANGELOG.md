@@ -2,8 +2,13 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
-## [2026-05-13] - Kanban Drag&Drop (Manuel Sıralama) ve v2.4
+## [2026-05-14] - Backend 5xx Çevrimdışı (Offline) Fallback
 
+### Çözüldü
+- **Backend Uyku Modu (Render):** Sunucu uyku moduna geçtiğinde veya Gateway Timeout (504, 502 vb.) hataları verdiğinde görev ekleme/güncelleme işlemlerinin ekranda kaybolması ve hata fırlatması sorunu giderildi.
+- **Optimistic UI (Kayıpsız Veri):** `api.ts` içindeki interceptor güncellenerek 500 ve üzeri tüm hatalar `isOfflineError` olarak işaretlendi. Bu sayede hata anında görevler silinmeyerek IndexedDB sync kuyruğuna alınacak ve kullanıcı veriyi kaybetmemiş olacak.
+
+## [2026-05-13] - Kanban Drag&Drop (Manuel Sıralama) ve v2.4
 ### Eklendi
 - **Manuel Sıralama:** Kanban board üzerindeki görevlerin sürükle bırak mantığıyla manuel olarak sıralanabilmesi ve bu sıranın backend üzerinde (`sort_order`) kalıcı olarak saklanması sağlandı.
 - **Optimistic UI Reordering:** Zustand `taskStore.ts` içerisine `reorderTasks` action'ı eklenerek, sıralama değişikliğinin arayüze anında yansıması ve ardından arka planda API isteği yapılması sağlandı.
