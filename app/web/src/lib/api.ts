@@ -27,11 +27,20 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
     
-    // 401 hatası → Oturum süresi dolmuş veya geçersiz token. Token'ı sil ve login'e yönlendir.
+    // 401 hatası → Geçersiz/süresi dolmuş token. Token'ı sil, uygulama kendi login ekranını gösterecek.
     if (error.response.status === 401) {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
-        window.location.href = '/login';
+        
+        // Döngüsel bağımlılığı önlemek için authStore'u dinamik import ederek çıkış yapıyoruz
+        import('@/store/authStore').then(({ useAuthStore }) => {
+          useAuthStore.getState().logout();
+        }).catch(err => console.warn('AuthStore yüklenemedi:', err));
+
+        // Sayfa zaten root'taysa yeniden yükleme yapma (sonsuz döngü engeli)
+        if (window.location.pathname !== '/') {
+          window.location.href = '/';
+        }
       }
     }
     
