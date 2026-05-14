@@ -14,6 +14,11 @@ Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değ
 - **Optimistic UI (Kayıpsız Veri):** `api.ts` içindeki interceptor güncellenerek 500 ve üzeri tüm hatalar `isOfflineError` olarak işaretlendi. Bu sayede hata anında görevler silinmeyerek IndexedDB sync kuyruğuna alınacak ve kullanıcı veriyi kaybetmemiş olacak.
 - **Yetki Düşmesi (401 Interceptor Döngüsü):** `api.ts` içerisinde 401 hatası alındığında sadece `localStorage` temizleniyordu, ancak IndexedDB (`pikselis-auth`) temizlenmediği için UI hala giriş yapılmış zannedip sürekli yetkisiz istek atmaya devam ediyordu. Zustand `authStore.ts` dinamik olarak import edilerek çıkış (`logout`) işleminin IndexedDB düzeyinde güvenle temizlenmesi sağlandı.
 
+## [2026-05-14] - Kanban Sıralama Kalıcılık Hatası Çözümü
+
+### Çözüldü
+- **Sıralamaların Geri Dönmesi:** Sürükle bırak ile yapılan görev sıralamalarının (Drag & Drop) sayfa yenilendiğinde eski haline dönmesi sorunu çözüldü. Arayüzde `reorderTasks` çalışırken backend'e `project_id` parametresi gönderilmediği için firma yetki kontrolünde (permissions) işlem reddediliyor veya bulunamıyordu. API isteğine `?project_id=...` eklenerek sıralama değişikliklerinin kalıcı olarak veritabanına işlenmesi sağlandı.
+
 ## [2026-05-13] - Kanban Drag&Drop (Manuel Sıralama) ve v2.4
 ### Eklendi
 - **Manuel Sıralama:** Kanban board üzerindeki görevlerin sürükle bırak mantığıyla manuel olarak sıralanabilmesi ve bu sıranın backend üzerinde (`sort_order`) kalıcı olarak saklanması sağlandı.

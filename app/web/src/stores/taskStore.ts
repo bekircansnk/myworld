@@ -171,10 +171,21 @@ export const useTaskStore = create<TaskState>()(
         set({ tasks: updatedTasks });
 
         try {
-          await api.post('/api/tasks/reorder', { items });
+          // Görevlerden ilkini bulup project_id'sini al (firma yetki kontrolü için)
+          const firstTask = updatedTasks.find(t => items.length > 0 && t.id === items[0].id);
+          let url = '/api/tasks/reorder';
+          if (firstTask && firstTask.project_id) {
+            url += `?project_id=${firstTask.project_id}`;
+          }
+          await api.post(url, { items });
         } catch (error: any) {
           if (error.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
-            enqueue('POST', '/api/tasks/reorder', { items });
+            const firstTask = updatedTasks.find(t => items.length > 0 && t.id === items[0].id);
+            let url = '/api/tasks/reorder';
+            if (firstTask && firstTask.project_id) {
+              url += `?project_id=${firstTask.project_id}`;
+            }
+            enqueue('POST', url, { items });
           } else {
             // Hata durumunda geri al
             set({ tasks: previousTasks, error: error.message });
