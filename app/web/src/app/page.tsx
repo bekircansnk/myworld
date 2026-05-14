@@ -7,7 +7,6 @@ import { useWebSocketStore } from "@/stores/webSocketStore"
 import { useCalendarStore } from "@/stores/calendarStore"
 import { useNoteStore } from "@/stores/noteStore"
 import { KanbanBoard } from "@/components/tasks/KanbanBoard"
-import { TaskForm } from "@/components/tasks/TaskForm"
 import { TaskDetailPanel } from "@/components/tasks/TaskDetailPanel"
 import { NoteDetailPanel } from "@/components/notes/NoteDetailPanel"
 import { DashboardWidgets } from "@/components/dashboard/DashboardWidgets"
@@ -220,7 +219,7 @@ export default function DashboardPage() {
         ) : isPhotoTracking ? (
           <PhotoTrackingLayout projectId={selectedProjectId} />
         ) : (
-          <div className={`flex-1 flex flex-col mobile-content-area ${isDashboard ? 'overflow-y-auto lg:overflow-hidden p-3 md:p-5 lg:p-8' : 'overflow-y-auto overflow-x-hidden p-3 md:p-5 lg:p-8'}`}>
+          <div className={`flex-1 flex flex-col mobile-content-area ${isDashboard ? 'overflow-y-auto lg:overflow-hidden p-3 md:p-5 lg:p-8' : (viewMode === 'notes' ? 'overflow-y-auto overflow-x-hidden p-3 md:p-5 lg:p-8' : 'overflow-hidden')}`}>
 
             {/* Dashboard */}
             {isDashboard && canViewModule('dashboard') ? (
@@ -229,17 +228,18 @@ export default function DashboardPage() {
                <div className="flex-1 flex items-center justify-center text-slate-400">Dashboard erişiminiz kapalı. Menüden yetkili olduğunuz bir modülü seçin.</div>
             ) : (
               <>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                  <div>
-                    <h1 className="text-xl lg:text-2xl font-bold tracking-tight">{pageTitle}</h1>
-                    <p className="text-muted-foreground text-sm mt-0.5">{pageDescription}</p>
-                  </div>
-                  {(viewMode === 'all_tasks' || viewMode === 'project') && canEditModule('tasks') && <TaskForm />}
-                </div>
                 {viewMode === 'notes' ? (
-                   canViewModule('notes') ? <NotesList /> : <div className="text-red-500">Notlar modülüne erişiminiz yok.</div>
+                  <>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                      <div>
+                        <h1 className="text-xl lg:text-2xl font-bold tracking-tight">{pageTitle}</h1>
+                        <p className="text-muted-foreground text-sm mt-0.5">{pageDescription}</p>
+                      </div>
+                    </div>
+                    {canViewModule('notes') ? <NotesList /> : <div className="text-red-500">Notlar modülüne erişiminiz yok.</div>}
+                  </>
                 ) : (
-                   canViewModule('tasks') ? <KanbanBoard projectId={selectedProjectId} /> : <div className="text-red-500">Görevler modülüne erişiminiz yok.</div>
+                   canViewModule('tasks') ? <KanbanBoard projectId={selectedProjectId} canEdit={canEditModule('tasks')} /> : <div className="text-red-500 p-8">Görevler modülüne erişiminiz yok.</div>
                 )}
               </>
             )}

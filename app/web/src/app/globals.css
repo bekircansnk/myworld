@@ -227,26 +227,86 @@
     @apply bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-teal-500 dark:from-emerald-400 dark:to-teal-300;
   }
 }
-/* Custom scrollbars for Kanban */
-.kanban-scroll-area::-webkit-scrollbar {
-  height: 8px;
-  width: 8px;
+/* ===== KANBAN BOARD — Trello Tarzı Layout ===== */
+
+/* Sütun genişlikleri */
+.kanban-column {
+  width: 280px;
+  min-width: 280px;
+  max-width: 320px;
 }
-.kanban-scroll-area::-webkit-scrollbar-track {
+
+/* Yeni sütun ekleme kartı */
+.kanban-column-add {
+  width: 260px;
+  min-width: 260px;
+}
+
+/* Mobil: sütunlar tam ekran snap-scroll */
+@media (max-width: 767px) {
+  .kanban-column {
+    width: 85vw;
+    min-width: 85vw;
+    max-width: 85vw;
+    scroll-snap-align: center;
+  }
+  .kanban-column-add {
+    width: 70vw;
+    min-width: 70vw;
+    scroll-snap-align: center;
+  }
+  .kanban-board-scroll {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Tablet: biraz daha geniş sütunlar */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .kanban-column {
+    width: 260px;
+    min-width: 260px;
+  }
+}
+
+/* Büyük ekranlarda sütunlar daha geniş */
+@media (min-width: 1280px) {
+  .kanban-column {
+    width: 300px;
+    min-width: 300px;
+    max-width: 340px;
+  }
+}
+
+/* Board yatay scroll — ince, minimal */
+.kanban-board-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.kanban-board-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
-.kanban-scroll-area::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 4px;
+.kanban-board-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
 }
-.kanban-scroll-area::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+.kanban-board-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
 }
-.dark .kanban-scroll-area::-webkit-scrollbar-thumb {
-  background: #4b5563;
+.dark .kanban-board-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
 }
-.dark .kanban-scroll-area::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+.dark .kanban-board-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Sütun içi dikey scroll — gizli scrollbar */
+.kanban-column-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+.kanban-column-scroll::-webkit-scrollbar {
+  display: none;
 }
 
 /* Dropdown animation */
