@@ -38,7 +38,13 @@ export const useTaskStore = create<TaskState>()(
       closeTaskDetail: () => set({ selectedTask: null, isDetailPanelOpen: false }),
 
       fetchTasks: async (projectId, status) => {
-        set({ isLoading: true, error: null });
+        // Soft loading: Eğer zaten görev varsa isLoading'i true yapma (titremeyi ve kaybolmayı önle)
+        const hasExistingTasks = get().tasks.length > 0;
+        if (!hasExistingTasks) {
+          set({ isLoading: true });
+        }
+        
+        set({ error: null });
         try {
           let url = '/api/tasks';
           const params = new URLSearchParams();
@@ -58,7 +64,7 @@ export const useTaskStore = create<TaskState>()(
               ? newTasks.find((t: Task) => t.id === selectedTask.id) || selectedTask
               : null;
 
-            // Strict equality ile memory reference'ı koruyarak (flicker önleme)
+            // Veri değişmediyse render'ı tetikleme
             if (JSON.stringify(state.tasks) === JSON.stringify(newTasks)) {
               return { isLoading: false, selectedTask: updatedSelected };
             }
@@ -66,7 +72,7 @@ export const useTaskStore = create<TaskState>()(
             return { tasks: newTasks, isLoading: false, selectedTask: updatedSelected };
           });
         } catch (error: any) {
-          // Çevrimdışıysa mevcut cache'deki veriyi koru
+          // Hata durumunda (offline dahil) mevcut veriyi asla SİLME
           set({ error: error.message, isLoading: false });
         }
       },

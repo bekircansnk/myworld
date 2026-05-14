@@ -9,6 +9,17 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v3.0
+**Tarih:** 15 Mayıs 2026
+**Değişiklikler:**
+- **[Kritik Senkronizasyon]** Çevrimdışı (offline) ve zayıf internet durumlarında yaşanan veri senkronizasyon hataları kökten çözüldü. Artık internet varken "bekleyen işlem" uyarıları sadece gerçek ağ hatalarında çıkar.
+- **[Veri Kararlılığı]** "Geri yükleme" ve "Senkronizasyon" sırasında görevlerin anlık olarak ekrandan kaybolması sorunu "Soft Loading" (Yumuşak Yükleme) teknolojisi ile giderildi. Veriler arka planda güncellenirken mevcut kartlar ekranda kalmaya devam eder.
+- **[Hata Yönetimi]** Hatalı veya malformed (400, 422) işlemlerin kuyrukta takılıp sürekli "senkronize ediliyor" döngüsüne girmesi engellendi; bu tip hatalar artık akıllıca temizleniyor.
+- **[Kullanıcı Kontrolü]** Offline banner'a "Temizle" butonu eklendi. Eğer bir işlem takılırsa kullanıcı manuel olarak kuyruğu boşaltabilir.
+- **[Stabilite]** Sunucu taraflı 500 hatalarının yanlışlıkla "çevrimdışı işlem" olarak kaydedilmesi engellenerek, senkronizasyon kuyruğunun temiz kalması sağlandı.
+
+---
+
 ### v2.4
 **Tarih:** 13 Mayıs 2026
 **Değişiklikler:**

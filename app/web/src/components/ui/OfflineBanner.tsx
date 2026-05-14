@@ -7,8 +7,10 @@ import { useTaskStore } from '@/stores/taskStore';
 import { useCalendarStore } from '@/stores/calendarStore';
 import { useProjectStore } from '@/stores/projectStore';
 import { Wifi, WifiOff, RefreshCw, Check } from 'lucide-react';
+import { useToast } from '@/components/ui/toast';
 
 export function OfflineBanner() {
+  const toast = useToast();
   const { isOnline } = useNetworkStatus();
   const [pendingCount, setPendingCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -46,9 +48,10 @@ export function OfflineBanner() {
       // Kuyruktaki işlemleri gönder
       const result = await processQueue();
       
-      // Taze veriyi API'den çek
+      // Taze veriyi API'den çek (Bulunulan proje context'ini koru)
+      const currentProjectId = useProjectStore.getState().selectedProjectId;
       await Promise.allSettled([
-        useTaskStore.getState().fetchTasks(),
+        useTaskStore.getState().fetchTasks(currentProjectId || undefined),
         useCalendarStore.getState().fetchEvents(),
         useProjectStore.getState().fetchProjects(),
       ]);
@@ -118,6 +121,18 @@ export function OfflineBanner() {
             className="bg-white/20 hover:bg-white/30 px-2 py-0.5 rounded-full text-[10px] transition-colors"
           >
             Şimdi Senkronize Et
+          </button>
+          <button
+            onClick={async () => {
+              const { clearQueue } = await import('@/lib/syncQueue');
+              await clearQueue();
+              setPendingCount(0);
+              toast.success("Bekleyen işlemler temizlendi");
+            }}
+            className="bg-white/10 hover:bg-red-500/30 px-2 py-0.5 rounded-full text-[10px] transition-colors ml-1"
+            title="Eğer senkronizasyon takılırsa buraya basarak kuyruğu boşaltabilirsiniz."
+          >
+            Temizle
           </button>
         </>
       ) : null}

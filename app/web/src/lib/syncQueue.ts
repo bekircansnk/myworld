@@ -104,6 +104,13 @@ export async function processQueue(): Promise<{ success: number; failed: number 
         action.status = 'failed';
         action.retryCount++;
         failed++;
+      } else if (response.status >= 400 && response.status < 500) {
+        // 400, 403, 422 gibi hatalar "Bad Request" veya "Forbidden"dır. 
+        // Tekrar denemek sonucu değiştirmeyeceği için kuyruktan kaldırıyoruz.
+        const idx = queue.findIndex(q => q.id === action.id);
+        if (idx !== -1) queue.splice(idx, 1);
+        console.warn(`Sync queue: ${action.method} ${action.url} — ${response.status} hatası (Non-retryable), kuyruktan kaldırıldı.`);
+        failed++;
       } else {
         throw new Error(`HTTP ${response.status}`);
       }

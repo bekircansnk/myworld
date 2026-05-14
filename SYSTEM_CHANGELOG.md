@@ -2,6 +2,20 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-15] - Senkronizasyon ve Veri Kararlılığı Devrimi (v3.0)
+
+### Çözüldü
+- **Senkronizasyon Döngüsü ve Yanlış Uyarılar:** İnternet varken sürekli çıkan "bekleyen işlem" uyarıları ve senkronizasyonun takılması sorunu çözüldü. `api.ts` interceptor'ı revize edilerek sunucu hataları (500) ile ağ hataları (offline) birbirinden ayrıldı.
+- **Veri Kaybolma (Flickering) Sorunu:** Görevlerin senkronizasyon sırasında bir anda kaybolup geri gelmesi "Soft Loading" mimarisi ile engellendi. `isLoading` flag'i artık sadece ilk yüklemede tetikleniyor, arka plan güncellemelerinde mevcut veriler korunuyor.
+- **Malformed Request Temizliği:** Kuyrukta bekleyen ama backend tarafından reddedilen (400, 422) hatalı işlemlerin sonsuza dek retrying yapması engellendi; bu tip işlemler artık akıllıca kuyruktan temizleniyor.
+
+### Eklendi
+- **Manuel Kuyruk Yönetimi:** Çevrimdışı işlem banner'ına "Temizle" butonu eklenerek kullanıcının takılan işlemleri manuel olarak boşaltabilmesi sağlandı.
+- **Context-Aware Refresh:** Senkronizasyon sonrası veri yenileme işlemi artık bulunulan projenin (`project_id`) bağlamını koruyarak yapılıyor, böylece view resetlenmesi yaşanmıyor.
+
+### Güncellendi
+- **Android v3.0 Yayını:** v3.0 (versionCode 21) sürümü tüm veri kararlılığı optimizasyonları ile derlendi.
+
 ## [2026-05-15] - Güncelleme Sistemi ve Kararlılık Paketi (v2.9)
 
 ### Düzeltildi
