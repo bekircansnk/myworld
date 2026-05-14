@@ -325,7 +325,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                         className="w-2.5 h-2.5 rounded-full shrink-0"
                         style={{ backgroundColor: column.dotColor }}
                       />
-                      <span className="truncate flex-1 min-w-0" title={column.label}>{column.label}</span>
+                      <span className="flex-1 min-w-0 font-bold" title={column.label}>{column.label}</span>
                       <span className="text-[11px] font-normal text-gray-400 dark:text-gray-500 tabular-nums shrink-0">
                         {columnTasks.length}
                       </span>

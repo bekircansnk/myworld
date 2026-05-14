@@ -50,14 +50,21 @@ export const useTaskStore = create<TaskState>()(
           }
           
           const response = await api.get(url);
-          const tasks = response.data;
-          // Açık olan paneldeki selectedTask'ı da güncelle
-          const { selectedTask } = get();
-          const updatedSelected = selectedTask
-            ? tasks.find((t: Task) => t.id === selectedTask.id) || selectedTask
-            : null;
+          const newTasks = response.data;
+          
+          set((state) => {
+            const { selectedTask } = state;
+            const updatedSelected = selectedTask
+              ? newTasks.find((t: Task) => t.id === selectedTask.id) || selectedTask
+              : null;
 
-          set({ tasks, isLoading: false, selectedTask: updatedSelected });
+            // Strict equality ile memory reference'ı koruyarak (flicker önleme)
+            if (JSON.stringify(state.tasks) === JSON.stringify(newTasks)) {
+              return { isLoading: false, selectedTask: updatedSelected };
+            }
+            
+            return { tasks: newTasks, isLoading: false, selectedTask: updatedSelected };
+          });
         } catch (error: any) {
           // Çevrimdışıysa mevcut cache'deki veriyi koru
           set({ error: error.message, isLoading: false });

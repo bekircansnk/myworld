@@ -872,7 +872,7 @@ export function TaskDetailPanel() {
                   <div className="cursor-text group min-h-[80px] py-2 transition-all"
                     onClick={() => setIsEditingDesc(true)}>
                     {selectedTask.description ? (
-                      <div className="text-base md:text-[17px] font-medium text-slate-800 dark:text-white/90 whitespace-pre-wrap break-words leading-[1.7] tracking-wide">
+                      <div className="text-lg md:text-[19px] font-medium text-slate-900 dark:text-white whitespace-pre-wrap break-words leading-[1.8] tracking-wide">
                         {selectedTask.description.split(/(https?:\/\/[^\s]+)/g).map((part, i) => {
                           if (/^https?:\/\//.test(part)) {
                             const preview = linkPreviews[part]

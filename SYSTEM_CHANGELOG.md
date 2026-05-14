@@ -2,6 +2,16 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-15] - Kanban Stabilizasyon ve Detay Paneli UX İyileştirmeleri (v2.7)
+
+### Düzeltildi
+- **Kanban Veri Flickering Sorunu:** `taskStore` üzerindeki `fetchTasks` fonksiyonunda `JSON.stringify` ile derin karşılaştırma (deep comparison) yapılarak, veri değişmediği sürece state reference'ının korunması sağlandı. Bu sayede `react-beautiful-dnd` kartlarının anlık kaybolup gelmesi sorunu tamamen giderildi.
+- **Sütun İsimleri Gösterimi:** Uzun sütun isimlerinin (`Günlük Görevlerim` vb.) 3 nokta ile kesilmesi engellendi, "+" butonuna kadar tam genişlikte gösterilmesi sağlandı.
+
+### Güncellendi
+- **Görev Detay Paneli Açıklama Alanı:** Görev kartına girildiğinde açıklama (description) alanı daha büyük, net ve okunaklı hale getirildi. Font boyutu ve satır aralığı artırıldı.
+- **Android v2.7 Yayını:** Sürüm 2.7 (versionCode 18) olarak tüm APK boru hattı güncellendi ve OTA (Over-the-Air) güncelleme backend'e entegre edildi.
+
 ## [2026-05-15] - Kanban Board Trello Tarzı Tam Yeniden Tasarım
 
 ### Eklendi
