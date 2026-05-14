@@ -55,17 +55,21 @@ export function TaskForm() {
     }
 
     try {
-      await addTask({
+      // Arka planda çalışması için await KULLANMADAN Promise'i başlatıyoruz (Optimistic UI)
+      addTask({
         title: formData.title,
         description: finalDesc === "[AI_AUTO_GENERATE]" ? "" : finalDesc,
         priority: formData.priority as "urgent" | "normal" | "low",
         project_id: formData.project_id === "none" ? undefined : parseInt(formData.project_id)
+      }).catch((err: any) => {
+         // Hata arka planda gelirse toast ile uyar
+         toast.error(err.response?.data?.detail || "Görev arka planda oluşturulamadı. Lütfen kontrol edin.")
       })
-      toast.success("Görev başarıyla oluşturuldu")
+      
+      // Beklemeden direkt arayüzü kapatıyoruz (Sistem görevlerin eklenmesini beklemesin)
+      toast.success("Görev sıraya alındı, arka planda oluşturuluyor")
       setOpen(false)
       setFormData({ title: "", description: "", priority: "normal", project_id: "none" })
-    } catch (err: any) {
-      toast.error(err.response?.data?.detail || "Görev eklenirken bir hata oluştu")
     } finally {
       setLoading(false)
     }

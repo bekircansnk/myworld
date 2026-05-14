@@ -27,10 +27,12 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
     
-    // 401 hatası → token'ı silme, sadece logla
-    // Çevrimdışıyken 401 alınabilir, token hala geçerli olabilir
+    // 401 hatası → Oturum süresi dolmuş veya geçersiz token. Token'ı sil ve login'e yönlendir.
     if (error.response.status === 401) {
-      console.warn('401 Unauthorized — oturum kontrolü gerekebilir');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
     }
     
     return Promise.reject(error);
