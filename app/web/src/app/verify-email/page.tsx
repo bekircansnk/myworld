@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
@@ -71,12 +72,12 @@ function VerifyEmailContent() {
               <h2 className="text-xl font-bold text-white">Doğrulandı! ✅</h2>
               <p className="text-slate-400 text-sm">{message}</p>
               {email && <p className="text-indigo-400 text-sm font-medium">{email}</p>}
-              <a
+              <Link
                 href="/"
                 className="inline-block mt-4 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-indigo-500/25"
               >
                 Sisteme Giriş Yap
-              </a>
+              </Link>
             </div>
           )}
 
@@ -89,12 +90,12 @@ function VerifyEmailContent() {
               </div>
               <h2 className="text-xl font-bold text-white">Doğrulama Başarısız</h2>
               <p className="text-slate-400 text-sm">{message}</p>
-              <a
+              <Link
                 href="/"
                 className="inline-block mt-4 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-medium transition-all"
               >
                 Ana Sayfaya Dön
-              </a>
+              </Link>
             </div>
           )}
         </div>

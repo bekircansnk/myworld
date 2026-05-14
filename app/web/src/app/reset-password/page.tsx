@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowLeft, KeyRound } from 'lucide-react';
@@ -202,12 +203,12 @@ function ResetPasswordContent() {
                 </div>
                 
                 <div className="pt-2">
-                  <a
+                  <Link
                     href="/"
                     className="inline-flex items-center justify-center w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold rounded-xl transition-all hover:bg-slate-800 dark:hover:bg-slate-100 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
                   >
                     Giriş Yap
-                  </a>
+                  </Link>
                 </div>
               </div>
             )}
@@ -227,13 +228,13 @@ function ResetPasswordContent() {
                 </div>
                 
                 <div className="pt-2">
-                  <a
+                  <Link
                     href="/"
                     className="inline-flex items-center justify-center w-full py-3.5 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white border border-slate-200 dark:border-white/5 font-semibold rounded-xl transition-all hover:bg-slate-200 dark:hover:bg-white/20 active:scale-[0.98] gap-2"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     Ana Sayfaya Dön
-                  </a>
+                  </Link>
                 </div>
               </div>
             )}

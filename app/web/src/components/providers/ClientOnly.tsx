@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Loader2 } from "lucide-react"
+import { GlobalContextMenu } from '@/components/ui/GlobalContextMenu'
 
 export function ClientOnly({ children }: { children: React.ReactNode }) {
   const [hasMounted, setHasMounted] = React.useState(false)
@@ -34,9 +35,6 @@ export function ClientOnly({ children }: { children: React.ReactNode }) {
       });
     });
   };
-
-  // Import GlobalContextMenu dynamically or render it
-  const { GlobalContextMenu } = require('@/components/ui/GlobalContextMenu');
 
   return (
     <div className="contents" onContextMenu={handleGlobalContextMenu}>

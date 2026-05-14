@@ -33,7 +33,7 @@ export function InstallAppBanner() {
       // 5 Dakika limiti
       const sessionStart = sessionStorage.getItem("apkBannerStartTime");
       const now = Date.now();
-      let startTime = sessionStart ? parseInt(sessionStart, 10) : now;
+      const startTime = sessionStart ? parseInt(sessionStart, 10) : now;
       
       if (!sessionStart) {
          sessionStorage.setItem("apkBannerStartTime", startTime.toString());

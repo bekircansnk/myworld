@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useCalendarStore } from "@/stores/calendarStore"
 import { useTaskStore } from "@/stores/taskStore"
+import { useProjectStore } from "@/stores/projectStore"
 import { CalendarEvent, EVENT_COLORS, CATEGORY_LABELS } from "@/types/calendar"
 import { 
   ChevronLeft, ChevronRight, ChevronDown, Plus, Filter, Calendar as CalendarIcon, 
@@ -958,9 +959,8 @@ function AddEventDialog({ open, onClose, defaultDate, onSave }: {
 
   const handleSave = () => {
     if (!title.trim()) return
-    const { useProjectStore } = require("@/stores/projectStore")
     const projectId = useProjectStore.getState().selectedProjectId
-    onSave({ id: generateId(), title: title.trim(), description: description.trim() || undefined, date, startTime: allDay ? undefined : startTime || undefined, endTime: allDay ? undefined : endTime || undefined, allDay, color, category, project_id: projectId })
+    onSave({ id: generateId(), title: title.trim(), description: description.trim() || undefined, date, startTime: allDay ? undefined : startTime || undefined, endTime: allDay ? undefined : endTime || undefined, allDay, color, category, project_id: projectId || undefined })
   }
 
   return (

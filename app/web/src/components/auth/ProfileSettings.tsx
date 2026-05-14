@@ -4,6 +4,7 @@ import { X, Camera } from 'lucide-react'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { useSettingsStore } from '@/stores/settingsStore'
+import { useProjectStore } from '@/stores/projectStore'
 import { createPortal } from 'react-dom'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 
@@ -195,7 +196,6 @@ export function ProfileSettings({ isOpen, onClose }: { isOpen: boolean, onClose:
                  onClick={() => {
                     onClose();
                     // viewMode'u admin olarak değiştir
-                    const { useProjectStore } = require("@/stores/projectStore");
                     useProjectStore.getState().setViewMode('admin');
                  }}
                  className="w-full py-3 rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400 font-bold text-sm hover:bg-purple-100 dark:hover:bg-purple-500/20 transition-colors flex justify-center items-center gap-2"

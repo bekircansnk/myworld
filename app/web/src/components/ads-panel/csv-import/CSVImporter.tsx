@@ -58,7 +58,7 @@ export function CSVImporter({ projectId }: { projectId: number | null }) {
     setUploadMessage(`"${file.name}" yükleniyor ve işleniyor...`);
 
     try {
-      // @ts-ignore
+
       await useAdsStore.getState().uploadCSV(file, selectedPlatform, projectId || undefined);
 
       setUploadStatus('success');
