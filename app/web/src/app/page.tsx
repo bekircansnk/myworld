@@ -162,7 +162,7 @@ export default function DashboardPage() {
   const isAdminPanel = viewMode === 'admin'
   
   const renderErrorState = (message: string) => (
-    <div className="flex flex-col h-screen w-full overflow-hidden" id="app-root">
+    <div className="flex flex-col h-full w-full overflow-hidden" id="app-root">
       <TopNavbar />
       <div className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-50 dark:bg-slate-900">
         <div className="w-16 h-16 bg-red-100 dark:bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mb-4">
@@ -193,7 +193,7 @@ export default function DashboardPage() {
   if (isAdminPanel && !isAdmin(user)) return renderErrorState("Yönetim paneline erişim yetkiniz yok.");
 
   return (
-    <div className="flex flex-col h-screen w-full overflow-hidden" id="app-root">
+    <div className="flex flex-col h-full w-full overflow-hidden" id="app-root">
       {/* ÜST NAVBAR — Yatay, tüm ekranlarda */}
       <TopNavbar />
 

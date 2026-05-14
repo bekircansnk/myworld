@@ -2,6 +2,16 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-15] - Mobil Deneyim (Mobile UX) Devrimi (v2.8)
+
+### Düzeltildi
+- **iOS/Android Bounce (Rubber-band) Sorunu:** iPhone ve Android tarayıcılarında ekranın aşağı/yukarı boşluğa doğru sekmesi sorunu `overscroll-behavior: none` ve `overflow: hidden` optimizasyonları ile çözüldü. Artık uygulama gerçek bir native app gibi sabit duruyor.
+- **Kanban Auto-scroll (Otomatik Kaydırma):** Mobilde bir görev kartını sürüklerken ekranın kenarına gelindiğinde tahtanın otomatik olarak sağa veya sola kayması sağlandı. Bu sayede küçük ekranlarda kartları farklı sütunlara taşımak artık zahmetsiz.
+
+### Güncellendi
+- **Viewport Optimizasyonu:** `h-screen` yerine `h-full` ve `100dvh` kullanılarak mobil adres çubuğu çakışmaları ve ekranın alt kısmındaki kaymalar giderildi.
+- **Android v2.8 Yayını:** v2.8 (versionCode 19) sürümü tüm iyileştirmelerle birlikte derlendi ve yayına hazır hale getirildi.
+
 ## [2026-05-15] - Kanban Stabilizasyon ve Detay Paneli UX İyileştirmeleri (v2.7)
 
 ### Düzeltildi

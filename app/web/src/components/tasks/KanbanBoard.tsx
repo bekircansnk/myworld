@@ -83,6 +83,10 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
   const [isAddingColumn, setIsAddingColumn] = React.useState(false)
   const [newColumnLabel, setNewColumnLabel] = React.useState("")
   const newColInputRef = React.useRef<HTMLInputElement>(null)
+  
+  // Auto-scroll logic for drag
+  const scrollIntervalRef = React.useRef<NodeJS.Timeout | null>(null)
+  const [isDragging, setIsDragging] = React.useState(false)
 
   // Sütun değişikliklerini localStorage'a kaydet
   React.useEffect(() => {
@@ -230,8 +234,44 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
     toast.success("Tüm görevler silindi")
   }
 
+  // Auto-scroll handler
+  const handleDragUpdate = (update: any) => {
+    if (!update.clientOffset || !boardRef.current) return;
+    
+    const { x } = update.clientOffset;
+    const threshold = 60; // Edge threshold in pixels
+    const speed = 15; // Scroll speed
+    const windowWidth = window.innerWidth;
+
+    if (scrollIntervalRef.current) {
+      clearInterval(scrollIntervalRef.current);
+      scrollIntervalRef.current = null;
+    }
+
+    if (x < threshold) {
+      // Scroll left
+      scrollIntervalRef.current = setInterval(() => {
+        if (boardRef.current) boardRef.current.scrollLeft -= speed;
+      }, 16);
+    } else if (x > windowWidth - threshold) {
+      // Scroll right
+      scrollIntervalRef.current = setInterval(() => {
+        if (boardRef.current) boardRef.current.scrollLeft += speed;
+      }, 16);
+    }
+  };
+
+  const handleDragStart = () => {
+    setIsDragging(true);
+  };
+
   // Drag & Drop
   const handleDragEnd = (result: DropResult) => {
+    setIsDragging(false);
+    if (scrollIntervalRef.current) {
+      clearInterval(scrollIntervalRef.current);
+      scrollIntervalRef.current = null;
+    }
     const { source, destination, draggableId } = result
     if (!destination) return
     if (source.droppableId === destination.droppableId && source.index === destination.index) return
@@ -291,10 +331,19 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
       </div>
 
       {/* Kanban Board — Tam Ekran */}
-      <DragDropContext onDragEnd={handleDragEnd}>
+      <DragDropContext 
+        onDragStart={handleDragStart}
+        onDragUpdate={handleDragUpdate}
+        onDragEnd={handleDragEnd}
+      >
         <div
           ref={boardRef}
-          className="flex-1 flex flex-row gap-3 md:gap-4 overflow-x-auto overflow-y-hidden px-3 md:px-5 pb-3 kanban-board-scroll"
+          className={`flex-1 flex flex-row gap-3 md:gap-4 overflow-x-auto px-3 md:px-5 pb-3 kanban-board-scroll touch-pan-x overscroll-x-contain ${isDragging ? 'cursor-grabbing' : ''}`}
+          style={{ 
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
+          }}
         >
           {columns.map(column => {
             const columnTasks = getColumnTasks(column)

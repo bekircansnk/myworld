@@ -124,6 +124,11 @@
   --shadow-medium-emphasis: 0 12px 40px rgba(0,0,0,0.06), 0 2px 10px rgba(0,0,0,0.03);
 }
 
+html, body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -133,9 +138,11 @@
     @apply text-foreground tracking-tight;
     background: linear-gradient(135deg, #f0ede1 0%, #fdfbf7 100%);
     background-attachment: fixed;
-    min-height: 100vh;
+    min-height: 100%;
+    width: 100%;
     user-select: none;
     -webkit-user-select: none;
+    overflow: hidden; /* Main body should never scroll, only internal containers */
   }
   input, textarea, [contenteditable="true"] {
     -webkit-touch-callout: default;
