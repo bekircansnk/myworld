@@ -1,0 +1,11 @@
+{
+  "redirects": [
+    {
+      "source": "/login",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false
+}
