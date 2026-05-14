@@ -22,7 +22,7 @@ router = APIRouter(prefix="/tasks", tags=["tasks"])
 class AIPrioritizeRequest(BaseModel):
     message: str
 
-@router.get("/", response_model=List[TaskResponse])
+@router.get("", response_model=List[TaskResponse])
 async def read_tasks(
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -171,7 +171,7 @@ async def bulk_update_tasks(
     await db.commit()
     return {"status": "ok", "message": f"{len(tasks)} tasks updated"}
 
-@router.post("/", response_model=TaskResponse)
+@router.post("", response_model=TaskResponse)
 async def create_task(
     task: TaskCreate,
     background_tasks: BackgroundTasks,
