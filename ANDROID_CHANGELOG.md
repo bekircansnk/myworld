@@ -109,6 +109,11 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 - Pikseliş PWA, Capacitor ile Android platformuna entegre edildi.
 - Görevler, takvim ve proje modülleri WebView içerisine gömüldü.
 
+## v2.9 (15 Mayıs 2026)
+- **[Kritik Düzeltme]** Uygulama içi güncelleme (OTA) sırasında yaşanan çökme (crash) sorunu giderildi. İndirme ve yükleme süreçleri daha güvenli hale getirildi.
+- **[Yeni Özellik]** Güncellemeler artık "Esnek" hale getirildi. Kullanıcılar güncellemeyi kapatıp uygulamaya devam edebilir, ancak her girişte hatırlatılmaya devam eder.
+- **[Düzeltme]** Dosya yazma ve okuma süreçlerinde yaşanabilecek null reference hataları için ekstra korumalar eklendi.
+
 ## v2.8 (15 Mayıs 2026)
 - **[Kritik UX]** iPhone ve Android cihazlarda ekranın yukarı/aşağı sekmesi (rubber-banding/bounce) sorunu kökten çözüldü. Artık ekran boşluğa kaymıyor.
 - **[Yeni Özellik]** Kanban tahtasında kart sürüklerken ekranın otomatik olarak sağa/sola kayması (Auto-scroll) eklendi. Artık mobilde kartları sütunlar arasında taşımak çok daha kolay.

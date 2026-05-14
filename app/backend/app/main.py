@@ -184,12 +184,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "2.8",
-        "version_code": 19,
-        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v2.8.apk",
+        "version": "2.9",
+        "version_code": 20,
+        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v2.9.apk",
         "min_supported_version": "1.0",
-        "force_update": True, # OTA ZORUNLU KURALI
-        "changelog": "- iPhone/Android ekran sekme (bounce) sorunu çözüldü.\n- Kanban tahtası otomatik kaydırma (auto-scroll) özelliği eklendi.\n- Mobil tam ekran optimizasyonları yapıldı."
+        "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
+        "changelog": "- Güncelleme sırasında yaşanan çökme (crash) sorunları giderildi.\n- Güncellemeler artık es geçilebilir hale getirildi.\n- İndirme ve yükleme güvenliği artırıldı."
     }
 
 @app.get("/api/link-preview")

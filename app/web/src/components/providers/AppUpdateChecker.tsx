@@ -146,10 +146,20 @@ export function AppUpdateChecker() {
           try {
             // Blob'u base64'e çevir
             const blob = xhr.response as Blob;
+            if (!blob) {
+              reject(new Error("Boş veri alındı"));
+              return;
+            }
+            
             const reader = new FileReader();
             reader.onloadend = async () => {
               try {
-                const base64Data = (reader.result as string).split(",")[1];
+                const resultStr = reader.result as string;
+                if (!resultStr || !resultStr.includes(",")) {
+                  reject(new Error("Veri okuma hatası"));
+                  return;
+                }
+                const base64Data = resultStr.split(",")[1];
 
                 // Dosyayı Filesystem ile kaydet
                 const result = await Filesystem.writeFile({
@@ -205,7 +215,11 @@ export function AppUpdateChecker() {
     }
   }, [versionInfo]);
 
-  // Modalı sadece hata durumunda kapatmaya izin veriyoruz, "Sonra Hatırlat" kapatıldı
+  // Modalı kapatmaya izin ver (Kullanıcı istediği zaman es geçebilir)
+  const handleDismiss = useCallback(() => {
+    setState("idle");
+  }, []);
+
   const handleCloseError = useCallback(() => {
     setState("idle");
   }, []);
@@ -220,24 +234,34 @@ export function AppUpdateChecker() {
     return null;
   }
 
-  // Artık tüm güncellemeler zorunlu (forceUpdate = true) olarak davranacak.
-  const isForceUpdate = true;
+  // Güncelleme artık "es geçilebilir" (dismissible) olacak ama her girişte tekrar çıkacak.
+  const isForceUpdate = false;
 
   const content = (
     <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
-      {/* Backdrop */}
+      {/* Backdrop — Tıklayınca kapanır */}
       <div
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-        onClick={state === "error" ? handleCloseError : undefined}
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={handleDismiss}
       />
 
       {/* Modal */}
       <div className="relative z-10 w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+        {/* Kapatma Butonu (Sağ Üst) */}
+        {state !== "downloading" && state !== "installing" && (
+          <button
+            onClick={handleDismiss}
+            className="absolute top-4 right-4 z-20 p-2 rounded-full bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+
         {/* Üst dekoratif gradient */}
         <div className="h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
 
         {/* İçerik */}
-        <div className="p-6 flex flex-col items-center text-center gap-4">
+        <div className="p-6 pt-8 flex flex-col items-center text-center gap-4">
           {/* İkon */}
           {state === "error" ? (
             <div className="w-16 h-16 rounded-2xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">

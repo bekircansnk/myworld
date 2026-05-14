@@ -2,6 +2,16 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-15] - Güncelleme Sistemi ve Kararlılık Paketi (v2.9)
+
+### Düzeltildi
+- **Android Güncelleme Çökme Sorunu:** `AppUpdateChecker` bileşeninde `FileReader` ve dosya yazma süreçlerindeki potansiyel null reference hataları giderildi. APK indirme ve native yükleyiciyi tetikleme süreçleri daha güvenli (safe-check) hale getirildi.
+- **Zorunlu Güncelleme Esnetildi:** Kullanıcı talebi üzerine, güncellemeler artık "Esnek" (optional) hale getirildi. Kullanıcı dilerse güncellemeyi kapatıp uygulamayı kullanmaya devam edebilir (ancak her girişte tekrar hatırlatılır).
+
+### Güncellendi
+- **Global Anayasa (GEMINI.md) Güncellemesi:** "Zorunlu Güncelleme" kuralı, "Esnek ve Sürekli Güncelleme" olarak değiştirildi.
+- **Android v2.9 Yayını:** v2.9 (versionCode 20) sürümü tüm kararlılık fixleri ile derlendi.
+
 ## [2026-05-15] - Mobil Deneyim (Mobile UX) Devrimi (v2.8)
 
 ### Düzeltildi
