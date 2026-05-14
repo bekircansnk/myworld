@@ -857,7 +857,7 @@ export function TaskDetailPanel() {
                   <div className="space-y-3">
                     <Textarea value={descriptionDraft} onChange={e => setDescriptionDraft(e.target.value)}
                       placeholder="Açıklama, linkler, notlar ekleyin..."
-                      className="min-h-[160px] text-sm bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-800 dark:text-white/90 resize-none focus:ring-2 focus:ring-indigo-500/50 rounded-xl shadow-inner font-medium"
+                      className="min-h-[200px] text-base leading-relaxed p-4 bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white/95 resize-none focus:ring-2 focus:ring-indigo-500/50 rounded-xl shadow-inner font-medium"
                       autoFocus />
                     <div className="flex items-center justify-end gap-2">
                        <Button size="sm" variant="ghost" className="h-8 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:text-white/50 rounded-xl px-4" onClick={() => setIsEditingDesc(false)}>
@@ -869,10 +869,10 @@ export function TaskDetailPanel() {
                     </div>
                   </div>
                 ) : (
-                  <div className="cursor-text group min-h-[60px] py-1 transition-all"
+                  <div className="cursor-text group min-h-[80px] py-2 transition-all"
                     onClick={() => setIsEditingDesc(true)}>
                     {selectedTask.description ? (
-                      <div className="text-[15px] font-medium text-slate-700 dark:text-white/80 whitespace-pre-wrap break-words leading-relaxed">
+                      <div className="text-base md:text-[17px] font-medium text-slate-800 dark:text-white/90 whitespace-pre-wrap break-words leading-[1.7] tracking-wide">
                         {selectedTask.description.split(/(https?:\/\/[^\s]+)/g).map((part, i) => {
                           if (/^https?:\/\//.test(part)) {
                             const preview = linkPreviews[part]
@@ -890,7 +890,7 @@ export function TaskDetailPanel() {
                         })}
                       </div>
                     ) : (
-                      <p className="text-[15px] font-medium text-slate-400 dark:text-white/30 italic">Açıklama eklemek için tıklayın...</p>
+                      <p className="text-base font-medium text-slate-400 dark:text-white/30 italic">Açıklama eklemek için tıklayın...</p>
                     )}
                   </div>
                 )}
