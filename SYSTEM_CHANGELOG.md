@@ -7,11 +7,12 @@ Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değ
 ### Çözüldü
 - **/login 404 Hatası:** Uygulamanın statik dışa aktarma (export) kullanması ve Next.js App Router yapısında `/login` dizini bulunmaması (login'in doğrudan ana sayfada `LoginOverlay` ile çalışması) nedeniyle `vercel.app/login` URL'si 404 sayfasına düşüyordu. `vercel.json` dosyası kök dizine eklenerek `/login` istekleri otomatik olarak ana sayfaya (`/`) yönlendirildi. Uygulamanın tam bir Single Page Application (SPA) olarak davranması güvence altına alındı.
 
-## [2026-05-14] - Backend 5xx Çevrimdışı (Offline) Fallback
+## [2026-05-14] - Backend 5xx Çevrimdışı (Offline) Fallback ve Yetki Çözümleri
 
 ### Çözüldü
 - **Backend Uyku Modu (Render):** Sunucu uyku moduna geçtiğinde veya Gateway Timeout (504, 502 vb.) hataları verdiğinde görev ekleme/güncelleme işlemlerinin ekranda kaybolması ve hata fırlatması sorunu giderildi.
 - **Optimistic UI (Kayıpsız Veri):** `api.ts` içindeki interceptor güncellenerek 500 ve üzeri tüm hatalar `isOfflineError` olarak işaretlendi. Bu sayede hata anında görevler silinmeyerek IndexedDB sync kuyruğuna alınacak ve kullanıcı veriyi kaybetmemiş olacak.
+- **Yetki Düşmesi (401 Interceptor Döngüsü):** `api.ts` içerisinde 401 hatası alındığında sadece `localStorage` temizleniyordu, ancak IndexedDB (`pikselis-auth`) temizlenmediği için UI hala giriş yapılmış zannedip sürekli yetkisiz istek atmaya devam ediyordu. Zustand `authStore.ts` dinamik olarak import edilerek çıkış (`logout`) işleminin IndexedDB düzeyinde güvenle temizlenmesi sağlandı.
 
 ## [2026-05-13] - Kanban Drag&Drop (Manuel Sıralama) ve v2.4
 ### Eklendi
