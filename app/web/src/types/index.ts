@@ -24,7 +24,7 @@ export interface Task {
   title: string;
   description?: string;
   priority: 'urgent' | 'normal' | 'low';
-  status: 'todo' | 'in_progress' | 'done';
+  status: string;
   due_date?: string;
   estimated_minutes?: number;
   actual_minutes: number;

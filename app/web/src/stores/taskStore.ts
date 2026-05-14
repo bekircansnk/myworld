@@ -13,7 +13,7 @@ interface TaskState {
   fetchTasks: (projectId?: number, status?: string) => Promise<void>;
   addTask: (data: Partial<Task>) => Promise<void>;
   updateTask: (id: number, data: Partial<Task>) => Promise<void>;
-  updateTaskStatus: (id: number, status: 'todo' | 'in_progress' | 'done') => Promise<void>;
+  updateTaskStatus: (id: number, status: string) => Promise<void>;
   reorderTasks: (items: { id: number; sort_order: number }[]) => Promise<void>;
   deleteTask: (id: number) => Promise<void>;
   selectedTask: Task | null;
@@ -127,7 +127,7 @@ export const useTaskStore = create<TaskState>()(
         }
       },
 
-      updateTaskStatus: async (id: number, status: 'todo' | 'in_progress' | 'done') => {
+      updateTaskStatus: async (id: number, status: string) => {
         const previousTasks = get().tasks;
         // Optimistic update
         set((state) => ({

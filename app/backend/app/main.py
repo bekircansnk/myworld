@@ -184,12 +184,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "2.4",
-        "version_code": 15,
-        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v2.4.apk",
+        "version": "2.5",
+        "version_code": 16,
+        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v2.5.apk",
         "min_supported_version": "1.0",
         "force_update": True, # OTA ZORUNLU KURALI
-        "changelog": "- Kanban görev kartlarında tam serbest manuel sıralama (Sürükle & Bırak) eklendi.\n- Yeni görevler otomatik olarak listenin sonuna (en alta) eklenecek şekilde optimize edildi."
+        "changelog": "- Kanban görev kartlarında tam Trello tarzı yeniden tasarım yapıldı.\n- Kullanıcıların kendi sınırsız ve bağımsız sütunlarını ekleme özelliği getirildi.\n- Görev detaylarındaki açıklama alanı daha okunaklı hale getirildi.\n- Görev hızlı ekleme sırasındaki kapanma sorunu çözüldü."
     }
 
 @app.get("/api/link-preview")

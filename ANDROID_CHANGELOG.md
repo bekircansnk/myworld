@@ -108,3 +108,8 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 **Değişiklikler:**
 - Pikseliş PWA, Capacitor ile Android platformuna entegre edildi.
 - Görevler, takvim ve proje modülleri WebView içerisine gömüldü.
+
+## v2.5 (14 Mayıs 2026)
+- Kanban görev kartlarında tam Trello tarzı yeniden tasarım yapıldı.
+- Kullanıcıların kendi sınırsız ve bağımsız sütunlarını ekleme özelliği getirildi.
+- Görev hızlı ekleme sırasındaki kapanma sorunu çözüldü.

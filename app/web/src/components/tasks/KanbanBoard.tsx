@@ -13,11 +13,10 @@ import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { useToast } from "@/components/ui/toast"
 
-// Sütun yapılandırması tipi
 interface ColumnConfig {
   id: string
   label: string
-  statusKey: 'todo' | 'in_progress' | 'done'
+  statusKey: string
   dotColor: string
 }
 
@@ -83,7 +82,6 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
   // Yeni sütun ekleme state
   const [isAddingColumn, setIsAddingColumn] = React.useState(false)
   const [newColumnLabel, setNewColumnLabel] = React.useState("")
-  const [newColumnStatus, setNewColumnStatus] = React.useState<'todo' | 'in_progress' | 'done'>('todo')
   const newColInputRef = React.useRef<HTMLInputElement>(null)
 
   // Sütun değişikliklerini localStorage'a kaydet
@@ -129,23 +127,24 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
   }
 
   // Hızlı görev ekleme
-  const handleQuickAdd = async (column: ColumnConfig) => {
+  const handleQuickAdd = (column: ColumnConfig) => {
     if (!newCardTitle.trim()) {
       setAddingToColumn(null)
       return
     }
-    try {
-      await addTask({
-        title: newCardTitle,
-        status: column.statusKey,
-        project_id: projectId || undefined,
-      })
+    const titleToSave = newCardTitle.trim();
+    setNewCardTitle(""); // Anında temizle ki arka planda kaydederken kullanıcı yazmaya devam edebilsin
+    
+    // API isteğini arkaya atıyoruz
+    addTask({
+      title: titleToSave,
+      status: column.statusKey,
+      project_id: projectId || undefined,
+    }).then(() => {
       toast.success("Görev eklendi")
-      setNewCardTitle("")
-      setAddingToColumn(null)
-    } catch (err: any) {
+    }).catch((err: any) => {
       toast.error(err.response?.data?.detail || "Görev eklenirken hata oluştu")
-    }
+    });
   }
 
   React.useEffect(() => {
@@ -184,10 +183,11 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
       setIsAddingColumn(false)
       return
     }
+    const newId = `col_${Date.now()}`
     const newCol: ColumnConfig = {
-      id: `col_${Date.now()}`,
+      id: newId,
       label: newColumnLabel.trim(),
-      statusKey: newColumnStatus,
+      statusKey: newId, // Tamamen bağımsız olması için yeni sütunun id'sini status olarak atıyoruz
       dotColor: DOT_COLORS[columns.length % DOT_COLORS.length],
     }
     setColumns(prev => [...prev, newCol])
@@ -325,8 +325,8 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                         className="w-2.5 h-2.5 rounded-full shrink-0"
                         style={{ backgroundColor: column.dotColor }}
                       />
-                      <span className="truncate max-w-[140px]">{column.label}</span>
-                      <span className="text-[11px] font-normal text-gray-400 dark:text-gray-500 tabular-nums">
+                      <span className="truncate flex-1 min-w-0" title={column.label}>{column.label}</span>
+                      <span className="text-[11px] font-normal text-gray-400 dark:text-gray-500 tabular-nums shrink-0">
                         {columnTasks.length}
                       </span>
                     </h3>
@@ -476,24 +476,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                       if (e.key === 'Escape') { setIsAddingColumn(false); setNewColumnLabel("") }
                     }}
                   />
-                  <div className="space-y-1.5">
-                    <p className="text-[10px] font-bold uppercase text-gray-400">Durum Eşleştirmesi</p>
-                    <div className="flex gap-1.5 flex-wrap">
-                      {(['todo', 'in_progress', 'done'] as const).map(s => (
-                        <button
-                          key={s}
-                          onClick={() => setNewColumnStatus(s)}
-                          className={`text-[11px] px-2.5 py-1 rounded-full font-medium transition-colors ${
-                            newColumnStatus === s
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/15'
-                          }`}
-                        >
-                          {s === 'todo' ? 'Yapılacak' : s === 'in_progress' ? 'Devam Eden' : 'Tamamlandı'}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  {/* Durum eşleştirmesi kaldırıldı (bağımsız sütunlar oluşturulduğu için) */}
                   <div className="flex items-center gap-2">
                     <Button
                       size="sm"
