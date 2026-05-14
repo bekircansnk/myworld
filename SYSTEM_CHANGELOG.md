@@ -2,6 +2,17 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-15] - Terminal Problemleri ve Build Optimizasyonu
+
+### Çözüldü
+- **Next.js Navigasyon Hataları:** `reset-password` ve `verify-email` sayfalarındaki `<a>` etiketleri Next.js standartlarına uygun olarak `<Link>` bileşeni ile değiştirildi. Bu sayede SEO ve navigasyon performansı artırıldı.
+- **Forbidden require() Kullanımı:** `ProfileSettings`, `CalendarPage` ve `ClientOnly` bileşenlerindeki asenkron `require()` çağrıları, TypeScript ve ESLint standartlarına uygun olarak üst seviye import'lara dönüştürüldü.
+- **TypeScript Tip Güvenliği:** `CalendarPage` ve `CSVImporter` bileşenlerindeki tip uyumsuzlukları ve gereksiz `@ts-ignore` komutları temizlenerek build süreci tamamen hatasız hale getirildi.
+- **Linter Hataları:** `InstallAppBanner` bileşenindeki sabit değişkenlerin `let` yerine `const` olarak tanımlanması sağlandı.
+
+### Güncellendi
+- **Temiz Build:** `npm run build` komutu artık herhangi bir hata veya engelleyici uyarı olmadan başarıyla tamamlanıyor.
+
 ## [2026-05-15] - Senkronizasyon ve Veri Kararlılığı Devrimi (v3.0)
 
 ### Çözüldü
