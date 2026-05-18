@@ -9,6 +9,14 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v3.1
+**Tarih:** 19 Mayıs 2026
+**Değişiklikler:**
+- **[Kritik Düzeltme]** Kanban tahtasında (ve görev listesinde) çok fazla kart biriktiğinde kartların üst üste binme (overlap) ve sıkışma sorunu (shrink-0 class'ı ile) kökten çözüldü. Artık görevler her zaman kendi standart boyutunda ve sırayla görünecek.
+- **[UX İyileştirme]** Boş kanban sütunlarına görev taşıma işlemi sırasında yaşanan "hedefi bulamama" ve kartın "geri dönmesi" hataları giderildi. Boş alanlar artık tam yükseklik ve min 200px ile geniş bir hedef alanı sunuyor.
+- **[Görsel]** Sürükle-bırak sırasında hedef sütunların parlama animasyonu iyileştirilerek mobil etkileşim kalitesi artırıldı.
+
+---
 ### v3.0
 **Tarih:** 15 Mayıs 2026
 **Değişiklikler:**

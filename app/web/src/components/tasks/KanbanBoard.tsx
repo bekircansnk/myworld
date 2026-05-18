@@ -465,7 +465,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className={snapshot.isDragging ? 'rotate-1 scale-[1.02] shadow-lg transition-all duration-200 cursor-grabbing' : 'cursor-grab'}
+                              className={`shrink-0 ${snapshot.isDragging ? 'rotate-1 scale-[1.02] shadow-lg transition-all duration-200 cursor-grabbing' : 'cursor-grab'}`}
                               style={provided.draggableProps.style}
                             >
                               <TaskCard
