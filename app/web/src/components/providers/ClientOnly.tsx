@@ -24,6 +24,16 @@ export function ClientOnly({ children }: { children: React.ReactNode }) {
 
   const handleGlobalContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
+    
+    // Mobil uygulamada (Capacitor) veya dokunmatik cihazlarda genel arkaplan sağ tık menüsünü GÖSTERME
+    if (typeof window !== 'undefined') {
+      const isNativeCapacitor = !!(window as any).Capacitor?.isNativePlatform?.();
+      const isTouch = window.matchMedia("(pointer: coarse)").matches;
+      if (isNativeCapacitor || isTouch) {
+        return;
+      }
+    }
+
     // Default fallback context menu if no specific one intercepts it
     import('@/stores/contextMenuStore').then(({ useContextMenuStore }) => {
       import('lucide-react').then(({ RefreshCw, ArrowLeft, ArrowRight }) => {

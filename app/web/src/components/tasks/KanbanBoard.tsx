@@ -452,9 +452,9 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`flex-1 overflow-y-auto kanban-column-scroll flex flex-col gap-2 rounded-xl p-2 transition-all duration-300 min-h-[200px] border-2 border-transparent ${
+                      className={`flex-1 overflow-y-auto kanban-column-scroll flex flex-col gap-2 rounded-xl p-2 min-h-[200px] border-2 border-transparent ${
                         snapshot.isDraggingOver 
-                          ? 'bg-indigo-50/50 dark:bg-indigo-500/10 border-indigo-200/50 dark:border-indigo-500/20 shadow-lg scale-[1.01]' 
+                          ? 'bg-indigo-50/50 dark:bg-indigo-500/10 border-indigo-200/50 dark:border-indigo-500/20 shadow-inner' 
                           : 'bg-gray-50/50 dark:bg-white/[0.02]'
                       }`}
                     >
@@ -465,7 +465,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className={`shrink-0 ${snapshot.isDragging ? 'rotate-1 scale-[1.02] shadow-lg transition-all duration-200 cursor-grabbing' : 'cursor-grab'}`}
+                              className={`shrink-0 ${snapshot.isDragging ? 'shadow-2xl ring-2 ring-indigo-500/50 cursor-grabbing opacity-90' : 'cursor-grab hover:shadow-md'}`}
                               style={provided.draggableProps.style}
                             >
                               <TaskCard

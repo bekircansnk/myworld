@@ -184,12 +184,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "3.1",
-        "version_code": 22,
-        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v3.1.apk",
+        "version": "3.2",
+        "version_code": 23,
+        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v3.2.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
-        "changelog": "- Kanban tahtası mobil sürükle-bırak deneyimi iyileştirildi.\n- Kartların çoğalınca üst üste binme sorunu (shrink-0) ile düzeltildi.\n- Boş sütunlara sürükle-bırak daha kolay hale getirildi."
+        "changelog": "- Native cihazlarda (mobil app) uzun basıldığında çıkan gereksiz İleri/Geri sağ tık menüsü kaldırıldı.\n- Görevleri sürüklerken parmağın altından kayıp kaçması/büyümesi (scale ve transition çakışması) sorunu giderildi."
     }
 
 @app.get("/api/link-preview")

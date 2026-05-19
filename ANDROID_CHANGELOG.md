@@ -9,6 +9,13 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v3.2
+**Tarih:** 19 Mayıs 2026
+**Değişiklikler:**
+- **[Kritik UX - Sağ Tık]** Android (Capacitor) cihazlarda ekrana uzun basıldığında çıkan "İleri, Geri, Yenile" şeklindeki gereksiz tarayıcı/web bağlam menüsü (context menu) kaldırıldı. Native uygulama hissiyatı korundu. (Not: Görev kartı üzerindeki Düzenle/Sil gibi özel aksiyonlar çalışmaya devam etmektedir.)
+- **[Kritik Düzeltme - Sürükle Bırak]** Görev kartlarına uzun basıp sürüklemeye başlandığında kartın aniden büyümesi (scale) veya parmağın altından kayıp başka yere zıplaması sorunu kökten çözüldü. Bu sorun, sürükleme anında eklenen "transition-all" ve "scale" efektlerinin sürükleme kütüphanesinin (react-beautiful-dnd) koordinat hesaplamasını bozmasından kaynaklanıyordu; ilgili efektler kaldırılıp sadece gölge (shadow) efekti bırakılarak tamamen stabil bir sürükleme deneyimi sağlandı.
+
+---
 ### v3.1
 **Tarih:** 19 Mayıs 2026
 **Değişiklikler:**
