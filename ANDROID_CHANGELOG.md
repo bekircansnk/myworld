@@ -9,6 +9,16 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v3.4
+**Tarih:** 20 Mayıs 2026
+**Değişiklikler:**
+- **[Kritik Bağlantı Çözümü]** Mobil Android Capacitor uygulamalarında, çevre değişkenlerinin derleme sırasındaki eksikliğinden dolayı backend API'sine (`localhost:8000`) bağlanamama ve dolayısıyla güncelleme uyarısı görememe/senkronize olamama sorunu giderildi. API fallback URL'si doğrudan production Render URL'ine (`https://myworld-twqx.onrender.com`) yönlendirildi.
+- **[Kritik Kararlılık ve Kayıt]** Profil ayarları kaydedildiğinde JSON kolonlarındaki SQLAlchemy mutable nesne uyuşmazlığından dolayı verilerin kaydedilememesi ve geriye sıfırlanması sorunu `flag_modified` entegrasyonuyla kesin olarak çözüldü.
+- **[UX Sadeleştirmesi]** Arayüzdeki karmaşık ve gereksiz "Mobil Bildirimler" ayarları tamamen gizlendi. Mobil (Capacitor local) bildirimlerin varsayılan olarak her zaman **2 saat önce (120 dakika)** standart ve açık olması sağlandı, böylece kullanıcı karmaşadan kurtuldu.
+- **[E-posta Optimizasyonu]** E-posta hatırlatıcı varsayılan süresi 1 gün öncesi (1440 dakika) olarak optimize edildi.
+
+---
+
 ### v3.3
 **Tarih:** 20 Mayıs 2026
 **Değişiklikler:**

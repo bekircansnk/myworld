@@ -21,7 +21,7 @@ export function ProfileSettings({ isOpen, onClose }: { isOpen: boolean, onClose:
 
   // E-posta bildirim ayarları states
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] = React.useState(true)
-  const [emailReminderOffsetMinutes, setEmailReminderOffsetMinutes] = React.useState(60)
+  const [emailReminderOffsetMinutes, setEmailReminderOffsetMinutes] = React.useState(1440)
   const [dailySummaryEnabled, setDailySummaryEnabled] = React.useState(true)
 
   const [mounted, setMounted] = React.useState(false)
@@ -32,8 +32,12 @@ export function ProfileSettings({ isOpen, onClose }: { isOpen: boolean, onClose:
     if (user?.username) setUsername(user.username)
     if (user?.settings) {
       setEmailNotificationsEnabled(user.settings.email_notifications_enabled !== false)
-      setEmailReminderOffsetMinutes(user.settings.email_reminder_offset_minutes ?? 60)
+      setEmailReminderOffsetMinutes(user.settings.email_reminder_offset_minutes ?? 1440)
       setDailySummaryEnabled(user.settings.daily_summary_enabled !== false)
+    } else {
+      setEmailNotificationsEnabled(true)
+      setEmailReminderOffsetMinutes(1440)
+      setDailySummaryEnabled(true)
     }
   }, [user])
 
@@ -153,36 +157,6 @@ export function ProfileSettings({ isOpen, onClose }: { isOpen: boolean, onClose:
             <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
                Şifre değişikliği güvenliğiniz için yalnızca e-posta onayı ile yapılmaktadır.
             </p>
-          </div>
-
-          <div className="pt-2 border-t border-slate-100 dark:border-white/10 mt-4">
-            <h3 className="text-sm font-bold text-slate-700 dark:text-white mb-3">Mobil Bildirimler</h3>
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-semibold text-slate-500 dark:text-gray-400">Bildirimlere İzin Ver</span>
-              <button 
-                type="button"
-                onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${notificationsEnabled ? 'bg-indigo-500' : 'bg-slate-300 dark:bg-slate-700'}`}
-              >
-                <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${notificationsEnabled ? 'translate-x-5' : 'translate-x-1'}`} />
-              </button>
-            </div>
-            
-            {notificationsEnabled && (
-              <div>
-                <label className="text-xs font-semibold text-slate-500 dark:text-gray-400 block mb-1">Varsayılan Hatırlatma (Görev/Etkinlik öncesi)</label>
-                <select
-                  value={reminderOffsetMinutes}
-                  onChange={(e) => setReminderOffset(Number(e.target.value))}
-                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2 text-brand-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium appearance-none"
-                >
-                  <option value={15} className="dark:bg-slate-800 text-black dark:text-white">15 Dakika Önce</option>
-                  <option value={30} className="dark:bg-slate-800 text-black dark:text-white">30 Dakika Önce</option>
-                  <option value={60} className="dark:bg-slate-800 text-black dark:text-white">1 Saat Önce</option>
-                  <option value={1440} className="dark:bg-slate-800 text-black dark:text-white">1 Gün Önce</option>
-                </select>
-              </div>
-            )}
           </div>
 
           {/* E-posta Bildirim Ayarları */}

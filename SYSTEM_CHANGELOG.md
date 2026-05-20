@@ -2,6 +2,18 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-20] - Mobil Bildirim Sadeleştirmesi ve Kararlılık Paketi (v3.4)
+
+### Çözüldü
+- **SQLAlchemy Nesne Kararlılığı:** Profil ayarlarını kaydederken JSON kolonunun SQLAlchemy mutable yapısından ötürü veri tabanına yazılmaması ve geriye sıfırlanması hatası `flag_modified` eklenerek çözüldü.
+- **Kritik Bağlantı Hatası (Capacitor):** Mobil cihazlarda derleme sırasındaki `.env` eksiklikleri nedeniyle API URL'sinin varsayılan olarak `localhost:8000`'e kalması ve güncelleme uyarısı dahil hiçbir ağ isteğinin çalışmaması sorunu, fallback adresleri doğrudan Render Production URL'ine (`https://myworld-twqx.onrender.com`) yönlendirilerek çözüldü.
+
+### Güncellendi
+- **Bildirim Mimarisi Ayrıştırıldı:** Mobil (Capacitor local) bildirimler, kullanıcı ayarlarından tamamen çıkarıldı ve arka planda **her zaman açık ve 2 saat (120 dakika) önce** çalışacak şekilde sabitlendi.
+- **Profil Ayarları Arayüzü:** Gereksiz yer kaplayan ve kafa karıştıran mobil bildirim kontrolleri gizlendi. Sadece değiştirilebilir e-posta ayarları bırakıldı.
+- **Varsayılan E-posta Süresi:** E-posta hatırlatıcı varsayılan süresi 1 gün öncesi (1440 dakika) olarak güncellendi.
+- **Boyut Azaltma (Double-packaging):** Eski `v3.3` sürüm APK dosyaları `.silinecekler_cop_kutusu`'na taşınarak Capacitor derlemesinin matruşka gibi büyümesi önlendi; yeni `v3.4` APK boyutu 39MB'den 19.9MB'ye düşürüldü.
+
 ## [2026-05-20] - Dinamik E-posta Bildirimleri, Görev Hatırlatıcıları ve Günlük Plan Özeti
 
 ### Eklendi

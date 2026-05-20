@@ -494,11 +494,13 @@ async def update_profile(
             background_tasks.add_task(send_verification_email, profile.email, current_user.name, token)
         
     if profile.settings is not None:
+        from sqlalchemy.orm.attributes import flag_modified
         current_settings = current_user.settings or {}
         if isinstance(current_settings, dict) and isinstance(profile.settings, dict):
             current_user.settings = {**current_settings, **profile.settings}
         else:
             current_user.settings = profile.settings
+        flag_modified(current_user, "settings")
             
     await db.commit()
     await db.refresh(current_user)

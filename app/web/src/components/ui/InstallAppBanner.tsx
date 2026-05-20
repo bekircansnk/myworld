@@ -80,7 +80,7 @@ export function InstallAppBanner() {
             onClick={async (e) => {
               e.preventDefault();
               try {
-                const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://myworld-twqx.onrender.com";
                 const res = await fetch(`${apiUrl}/api/app-version`, { cache: 'no-store' });
                 if (res.ok) {
                   const data = await res.json();
@@ -91,10 +91,10 @@ export function InstallAppBanner() {
                   a.click();
                   document.body.removeChild(a);
                 } else {
-                  window.open("/Pikselis_v3.3.apk", "_blank");
+                  window.open("/Pikselis_v3.4.apk", "_blank");
                 }
               } catch (err) {
-                window.open("/Pikselis_v3.3.apk", "_blank");
+                window.open("/Pikselis_v3.4.apk", "_blank");
               }
               setTimeout(handleDismiss, 1000);
             }}

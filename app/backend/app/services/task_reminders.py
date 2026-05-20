@@ -111,8 +111,8 @@ async def send_hourly_reminders():
                 if not email_notifications_enabled:
                     continue
                 
-                # Özel offset süresi (dakika olarak), varsayılan 1 saat (60 dk)
-                offset_minutes = int(user_settings.get("email_reminder_offset_minutes", 60))
+                # Özel offset süresi (dakika olarak), varsayılan 1 gün (1440 dk)
+                offset_minutes = int(user_settings.get("email_reminder_offset_minutes", 1440))
                 
                 # Görevin hatırlatma vakti
                 reminder_time = task.due_date - timedelta(minutes=offset_minutes)

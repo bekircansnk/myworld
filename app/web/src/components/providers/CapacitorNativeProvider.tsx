@@ -23,9 +23,9 @@ export function CapacitorNativeProvider() {
   // Bildirimleri eşitle
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
-    // Sadece veriler hazır olduğunda eşitlemeyi dene
-    syncLocalNotifications(tasks, events, notificationsEnabled, reminderOffsetMinutes).catch(console.warn);
-  }, [tasks, events, notificationsEnabled, reminderOffsetMinutes]);
+    // Sadece veriler hazır olduğunda eşitlemeyi dene (Mobil bildirimler her zaman açık ve 2 saat/120 dk öncedir)
+    syncLocalNotifications(tasks, events, true, 120).catch(console.warn);
+  }, [tasks, events]);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;

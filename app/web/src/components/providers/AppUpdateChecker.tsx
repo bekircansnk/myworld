@@ -66,7 +66,7 @@ export function AppUpdateChecker() {
       setCurrentVersion(appInfo.version);
 
       // Backend'den son sürüm bilgisini çek
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://myworld-twqx.onrender.com";
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 

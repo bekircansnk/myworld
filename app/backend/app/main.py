@@ -184,12 +184,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "3.3",
-        "version_code": 24,
-        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v3.3.apk",
+        "version": "3.4",
+        "version_code": 25,
+        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v3.4.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
-        "changelog": "- Profil ayarlarından dinamik e-posta bildirimlerini yönetebilme eklendi.\n- Yarının planını (etkinlik ve görevleri) içeren Günlük Plan Özeti e-postası aktif edildi.\n- 15 dakikadan 2 güne kadar esnek e-posta hatırlatma zamanlayıcı seçimi eklendi.\n- Yeni ayarlar arayüzü mobil ve tablet uyumlu hale getirildi."
+        "changelog": "- Mobil ve e-posta bildirim yapıları ayrıştırıldı, mobil bildirimler arka planda her zaman 2 saat öncesine sabitlendi.\n- Profil ayarlarındaki kaydetme ve e-posta özelleştirme kararlılık sorunları giderildi.\n- E-posta hatırlatıcı varsayılan süresi 1 gün öncesi olarak optimize edildi.\n- Android Capacitor WebView ve Render API bağlantı kararlılığı artırıldı."
     }
 
 @app.get("/api/link-preview")

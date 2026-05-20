@@ -485,7 +485,7 @@ export function TopNavbar() {
                     onClick={async (e) => {
                       e.preventDefault();
                       try {
-                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://myworld-twqx.onrender.com";
                         const res = await fetch(`${apiUrl}/api/app-version`, { cache: 'no-store' });
                         if (res.ok) {
                           const data = await res.json();
@@ -496,10 +496,10 @@ export function TopNavbar() {
                           a.click();
                           document.body.removeChild(a);
                         } else {
-                          window.open("/Pikselis_v3.3.apk", "_blank"); // Fallback
+                          window.open("/Pikselis_v3.4.apk", "_blank"); // Fallback
                         }
                       } catch (err) {
-                        window.open("/Pikselis_v3.3.apk", "_blank"); // Fallback
+                        window.open("/Pikselis_v3.4.apk", "_blank"); // Fallback
                       }
                     }}
                     className="w-full text-left px-4 py-3 text-sm text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all font-black flex items-center gap-3 shadow-inner"
