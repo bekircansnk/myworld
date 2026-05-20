@@ -9,6 +9,16 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v3.3
+**Tarih:** 20 Mayıs 2026
+**Değişiklikler:**
+- **[Yeni Özellik - E-posta Bildirim Kontrolü]** Mobil ve tablet kullanıcıları dahil olmak üzere tüm platformlarda profil ayarları altından e-posta bildirim tercihlerinin özelleştirilebilmesi sağlandı. E-posta hatırlatıcıları açılıp kapatılabilir hale getirildi.
+- **[Yeni Özellik - Plan Özeti]** Her akşam saat 20:00'de yarınki takvim etkinliklerini ve görevleri şık bir HTML formatında gönderen "Yarının Günlük Plan Özeti" alma seçeneği ve bunu açıp kapatma düğmesi profil ayarlarına entegre edildi.
+- **[Yeni Özellik - Hatırlatma Süresi Seçici]** 15 dakikadan 2 güne kadar esnek e-posta hatırlatma zamanlayıcı seçimi eklenerek kullanıcı konforu artırıldı.
+- **[Mobil & Tablet Tasarım Uyumluluğu]** Yeni e-posta bildirim ayarları arayüzü responsive (esnek) ve touch-friendly olarak tasarlanarak mobil WebView, PWA ve tablet ekranlarında kusursuz çalışacak şekilde entegre edildi.
+
+---
+
 ### v3.2
 **Tarih:** 19 Mayıs 2026
 **Değişiklikler:**
