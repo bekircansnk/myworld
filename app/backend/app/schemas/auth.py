@@ -21,6 +21,7 @@ class UserResponse(BaseModel):
     email: Optional[str] = None
     email_verified: Optional[bool] = False
     is_active: bool = True
+    settings: Optional[dict] = {}
     
     class Config:
         from_attributes = True
@@ -36,6 +37,7 @@ class ProfileUpdate(BaseModel):
     name: Optional[str] = None
     avatar_url: Optional[str] = None
     email: Optional[str] = None
+    settings: Optional[dict] = None
 
 # E-posta tabanlı şemalar
 class ForgotPasswordRequest(BaseModel):

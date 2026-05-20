@@ -22,6 +22,7 @@ export interface User {
   email?: string;
   email_verified?: boolean;
   company_accesses?: CompanyAccess[];
+  settings?: Record<string, any>;
 }
 
 // Firma bazlı izin kontrolü - belirli bir firma için modül izni var mı?

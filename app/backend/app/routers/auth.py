@@ -445,7 +445,8 @@ async def read_users_me(current_user: User = Depends(get_current_user), db: Asyn
         "permissions": current_user.permissions or {},
         "is_active": current_user.is_active,
         "last_login": current_user.last_login,
-        "company_accesses": company_accesses
+        "company_accesses": company_accesses,
+        "settings": current_user.settings or {}
     }
 
 @router.put("/profile", response_model=UserResponse)
@@ -492,6 +493,13 @@ async def update_profile(
             db.add(verification)
             background_tasks.add_task(send_verification_email, profile.email, current_user.name, token)
         
+    if profile.settings is not None:
+        current_settings = current_user.settings or {}
+        if isinstance(current_settings, dict) and isinstance(profile.settings, dict):
+            current_user.settings = {**current_settings, **profile.settings}
+        else:
+            current_user.settings = profile.settings
+            
     await db.commit()
     await db.refresh(current_user)
     return current_user

@@ -19,12 +19,22 @@ export function ProfileSettings({ isOpen, onClose }: { isOpen: boolean, onClose:
 
   const { notificationsEnabled, setNotificationsEnabled, reminderOffsetMinutes, setReminderOffset } = useSettingsStore()
 
+  // E-posta bildirim ayarları states
+  const [emailNotificationsEnabled, setEmailNotificationsEnabled] = React.useState(true)
+  const [emailReminderOffsetMinutes, setEmailReminderOffsetMinutes] = React.useState(60)
+  const [dailySummaryEnabled, setDailySummaryEnabled] = React.useState(true)
+
   const [mounted, setMounted] = React.useState(false)
   const [isResetConfirmOpen, setIsResetConfirmOpen] = React.useState(false)
 
   React.useEffect(() => {
     setMounted(true)
     if (user?.username) setUsername(user.username)
+    if (user?.settings) {
+      setEmailNotificationsEnabled(user.settings.email_notifications_enabled !== false)
+      setEmailReminderOffsetMinutes(user.settings.email_reminder_offset_minutes ?? 60)
+      setDailySummaryEnabled(user.settings.daily_summary_enabled !== false)
+    }
   }, [user])
 
   if (!isOpen || !mounted) return null
@@ -36,12 +46,22 @@ export function ProfileSettings({ isOpen, onClose }: { isOpen: boolean, onClose:
     
     try {
       const p = password ? password : undefined;
-      const res = await api.put('/api/auth/profile', { username, password: p });
-      updateUser({ username: res.data.username });
+      const res = await api.put('/api/auth/profile', { 
+        username, 
+        password: p,
+        settings: {
+          ...user?.settings,
+          email_notifications_enabled: emailNotificationsEnabled,
+          email_reminder_offset_minutes: emailReminderOffsetMinutes,
+          daily_summary_enabled: dailySummaryEnabled
+        }
+      });
+      updateUser({ 
+        username: res.data.username,
+        settings: res.data.settings
+      });
       setMessage({ type: 'success', text: 'Profil başarıyla güncellendi.' });
       setPassword('');
-      
-      // Update local storage if username changed? No need, token handles auth.
     } catch(err: any) {
       setMessage({ type: 'error', text: err.response?.data?.detail || 'Güncelleme başarısız.' });
     } finally {
@@ -163,6 +183,54 @@ export function ProfileSettings({ isOpen, onClose }: { isOpen: boolean, onClose:
                 </select>
               </div>
             )}
+          </div>
+
+          {/* E-posta Bildirim Ayarları */}
+          <div className="pt-2 border-t border-slate-100 dark:border-white/10 mt-4">
+            <h3 className="text-sm font-bold text-slate-700 dark:text-white mb-3">E-posta Bildirimleri</h3>
+            
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-xs font-semibold text-slate-500 dark:text-gray-400">Hatırlatıcı E-postaları Al</span>
+              <button 
+                type="button"
+                onClick={() => setEmailNotificationsEnabled(!emailNotificationsEnabled)}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${emailNotificationsEnabled ? 'bg-indigo-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+              >
+                <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${emailNotificationsEnabled ? 'translate-x-5' : 'translate-x-1'}`} />
+              </button>
+            </div>
+            
+            {emailNotificationsEnabled && (
+              <div className="mb-4">
+                <label className="text-xs font-semibold text-slate-500 dark:text-gray-400 block mb-1">E-posta Hatırlatma Süresi</label>
+                <select
+                  value={emailReminderOffsetMinutes}
+                  onChange={(e) => setEmailReminderOffsetMinutes(Number(e.target.value))}
+                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2 text-brand-dark dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium appearance-none"
+                >
+                  <option value={15} className="dark:bg-slate-800 text-black dark:text-white">15 Dakika Önce</option>
+                  <option value={30} className="dark:bg-slate-800 text-black dark:text-white">30 Dakika Önce</option>
+                  <option value={60} className="dark:bg-slate-800 text-black dark:text-white">1 Saat Önce</option>
+                  <option value={120} className="dark:bg-slate-800 text-black dark:text-white">2 Saat Önce</option>
+                  <option value={180} className="dark:bg-slate-800 text-black dark:text-white">3 Saat Önce</option>
+                  <option value={360} className="dark:bg-slate-800 text-black dark:text-white">6 Saat Önce</option>
+                  <option value={720} className="dark:bg-slate-800 text-black dark:text-white">12 Saat Önce</option>
+                  <option value={1440} className="dark:bg-slate-800 text-black dark:text-white">1 Gün Önce</option>
+                  <option value={2880} className="dark:bg-slate-800 text-black dark:text-white">2 Gün Önce</option>
+                </select>
+              </div>
+            )}
+            
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-slate-500 dark:text-gray-400">Yarının Plan Özetini E-posta Al</span>
+              <button 
+                type="button"
+                onClick={() => setDailySummaryEnabled(!dailySummaryEnabled)}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${dailySummaryEnabled ? 'bg-indigo-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+              >
+                <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${dailySummaryEnabled ? 'translate-x-5' : 'translate-x-1'}`} />
+              </button>
+            </div>
           </div>
 
           <div className="pt-2 border-t border-slate-100 dark:border-white/10 mt-4">

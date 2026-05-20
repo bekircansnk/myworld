@@ -2,6 +2,18 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-20] - Dinamik E-posta Bildirimleri, Görev Hatırlatıcıları ve Günlük Plan Özeti
+
+### Eklendi
+- **Profil Ayarları E-posta Kontrolleri:** Kullanıcılara e-posta bildirimlerini açıp kapatma ("email_notifications_enabled") ve e-posta hatırlatma sürelerini (15 dakikadan 2 güne kadar) seçebilme özelliği eklendi.
+- **Yarının Günlük Plan Özeti:** Kullanıcılara yarınki planlarını (etkinlik ve görevler) içeren, yerel saat dilimlerine göre uyarlanmış, şık ve profesyonel bir HTML e-posta özeti ("daily_summary_enabled") alma seçeneği sunuldu. Her akşam saat 20:00'de otomatik olarak çalışmak üzere APScheduler'a eklendi.
+- **Dinamik Saatlik Hatırlatıcılar:** APScheduler üzerinden her 15 dakikada bir çalışarak, yaklaşan görevleri kullanıcının ayarladığı offset sürelerine göre (tolerans aralığı ile) e-posta olarak gönderen mekanizma kuruldu.
+
+### Güncellendi
+- **Veri Mimarisi ve Uyumlu Kayıt:** Veritabanında yeni bir tablo/kolon ekleme ihtiyacını ortadan kaldırmak için, kullanıcı e-posta bildirim ayarları `User.settings` JSON alanında (Zustand ve FastAPI üzerinden) geriye dönük uyumlu olarak saklandı.
+- **Frontend & Backend Entegrasyonu:** Next.js `ProfileSettings.tsx` bileşeni e-posta ayarlarını içerecek şekilde zenginleştirildi, `authStore.ts` güncellendi. Backend tarafında `schemas/auth.py` ve `routers/auth.py` profili kaydederken ve sorgularken ayarları koruyacak şekilde güncellendi.
+- **Tıkanıklık ve Boş E-posta Önleme:** Yarın için herhangi bir görev veya takvim etkinliği planlanmamışsa e-posta gönderimi pas geçilerek spam önlendi.
+
 ## [2026-05-15] - Kanban Sürükle-Bırak Deneyimi ve Boş Sütun Optimizasyonu
 
 ### Çözüldü

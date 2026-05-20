@@ -3,7 +3,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from app.services.proactive import morning_greeting, task_staleness_check, evening_summary
 from app.services.memory_service import generate_daily_summary, generate_weekly_synthesis
-from app.services.task_reminders import send_daily_reminders, send_hourly_reminders
+from app.services.task_reminders import send_daily_reminders, send_hourly_reminders, send_tomorrow_plan_emails
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +25,14 @@ def start_scheduler():
         send_hourly_reminders,
         CronTrigger(minute='*/15'),
         id="send_hourly_reminders",
+        replace_existing=True
+    )
+    
+    # 0.2 Günlük Plan Özeti (Her akşam 20:00'de yarının planını gönderir)
+    scheduler.add_job(
+        send_tomorrow_plan_emails,
+        CronTrigger(hour=20, minute=0),
+        id="send_tomorrow_plan_emails",
         replace_existing=True
     )
 
