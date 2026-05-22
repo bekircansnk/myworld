@@ -341,7 +341,12 @@ async def create_subtask(
     if not parent_task:
         raise HTTPException(status_code=404, detail="Parent task not found")
         
-    db_task = Task(**subtask.model_dump(), user_id=current_user.id, parent_task_id=task_id)
+    db_task_data = subtask.model_dump()
+    if not db_task_data.get("project_id") and parent_task.project_id:
+        db_task_data["project_id"] = parent_task.project_id
+    db_task_data["parent_task_id"] = task_id
+
+    db_task = Task(**db_task_data, user_id=current_user.id)
     db.add(db_task)
     await db.commit()
     await db.refresh(db_task)

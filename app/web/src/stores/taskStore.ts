@@ -48,7 +48,19 @@ export const useTaskStore = create<TaskState>()(
         try {
           let url = '/api/tasks';
           const params = new URLSearchParams();
-          if (projectId) params.append('project_id', projectId.toString());
+          
+          // Eğer projectId gönderilmediyse, projectStore'dan seçili firma ID'sini al
+          let targetProjectId = projectId;
+          if (targetProjectId === undefined) {
+            try {
+              const { useProjectStore } = await import('./projectStore');
+              targetProjectId = useProjectStore.getState().selectedProjectId || undefined;
+            } catch (e) {
+              console.error("projectStore yüklenemedi veya selectedProjectId okunamadı:", e);
+            }
+          }
+
+          if (targetProjectId) params.append('project_id', targetProjectId.toString());
           if (status) params.append('status', status);
           
           if (params.toString()) {
@@ -233,23 +245,28 @@ export const useTaskStore = create<TaskState>()(
       },
 
       addSubtask: async (parentId, taskData) => {
+        // Alt görevin firmasını parent task'tan veya seçili firmadan miras al
+        const parentTask = get().tasks.find((t) => t.id === parentId);
+        const resolvedProjectId = taskData.project_id || parentTask?.project_id || undefined;
+        const finalTaskData = { ...taskData, project_id: resolvedProjectId };
+
         const tempId = Date.now();
-        const tempSubtask = { ...taskData, id: tempId, parent_task_id: parentId, status: taskData.status || 'todo', created_at: new Date().toISOString() } as Task;
+        const tempSubtask = { ...finalTaskData, id: tempId, parent_task_id: parentId, status: finalTaskData.status || 'todo', created_at: new Date().toISOString() } as Task;
         set((state) => ({
           tasks: [...state.tasks, tempSubtask],
         }));
         try {
           let url = `/api/tasks/${parentId}/subtasks`;
-          if (taskData.project_id) {
-            url += `?project_id=${taskData.project_id}`;
+          if (resolvedProjectId) {
+            url += `?project_id=${resolvedProjectId}`;
           }
-          const response = await api.post(url, taskData);
+          const response = await api.post(url, finalTaskData);
           set((state) => ({
-            tasks: state.tasks.map(t => t.id === tempId ? response.data : t),
+            tasks: state.tasks.map((t) => (t.id === tempId ? response.data : t)),
           }));
         } catch (error: any) {
           if (error.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
-            enqueue('POST', `/api/tasks/${parentId}/subtasks`, taskData);
+            enqueue('POST', `/api/tasks/${parentId}/subtasks`, finalTaskData);
           } else {
             set((state) => ({
               tasks: state.tasks.filter((t) => t.id !== tempId),

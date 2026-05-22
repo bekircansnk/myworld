@@ -381,7 +381,7 @@ export function TaskDetailPanel() {
     const title = newSubtaskTitle
     setNewSubtaskTitle("")
     try {
-      await addSubtask(selectedTask.id, { title, status: 'todo' })
+      await addSubtask(selectedTask.id, { title, status: 'todo', project_id: selectedTask.project_id })
       addActivityEvent('subtask_done', `"${title}" alt görevi eklendi`, 'teal')
     } catch (e) { console.error(e) }
   }

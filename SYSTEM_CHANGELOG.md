@@ -2,6 +2,13 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-22] - Görev Kartlarının Kaybolması ve Alt Görev Ekleme Hatalarının Çözümü
+
+### Çözüldü
+- **Görevlerin Geçici Kaybolması (Kanban Filtre Hatası):** Görev detay paneli kapatıldığında veya bir görev güncellendiğinde parametresiz tetiklenen `fetchTasks()` çağrısı, `/api/tasks` endpoint'ine `project_id` göndermiyordu. Bu durum backend'in kullanıcıya ait sadece 2 kişisel görevi döndürmesine ve diğer görevlerin geçici olarak kaybolmasına yol açıyordu. `taskStore.ts` güncellenerek parametre boş olduğunda `projectStore`'daki aktif `selectedProjectId` değeri otomatik olarak bağlam olarak atandı ve sorun tamamen çözüldü.
+- **Alt Görevlerin 2 Saniye Sonra Kaybolması (TypeError Çakışması):** Alt görev oluşturma endpoint'inde (`POST /api/tasks/{task_id}/subtasks`) `TaskCreate` şeması içindeki `parent_task_id` alanı ile endpoint fonksiyonunda el ile geçilen `parent_task_id=task_id` parametresi çakışıyor ve Python'da `multiple values for keyword argument` TypeError (500 hatası) fırlatıyordu. Hata alındığında frontend optimistic update ile eklediği geçici kartı silerek alt görevin 2 saniye sonra kaybolmasına sebep oluyordu. `tasks.py` güncellenerek `parent_task_id` doğrudan `db_task_data` sözlüğü içine atanarak bu Python çakışması çözüldü.
+- **Alt Görev Proje Bağlamı Kaybı:** Alt görevler eklenirken `project_id` aktarılmadığı için veritabanına `null` olarak kaydediliyor ve daha sonra proje bazlı görev listelemelerinde listeye dahil edilmiyordu. Hem frontend (`addSubtask` ve `TaskDetailPanel.tsx`'teki `handleAddSubtask`) hem de backend (`create_subtask`'ta `parent_task`'tan miras alma) düzeyinde güvenli proje ID aktarımı sağlanarak alt görevlerin kalıcılığı güvence altına alındı.
+
 ## [2026-05-22] - PWA 404 Bypass, APK İndirme Çözümü ve Sürüm 3.5
 
 ### Çözüldü
