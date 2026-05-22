@@ -9,6 +9,16 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v3.5
+**Tarih:** 22 Mayıs 2026
+**Değişiklikler:**
+- **[Kritik İndirme Çözümü - 404 Bypass]** Büyük APK dosyasının (20MB+) PWA Serwist Service Worker'ın 10 saniyelik `networkTimeout` limitine takılarak 404/Ağ hatası vermesi engellendi. `.apk` uzantılı dosyalar için Service Worker önbellekleme kuralları `NetworkOnly` olarak bypass edilerek doğrudan indirilmesi sağlandı.
+- **[Sunucu Optimizasyonu]** APK indirme linki, Vercel statik dosya limitlerinden etkilenmemesi amacıyla doğrudan Render.com üzerinde çalışan kesintisiz FastAPI statik sunucusuna (`/static/Pikselis_v3.5.apk`) yönlendirildi.
+- **[Sürüm Güncelleme Tetikleyicisi]** Android projesinde `versionCode 26` ve `versionName "3.5"` tanımlanarak, backend API ve frontend fallback linkleriyle eş zamanlı hale getirildi. Mobil uygulamaya anında sürüm güncelleme bildirimi gelmesi sağlandı.
+- **[Matruşka Engeli & Boyut Optimizasyonu]** Önceki sürüm APK'lar Capacitor senkronizasyonu öncesinde temizlenerek projenin katlanarak büyümesi engellendi; APK boyutu 19.9MB bandında korundu.
+
+---
+
 ### v3.4
 **Tarih:** 20 Mayıs 2026
 **Değişiklikler:**

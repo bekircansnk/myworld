@@ -2,6 +2,17 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-22] - PWA 404 Bypass, APK İndirme Çözümü ve Sürüm 3.5
+
+### Çözüldü
+- **Serwist SW 404 Hatası:** PWA Service Worker'ın (`sw.ts`) 20MB'lık APK dosyalarını cache'lemeye çalışarak 10 saniyelik ağ aşımı sınırına takılması ve indirmelerin başarısız olması (404 / Ağ hatası) sorunu, APK dosyaları için `NetworkOnly` kuralı tanımlanarak tamamen çözüldü.
+- **Vercel Static Router Sınırı:** Vercel static routing limitlerinin ve yavaşlıklarının APK indirme aracını kesintiye uğratması sorunu, indirme kaynağının doğrudan FastAPI (`/static/Pikselis_v3.5.apk`) sunucusuna yönlendirilmesiyle çözüldü.
+- **Sürüm Güncelleme Bildirimi:** Android Capacitor tarafında `versionCode` 26'ya ve `versionName` "3.5"'e yükseltilerek backend `/api/app-version` ile tam eşitleme sağlandı. Bu sayede telefona sürüm güncelleme uyarısı anında düşmeye başladı.
+
+### Güncellendi
+- **Android APK Derlemesi:** Capacitor matruşka iç içe paketlenme hatasını önlemek için eski APK'lar derleme öncesinde `.silinecekler_cop_kutusu`'na taşındı. Temiz bir build ile 19.9MB APK üretilerek `public/` ve `backend/static/` dizinlerine kopyalandı.
+- **Frontend Fallback Linkleri:** `TopNavbar.tsx` ve `InstallAppBanner.tsx` içindeki indirme linkleri yeni API statik yollarına (`https://myworld-twqx.onrender.com/static/Pikselis_v3.5.apk`) güncellendi.
+
 ## [2026-05-20] - Mobil Bildirim Sadeleştirmesi ve Kararlılık Paketi (v3.4)
 
 ### Çözüldü

@@ -34,6 +34,13 @@ const serwist = new Serwist({
         url.hostname.includes('onrender.com'),
       handler: new NetworkOnly(),
     },
+    // APK dosyaları ASLA önbelleklenmeyecek (timeout ve 404 hatasını önlemek için)
+    {
+      matcher: ({ url }: { url: URL }) =>
+        url.pathname.endsWith('.apk') ||
+        url.href.includes('.apk'),
+      handler: new NetworkOnly(),
+    },
     // Google Fonts (Web fontları) — 1 yıl önbellekle (statik dosya, değişmez)
     {
       matcher: /^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,
