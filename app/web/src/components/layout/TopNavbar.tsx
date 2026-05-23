@@ -4,7 +4,7 @@ import * as React from "react"
 import { useProjectStore } from "@/stores/projectStore"
 import { useTaskStore } from "@/stores/taskStore"
 import { useTheme } from "next-themes"
-import { LayoutDashboard, ListTodo, CalendarDays, NotebookPen, Bot, Megaphone, Camera, Menu, Bell, Search, Plus, Loader2, PlayCircle, Clock, CheckCircle2, MoreVertical, X, Shield, Sun, Moon, User, ChevronDown, AlertTriangle, Check, Smartphone, Briefcase } from "lucide-react"
+import { LayoutDashboard, ListTodo, CalendarDays, NotebookPen, Bot, Megaphone, Camera, Menu, Bell, Search, Plus, Loader2, PlayCircle, Clock, CheckCircle2, MoreVertical, X, Shield, Sun, Moon, User, ChevronDown, AlertTriangle, Check, Smartphone, Briefcase, ClipboardList, MessageSquare } from "lucide-react"
 import { format, isToday, isTomorrow, isBefore, addDays } from "date-fns"
 import { tr } from "date-fns/locale"
 import { api } from "@/lib/api"
@@ -142,6 +142,97 @@ export function TopNavbar() {
     setMounted(true)
     fetchProjects()
   }, [])
+
+  const [activities, setActivities] = React.useState<any[]>([])
+
+  // Canlı WS bildirimlerini dinle
+  React.useEffect(() => {
+    if (!selectedProjectId) return
+    
+    // İlk yükleme
+    api.get(`/api/activities?project_id=${selectedProjectId}`)
+      .then(res => setActivities(res.data || []))
+      .catch(console.error)
+
+    const handleNewActivity = (e: Event) => {
+      const customEvent = e as CustomEvent<any>
+      const newAct = customEvent.detail
+      
+      if (newAct && newAct.project_id === selectedProjectId) {
+        setActivities(prev => {
+          if (prev.some(a => a.id === newAct.id)) return prev
+          return [newAct, ...prev].slice(0, 30)
+        })
+      }
+    }
+
+    window.addEventListener("pikselis-new-activity", handleNewActivity)
+    return () => {
+      window.removeEventListener("pikselis-new-activity", handleNewActivity)
+    }
+  }, [selectedProjectId, showNotifPanel])
+
+  const handleActivityClick = async (act: any) => {
+    const taskId = act.details?.task_id || act.details?.id || act.details?.task?.id
+    if (!taskId) return
+
+    try {
+      // 1. Görevi API'den çekip güncel durumunu al
+      const response = await api.get(`/api/tasks/${taskId}`)
+      const task = response.data
+      
+      if (task) {
+        // 2. Eğer projesi farklıysa projeyi değiştir
+        if (task.project_id && task.project_id !== selectedProjectId) {
+          switchCompany(task.project_id)
+          // Proje değiştikten sonra o projenin görevlerini fetch et
+          setTimeout(async () => {
+            await useTaskStore.getState().fetchTasks(task.project_id)
+            useTaskStore.getState().openTaskDetail(task)
+          }, 300)
+        } else {
+          useTaskStore.getState().openTaskDetail(task)
+        }
+        setShowNotifPanel(false)
+        // Eğer CRM veya başka görünümdeyse Görevler görünümüne geç
+        if (viewMode !== 'all_tasks' && viewMode !== 'dashboard') {
+          setViewMode('all_tasks')
+        }
+      }
+    } catch (err) {
+      console.error("Görev detayına gidilirken hata:", err)
+    }
+  }
+
+  const handleNotifClick = async (n: AppNotification) => {
+    const taskIdStr = n.id.split('-').pop()
+    if (!taskIdStr) return
+    const taskId = parseInt(taskIdStr)
+    if (isNaN(taskId)) return
+
+    try {
+      const response = await api.get(`/api/tasks/${taskId}`)
+      const task = response.data
+      
+      if (task) {
+        if (task.project_id && task.project_id !== selectedProjectId) {
+          switchCompany(task.project_id)
+          setTimeout(async () => {
+            await useTaskStore.getState().fetchTasks(task.project_id)
+            useTaskStore.getState().openTaskDetail(task)
+          }, 300)
+        } else {
+          useTaskStore.getState().openTaskDetail(task)
+        }
+        setShowNotifPanel(false)
+        if (viewMode !== 'all_tasks' && viewMode !== 'dashboard') {
+          setViewMode('all_tasks')
+        }
+      }
+    } catch (err) {
+      console.error("Bildirim görevine gidilirken hata:", err)
+    }
+  }
 
   // Handle Context Menu (Right Click)
   const handleContextMenu = (e: React.MouseEvent, projectId: number) => {
@@ -426,37 +517,127 @@ export function TopNavbar() {
             </button>
 
             {showNotifPanel && (
-              <div className="absolute top-full -right-20 sm:right-0 mt-2 w-[320px] max-w-[calc(100vw-2rem)] sm:w-80 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 z-50 animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden">
-                <div className="px-4 py-3 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-brand-dark dark:text-white">Bildirimler</h3>
+              <div className="absolute top-full -right-20 sm:right-0 mt-2 w-[360px] max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10 z-50 animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden flex flex-col max-h-[500px]">
+                <div className="px-4 py-3.5 border-b border-slate-100 dark:border-white/5 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
+                  <div className="flex items-center gap-2">
+                    <Bell className="w-4 h-4 text-indigo-500" />
+                    <h3 className="text-sm font-black text-brand-dark dark:text-white">Ekip & Bildirim Paneli</h3>
+                  </div>
                   {unreadCount > 0 && (
-                    <button onClick={markAllRead} className="text-[10px] font-semibold text-brand-yellow hover:underline">
-                      Tümünü okundu işaretle
+                    <button onClick={markAllRead} className="text-[10px] font-black text-indigo-500 hover:underline uppercase tracking-wider">
+                      Okundu Yap
                     </button>
                   )}
                 </div>
-                <div className="max-h-[350px] overflow-y-auto">
-                  {notifications.length === 0 ? (
-                    <div className="py-8 text-center">
-                      <Bell className="w-8 h-8 text-slate-200 dark:text-slate-700 mx-auto mb-2" />
-                      <p className="text-xs text-brand-gray dark:text-gray-500">Bildirim yok</p>
-                    </div>
-                  ) : (
-                    notifications.map(n => (
-                      <div key={n.id} className={`px-4 py-3 flex items-start gap-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors ${!n.read ? 'bg-brand-yellow/5' : ''}`}>
-                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0 mt-0.5">
-                          {notifTypeIcon[n.type]}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-brand-dark dark:text-white">{n.title}</p>
-                          <p className="text-[11px] text-brand-gray dark:text-gray-400 truncate mt-0.5">{n.message}</p>
-                        </div>
-                        <button onClick={() => dismissNotification(n.id)} className="text-slate-300 hover:text-slate-500 transition p-1 shrink-0">
-                          <X className="w-3 h-3" />
-                        </button>
+                
+                <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-white/5">
+                  {/* KISIM 1: YAKLAŞAN GÖREVLER (BİLDİRİMLER) */}
+                  <div className="p-2">
+                    <div className="px-2 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Yaklaşan İşler ({notifications.length})</div>
+                    {notifications.length === 0 ? (
+                      <p className="text-[11px] text-slate-400 dark:text-white/30 text-center py-4 italic">Kritik yaklaşan görev yok.</p>
+                    ) : (
+                      <div className="space-y-1">
+                        {notifications.map(n => (
+                          <div 
+                            key={n.id} 
+                            onClick={() => handleNotifClick(n)}
+                            className={`px-3 py-2 flex items-start gap-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-all cursor-pointer group relative ${!n.read ? 'bg-indigo-50/40 dark:bg-indigo-950/20' : ''}`}
+                          >
+                            <div className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 mt-0.5">
+                              {notifTypeIcon[n.type]}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[11px] font-bold text-brand-dark dark:text-white group-hover:text-indigo-500 transition-colors">{n.title}</p>
+                              <p className="text-[11px] text-brand-gray dark:text-gray-400 truncate mt-0.5 leading-snug">{n.message}</p>
+                            </div>
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); dismissNotification(n.id); }} 
+                              className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-slate-500 transition p-1 shrink-0 absolute right-1 top-2"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    ))
-                  )}
+                    )}
+                  </div>
+
+                  {/* KISIM 2: CANLI AKTİVİTE AKIŞI (EKİP NE YAPTI?) */}
+                  <div className="p-2">
+                    <div className="px-2 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Canlı Hareket Akışı ({activities.length})</div>
+                    {activities.length === 0 ? (
+                      <p className="text-[11px] text-slate-400 dark:text-white/30 text-center py-4 italic">Henüz aktivite yok.</p>
+                    ) : (
+                      <div className="space-y-1">
+                        {activities.slice(0, 10).map(act => {
+                          const username = act.username || act.user?.name || act.user?.username || "Sistem"
+                          const type = act.activity_type || act.action || "default"
+                          
+                          // Dinamik ikon
+                          let icon = <ClipboardList className="w-3.5 h-3.5 text-slate-500" />
+                          if (type.includes("created") || type.includes("ekle")) icon = <Plus className="w-3.5 h-3.5 text-emerald-500" />
+                          else if (type.includes("status") || type.includes("updated") || type.includes("güncelle")) icon = <CheckCircle2 className="w-3.5 h-3.5 text-amber-500" />
+                          else if (type.includes("comment") || type.includes("yorum")) icon = <MessageSquare className="w-3.5 h-3.5 text-blue-500" />
+                          else if (type.includes("deleted") || type.includes("sil")) icon = <Trash2 className="w-3.5 h-3.5 text-red-500" />
+
+                          // Dinamik açıklama helper'ı
+                          let description = act.description || ""
+                          if (!description) {
+                            const details = act.details || {}
+                            switch (act.action || act.activity_type) {
+                              case "task_created":
+                                description = `"${details.task_title || "Yeni görev"}" oluşturuldu.`
+                                break
+                              case "task_status_updated":
+                              case "task_updated":
+                                description = `"${details.task_title || "Görev"}" güncellendi.`
+                                break
+                              case "comment_created":
+                                description = `"${details.task_title || "Görev"}" altına yorum yazdı.`
+                                break
+                              case "task_deleted":
+                                description = `"${details.task_title || "Görev"}" silindi.`
+                                break
+                              default:
+                                description = typeof details === "string" ? details : "İşlem yaptı."
+                            }
+                          }
+
+                          // Zaman
+                          let timeStr = ""
+                          try {
+                            const diff = Date.now() - new Date(act.created_at).getTime()
+                            const mins = Math.floor(diff / 60000)
+                            timeStr = mins < 1 ? "Şimdi" : `${mins} dk önce`
+                            if (mins >= 60) {
+                              const hrs = Math.floor(mins / 60)
+                              timeStr = hrs < 24 ? `${hrs} sa önce` : new Date(act.created_at).toLocaleDateString("tr-TR")
+                            }
+                          } catch {}
+
+                          return (
+                            <div 
+                              key={act.id} 
+                              onClick={() => handleActivityClick(act)}
+                              className="px-3 py-2 flex items-start gap-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-all cursor-pointer group"
+                            >
+                              <div className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 mt-0.5">
+                                {icon}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-1.5">
+                                  <span className="text-[11px] font-black text-brand-dark dark:text-white group-hover:text-indigo-500 transition-colors">{username}</span>
+                                  <span className="text-[9px] text-slate-400 dark:text-slate-500 whitespace-nowrap">{timeStr}</span>
+                                </div>
+                                <p className="text-[11px] text-brand-gray dark:text-gray-400 truncate mt-0.5 leading-snug">{description}</p>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}

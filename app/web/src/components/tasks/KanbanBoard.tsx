@@ -318,6 +318,21 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
       // Farklı sütuna taşıma
       updateTaskStatus(taskId, newStatus)
 
+      // Eğer tamamlandı sütununa atıldıysa XP ve Konfeti tetikle
+      if (newStatus === 'done') {
+        const taskObj = tasks.find(t => t.id === taskId)
+        let xp = 30
+        if (taskObj) {
+          if (taskObj.priority === 'urgent' || (taskObj.priority as any) === 'high') xp = 50
+          else if (taskObj.priority === 'low') xp = 15
+        }
+        
+        import("@/lib/confetti").then(({ triggerConfetti }) => triggerConfetti()).catch(console.error)
+        import("@/stores/gamificationStore").then(({ useGamificationStore }) => {
+          useGamificationStore.getState().triggerXpGain(xp)
+        }).catch(console.error)
+      }
+
       setTimeout(() => {
         const destTasks = getColumnTasks(destColumn)
         const items = Array.from(destTasks)

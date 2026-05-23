@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useProjectStore } from "@/stores/projectStore"
 import { useTaskStore } from "@/stores/taskStore"
-import { Search, Mail, Phone, Calendar, Star, Building, CheckCircle2, User, Clock } from "lucide-react"
+import { Search, Mail, Phone, Calendar, Star, Building, CheckCircle2, User, Clock, ChevronRight, Plus } from "lucide-react"
 
 interface CRMLeadsProps {
   projectId: number | null
@@ -28,7 +28,7 @@ export function CRMLeads({ projectId }: CRMLeadsProps) {
   const [searchTerm, setSearchTerm] = React.useState("")
   const [selectedLead, setSelectedLead] = React.useState<Lead | null>(null)
 
-  // Gerçek verilerimizden CRM Adayları (Leads) üretelim
+  // Aday listesi
   const leads: Lead[] = React.useMemo(() => {
     const currentProject = projects.find(p => p.id === projectId)
     const projectTasks = tasks.filter(t => t.project_id === projectId)
@@ -36,7 +36,6 @@ export function CRMLeads({ projectId }: CRMLeadsProps) {
     const colors = ["#6366f1", "#ec4899", "#f59e0b", "#10b981", "#8b5cf6", "#ef4444", "#06b6d4"]
 
     if (projectTasks.length === 0) {
-      // Fallback demo veriler (eğer görev yoksa)
       return [
         {
           id: "lead-1",
@@ -77,7 +76,6 @@ export function CRMLeads({ projectId }: CRMLeadsProps) {
       ]
     }
 
-    // Görev sahiplerini veya görev başlıklarını adaylara dönüştür
     const demoNames = ["Can Yılmaz", "Elif Demir", "Ahmet Kaya", "Selin Arslan", "Mehmet Çelik", "Gözde Aksoy", "Kamil Mert", "Ayşe Şahin", "Burak Öztürk", "Merve Kılıç"]
 
     return projectTasks.slice(0, 10).map((task, index) => {
@@ -103,7 +101,6 @@ export function CRMLeads({ projectId }: CRMLeadsProps) {
     })
   }, [projects, tasks, projectId])
 
-  // Arama filtresi
   const filteredLeads = leads.filter(
     lead =>
       lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -118,61 +115,76 @@ export function CRMLeads({ projectId }: CRMLeadsProps) {
   }, [filteredLeads, selectedLead])
 
   const statusMap = {
-    new: { label: "Yeni Aday", bg: "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400" },
-    contacted: { label: "Görüşüldü", bg: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400" },
-    qualified: { label: "Uygundur", bg: "bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400" },
-    won: { label: "Kazanıldı", bg: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400" },
-    lost: { label: "Kaybedildi", bg: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400" },
+    new: { label: "New", bg: "bg-blue-50 text-blue-600 border border-blue-100" },
+    contacted: { label: "Contacted", bg: "bg-amber-50 text-amber-600 border border-amber-100" },
+    qualified: { label: "Qualified", bg: "bg-emerald-50 text-emerald-600 border border-emerald-100" },
+    won: { label: "Won", bg: "bg-purple-50 text-purple-600 border border-purple-100" },
+    lost: { label: "Lost", bg: "bg-rose-50 text-rose-600 border border-rose-100" },
   }
 
-  // Simüle edilmiş zaman akışı olayları
   const mockActivities = [
-    { type: "email", title: "Kampanya E-postası Gönderildi", desc: "Yeni özellikler tanıtım bülteni.", date: "Bugün, 14:02", icon: Mail },
-    { type: "call", title: "Telefon Görüşmesi Yapıldı", desc: "Teklif detayları hakkında 4 dakika görüşüldü.", date: "Dün, 11:30", icon: Phone },
-    { type: "meeting", title: "Tanıtım Toplantısı", desc: "Zoom üzerinden proje demosu sunumu.", date: "22 May 2026", icon: Calendar },
-    { type: "task", title: "Görev Tamamlandı", desc: "Fiyat teklif dosyası hazırlandı ve iletildi.", date: "20 May 2026", icon: CheckCircle2 }
+    { type: "email", title: "Campaign Email Sent", desc: "Newsletter introducing new features.", date: "Today, 14:02", icon: Mail },
+    { type: "call", title: "Call Logged", desc: "Spoke for 4 minutes regarding pricing terms.", date: "Yesterday, 11:30", icon: Phone },
+    { type: "meeting", title: "Demo Meeting Held", desc: "Presented the project timeline via Zoom.", date: "22 May 2026", icon: Calendar },
+    { type: "task", title: "Task Completed", desc: "Pricing proposal document prepared and sent.", date: "20 May 2026", icon: CheckCircle2 }
   ]
 
   return (
-    <div className="flex-1 flex overflow-hidden">
-      {/* Aday Listesi Sol Bölüm */}
-      <div className="flex-1 flex flex-col h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-white/5 overflow-hidden">
+    <div className="flex-1 flex overflow-hidden bg-[#f8f9fa]">
+      {/* Sol Aday Listesi */}
+      <div className="flex-1 flex flex-col h-full bg-white border-r border-[#e9ecef] overflow-hidden">
+        {/* Breadcrumb & Create */}
+        <div className="px-6 py-4 flex items-center justify-between border-b border-[#e9ecef] shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-slate-500">Leads</span>
+            <span className="text-slate-400">/</span>
+            <button className="text-sm font-black text-slate-900 flex items-center gap-1">
+              List
+              <ChevronRight className="w-3.5 h-3.5 transform rotate-90 text-slate-400" />
+            </button>
+          </div>
+          
+          <button className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
+            <Plus className="w-3.5 h-3.5" />
+            Create
+          </button>
+        </div>
+
         {/* Arama Barı */}
-        <div className="p-4 border-b border-slate-200 dark:border-white/5 flex gap-3 shrink-0">
+        <div className="px-6 py-3.5 border-b border-[#e9ecef] flex gap-3 shrink-0 bg-white">
           <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-2.5 w-4 h-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Adaylarda arayın (isim, firma, e-posta)..."
+              placeholder="Search leads..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-2xl text-xs bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+              className="w-full pl-10 pr-4 py-2 rounded-lg text-xs bg-[#fafbfc] border border-[#e9ecef] focus:outline-none focus:border-slate-300 transition-all font-semibold text-slate-600"
             />
           </div>
         </div>
 
-        {/* Tablo / Liste */}
+        {/* Aday Listesi */}
         <div className="flex-1 overflow-y-auto">
           {filteredLeads.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-12 text-slate-400">
-              <User className="w-12 h-12 mb-3 text-slate-200 dark:text-slate-700" />
-              <p className="text-xs font-semibold">Müşteri adayı bulunamadı.</p>
+              <User className="w-12 h-12 mb-3 text-slate-200" />
+              <p className="text-xs font-semibold">No leads found.</p>
             </div>
           ) : (
-            <div className="divide-y divide-slate-100 dark:divide-white/5">
+            <div className="divide-y divide-[#f1f3f5]">
               {filteredLeads.map((lead) => {
                 const isActive = selectedLead?.id === lead.id
                 return (
                   <button
                     key={lead.id}
                     onClick={() => setSelectedLead(lead)}
-                    className={`w-full text-left p-4.5 flex items-start gap-4 transition-all duration-200 ${
-                      isActive ? "bg-indigo-50/50 dark:bg-indigo-500/5 border-l-4 border-indigo-600 pl-3.5" : "hover:bg-slate-50 dark:hover:bg-white/5"
+                    className={`w-full text-left px-6 py-4 flex items-start gap-4 transition-all ${
+                      isActive ? "bg-slate-50 border-l-4 border-slate-950 pl-5" : "hover:bg-[#fafbfc]"
                     }`}
                   >
-                    {/* Avatar */}
                     <div
-                      className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-xs shadow-inner shrink-0"
+                      className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-black text-xs shrink-0"
                       style={{ backgroundColor: lead.avatarColor }}
                     >
                       {lead.name.split(" ").map(n => n[0]).join("").toUpperCase()}
@@ -180,22 +192,22 @@ export function CRMLeads({ projectId }: CRMLeadsProps) {
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
-                        <h4 className="text-xs font-black text-brand-dark dark:text-white truncate">{lead.name}</h4>
+                        <h4 className="text-xs font-black text-slate-900 truncate">{lead.name}</h4>
                         <span className="text-[10px] font-black text-slate-400 shrink-0">
                           {new Date(lead.createdAt).toLocaleDateString("tr-TR", { day: 'numeric', month: 'short' })}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 mt-1">
+                      <div className="flex items-center gap-1.5 text-slate-500 mt-1">
                         <Building className="w-3.5 h-3.5 shrink-0 text-slate-400" />
-                        <span className="text-[10px] truncate">{lead.company}</span>
+                        <span className="text-[10px] font-bold text-slate-400 truncate">{lead.company}</span>
                       </div>
 
-                      <div className="flex items-center justify-between mt-2.5">
-                        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${statusMap[lead.status].bg}`}>
+                      <div className="flex items-center justify-between mt-3.5">
+                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase ${statusMap[lead.status].bg}`}>
                           {statusMap[lead.status].label}
                         </span>
-                        <span className="text-xs font-black text-indigo-600 dark:text-indigo-400">
+                        <span className="text-xs font-black text-slate-900">
                           {lead.value.toLocaleString("tr-TR", { style: "currency", currency: "TRY", maximumFractionDigits: 0 })}
                         </span>
                       </div>
@@ -208,59 +220,58 @@ export function CRMLeads({ projectId }: CRMLeadsProps) {
         </div>
       </div>
 
-      {/* Aday Zaman Tüneli Sağ Bölüm */}
+      {/* Sağ Detay / Zaman Akışı (Timeline) */}
       {selectedLead && (
-        <div className="hidden md:flex w-[420px] lg:w-[480px] bg-slate-50/30 dark:bg-slate-900/10 flex-col h-full overflow-hidden">
+        <div className="hidden lg:flex w-[480px] bg-[#fafbfc] border-l border-[#e9ecef] flex-col h-full overflow-hidden">
           {/* Header */}
-          <div className="p-6 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shrink-0">
+          <div className="p-6 border-b border-[#e9ecef] bg-white shrink-0">
             <div className="flex items-start gap-4">
               <div
-                className="w-12 h-12 rounded-3xl flex items-center justify-center text-white font-black text-sm shadow-md shrink-0"
+                className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-black text-sm shrink-0 shadow-sm"
                 style={{ backgroundColor: selectedLead.avatarColor }}
               >
                 {selectedLead.name.split(" ").map(n => n[0]).join("").toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-black text-brand-dark dark:text-white leading-none">{selectedLead.name}</h3>
-                <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold mt-1.5">{selectedLead.company}</p>
+                <h3 className="text-sm font-black text-slate-900 leading-none">{selectedLead.name}</h3>
+                <p className="text-[11px] text-slate-400 font-bold mt-2">{selectedLead.company}</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mt-6">
-              <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
-                <Mail className="w-4 h-4 text-slate-400" />
+            <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-[#f1f3f5]">
+              <div className="flex items-center gap-2 text-xs text-slate-500 font-bold">
+                <Mail className="w-4 h-4 text-slate-350" />
                 <span className="truncate">{selectedLead.email}</span>
               </div>
-              <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
-                <Phone className="w-4 h-4 text-slate-400" />
+              <div className="flex items-center gap-2 text-xs text-slate-500 font-bold">
+                <Phone className="w-4 h-4 text-slate-350" />
                 <span>{selectedLead.phone}</span>
               </div>
             </div>
           </div>
 
-          {/* Frappe CRM Timeline */}
+          {/* Timeline */}
           <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
-            <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-gray-500 mb-2">Aktivite Zaman Akışı</h4>
+            <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">Activity Timeline</h4>
             
-            <div className="relative border-l border-slate-200 dark:border-white/5 ml-3 flex flex-col gap-6">
+            <div className="relative border-l border-[#e9ecef] ml-3 flex flex-col gap-6">
               {mockActivities.map((act, index) => {
                 const ActIcon = act.icon
                 return (
                   <div key={index} className="relative pl-7 group">
-                    {/* Timeline Node */}
-                    <div className="absolute -left-3.5 top-0.5 w-7 h-7 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 group-hover:border-indigo-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-all shadow-sm">
-                      <ActIcon className="w-3.5 h-3.5" />
+                    <div className="absolute -left-3 top-0.5 w-6 h-6 rounded-lg bg-white border border-[#e9ecef] flex items-center justify-center text-slate-400 transition-colors shadow-sm">
+                      <ActIcon className="w-3 h-3" />
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900/60 p-4.5 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm hover:shadow-md transition-all duration-200">
+                    <div className="bg-white border border-[#e9ecef] p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-250">
                       <div className="flex items-center justify-between gap-4">
-                        <span className="text-[11px] font-black text-brand-dark dark:text-white leading-none">{act.title}</span>
-                        <div className="flex items-center gap-1 text-[10px] text-slate-400 dark:text-gray-500">
+                        <span className="text-xs font-black text-slate-900 leading-none">{act.title}</span>
+                        <div className="flex items-center gap-1 text-[9.5px] text-slate-450 font-bold">
                           <Clock className="w-3 h-3" />
                           <span>{act.date}</span>
                         </div>
                       </div>
-                      <p className="text-[10.5px] text-slate-500 dark:text-slate-400 mt-2 font-medium leading-relaxed">{act.desc}</p>
+                      <p className="text-[10.5px] text-slate-500 font-medium leading-relaxed mt-2.5">{act.desc}</p>
                     </div>
                   </div>
                 )

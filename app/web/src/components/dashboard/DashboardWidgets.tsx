@@ -18,8 +18,8 @@ import { EventDetailDialog } from "@/components/calendar/CalendarPage"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { useAuthStore } from "@/store/authStore"
 import { useMeetingStore } from "@/stores/meetingStore"
-import { ActivityFeedWidget } from "@/components/dashboard/widgets/ActivityFeedWidget"
 import { Button } from "@/components/ui/button"
+import { GamificationWidget } from "@/components/dashboard/widgets/GamificationWidget"
 
 // Firma ikonları — SVG mini logolar
 const COMPANY_ICONS: Record<string, React.ReactNode> = {
@@ -488,9 +488,9 @@ export function DashboardWidgets() {
             </div>
           </div>
 
-          {/* Canlı Aktivite Akışı — Sol kolda premium konumlandırma */}
-          <div className="hidden lg:flex flex-grow min-h-[220px]">
-            <ActivityFeedWidget />
+          {/* Gamification Panel — Sol kolda premium konumlandırma */}
+          <div className="hidden lg:flex flex-col shrink-0">
+            <GamificationWidget />
           </div>
         </div>
 

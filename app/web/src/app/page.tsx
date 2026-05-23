@@ -24,6 +24,7 @@ import { OfflineBanner } from "@/components/ui/OfflineBanner"
 import { AdminPanel } from "@/components/admin/AdminPanel"
 import { InAppCallWindow } from "@/components/chat/InAppCallWindow"
 import { CRMLayout } from "@/components/crm/CRMLayout"
+import { useGamificationStore } from "@/stores/gamificationStore"
 
 export default function DashboardPage() {
   const { user, isAuthenticated, isLoading: authLoading, checkAuth, _hasHydrated: authHydrated } = useAuthStore()
@@ -227,7 +228,12 @@ export default function DashboardPage() {
   if (isPhotoTracking && !canViewModule('photo_tracking')) return renderErrorState("Bu modüle erişim yetkiniz yok.");
   if (isAdminPanel && !canAccessAdminPanel(user)) return renderErrorState("Yönetim paneline erişim yetkiniz yok.");
 
-  return (
+  return isCRM ? (
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-white text-slate-900" id="crm-app-root">
+      <OfflineBanner />
+      <CRMLayout projectId={selectedProjectId} />
+    </div>
+  ) : (
     <div className="flex flex-col h-full w-full overflow-hidden" id="app-root">
       {/* ÜST NAVBAR — Yatay, tüm ekranlarda */}
       <TopNavbar />
@@ -253,8 +259,6 @@ export default function DashboardPage() {
           <AdsLayout projectId={selectedProjectId} />
         ) : isPhotoTracking ? (
           <PhotoTrackingLayout projectId={selectedProjectId} />
-        ) : isCRM ? (
-          <CRMLayout projectId={selectedProjectId} />
         ) : (
           <div className={`flex-1 flex flex-col mobile-content-area ${isDashboard ? 'overflow-y-auto lg:overflow-hidden p-3 md:p-5 lg:p-8' : (viewMode === 'notes' ? 'overflow-y-auto overflow-x-hidden p-3 md:p-5 lg:p-8' : 'overflow-hidden')}`}>
 

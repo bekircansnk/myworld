@@ -2,6 +2,23 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-23] - Sürüm 4.3 - İzole Tam Ekran Frappe CRM Deneyim Dünyası
+
+### Eklendi
+- **Tam Ekran Frappe CRM Dünyası (`crm-app-root`)**:
+  - `page.tsx` return yapısı güncellenerek, CRM butonuna tıklandığında normal sayfa üst/alt navigasyonları ve diğer Pikseliş modülleri tamamen gizlenecek (bypass edilecek) şekilde izole edildi. Ekran bütünüyle Frappe CRM resmi portalına dönüşüyor.
+  - Sol sidebar'ın en altına, kullanıcının tek tıkla kendi Pikseliş / My World paneline geri dönebilmesini sağlayan zengin tasarımlı **"My World'e Dön"** butonu yerleştirildi.
+- **Birebir Frappe CRM Sidebar & Kanban Tasarımı**:
+  - **Pembe Logo & Profil Kırılımı**: Sol sidebar'da resmi logoya uygun pembe kutuda `F` simgesi ve altında kullanıcı detayları.
+  - **Sol Sidebar Linkleri**: Leads, Deals, Contacts, Organizations, Notes, Tasks, Call Logs (Omnichannel Inbox), Email Templates.
+  - **Alt Gruplar**: `Public views` (My Leads, My Deals, Timeless Only) ve `Pinned views` (Linkedin Deals, Facebook Deals) ve Collapse seçeneği.
+  - **Filtre Paneli**: `CRMPipelines.tsx` (Deals) tablosunun üzerine `ID`, `Organization`, `Territory`, `Status` filtre kutuları ve sağda Refresh, Filter, Kanban Settings butonları yerleştirildi.
+  - **Kanban Sütun Noktaları**: Görseldeki Qualification (turuncu), Proposal/Quotation (mavi), Negotiation (yeşil), Ready to Close (kırmızı) ve Closed (pembe) sütun başlığı noktaları eklendi.
+  - **Marka Avatarları & İkon Barları**: Kartlarda Spotify, Netflix, Tesla, Adobe logoları, fiyat etiketleri, e-posta, telefon ve alt ikon çubuğu (`@`, dosya, check, yorum) birebir kopyalandı.
+
+### Çözüldü
+- **Gamification & Kanban Tip Hataları**: Kullanıcının yaptığı son gamification ve bildirim geliştirmelerinden kalan `assignee_name` ve `useGamificationStore` eksik importları, ayrıca `selectedTask.priority === 'high'` uyuşmazlığı as any tip dönüşümleri yapılarak Next.js derleme sürecinde tamamen çözüldü.
+
 ## [2026-05-23] - Sürüm 4.2 - Frappe CRM POC Entegrasyonu & Müşteri İlişkileri Deneyim Modu
 
 ### Eklendi

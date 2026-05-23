@@ -1,93 +1,227 @@
 "use client"
 
 import * as React from "react"
-import { Users, Trello, MessageSquare, Mail, ChevronRight } from "lucide-react"
+import { 
+  Users, 
+  Briefcase, 
+  Contact, 
+  Building2, 
+  Notebook, 
+  CheckSquare, 
+  PhoneCall, 
+  Mail, 
+  ChevronDown, 
+  ChevronRight, 
+  LogOut, 
+  Bell, 
+  Search,
+  MessageSquare,
+  Sparkles,
+  ArrowLeftRight
+} from "lucide-react"
 import { CRMLeads } from "./CRMLeads"
 import { CRMPipelines } from "./CRMPipelines"
 import { CRMOmnichannel } from "./CRMOmnichannel"
 import { CRMEmails } from "./CRMEmails"
+import { useProjectStore } from "@/stores/projectStore"
+import { useAuthStore } from "@/store/authStore"
 
 interface CRMLayoutProps {
   projectId: number | null
 }
 
-export function CRMLayout({ projectId }: CRMLayoutProps) {
-  const [activeTab, setActiveTab] = React.useState<"leads" | "pipeline" | "inbox" | "emails">("leads")
+export type CRMTab = 
+  | "leads" 
+  | "deals" 
+  | "contacts" 
+  | "organizations" 
+  | "notes" 
+  | "tasks" 
+  | "call_logs" 
+  | "emails"
 
-  const menuItems = [
-    { id: "leads", label: "Müşteri Adayları", icon: Users, description: "Adaylar ve iletişim geçmişi" },
-    { id: "pipeline", label: "Satış Kanalları", icon: Trello, description: "Sürükle-bırak satış aşamaları" },
-    { id: "inbox", label: "Omnichannel Inbox", icon: MessageSquare, description: "WhatsApp & Facebook Canlı Simülatör" },
-    { id: "emails", label: "E-posta Kampanyaları", icon: Mail, description: "Toplu e-posta şablon motoru" },
+export function CRMLayout({ projectId }: CRMLayoutProps) {
+  const { setViewMode } = useProjectStore()
+  const { user } = useAuthStore()
+  const [activeTab, setActiveTab] = React.useState<CRMTab>("deals") // Görseldeki gibi varsayılan Deals (Kanban)
+  const [collapsed, setCollapsed] = React.useState(false)
+
+  const mainMenuItems = [
+    { id: "leads", label: "Leads", icon: Users },
+    { id: "deals", label: "Deals", icon: Briefcase },
+    { id: "contacts", label: "Contacts", icon: Contact },
+    { id: "organizations", label: "Organizations", icon: Building2 },
+    { id: "notes", label: "Notes", icon: Notebook },
+    { id: "tasks", label: "Tasks", icon: CheckSquare },
+    { id: "call_logs", label: "Call Logs", icon: PhoneCall },
+    { id: "emails", label: "Email Templates", icon: Mail },
   ] as const
 
+  const publicViews = [
+    { id: "my_leads", label: "My Leads", tab: "leads" as const },
+    { id: "my_deals", label: "My Deals", tab: "deals" as const },
+    { id: "timeless", label: "Timeless Only", tab: "deals" as const },
+  ]
+
+  const pinnedViews = [
+    { id: "linkedin", label: "Linkedin Deals", tab: "deals" as const },
+    { id: "facebook", label: "Facebook Deals", tab: "deals" as const },
+  ]
+
+  const handleTabChange = (tabId: CRMTab) => {
+    setActiveTab(tabId)
+  }
+
   return (
-    <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden bg-slate-50/50 dark:bg-slate-900/50">
-      {/* Sol Kenar Çubuğu (CRM Alt Menüsü) */}
-      <aside className="w-full lg:w-80 border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-white/5 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl flex flex-col shrink-0">
-        <div className="p-4 md:p-6 border-b border-slate-200 dark:border-white/5">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-yellow to-amber-500 flex items-center justify-center text-white font-bold shadow-md">
-              🎯
+    <div className="flex-1 flex h-screen w-screen overflow-hidden bg-[#f4f5f6] text-slate-800 font-sans">
+      
+      {/* 🏛️ SOL SIDEBAR (Frappe CRM Birebir Arayüzü) */}
+      <aside 
+        className={`h-full border-r border-[#e9ecef] bg-[#fafbfc] flex flex-col justify-between shrink-0 transition-all duration-300 ${
+          collapsed ? "w-16" : "w-64"
+        }`}
+      >
+        {/* Üst Logo ve Profil Kartı */}
+        <div className="flex flex-col shrink-0">
+          <div className="p-4 flex items-center justify-between border-b border-[#f1f3f5]">
+            <div className="flex items-center gap-3 min-w-0">
+              {/* Pembe Kare Logo */}
+              <div className="w-8 h-8 rounded-lg bg-[#db2777] flex items-center justify-center text-white font-extrabold shrink-0 shadow-sm shadow-pink-500/10">
+                F
+              </div>
+              {!collapsed && (
+                <div className="min-w-0">
+                  <h2 className="text-xs font-black text-slate-900 leading-none">CRM</h2>
+                  <p className="text-[10px] text-slate-500 font-bold truncate mt-1">
+                    {user?.name || user?.username || "Shariq Ansari"}
+                  </p>
+                </div>
+              )}
             </div>
-            <div>
-              <h2 className="text-sm font-black text-brand-dark dark:text-white uppercase tracking-wider">Frappe CRM</h2>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">POC Deneyim Modu</p>
-            </div>
+            
+            {/* Bildirimler Butonu */}
+            {!collapsed && (
+              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 text-[10px] font-black text-slate-600">
+                <Bell className="w-3 h-3 text-slate-500" />
+                <span>4</span>
+              </div>
+            )}
           </div>
         </div>
 
-        <nav className="flex-1 p-3 md:p-4 flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-x-visible lg:overflow-y-auto print:hidden">
-          {menuItems.map((item) => {
-            const isActive = activeTab === item.id
-            const Icon = item.icon
+        {/* Orta Linkler Menüsü */}
+        <div className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-5">
+          {/* Ana Menü */}
+          <div className="flex flex-col gap-0.5">
+            {mainMenuItems.map((item) => {
+              const isActive = activeTab === item.id
+              const Icon = item.icon
 
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`flex-1 lg:flex-none flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all duration-200 group shrink-0 ${
-                  isActive
-                    ? "bg-indigo-600 dark:bg-indigo-600 text-white shadow-lg shadow-indigo-600/15"
-                    : "text-slate-600 dark:text-slate-400 hover:text-brand-dark dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
-                }`}
-              >
-                <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleTabChange(item.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all text-xs font-semibold ${
                     isActive
-                      ? "bg-white/20 text-white"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-white/10 group-hover:text-brand-dark dark:group-hover:text-white"
+                      ? "bg-white text-slate-900 shadow-sm border border-slate-200/50"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-[#f1f3f5]"
                   }`}
+                  title={item.label}
                 >
-                  <Icon className="w-4.5 h-4.5" />
-                </div>
-                <div className="hidden lg:block flex-1 min-w-0">
-                  <p className="text-xs font-bold truncate">{item.label}</p>
-                  <p
-                    className={`text-[9px] truncate mt-0.5 ${
-                      isActive ? "text-white/70" : "text-slate-400 dark:text-gray-500"
-                    }`}
+                  <Icon className={`w-4 h-4 ${isActive ? "text-indigo-600" : "text-slate-400"}`} />
+                  {!collapsed && <span className="truncate">{item.label}</span>}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Public Views */}
+          {!collapsed && (
+            <div className="flex flex-col gap-1">
+              <span className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Public views</span>
+              <div className="flex flex-col gap-0.5 mt-1.5">
+                {publicViews.map((view) => (
+                  <button
+                    key={view.id}
+                    onClick={() => handleTabChange(view.tab)}
+                    className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-xs font-semibold text-slate-500 hover:text-slate-900 hover:bg-[#f1f3f5]"
                   >
-                    {item.description}
-                  </p>
-                </div>
-                <ChevronRight
-                  className={`hidden lg:block w-4 h-4 opacity-0 group-hover:opacity-100 transition-all ${
-                    isActive ? "text-white/40 group-hover:translate-x-0.5" : "text-slate-400 group-hover:translate-x-0.5"
-                  }`}
-                />
-              </button>
-            )
-          })}
-        </nav>
+                    <span>{view.label}</span>
+                    <ChevronRight className="w-3 h-3 opacity-0 hover:opacity-100" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Pinned Views */}
+          {!collapsed && (
+            <div className="flex flex-col gap-1">
+              <span className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pinned views</span>
+              <div className="flex flex-col gap-0.5 mt-1.5">
+                {pinnedViews.map((view) => (
+                  <button
+                    key={view.id}
+                    onClick={() => handleTabChange(view.tab)}
+                    className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-xs font-semibold text-slate-500 hover:text-slate-900 hover:bg-[#f1f3f5]"
+                  >
+                    <span>{view.label}</span>
+                    <ChevronRight className="w-3 h-3 opacity-0 hover:opacity-100" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 🚪 Alt Butonlar (Collapse & My World'e Işınlanma Kapısı) */}
+        <div className="p-3 border-t border-[#e9ecef] bg-[#fafbfc] shrink-0 flex flex-col gap-2">
+          {/* My World'e Dönüş Butonu */}
+          <button
+            onClick={() => setViewMode("dashboard")}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-gradient-to-r from-slate-900 to-indigo-950 text-white font-extrabold text-[11px] shadow-md hover:shadow-lg transition-all"
+            title="My World Paneline Geri Dön"
+          >
+            <ArrowLeftRight className="w-3.5 h-3.5" />
+            {!collapsed && <span>My World'e Dön</span>}
+          </button>
+
+          {/* Collapse Menü Butonu */}
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-xs font-bold text-slate-400 hover:text-slate-900 hover:bg-[#f1f3f5]"
+          >
+            <span className="transform rotate-180">➔</span>
+            {!collapsed && <span>Collapse</span>}
+          </button>
+        </div>
       </aside>
 
-      {/* Sağ Ana İçerik Alanı */}
-      <main className="flex-1 overflow-hidden flex flex-col min-w-0">
+      {/* 🖥️ SAĞ İÇERİK BÖLÜMÜ (Frappe CRM Birebir Görünüm) */}
+      <main className="flex-1 overflow-hidden flex flex-col min-w-0 bg-[#f8f9fa]">
         {activeTab === "leads" && <CRMLeads projectId={projectId} />}
-        {activeTab === "pipeline" && <CRMPipelines projectId={projectId} />}
-        {activeTab === "inbox" && <CRMOmnichannel projectId={projectId} />}
+        {activeTab === "deals" && <CRMPipelines projectId={projectId} />}
+        {activeTab === "contacts" && <CRMLeads projectId={projectId} />}
+        {activeTab === "organizations" && <CRMLeads projectId={projectId} />}
+        
+        {/* Call Logs yerine Omnichannel Simülatörünü koyuyoruz */}
+        {activeTab === "call_logs" && <CRMOmnichannel projectId={projectId} />}
+        
         {activeTab === "emails" && <CRMEmails projectId={projectId} />}
+        
+        {/* Basit Notlar sekmesi */}
+        {activeTab === "notes" && (
+          <div className="flex-1 flex items-center justify-center text-slate-400 text-xs font-semibold p-8">
+            Notes tab under construction. Feel free to use leads or deals.
+          </div>
+        )}
+        
+        {/* Basit Görevler sekmesi */}
+        {activeTab === "tasks" && (
+          <div className="flex-1 flex items-center justify-center text-slate-400 text-xs font-semibold p-8">
+            Tasks list is sync with My World. Switch to Deals to manage pipelines.
+          </div>
+        )}
       </main>
     </div>
   )

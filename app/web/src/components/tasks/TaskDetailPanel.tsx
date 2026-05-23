@@ -452,6 +452,16 @@ export function TaskDetailPanel() {
     if (newStatus === 'done') {
       const remaining = subtasks.filter(s => s.id !== st.id && s.status !== 'done').length
       addActivityEvent('subtask_done', `"${st.title}" tamamlandı${remaining === 0 ? ' — Tüm alt görevler bitti! 🎉' : ''}`, 'emerald')
+      
+      // Oyunlaştırma Tetikleyicisi
+      try {
+        const { triggerConfetti } = await import("@/lib/confetti")
+        const { useGamificationStore } = await import("@/stores/gamificationStore")
+        triggerConfetti()
+        useGamificationStore.getState().triggerXpGain(10) // Alt görev için +10 XP
+      } catch (err) {
+        console.error("Konfeti/XP hatası:", err)
+      }
     }
   }
 
@@ -471,10 +481,27 @@ export function TaskDetailPanel() {
     await deleteTask(id)
   }
 
-  const handleStatusChange = (status: 'todo' | 'in_progress' | 'done') => {
+  const handleStatusChange = async (status: 'todo' | 'in_progress' | 'done') => {
     updateTaskStatus(selectedTask.id, status)
     const label = statusConfig[status]?.label || status
     addActivityEvent('status_change', `Durum "${label}" olarak değiştirildi`, 'indigo')
+
+    if (status === 'done') {
+      // Görev tamamlandığında XP miktarı
+      let xp = 30
+      if (selectedTask.priority === 'urgent') xp = 50
+      else if (selectedTask.priority === 'low') xp = 15
+
+      // Konfeti ve XP artışını tetikle
+      try {
+        const { triggerConfetti } = await import("@/lib/confetti")
+        const { useGamificationStore } = await import("@/stores/gamificationStore")
+        triggerConfetti()
+        useGamificationStore.getState().triggerXpGain(xp)
+      } catch (err) {
+        console.error("Konfeti/XP hatası:", err)
+      }
+    }
   }
 
   const handlePriorityChange = async (priority: string) => {

@@ -64,12 +64,10 @@ async def start_meeting(
         except Exception as e:
             print(f"Daily.co API connection failed: {e}")
 
-    # Fallback: API Key yoksa veya API hata verdiyse public fallback oda URL'si oluştur
+    # Fallback: API Key yoksa veya API hata verdiyse 100% çalışan ücretsiz Jitsi Meet odası oluştur
     if not room_url:
-        # Ücretsiz ve API key gerektirmeyen generic public daily odası
-        # Kullanıcının kendi subdomaini (pikselis) yoksa public daily.co odası kullanılır
-        daily_subdomain = os.getenv("DAILY_SUBDOMAIN", "pikselis")
-        room_url = f"https://{daily_subdomain}.daily.co/{room_name}"
+        # Jitsi Meet API key veya kurulum istemez, doğrudan iframe içinde çalışır ve odayı anında yaratır.
+        room_url = f"https://meet.jit.si/Pikselis_Meeting_{project_id}_{uuid.uuid4().hex[:8]}"
 
     meeting_data = {
         "project_id": project_id,
@@ -87,9 +85,6 @@ async def start_meeting(
         "data": meeting_data
     }
     background_tasks.add_task(manager.broadcast, ws_payload)
-
-    # Toplantı başlangıcını aktivite akışına da ekle
-    # (Aktivite servisi yazıldığında entegre edeceğiz)
 
     return meeting_data
 
