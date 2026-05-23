@@ -9,11 +9,19 @@ import { Activity, Plus, CheckCircle2, MessageSquare, ClipboardList, Trash2, Clo
 interface ActivityLog {
   id: number;
   project_id: number;
-  user_id: number;
-  username: string;
-  activity_type: string;
-  description: string;
+  user_id?: number;
+  username?: string;
+  activity_type?: string;
+  description?: string;
+  action?: string;
+  details?: any;
   created_at: string;
+  user?: {
+    id: number;
+    username: string;
+    name: string;
+    avatar_url?: string;
+  };
 }
 
 export function ActivityFeedWidget() {
@@ -62,33 +70,55 @@ export function ActivityFeedWidget() {
 
   // Aktivite tipine göre ikon ve renk belirle
   const getActivityMeta = (type: string) => {
-    switch (type) {
+    const normType = type?.toLowerCase() || ""
+    if (normType.includes("created") || normType.includes("ekle")) {
+      return {
+        icon: <Plus className="w-4 h-4 text-emerald-500" />,
+        bgColor: "bg-emerald-500/10 border-emerald-500/20"
+      }
+    } else if (normType.includes("status") || normType.includes("updated") || normType.includes("güncelle")) {
+      return {
+        icon: <CheckCircle2 className="w-4 h-4 text-brand-yellow" />,
+        bgColor: "bg-brand-yellow/10 border-brand-yellow/20"
+      }
+    } else if (normType.includes("comment") || normType.includes("yorum")) {
+      return {
+        icon: <MessageSquare className="w-4 h-4 text-blue-500" />,
+        bgColor: "bg-blue-500/10 border-blue-500/20"
+      }
+    } else if (normType.includes("deleted") || normType.includes("sil")) {
+      return {
+        icon: <Trash2 className="w-4 h-4 text-red-500" />,
+        bgColor: "bg-red-500/10 border-red-500/20"
+      }
+    } else {
+      return {
+        icon: <ClipboardList className="w-4 h-4 text-zinc-500" />,
+        bgColor: "bg-zinc-500/10 border-zinc-500/20"
+      }
+    }
+  }
+
+  // Dinamik açıklama helper'ı
+  const getActivityDescription = (act: ActivityLog) => {
+    if (act.description) return act.description
+
+    const action = act.action || act.activity_type || ""
+    const details = act.details || {}
+    const detailStr = typeof details === "string" ? details : ""
+
+    switch (action) {
       case "task_created":
-        return {
-          icon: <Plus className="w-4 h-4 text-emerald-500" />,
-          bgColor: "bg-emerald-500/10 border-emerald-500/20"
-        }
+        return `"${details.task_title || "Yeni görev"}" oluşturuldu.`
       case "task_status_updated":
       case "task_updated":
-        return {
-          icon: <CheckCircle2 className="w-4 h-4 text-brand-yellow" />,
-          bgColor: "bg-brand-yellow/10 border-brand-yellow/20"
-        }
+        return `"${details.task_title || "Görev"}" güncellendi. Yeni durum: ${details.new_status || "Güncel"}`
       case "comment_created":
-        return {
-          icon: <MessageSquare className="w-4 h-4 text-blue-500" />,
-          bgColor: "bg-blue-500/10 border-blue-500/20"
-        }
+        return `"${details.task_title || "Görev"}" altına yeni yorum yazıldı.`
       case "task_deleted":
-        return {
-          icon: <Trash2 className="w-4 h-4 text-red-500" />,
-          bgColor: "bg-red-500/10 border-red-500/20"
-        }
+        return `"${details.task_title || "Görev"}" silindi.`
       default:
-        return {
-          icon: <ClipboardList className="w-4 h-4 text-zinc-500" />,
-          bgColor: "bg-zinc-500/10 border-zinc-500/20"
-        }
+        return detailStr || "Bir işlem gerçekleştirdi."
     }
   }
 
@@ -135,7 +165,11 @@ export function ActivityFeedWidget() {
           </div>
         ) : (
           activities.map((act) => {
-            const meta = getActivityMeta(act.activity_type)
+            const type = act.activity_type || act.action || "default"
+            const username = act.username || act.user?.name || act.user?.username || "Sistem"
+            const meta = getActivityMeta(type)
+            const description = getActivityDescription(act)
+            
             return (
               <div 
                 key={act.id} 
@@ -150,7 +184,7 @@ export function ActivityFeedWidget() {
                 <div className="flex-1 min-w-0 space-y-0.5">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-semibold text-foreground truncate">
-                      {act.username}
+                      {username}
                     </span>
                     <span className="text-[10px] text-zinc-500 flex items-center gap-0.5 whitespace-nowrap">
                       <Clock className="w-2.5 h-2.5" />
@@ -158,7 +192,7 @@ export function ActivityFeedWidget() {
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                    {act.description}
+                    {description}
                   </p>
                 </div>
               </div>

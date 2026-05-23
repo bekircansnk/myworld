@@ -6,7 +6,7 @@ import { useProjectStore } from "@/stores/projectStore"
 import { useAuthStore } from "@/store/authStore"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Minimize2, Maximize2, PhoneOff, Clock, Power } from "lucide-react"
+import { Minimize2, Maximize2, PhoneOff, Clock, X } from "lucide-react"
 
 export function InAppCallWindow() {
   const { activeMeeting, isCallWindowOpen, leaveMeeting, stopMeeting } = useMeetingStore()
@@ -39,24 +39,21 @@ export function InAppCallWindow() {
 
   if (!isCallWindowOpen || !activeMeeting) return null
 
-  const isHost = activeMeeting.started_by === user?.username
-  
-  const handleStopMeeting = async () => {
+  const handleCloseCall = async () => {
     if (selectedProjectId) {
-      // confirm() yerine in-app onay mekanizması
-      const confirmed = window.confirm("Bu görüntülü görüşmeyi tüm katılımcılar için sonlandırmak istediğinize emin misiniz?")
-      if (confirmed) {
-        await stopMeeting(selectedProjectId)
-      }
+      // Görüşmeyi tamamen sonlandır ve kapat
+      await stopMeeting(selectedProjectId)
+    } else {
+      leaveMeeting()
     }
   }
 
   return (
     <Card 
       className={`fixed z-50 shadow-2xl transition-all duration-300 border border-white/10 dark:border-white/5 
-        bg-background/80 dark:bg-zinc-950/80 backdrop-blur-xl rounded-xl overflow-hidden
+        bg-background/95 dark:bg-zinc-950/95 backdrop-blur-xl rounded-xl overflow-hidden
         ${isMinimized 
-          ? "bottom-20 right-4 w-[280px] h-[60px] md:bottom-6 md:right-6" 
+          ? "bottom-6 left-6 w-[280px] h-[60px] md:bottom-6 md:left-6 shadow-indigo-500/10 border-indigo-500/20" 
           : "bottom-0 right-0 w-full h-[80vh] md:bottom-6 md:right-6 md:w-[480px] md:h-[380px] lg:w-[600px] lg:h-[450px] max-h-[90vh] rounded-b-none md:rounded-b-xl"
         }`}
     >
@@ -70,13 +67,13 @@ export function InAppCallWindow() {
           <CardTitle className="text-xs font-semibold truncate max-w-[120px] md:max-w-[200px]">
             Canlı Toplantı
           </CardTitle>
-          <div className="flex items-center gap-1 bg-white/10 dark:bg-white/5 px-2 py-0.5 rounded text-[10px] font-mono text-zinc-600 dark:text-zinc-300">
+          <div className="flex items-center gap-1 bg-white/20 dark:bg-white/5 px-2 py-0.5 rounded text-[10px] font-mono text-zinc-600 dark:text-zinc-300">
             <Clock className="w-3 h-3 text-red-400" />
             {duration}
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           {/* Küçültme / Büyütme Butonu */}
           <Button
             variant="ghost"
@@ -88,29 +85,16 @@ export function InAppCallWindow() {
             {isMinimized ? <Maximize2 className="w-3.5 h-3.5" /> : <Minimize2 className="w-3.5 h-3.5" />}
           </Button>
 
-          {/* Aramadan Ayrıl (Sadece kendi çıkışı) */}
+          {/* Kapat / Görüşmeyi Herkes İçin Sonlandır (Doğrudan ve Hızlı Kapatma) */}
           <Button
             variant="ghost"
             size="icon"
-            className="w-7 h-7 text-amber-500 hover:text-amber-400 hover:bg-amber-500/10"
-            onClick={leaveMeeting}
-            title="Aramadan Ayrıl"
+            className="w-7 h-7 text-red-500 hover:text-red-400 hover:bg-red-500/10"
+            onClick={handleCloseCall}
+            title="Görüşmeyi Sonlandır ve Kapat"
           >
-            <PhoneOff className="w-3.5 h-3.5" />
+            <X className="w-4 h-4" />
           </Button>
-
-          {/* Toplantıyı Sonlandır (Tüm oda için kapatma, host ise aktif) */}
-          {isHost && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="w-7 h-7 text-red-500 hover:text-red-400 hover:bg-red-500/10"
-              onClick={handleStopMeeting}
-              title="Görüşmeyi Herkes İçin Sonlandır"
-            >
-              <Power className="w-3.5 h-3.5" />
-            </Button>
-          )}
         </div>
       </CardHeader>
 
@@ -130,7 +114,7 @@ export function InAppCallWindow() {
       {isMinimized && (
         <div 
           onClick={() => setIsMinimized(false)}
-          className="absolute inset-0 bg-transparent cursor-pointer flex items-center justify-center pt-8 text-[10px] font-medium text-muted-foreground hover:text-foreground"
+          className="absolute inset-0 bg-transparent cursor-pointer flex items-center justify-center pt-8 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500"
         >
           Görüşmeye dönmek için tıklayın
         </div>

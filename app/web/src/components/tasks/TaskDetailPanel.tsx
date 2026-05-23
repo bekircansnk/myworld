@@ -160,6 +160,31 @@ export function TaskDetailPanel() {
     return selectedTask.description.match(imgRegex) || []
   }, [selectedTask?.description])
 
+  // Yorumlar ve Geçmişin birleşik listesi (Unified Chronological Flow)
+  const unifiedList = React.useMemo(() => {
+    const list: { id: string; type: 'comment' | 'history'; timestamp: Date; data: any }[] = []
+    
+    comments.forEach(c => {
+      list.push({
+        id: `comment-${c.id}`,
+        type: 'comment',
+        timestamp: new Date(c.created_at || 0),
+        data: c
+      })
+    })
+
+    activityLog.forEach(log => {
+      list.push({
+        id: `log-${log.id}`,
+        type: 'history',
+        timestamp: new Date(log.timestamp),
+        data: log
+      })
+    })
+
+    return list.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+  }, [comments, activityLog])
+
   // LinkBreeze — URL önizleme cache
   const [linkPreviews, setLinkPreviews] = React.useState<Record<string, {title: string, domain: string, favicon: string}>>({})
 
@@ -744,33 +769,6 @@ export function TaskDetailPanel() {
         )}
       </div>
 
-      {/* Görev Tamamla */}
-      <div className="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-white/5 mt-1.5 pt-2">
-        <span className="text-[11px] font-bold text-slate-500 dark:text-white/40 tracking-wider flex items-center gap-1.5">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Görev Tamamla
-        </span>
-        <button 
-          onClick={() => handleStatusChange(selectedTask.status === 'done' ? 'todo' : 'done')}
-          className={`text-[10px] font-bold px-2.5 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 shadow-sm active:scale-95 ${
-            selectedTask.status === 'done' 
-              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-black' 
-              : 'bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300'
-          }`}
-        >
-          {selectedTask.status === 'done' ? (
-            <>
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 fill-emerald-500/10" />
-              Tamamlandı
-            </>
-          ) : (
-            <>
-              <Circle className="w-3.5 h-3.5 text-slate-400" />
-              Tamamla
-            </>
-          )}
-        </button>
-      </div>
-
       {/* Oluşturma Tarihi */}
       {selectedTask.created_at && (
         <div className="flex items-center justify-between">
@@ -828,6 +826,23 @@ export function TaskDetailPanel() {
           
           {/* Floating aksiyon butonları — sağ üst */}
           <div className="absolute top-4 right-4 md:top-6 md:right-6 z-20 flex items-center gap-1.5" ref={shareMenuRef}>
+            {/* Görev Hızlı Tamamlama Butonu */}
+            <button
+              onClick={() => handleStatusChange(selectedTask.status === 'done' ? 'todo' : 'done')}
+              className={`h-8 px-3 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 active:scale-95 border border-slate-200/10
+                ${selectedTask.status === 'done' 
+                  ? 'bg-emerald-500 hover:bg-emerald-600 text-white' 
+                  : 'bg-white/80 hover:bg-slate-100 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white/80'
+                }`}
+            >
+              {selectedTask.status === 'done' ? (
+                <CheckCircle2 className="w-3.5 h-3.5 text-white fill-white/10" />
+              ) : (
+                <Circle className="w-3.5 h-3.5 text-slate-400" />
+              )}
+              {selectedTask.status === 'done' ? 'Tamamlandı' : 'Tamamla'}
+            </button>
+
             <button onClick={() => setIsShareMenuOpen(!isShareMenuOpen)}
               className="p-2 rounded-xl bg-white/80 hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 dark:bg-white/5 dark:hover:bg-indigo-500/20 dark:text-white/40 dark:hover:text-indigo-400 transition-all shadow-sm backdrop-blur-sm"
               title="Paylaş">
@@ -1213,8 +1228,10 @@ export function TaskDetailPanel() {
                       <h4 className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">Geçmiş Analizler</h4>
                       {selectedTask.ai_analysis_history.slice(0, 3).map((hist: any, i: number) => (
                         <div key={i} className="rounded-lg bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 p-2">
-                          <p className="text-[9px] text-slate-400 dark:text-white/40 mb-0.5 font-semibold">{format(new Date(hist.created_at), "dd MMM yyyy HH:mm", { locale: tr })}</p>
-                          <p className="text-[11px] font-medium text-slate-600 dark:text-white/60 line-clamp-1">{hist.text}</p>
+                          <p className="text-[9px] text-slate-400 dark:text-white/40 font-mono mb-0.5">
+                            {format(new Date(hist.created_at), "dd MMM yyyy, HH:mm", { locale: tr })}
+                          </p>
+                          <p className="text-[11px] text-slate-600 dark:text-white/80 line-clamp-2">{hist.ai_analysis}</p>
                         </div>
                       ))}
                     </div>
@@ -1222,177 +1239,113 @@ export function TaskDetailPanel() {
                 </div>
               </div>
 
-              {/* ALT: YORUMLAR & İŞLEM GEÇMİŞİ — ACCORDION / TABS */}
-              <div 
-                className={`border-b border-slate-100 dark:border-white/5 ${
-                  activeMobileTab === 'comments' || activeMobileTab === 'history' ? 'block' : 'hidden md:block'
-                }`}
-              >
-                <div className="p-3 md:p-4">
-                  {/* Masaüstü Sekme Butonları (Tabs) */}
-                  <div className="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-black/20 p-1 rounded-xl mb-4 shrink-0">
-                    <button
-                      onClick={() => setActiveRightTab('comments')}
-                      className={`flex-1 text-center py-1.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                        activeRightTab === 'comments'
-                          ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm'
-                          : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-white/70'
-                      }`}
-                    >
-                      <MessageCircle className="w-3.5 h-3.5" />
-                      Yorumlar
-                      {comments.length > 0 && (
-                        <span className="text-[10px] bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full font-black">
-                          {comments.length}
-                        </span>
-                      )}
-                    </button>
-                    <button
-                      onClick={() => setActiveRightTab('history')}
-                      className={`flex-1 text-center py-1.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                        activeRightTab === 'history'
-                          ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm'
-                          : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-white/70'
-                      }`}
-                    >
-                      <History className="w-3.5 h-3.5" />
-                      Geçmiş
-                    </button>
-                  </div>
+              {/* BÜTÜNLEŞİK YORUMLAR & HAREKET AKIŞI (Unified Timeline) */}
+              <div className="border-b border-slate-100 dark:border-white/5 select-none block flex-1 flex flex-col min-h-0">
+                <div className="p-4 flex flex-col flex-1 min-h-0">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-slate-700 dark:text-white/80 flex items-center gap-2 mb-3 shrink-0">
+                    <MessageCircle className="w-4 h-4 text-indigo-500" />
+                    Etkinlik ve Yorumlar
+                    {unifiedList.length > 0 && (
+                      <span className="text-[10px] bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-white/60 px-2 py-0.5 rounded-full font-black">
+                        {unifiedList.length}
+                      </span>
+                    )}
+                  </h3>
 
-                  {/* Mobil Header (Masaüstünde Gizli) */}
-                  <div className="md:hidden flex items-center justify-between mb-2">
-                    <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-700 dark:text-white/80 flex items-center gap-1.5">
-                      {activeMobileTab === 'comments' ? (
-                        <>
-                          <MessageCircle className="w-4 h-4 text-indigo-500" />
-                          Görev Yorumları ({comments.length})
-                        </>
-                      ) : (
-                        <>
-                          <History className="w-4 h-4 text-emerald-500" />
-                          İşlem Geçmişi
-                        </>
-                      )}
-                    </h3>
-                  </div>
+                  {/* Birleşik Kronolojik Akış (Unified Timeline Flow) */}
+                  <div className="flex-1 overflow-y-auto space-y-3 pr-1 py-1 min-h-[150px] max-h-[350px] scrollbar-thin">
+                    {unifiedList.map((item) => {
+                      if (item.type === 'comment') {
+                        const c = item.data
+                        return (
+                          <div key={item.id} className="group/item flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50/70 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:border-slate-200 dark:hover:border-white/10 transition-all shadow-sm">
+                            <div className="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-bold flex items-center justify-center overflow-hidden flex-shrink-0">
+                              {c.user?.avatar_url ? (
+                                <img src={c.user.avatar_url} alt={c.user.name} className="w-full h-full object-cover" />
+                              ) : (
+                                c.user?.name?.slice(0, 2).toUpperCase() || "YK"
+                              )}
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-1.5 mb-1">
+                                <span className="text-xs font-bold text-slate-800 dark:text-white/95 truncate">
+                                  {c.user?.name}
+                                </span>
+                                <span className="text-[9px] font-medium text-slate-400 dark:text-white/40 shrink-0">
+                                  {c.created_at ? formatDistanceToNow(new Date(c.created_at), { addSuffix: true, locale: tr }) : ""}
+                                </span>
+                              </div>
+                              <p className="text-xs font-medium text-slate-600 dark:text-white/80 whitespace-pre-wrap break-words leading-relaxed">
+                                {c.content}
+                              </p>
+                            </div>
 
-                  {/* ============ SEKMELİ İÇERİK ALANI ============ */}
-                  
-                  {/* SEKME 1: YORUMLAR (Hem Masaüstü hem Mobil Uyumlu) */}
-                  <div className={`${
-                    (activeRightTab === 'comments' && !activeMobileTab) || activeMobileTab === 'comments'
-                      ? 'block'
-                      : 'hidden'
-                  } flex flex-col min-h-0`}>
-                    
-                    {/* Yorum Akışı (Scrollable) */}
-                    <div className="max-h-[25vh] md:max-h-[300px] overflow-y-auto space-y-3 pr-1 py-1 min-h-[80px]">
-                      {comments.map((c) => (
-                        <div key={c.id} className="group/item flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50/70 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:border-slate-200 dark:hover:border-white/10 transition-all shadow-sm">
-                          {/* Yazar Avatarı */}
-                          <div className="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-bold flex items-center justify-center overflow-hidden flex-shrink-0">
-                            {c.user?.avatar_url ? (
-                              <img src={c.user.avatar_url} alt={c.user.name} className="w-full h-full object-cover" />
-                            ) : (
-                              c.user?.name?.slice(0, 2).toUpperCase() || "YK"
+                            {currentUser && c.user_id === currentUser.id && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setCommentToDelete(c.id); }}
+                                className="opacity-0 group-hover/item:opacity-100 transition-opacity text-slate-400 hover:text-red-500 p-0.5 rounded-lg shrink-0 self-start"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
                             )}
                           </div>
-                          
-                          {/* Yorum Detayı */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-1.5 mb-1">
-                              <span className="text-xs font-bold text-slate-800 dark:text-white/95 truncate">
-                                {c.user?.name}
-                              </span>
-                              <span className="text-[9px] font-medium text-slate-400 dark:text-white/40 shrink-0">
-                                {c.created_at ? formatDistanceToNow(new Date(c.created_at), { addSuffix: true, locale: tr }) : ""}
-                              </span>
-                            </div>
-                            <p className="text-xs font-medium text-slate-600 dark:text-white/80 whitespace-pre-wrap break-words leading-relaxed leading-[1.6]">
-                              {c.content}
-                            </p>
-                          </div>
-
-                          {/* Yorum Silme Butonu (Sadece yazan kişiye) */}
-                          {currentUser && c.user_id === currentUser.id && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); setCommentToDelete(c.id); }}
-                              className="opacity-0 group-hover/item:opacity-100 transition-opacity text-slate-400 hover:text-red-500 p-0.5 rounded-lg shrink-0 self-start"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-
-                      {comments.length === 0 && (
-                        <p className="text-xs font-medium text-slate-400 dark:text-white/30 py-6 text-center italic">
-                          Henüz bir konuşma yok. İlk yorumu siz yazarak ekibi bilgilendirin! 💬
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Yorum Yazma Kutusu */}
-                    <div className="mt-3 flex items-center gap-2 border-t border-slate-100 dark:border-white/5 pt-3" onClick={e => e.stopPropagation()}>
-                      <Input
-                        value={commentDraft}
-                        onChange={(e) => setCommentDraft(e.target.value)}
-                        placeholder="Bir şeyler yazın..."
-                        className="text-xs font-semibold h-9 flex-1 bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/10 rounded-xl"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            if (commentDraft.trim()) {
-                              addComment(selectedTask.id, commentDraft.trim());
-                              setCommentDraft("");
-                            }
-                          }
-                        }}
-                      />
-                      <Button
-                        size="sm"
-                        disabled={!commentDraft.trim()}
-                        className="h-9 w-9 p-0 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white shrink-0 active:scale-95 transition-transform"
-                        onClick={() => {
-                          if (commentDraft.trim()) {
-                            addComment(selectedTask.id, commentDraft.trim());
-                            setCommentDraft("");
-                          }
-                        }}
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* SEKME 2: GEÇMİŞ (Masaüstü ve Mobil Log Akışı) */}
-                  <div className={`${
-                    (activeRightTab === 'history' && !activeMobileTab) || activeMobileTab === 'history'
-                      ? 'block'
-                      : 'hidden'
-                  }`}>
-                    <div className="relative">
-                      <div className="absolute left-[13px] top-2 bottom-2 w-px bg-slate-200 dark:bg-white/10" />
-                      <div className="space-y-3 pt-1 max-h-[35vh] md:max-h-[300px] overflow-y-auto">
-                        {activityLog.map(event => (
-                          <div key={event.id} className="flex items-start gap-3 relative">
+                        )
+                      } else {
+                        // Sistem Geçmiş Logu (Şık bir satır olarak)
+                        const event = item.data
+                        return (
+                          <div key={item.id} className="flex items-start gap-2.5 py-1.5 px-3 rounded-lg bg-zinc-50 dark:bg-zinc-950/20 border border-dashed border-slate-200/50 dark:border-white/5">
                             {getActivityIcon(event)}
                             <div className="flex-1 min-w-0 pt-0.5">
-                              <p className="text-[11px] font-medium text-slate-700 dark:text-white/80 leading-snug">{event.text}</p>
-                              <p className="text-[10px] text-slate-400 dark:text-white/40 mt-0.5 font-semibold">
+                              <p className="text-[11px] font-medium text-slate-500 dark:text-white/60 leading-snug">{event.text}</p>
+                              <p className="text-[9px] text-slate-400 dark:text-white/40 mt-0.5">
                                 {format(event.timestamp, "dd MMM yyyy, HH:mm", { locale: tr })}
                               </p>
                             </div>
                           </div>
-                        ))}
-                        {activityLog.length === 0 && (
-                          <p className="text-[11px] text-slate-400 dark:text-white/30 py-3 text-center">Henüz işlem yok</p>
-                        )}
-                      </div>
-                    </div>
+                        )
+                      }
+                    })}
+
+                    {unifiedList.length === 0 && (
+                      <p className="text-xs font-medium text-slate-400 dark:text-white/30 py-6 text-center italic">
+                        Henüz bir hareket veya yorum yok. 💬
+                      </p>
+                    )}
                   </div>
 
+                  {/* Yorum Yazma Kutusu */}
+                  <div className="mt-3 flex items-center gap-2 border-t border-slate-100 dark:border-white/5 pt-3 shrink-0" onClick={e => e.stopPropagation()}>
+                    <Input
+                      value={commentDraft}
+                      onChange={(e) => setCommentDraft(e.target.value)}
+                      placeholder="Yorum yazın..."
+                      className="text-xs font-semibold h-9 flex-1 bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/10 rounded-xl"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          if (commentDraft.trim()) {
+                            addComment(selectedTask.id, commentDraft.trim());
+                            setCommentDraft("");
+                          }
+                        }
+                      }}
+                    />
+                    <Button
+                      size="sm"
+                      disabled={!commentDraft.trim()}
+                      className="h-9 w-9 p-0 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white shrink-0 active:scale-95 transition-transform"
+                      onClick={() => {
+                        if (commentDraft.trim()) {
+                          addComment(selectedTask.id, commentDraft.trim());
+                          setCommentDraft("");
+                        }
+                      }}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
 

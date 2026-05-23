@@ -408,8 +408,8 @@ export function DashboardWidgets() {
             </div>
           </div>
 
-          {/* Akıllı Asistan — mobilde gizli, masaüstünde flex-grow */}
-          <div className="hidden lg:flex floating-card rounded-3xl p-6 flex-grow flex-col gap-3 overflow-hidden min-h-0">
+          {/* Akıllı Asistan — mobilde gizli, masaüstünde sabit yükseklikte */}
+          <div className="hidden lg:flex floating-card rounded-3xl p-6 h-[370px] shrink-0 flex-col gap-3 overflow-hidden min-h-0">
             <div className="flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-brand-yellow flex items-center justify-center shadow-sm">
@@ -445,7 +445,7 @@ export function DashboardWidgets() {
                     : 'bg-brand-dark dark:bg-indigo-600 text-white ml-6 rounded-br-md'
                     }`}>
                     {msg.role === 'system' ? (
-                      <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 block whitespace-pre-wrap">{msg.content}</span>
+                       <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 block whitespace-pre-wrap">{msg.content}</span>
                     ) : (
                       <div className="whitespace-pre-wrap break-words">{msg.content}</div>
                     )}
@@ -486,6 +486,11 @@ export function DashboardWidgets() {
                 </button>
               </div>
             </div>
+          </div>
+
+          {/* Canlı Aktivite Akışı — Sol kolda premium konumlandırma */}
+          <div className="hidden lg:flex flex-grow min-h-[220px]">
+            <ActivityFeedWidget />
           </div>
         </div>
 
@@ -759,11 +764,6 @@ export function DashboardWidgets() {
                 Tüm Görevleri Gör
               </button>
             </div>
-          </div>
-
-          {/* Canlı Aktivite Akışı */}
-          <div className="h-[300px] shrink-0">
-            <ActivityFeedWidget />
           </div>
         </div>
       </div>

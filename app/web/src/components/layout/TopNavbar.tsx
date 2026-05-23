@@ -485,34 +485,25 @@ export function TopNavbar() {
             </button>
 
             {showUserPanel && (
-              <div className="absolute top-full -right-4 sm:right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] sm:w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 z-50 animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden">
-                <div className="p-4 border-b border-slate-100 dark:border-white/10">
+              <div className="absolute top-full -right-4 sm:right-0 mt-2 w-72 max-w-[calc(100vw-2rem)] sm:w-64 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10 z-50 animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden p-2">
+                <div className="p-3 border-b border-slate-100 dark:border-white/5">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-base shadow-md border-2 border-white dark:border-slate-800">
                       {user?.avatar_url ? (
                         <img src={user.avatar_url.startsWith('http') ? user.avatar_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${user.avatar_url}`} alt="A" className="w-full h-full object-cover" />
                       ) : (
                         user?.username?.substring(0, 2).toUpperCase() || 'U'
                       )}
                     </div>
-                    <div>
-                      <p className="text-sm font-bold text-brand-dark dark:text-white capitalize truncate max-w-[120px]">{user?.name || user?.username || 'Kullanıcı'}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-black text-brand-dark dark:text-white capitalize truncate">{user?.name || user?.username || 'Kullanıcı'}</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{currentProject?.name || 'Kişisel Hesap'}</p>
                     </div>
                   </div>
                 </div>
-                <div className="py-2 px-4 border-b border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-slate-800/50">
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <span className="text-xs font-semibold text-slate-500">API Maliyeti</span>
-                    <span className="text-xs font-black text-brand-dark dark:text-white">
-                      ${apiCost?.total_usd?.toFixed(4) || "0.0000"}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] text-slate-400">
-                    <span>Giriş: {apiCost?.input_tokens?.toLocaleString('tr-TR') || 0}</span>
-                    <span>Çıkış: {apiCost?.output_tokens?.toLocaleString('tr-TR') || 0}</span>
-                  </div>
-                </div>
-                <div className="py-1">
+
+                <div className="py-1.5 flex flex-col gap-1">
+                  {/* Android APK Yükle Butonu (Büyük, Kalın Font, Net Telefon İkonu) */}
                   <button
                     onClick={async (e) => {
                       e.preventDefault();
@@ -534,29 +525,37 @@ export function TopNavbar() {
                         window.open("https://myworld-twqx.onrender.com/static/Pikselis_v4.0.apk", "_blank"); // Fallback
                       }
                     }}
-                    className="w-full text-left px-4 py-3 text-sm text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all font-black flex items-center gap-3 shadow-inner"
+                    className="w-full text-left px-4 py-3.5 text-xs text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 hover:from-indigo-600 hover:to-purple-600 transition-all font-black flex items-center gap-3 shadow-md rounded-2xl"
                   >
-                    <Smartphone className="w-5 h-5" /> Android APK Yükle
+                    <Smartphone className="w-5 h-5 shrink-0" />
+                    <span className="text-[12px] tracking-wide font-extrabold">Android Uygulamasını Yükle</span>
                   </button>
+
+                  {/* PWA / Tarayıcı Uygulaması Yükle Butonu */}
                   {deferredPrompt && (
                     <button
                       onClick={() => { handleInstallApp(); setShowUserPanel(false); }}
-                      className="w-full text-left px-4 py-2.5 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors font-bold flex items-center gap-3"
+                      className="w-full text-left px-4 py-3 text-xs text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-2xl transition-all font-black flex items-center gap-3 border border-indigo-100 dark:border-indigo-950"
                     >
-                      <Plus className="w-4 h-4" /> Uygulamayı Yükle (PWA)
+                      <Plus className="w-4 h-4 shrink-0" />
+                      <span className="text-[11px] font-extrabold">Bilgisayara / Telefona Yükle (Tarayıcı Uygulaması)</span>
                     </button>
                   )}
+
                   <button
                     onClick={() => { setIsProfileOpen(true); setShowUserPanel(false); }}
-                    className="w-full text-left px-4 py-2.5 text-sm text-brand-gray dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-medium flex items-center gap-2"
+                    className="w-full text-left px-4 py-2.5 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors font-bold flex items-center gap-2.5"
                   >
+                    <User className="w-4 h-4 shrink-0 text-slate-400" />
                     Profil Ayarları
                   </button>
+
                   <button
                     onClick={() => { logout(); setShowUserPanel(false); }}
-                    className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors font-medium flex items-center gap-2"
+                    className="w-full text-left px-4 py-2.5 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors font-bold flex items-center gap-2.5 mt-1"
                   >
-                    <LogOut className="w-4 h-4" /> Çıkış Yap
+                    <LogOut className="w-4 h-4 shrink-0" />
+                    Çıkış Yap
                   </button>
                 </div>
               </div>

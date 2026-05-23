@@ -2,6 +2,21 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-23] - Sürüm 4.1 - Görüntülü Arama & Profil Menüsü UX İyileştirmeleri
+
+### Eklendi
+- **Görüşmeyi Hızlı Sonlandır ve Kapat (X) Butonu**: `InAppCallWindow` başlık çubuğuna net bir kapatma (X) butonu eklendi. Bu butona basıldığında `stopMeeting` tetiklenerek hem görüşme penceresi gizlenir hem de veritabanından aktif toplantı durumu temizlenir. Bu sayede üst navbardaki kırmızı arama butonu anında söner.
+- **Dinamik ve Null-Safe Aktivite Eşleme**: `ActivityFeedWidget` veri modeli güncellenerek frontend ve backend veri modellerinin her ikisini de esnek bir şekilde destekleyen, boş veya gri kutuları engelleyen, dinamik açıklama oluşturan bir eşleme katmanı yazıldı.
+
+### Güncellendi
+- **PWA & Android İndirme Metinleri**: Profil menüsündeki APK indirme butonundaki fontlar kalınlaştırıldı ve "Android Uygulamasını Yükle" olarak güncellendi. PWA indirme butonu ise "Bilgisayara / Telefona Yükle (Tarayıcı Uygulaması)" şeklinde daha anlaşılır bir metinle premium hale getirildi.
+- **InAppCallWindow Küçültme Konumu**: Küçültülmüş görüntülü arama penceresi (Picture-in-Picture), AI asistan robotuyla çakışmaması için sağ alttan sol alt köşeye (`bottom-6 left-6`) taşındı.
+- **Profil Menüsü Tasarımı**: API Maliyeti bölümü tamamen kaldırıldı. Avatar ve şirket başlığı daha belirginleştirilerek ultra-premium, modern ve temiz bir görünüm kazandırıldı.
+
+### Çözüldü
+- **Kapatma Tuşu & Kırmızı Buton Sorunu**: Toplantıyı kapatma/ayrılma butonuna basıldığında üst navbardaki kırmızı yanıp sönen butonun sönmemesi sorunu, pencerenin doğrudan `stopMeeting` tetiklemesiyle çözüldü.
+- **TaskDetailPanel Derleme Hatası**: Önceki tab kaldırma/timeline birleştirme işlemlerinden kalan kod kırıntıları ve eksik JSX etiketleri giderilerek Next.js derleme hatası tamamen çözüldü.
+
 ## [2026-05-23] - Sürüm 4.0 - Daily.co Görüntülü Arama & Canlı Aktivite Akışı (WebSocket Sync)
 
 ### Eklendi
