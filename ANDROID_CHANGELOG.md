@@ -9,6 +9,16 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v4.3
+**Tarih:** 23 Mayıs 2026
+**Değişiklikler:**
+- **[Kritik Çözüm - Karşılaşma Ekranı Mobil Sığma Hatası]** Karşılaşma ekranının (MorningScreen.tsx) küçük mobil ekranlarda dikeyde taşması ve bu sebeple "Hazırım, Günü Başlat" butonunun ekran dışına kayarak görünmez/tıklanamaz olması sorunu, esnek responsive layout mimarisi (`max-h-[92dvh]`, `flex-1 min-h-0` ve azaltılmış padding/gap) kullanılarak tamamen çözüldü. Artık tüm telefonlarda kusursuz çalışıyor.
+- **[Kritik Çözüm - Görüntülü Görüşme Moderatör Giriş Bypass]** Jitsi Meet'in resmi sunucularındaki yeni güvenlik politikaları nedeniyle zorunlu tuttuğu Google/GitHub moderatör girişi zorunluluğu, tamamen açık kaynaklı ve lobi onaylama/giriş şartı aramayan alternatif Freifunk sunucusuna (`meet.ffmuc.net`) geçilerek tamamen çözüldü.
+- **[Yeni Özellik - Sessiz ve Kamerasız Toplantı Girişi]** Toplantıya ilk tıklandığında ses ve videonun varsayılan olarak kapalı (muted) başlaması sağlandı. Katılımcılar istedikleri an mikrofon ve kamerayı kendileri açabilecek.
+- **[Sürüm Entegrasyonu - v4.3]** `versionCode` 33'e ve `versionName` "4.3"'e yükseltildi. Web static derleme, Capacitor senkronizasyonu ve debug APK üretilerek frontend fallback ve backend api endpoint'leri üzerinden yayına alındı.
+
+---
+
 ### v4.2
 **Tarih:** 23 Mayıs 2026
 **Değişiklikler:**

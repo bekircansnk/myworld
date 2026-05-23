@@ -165,38 +165,38 @@ export function MorningScreen({ onDismiss }: MorningScreenProps) {
       
       {/* Arka Plandaki Estetik Gradyan Halka */}
       <div className={`absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-gradient-to-tr ${greetingInfo.gradient} blur-[120px] opacity-75 pointer-events-none transition-all duration-700`} />
-
-      <div className={`relative max-w-5xl w-full mx-4 p-6 md:p-10 bg-card/40 border border-border/60 backdrop-blur-xl rounded-[32px] shadow-2xl flex flex-col transform transition-all duration-700 ease-out overflow-hidden ${isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-12 opacity-0 scale-95'}`}>
+      
+      <div className={`relative max-w-5xl w-full mx-4 p-5 md:p-10 max-h-[92dvh] md:max-h-[85dvh] bg-card/40 border border-border/60 backdrop-blur-xl rounded-[24px] md:rounded-[32px] shadow-2xl flex flex-col transform transition-all duration-700 ease-out overflow-hidden ${isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-12 opacity-0 scale-95'}`}>
         
         {/* Üst Karşılama Bölümü */}
-        <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6 pb-8 border-b border-border/50">
+        <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-4 pb-4 md:pb-6 border-b border-border/50 shrink-0">
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2.5 bg-primary/10 rounded-2xl">
+            <div className="flex items-center gap-3 mb-2 md:mb-3">
+              <div className="p-2 bg-primary/10 rounded-xl md:rounded-2xl">
                 {greetingInfo.icon}
               </div>
-              <span className="text-sm font-semibold tracking-wider uppercase text-muted-foreground">{greetingInfo.text}</span>
+              <span className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">{greetingInfo.text}</span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground">
+            <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight text-foreground">
               Tekrar Hoş Geldin, <span className="bg-gradient-to-r from-primary to-indigo-500 bg-clip-text text-transparent">{user?.username}</span>!
             </h1>
-            <p className="text-sm text-muted-foreground mt-2 max-w-xl">
+            <p className="text-xs md:text-sm text-muted-foreground mt-1 md:mt-2 max-w-xl hidden sm:block">
               İşte yeni bir gün ve yeni fırsatlar. Bugünün odağını belirlemeden önce senin için hazırladığım özete bir göz at.
             </p>
           </div>
-
+ 
           {/* Dün Neler Yaptık & Genel İlerleme Kartları */}
-          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          <div className="flex flex-col sm:flex-row items-center gap-2 md:gap-3 w-full md:w-auto shrink-0">
             {/* Tamamlanan Görev Sayısı & Unvan (Sade Motivasyon) */}
-            <div className="bg-slate-500/5 dark:bg-white/[0.02] border border-border/60 rounded-2xl p-4 flex items-center gap-3.5 w-full sm:w-auto min-w-[220px]">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                <span className="text-xl">📊</span>
+            <div className="bg-slate-500/5 dark:bg-white/[0.02] border border-border/60 rounded-xl md:rounded-2xl p-3 md:p-4 flex items-center gap-3 w-full sm:w-auto min-w-[200px]">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-base">
+                📊
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-none">Genel Durum</h4>
-                <p className="text-sm font-bold text-foreground mt-1.5">{stats.completedTotal} Görev Tamamlandı</p>
-                <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mt-1 uppercase tracking-wider">
-                  Unvan: {
+                <h4 className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-none">Genel Durum</h4>
+                <p className="text-xs font-bold text-foreground mt-1">{stats.completedTotal} Görev Bitti</p>
+                <p className="text-[9px] font-medium text-slate-400 dark:text-slate-500 mt-0.5 uppercase tracking-wider">
+                  {
                     stats.completedTotal === 0 ? "Piksel Çırağı 🚀" :
                     stats.completedTotal < 5 ? "Geliştirici 💻" :
                     stats.completedTotal < 10 ? "Piksel Ustası 🛠️" : "Piksel Şampiyonu 🏆"
@@ -204,23 +204,23 @@ export function MorningScreen({ onDismiss }: MorningScreenProps) {
                 </p>
               </div>
             </div>
-
+ 
             {stats.completedYesterday > 0 && (
-              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex items-center gap-3.5 w-full sm:w-auto min-w-[200px] animate-fade-in">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/25 flex items-center justify-center text-emerald-500">
-                  <CheckCircle2 className="w-5.5 h-5.5" />
+              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl md:rounded-2xl p-3 md:p-4 flex items-center gap-3 w-full sm:w-auto min-w-[180px] animate-fade-in">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/25 flex items-center justify-center text-emerald-500">
+                  <CheckCircle2 className="w-4.5 h-4.5" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Dünün Başarısı</h4>
-                  <p className="text-sm font-bold text-foreground mt-0.5">{stats.completedYesterday} Görev Tamamlandı!</p>
+                  <h4 className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider leading-none">Dünün Başarısı</h4>
+                  <p className="text-xs font-bold text-foreground mt-1">{stats.completedYesterday} Görev Bitti!</p>
                 </div>
               </div>
             )}
           </div>
         </div>
-
+ 
         {/* Orta Bölüm: AI Analiz & Görev Özet Gridi */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 my-8 overflow-y-auto max-h-[55vh] pr-1.5 custom-scrollbar">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8 my-4 lg:my-8 overflow-y-auto flex-1 min-h-0 pr-1.5 custom-scrollbar">
           
           {/* Sol Kolon (6/12): AI Motivasyon & Bekleyen İşler */}
           <div className="lg:col-span-6 flex flex-col gap-6">

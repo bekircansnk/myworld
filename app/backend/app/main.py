@@ -240,12 +240,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "4.2",
-        "version_code": 32,
-        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v4.2.apk",
+        "version": "4.3",
+        "version_code": 33,
+        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v4.3.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
-        "changelog": "- Takvim günleri içindeki kaba ve taşan görev butonları yerine modern renk kodlu göstergeler (dots) ve zengin hover detay popover yapısı getirildi.\n- Android mobil uygulama için sürüm 4.2 güncellemesi yayında."
+        "changelog": "- Karşılaşma ekranının (MorningScreen.tsx) mobil dikey sığma problemleri esnek layout mimarisiyle tamamen çözüldü, Güne Başla butonu tüm ekranlarda görünür kılındı.\n- Toplantı alanı Jitsi Meet sunucusu meet.ffmuc.net olarak güncellendi. Giriş yapma/moderasyon yetkisi ve lobi onaylama adımları tamamen bypass edilerek ses ve video varsayılan olarak kapalı (sessiz oda) şekilde katılım sağlandı."
     }
 
 @app.get("/api/link-preview")

@@ -2,6 +2,13 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-23] - Sürüm 4.6 - Karşılaşma Ekranı Mobil Fix & Görüntülü Görüşme İyileştirmeleri
+
+### Güncellendi
+- **Karşılaşma Ekranı (MorningScreen.tsx) Mobil Uyumluluğu**: Dikey ekran yüksekliği kısıtlı olan mobil cihazlarda (Android Capacitor / PWA) kartın dikeyde taşarak "Hazırım, Günü Başlat" butonunu ekran dışına kırpması engellendi. Kart `max-h-[92dvh]` ile sınırlandırıldı, grid alanı `flex-1 min-h-0` olarak ayarlanarak dikey daralmalarda scroll edilebilir kılındı.
+- **Toplantı Altyapısı (meeting.py)**: Jitsi Meet sunucusu `meet.jit.si` adresinden, lobisiz ve moderatörsüz çalışan tamamen açık kaynaklı `meet.ffmuc.net` sunucusuna taşındı. Böylece "Toplantı sahibiyim / Giriş Yap" engeli tamamen aşılmış oldu.
+- **Sessiz Oda Girişi**: İlgili toplantıya katılım sağlandığında kameranın ve mikrofonun varsayılan olarak kapalı (muted) açılması sağlandı. İsteyen katılımcılar görüşme sırasında bunları el ile aktif edebilecek.
+
 ## [2026-05-23] - Sürüm 4.5 - Takvim Görev Gösterim Modernizasyonu & Detay Popover Altyapısı
 
 ### Eklendi
