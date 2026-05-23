@@ -732,6 +732,33 @@ export function TaskDetailPanel() {
         )}
       </div>
 
+      {/* Görev Tamamla */}
+      <div className="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-white/5 mt-1.5 pt-2">
+        <span className="text-[11px] font-bold text-slate-500 dark:text-white/40 tracking-wider flex items-center gap-1.5">
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Görev Tamamla
+        </span>
+        <button 
+          onClick={() => handleStatusChange(selectedTask.status === 'done' ? 'todo' : 'done')}
+          className={`text-[10px] font-bold px-2.5 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 shadow-sm active:scale-95 ${
+            selectedTask.status === 'done' 
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-black' 
+              : 'bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300'
+          }`}
+        >
+          {selectedTask.status === 'done' ? (
+            <>
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 fill-emerald-500/10" />
+              Tamamlandı
+            </>
+          ) : (
+            <>
+              <Circle className="w-3.5 h-3.5 text-slate-400" />
+              Tamamla
+            </>
+          )}
+        </button>
+      </div>
+
       {/* Oluşturma Tarihi */}
       {selectedTask.created_at && (
         <div className="flex items-center justify-between">
@@ -799,15 +826,15 @@ export function TaskDetailPanel() {
                 )}
               </div>
             )}
-            <button onClick={handleCloseDetail}
-              className="p-2 rounded-xl bg-white/80 hover:bg-slate-200 text-slate-400 hover:text-slate-600 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white/40 dark:hover:text-white transition-all shadow-sm backdrop-blur-sm"
-              title="Kapat">
-              <X className="w-4 h-4" />
-            </button>
             <button onClick={() => setIsDeleteConfirmOpen(true)}
-              className="p-2 rounded-xl bg-white/80 hover:bg-red-50 text-slate-400 hover:text-red-500 dark:bg-white/5 dark:hover:bg-red-500/20 dark:text-white/40 dark:hover:text-red-400 transition-all shadow-sm backdrop-blur-sm"
+              className="p-2 rounded-xl bg-white/80 hover:bg-red-50 text-slate-400 hover:text-red-500 dark:bg-white/5 dark:hover:bg-red-500/20 dark:text-white/40 dark:hover:text-red-400 transition-all shadow-sm backdrop-blur-sm border border-red-200/20"
               title="Sil">
               <Trash2 className="w-4 h-4" />
+            </button>
+            <button onClick={handleCloseDetail}
+              className="p-2 rounded-xl bg-white/80 hover:bg-slate-200 text-slate-700 hover:text-slate-900 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white/80 dark:hover:text-white transition-all shadow-sm border border-slate-200 dark:border-slate-700"
+              title="Kapat">
+              <X className="w-4 h-4" />
             </button>
           </div>
 

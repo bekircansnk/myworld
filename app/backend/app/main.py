@@ -184,12 +184,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "3.7",
-        "version_code": 28,
-        "download_url": "https://myworld-twqx.onrender.com/static/Pikselis_v3.7.apk",
+        "version": "3.8",
+        "version_code": 29,
+        "download_url": "https://myworld-twqx.onrender.com/static/Pikselis_v3.8.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
-        "changelog": "- Boşta kalma (Idle) durumunda otomatik karşılama/ekran tasarrufu modu eklendi.\n- Karşılama ekranı açıkken poll veri güncellemeleri duraklatılarak RAM ve CPU tasarrufu sağlandı.\n- Her yeni sekme açılışında veya yenilemede karşılama ekranı gösterme entegre edildi.\n- Sol taraftaki AI raporunun altına pürüzsüz yatay kaydırılabilir 'Bekleyen İşler' kart listesi eklendi."
+        "changelog": "- Tamamlanan görevlerin takvim sayfasında gecikmiş/kırmızı olarak listelenmesi hatası tamamen çözüldü.\n- Görev detay panelinin (sağ panel) sağ üst butonları sıralanarak Kapat butonu en sağa alındı (Silme butonuyla çakışma önlendi).\n- Görev detay paneline doğrudan 'Tamamlandı' toggle butonu entegre edilerek takvimden hızlı tamamlama yeteneği eklendi."
     }
 
 @app.get("/api/link-preview")

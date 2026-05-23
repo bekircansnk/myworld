@@ -2,6 +2,15 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-23] - Sürüm 3.8 - Tamamlanan Görevlerin Takvimden Kaldırılması & Detay Paneli Buton Revizyonu
+
+### Çözüldü
+- **Tamamlanan Görevlerin Takvimde Görünmesi Sorunu:** Durumu 'done' (Tamamlandı) olan görevlerin takvim sayfasında hala gecikmiş (kırmızı) olarak listelenmesi sorunu, `CalendarPage.tsx` üzerindeki `taskEvents` hesaplama filtresine `status !== 'done'` kontrolü eklenerek tamamen çözüldü. Artık tamamlanan işler takvimden otomatik olarak temizleniyor.
+- **Detay Paneli Kapatma Butonu Konumu (Yanlış Silme Riski):** Görev detay panelinin (sağ panel) sağ üst köşesinde yer alan butonların sıralaması (Kapat butonu en sağda, Sil butonu ortada olacak şekilde) soldan sağa Paylaş, Sil, Kapat olarak güncellendi. Kapatma butonu belirgin bir border ve koyu renk vurgusu ile en sağ köşeye çekildi, böylece kapatmak isterken yanlışlıkla görev silme riski ortadan kaldırıldı.
+
+### Eklendi
+- **Görev Detayına Minimal "Durum Tamamla" Butonu:** Görev detay panelinin (sağ panel) Hedef Tarih ve Öncelik alanlarının hemen altına, minimal, şık ve abartısız bir "Görev Tamamla" / "Tamamlandı" toggle butonu eklendi. Kullanıcılar takvimden tıkladıkları görevleri artık doğrudan bu butona basarak tamamlandı olarak işaretleyebiliyor.
+
 ## [2026-05-23] - Sürüm 3.7 - Boşta Kalma Tasarruf Modu & Bekleyen İşler Kaydırıcı Kartları
 
 ### Eklendi

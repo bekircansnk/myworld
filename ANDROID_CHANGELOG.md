@@ -9,6 +9,15 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v3.8
+**Tarih:** 23 Mayıs 2026
+**Değişiklikler:**
+- **[Kritik Çözüm - Tamamlanan Görevlerin Takvimden Temizlenmesi]** Takvim sayfasında, durumu 'done' (Tamamlandı) olan görevlerin hala gecikmiş/kırmızı olarak görünmesi sorunu giderildi. Artık tamamlanan görevler takvim görünümünden otomatik olarak kaldırılıyor.
+- **[Kritik UX - Kapatma Butonu Konumu ve Vurgusu]** Görev detay panelinin (sağ panel) sağ üst köşesindeki butonların sıralaması (Kapat butonu en sağda, Sil butonu ortada olacak şekilde) soldan sağa Paylaş, Sil, Kapat olarak güncellendi. Kapatma butonu belirgin bir border ve koyu renk vurgusu ile en sağ köşeye yerleştirildi. Böylece kapatmak isterken yanlışlıkla silme butonuna tıklama riski sıfıra indirildi.
+- **[Yeni Özellik - Görev Detayında Hızlı Durum Tamamlama]** Görev detay paneline (sağ panel) küçük, şık ve abartısız bir "Görev Tamamla" / "Tamamlandı" toggle butonu entegre edildi. Kullanıcıların takvimden veya listeden tıkladıkları görevleri panelden ayrılmadan tek tıkla tamamlayabilmesi sağlandı.
+
+---
+
 ### v3.7
 **Tarih:** 23 Mayıs 2026
 **Değişiklikler:**

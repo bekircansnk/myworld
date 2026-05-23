@@ -496,10 +496,10 @@ export function TopNavbar() {
                           a.click();
                           document.body.removeChild(a);
                         } else {
-                          window.open("https://myworld-twqx.onrender.com/static/Pikselis_v3.7.apk", "_blank"); // Fallback
+                          window.open("https://myworld-twqx.onrender.com/static/Pikselis_v3.8.apk", "_blank"); // Fallback
                         }
                       } catch (err) {
-                        window.open("https://myworld-twqx.onrender.com/static/Pikselis_v3.7.apk", "_blank"); // Fallback
+                        window.open("https://myworld-twqx.onrender.com/static/Pikselis_v3.8.apk", "_blank"); // Fallback
                       }
                     }}
                     className="w-full text-left px-4 py-3 text-sm text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all font-black flex items-center gap-3 shadow-inner"

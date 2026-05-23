@@ -149,10 +149,10 @@ export function CalendarPage() {
     }
   }, [])
 
-  // Merge tasks with due_date into calendar events
+  // Merge tasks with due_date into calendar events (Tamamlanan done görevleri takvimde gösterme)
   const taskEvents: CalendarEvent[] = React.useMemo(() => {
     return tasks
-      .filter(t => t.due_date && !t.parent_task_id)
+      .filter(t => t.due_date && !t.parent_task_id && t.status !== 'done')
       .map(t => ({
         id: `task_${t.id}`,
         title: t.title,
