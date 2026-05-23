@@ -9,6 +9,15 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v4.1
+**Tarih:** 23 Mayıs 2026
+**Değişiklikler:**
+- **[Kritik Arayüz - Dikey Hizalama & Kompakt Takvim Oranı]** Kontrol paneli sol kolonunda yer alan Akıllı Asistan kartının yüksekliği esnek (`lg:flex-grow lg:min-h-0`) hale getirilerek tüm ekranlarda alt çizgiler ve hizalar eşitlendi.
+- **[Kritik UX - Takvim Günleri Dağılımı]** Takvim günleri tablosu `grid-rows-6` ve `h-full`/`justify-between` ile dikeyde eşit yayılarak takvim kartının orantısız boşluklar içermesi engellendi ve kompakt bir görünüm sağlandı.
+- **[Sürüm Entegrasyonu - v4.1]** `versionCode` 31'e ve `versionName` "4.1"'e yükseltildi. Web static derleme, Capacitor senkronizasyonu ve debug APK üretilerek frontend fallback ve backend api endpoint'leri üzerinden yayına alındı.
+
+---
+
 ### v4.0
 **Tarih:** 23 Mayıs 2026
 **Değişiklikler:**

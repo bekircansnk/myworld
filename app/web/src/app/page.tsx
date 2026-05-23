@@ -24,7 +24,6 @@ import { OfflineBanner } from "@/components/ui/OfflineBanner"
 import { AdminPanel } from "@/components/admin/AdminPanel"
 import { InAppCallWindow } from "@/components/chat/InAppCallWindow"
 import { CRMLayout } from "@/components/crm/CRMLayout"
-import { useGamificationStore } from "@/stores/gamificationStore"
 
 export default function DashboardPage() {
   const { user, isAuthenticated, isLoading: authLoading, checkAuth, _hasHydrated: authHydrated } = useAuthStore()

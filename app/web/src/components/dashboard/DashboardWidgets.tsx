@@ -19,7 +19,6 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { useAuthStore } from "@/store/authStore"
 import { useMeetingStore } from "@/stores/meetingStore"
 import { Button } from "@/components/ui/button"
-import { GamificationWidget } from "@/components/dashboard/widgets/GamificationWidget"
 
 // Firma ikonları — SVG mini logolar
 const COMPANY_ICONS: Record<string, React.ReactNode> = {
@@ -408,8 +407,8 @@ export function DashboardWidgets() {
             </div>
           </div>
 
-          {/* Akıllı Asistan — mobilde gizli, masaüstünde sabit yükseklikte */}
-          <div className="hidden lg:flex floating-card rounded-3xl p-6 h-[370px] shrink-0 flex-col gap-3 overflow-hidden min-h-0">
+          {/* Akıllı Asistan — mobilde gizli, masaüstünde esnek yükseklikte */}
+          <div className="hidden lg:flex floating-card rounded-3xl p-6 lg:flex-grow lg:min-h-0 flex-col gap-3 overflow-hidden">
             <div className="flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-brand-yellow flex items-center justify-center shadow-sm">
@@ -621,11 +620,11 @@ export function DashboardWidgets() {
                 <div key={d} className="text-center text-[9px] font-bold uppercase text-brand-gray dark:text-gray-500 pb-1">{d}</div>
               ))}
             </div>
-            <div className="grid grid-cols-7 gap-0.5 flex-1 auto-rows-fr lg:min-h-0">
+            <div className="grid grid-cols-7 grid-rows-6 gap-1 flex-1 min-h-0">
               {calendarDays.map((cd, i) => (
                 <div
                   key={i}
-                  className={`rounded-lg p-0.5 text-center transition-colors flex flex-col ${cd.isToday
+                  className={`rounded-lg p-1 text-center transition-colors flex flex-col justify-between h-full min-h-[32px] ${cd.isToday
                     ? 'bg-brand-yellow/20 ring-1 ring-brand-yellow/50'
                     : cd.isCurrentMonth ? 'hover:bg-slate-50 dark:hover:bg-slate-700/50' : ''
                     }`}
@@ -639,7 +638,7 @@ export function DashboardWidgets() {
                     <button
                       key={task.id}
                       onClick={(e) => { e.stopPropagation(); openTaskDetail(task); }}
-                      className="w-full text-left px-0.5 py-0.5 rounded text-[7px] font-semibold leading-tight truncate block hover:opacity-80 transition"
+                      className="w-full text-left px-1 py-0.5 rounded text-[7px] font-semibold leading-tight truncate block hover:opacity-80 transition mt-auto"
                       style={{ backgroundColor: task.project?.color ? `${task.project.color}25` : '#f0f0f0', color: task.project?.color || '#333' }}
                       title={task.title}
                     >
@@ -647,7 +646,7 @@ export function DashboardWidgets() {
                     </button>
                   ))}
                   {cd.tasks.length > 1 && (
-                    <div className="text-[7px] font-bold text-brand-gray dark:text-gray-500">+{cd.tasks.length - 1}</div>
+                    <div className="text-[7px] font-bold text-brand-gray dark:text-gray-500 mt-auto">+{cd.tasks.length - 1}</div>
                   )}
                 </div>
               ))}

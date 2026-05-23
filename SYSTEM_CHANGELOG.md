@@ -2,6 +2,15 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-23] - Sürüm 4.4 - Kontrol Paneli Dikey Hizalama & Kompakt Takvim UX İyileştirmeleri
+
+### Güncellendi
+- **Akıllı Asistan Esnek Yüksekliği**: Kontrol panelinin sol kolonunda bulunan "Akıllı Asistan" kartının yüksekliği `h-[370px] shrink-0` gibi sabit bir değer yerine `lg:flex-grow lg:min-h-0` olarak ayarlanarak sol kolonun alt kısmındaki boşluk giderildi ve sağ/orta kolonlarla alt çizgisi eşitlendi.
+- **Kompakt Takvim Tasarımı**: Takvim kartındaki günlerin listelendiği grid yapısı `grid-rows-6` ve `h-full`/`justify-between` ile dikeyde esnetildi. Bu sayede takvim kartının altında orantısız boş alanların kalması engellenerek takvim daha kompakt ve estetik bir görünüme kavuşturuldu.
+
+### Çözüldü
+- **Çoklu Platform Uyum Problemi**: Sol, orta ve sağ kolonların dikeyde hizasız durması ve mobil WebView / Android Capacitor gibi ekranlarda dikey oranlerin bozulması sorunu, CSS flexbox esneklik tanımlamalarıyla tamamen çözüldü.
+
 ## [2026-05-23] - Sürüm 4.3 - İzole Tam Ekran Frappe CRM Deneyim Dünyası
 
 ### Eklendi
