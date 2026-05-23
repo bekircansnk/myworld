@@ -4,7 +4,7 @@ import * as React from "react"
 import { useProjectStore } from "@/stores/projectStore"
 import { useTaskStore } from "@/stores/taskStore"
 import { useTheme } from "next-themes"
-import { LayoutDashboard, ListTodo, CalendarDays, NotebookPen, Bot, Megaphone, Camera, Menu, Bell, Search, Plus, Loader2, PlayCircle, Clock, CheckCircle2, MoreVertical, X, Shield, Sun, Moon, User, ChevronDown, AlertTriangle, Check, Smartphone } from "lucide-react"
+import { LayoutDashboard, ListTodo, CalendarDays, NotebookPen, Bot, Megaphone, Camera, Menu, Bell, Search, Plus, Loader2, PlayCircle, Clock, CheckCircle2, MoreVertical, X, Shield, Sun, Moon, User, ChevronDown, AlertTriangle, Check, Smartphone, Briefcase } from "lucide-react"
 import { format, isToday, isTomorrow, isBefore, addDays } from "date-fns"
 import { tr } from "date-fns/locale"
 import { api } from "@/lib/api"
@@ -277,6 +277,7 @@ export function TopNavbar() {
     ...(canViewCompany(user, 'ai_chat', selectedProjectId) ? [{ id: 'ai_chat', label: 'AI Sohbet', icon: Bot }] : []),
     ...(canViewCompany(user, 'ads', selectedProjectId) ? [{ id: 'ads', label: 'Reklam', icon: Megaphone }] : []),
     ...(canViewCompany(user, 'photo_tracking', selectedProjectId) ? [{ id: 'photo_tracking', label: 'Fotoğraf Takip', icon: Camera }] : []),
+    ...(selectedProjectId ? [{ id: 'crm', label: 'CRM', icon: Briefcase }] : []),
     ...(canAccessAdminPanel(user) ? [{ id: 'admin', label: 'Yönetim', icon: Shield }] : []),
   ]
 

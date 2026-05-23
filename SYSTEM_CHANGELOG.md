@@ -2,6 +2,23 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-23] - Sürüm 4.2 - Frappe CRM POC Entegrasyonu & Müşteri İlişkileri Deneyim Modu
+
+### Eklendi
+- **Frappe CRM POC Arayüzü & Alt Modülleri**:
+  - **`CRMLayout.tsx`**: Sol tarafta HSL renkleriyle tasarlanmış zengin bir alt navigasyon (Adaylar, Satış Kanalları, Omnichannel Inbox, E-posta Kampanyaları) ve sağ tarafta dinamik alt sayfa yükleyicisi.
+  - **`CRMLeads.tsx`**: Şirketin mevcut firmalarını ve görevlerini "müşteri adayları" (Leads) olarak listeleyen şık bir tablo ve sağdan kayarak açılan Frappe CRM Timeline (Zaman Tüneli) aktivite geçmişi.
+  - **`CRMPipelines.tsx`**: Fırsatları (Deals) 5 farklı satış aşamasında (Aday, Görüşüldü, Teklif, Sözleşme, Kazanıldı) listeleyen, interaktif aşama taşıma butonları içeren lüks bir Kanban tahtası.
+  - **`CRMOmnichannel.tsx`**: WhatsApp, Facebook ve Instagram kanallarından gelen mesajları tek bir gelen kutusunda simüle eden zengin sohbet arayüzü ve kullanıcının mesajlarına gerçek zamanlı akıllı demo yanıtları veren AI chat bot simülatörü.
+  - **`CRMEmails.tsx`**: E-posta şablonları hazırlama, düzenleme ve toplu kampanya gönderim arayüzü ile kampanya performans analiz raporları (açılma/tıklama oranları).
+- **Zustand State & Navigasyon Entegrasyonu**:
+  - `projectStore.ts` içerisindeki `ViewMode` tipine `'crm'` eklenerek global state'e bağlandı.
+  - `TopNavbar.tsx` navigasyon barına şık bir **CRM** butonu ve ikonu (`Briefcase`) eklendi, böylece kullanıcının tek tıkla tüm ekranı CRM moduna dönüştürmesi sağlandı.
+  - `src/app/page.tsx` render koşullarına `isCRM` kontrolü eklenerek, mod aktif olduğunda tüm ekranın CRM arayüzüne geçişi sağlandı.
+
+### Çözüldü
+- **TypeScript `assignee_name` Derleme Hatası**: `Task` modelinde `assignee_name` alanının bulunmaması sebebiyle `npm run build` sırasında fırlatılan derleme hatası, görev ID'sine göre eşleşen akıllı `demoNames` dizisi oluşturularak tamamen çözüldü ve Next.js optimizasyon süreci %100 başarıyla tamamlandı.
+
 ## [2026-05-23] - Sürüm 4.1 - Görüntülü Arama & Profil Menüsü UX İyileştirmeleri
 
 ### Eklendi

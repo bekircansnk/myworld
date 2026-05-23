@@ -23,6 +23,7 @@ import { PhotoTrackingLayout } from "@/components/photo-tracking/PhotoTrackingLa
 import { OfflineBanner } from "@/components/ui/OfflineBanner"
 import { AdminPanel } from "@/components/admin/AdminPanel"
 import { InAppCallWindow } from "@/components/chat/InAppCallWindow"
+import { CRMLayout } from "@/components/crm/CRMLayout"
 
 export default function DashboardPage() {
   const { user, isAuthenticated, isLoading: authLoading, checkAuth, _hasHydrated: authHydrated } = useAuthStore()
@@ -182,6 +183,9 @@ export default function DashboardPage() {
   } else if (viewMode === 'dashboard') {
     pageTitle = currentProject ? `${currentProject.name} — Kontrol Paneli` : "Kontrol Paneli"
     pageDescription = "Firmanın genel durumunu görüntüleyin."
+  } else if (viewMode === 'crm') {
+    pageTitle = currentProject ? `${currentProject.name} — CRM Paneli` : "CRM Paneli"
+    pageDescription = "Satış kanalları, adaylar ve çoklu kanal iletişimlerini yönetin."
   }
 
   const isDashboard = viewMode === 'dashboard'
@@ -190,6 +194,7 @@ export default function DashboardPage() {
   const isReklamAds = viewMode === 'ads'
   const isPhotoTracking = viewMode === 'photo_tracking'
   const isAdminPanel = viewMode === 'admin'
+  const isCRM = viewMode === 'crm'
   
   const renderErrorState = (message: string) => (
     <div className="flex flex-col h-full w-full overflow-hidden" id="app-root">
@@ -248,6 +253,8 @@ export default function DashboardPage() {
           <AdsLayout projectId={selectedProjectId} />
         ) : isPhotoTracking ? (
           <PhotoTrackingLayout projectId={selectedProjectId} />
+        ) : isCRM ? (
+          <CRMLayout projectId={selectedProjectId} />
         ) : (
           <div className={`flex-1 flex flex-col mobile-content-area ${isDashboard ? 'overflow-y-auto lg:overflow-hidden p-3 md:p-5 lg:p-8' : (viewMode === 'notes' ? 'overflow-y-auto overflow-x-hidden p-3 md:p-5 lg:p-8' : 'overflow-hidden')}`}>
 
