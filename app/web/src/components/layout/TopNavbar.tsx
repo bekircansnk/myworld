@@ -319,10 +319,7 @@ export function TopNavbar() {
 
         {/* Sağ: Aksiyonlar */}
         <div className="flex items-center gap-1 md:gap-2 shrink-0">
-          {/* PWA Yükleme Butonu */}
-          {renderPwaInstallBtn()}
-
-          {/* Görüntülü Görüşme Başlat/Katıl Butonu */}
+          {/* Görüntülü Görüşme Başlat/Katıl Butonu (Yuvarlak & Minimal) */}
           {selectedProjectId && (
             <button
               onClick={async () => {
@@ -336,7 +333,7 @@ export function TopNavbar() {
                   }
                 }
               }}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold shadow-md hover:shadow-lg transition-all 
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-md hover:shadow-lg hover:scale-105
                 ${activeMeeting 
                   ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" 
                   : "bg-emerald-500 hover:bg-emerald-600 text-white"
@@ -344,9 +341,6 @@ export function TopNavbar() {
               title={activeMeeting ? "Aktif Görüşmeye Katıl" : "Görüntülü Görüşme Başlat"}
             >
               <Video className="w-4 h-4" />
-              <span className="hidden sm:inline">
-                {activeMeeting ? "Görüşmeye Katıl" : "Görüşme Başlat"}
-              </span>
             </button>
           )}
 
