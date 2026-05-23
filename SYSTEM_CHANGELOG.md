@@ -2,6 +2,13 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-23] - Sürüm 4.7 - Görev Detay Mobil Alt Bar & Sekme İyileştirmeleri
+
+### Güncellendi
+- **Görev Detay Mobil Alt Bar (TaskDetailPanel.tsx)**: Mobil görünümde Fotoğraflar sekmesi ilk sıraya taşındı ve varsayılan aktif sekme yapıldı.
+- **Bütünleşik Yorumlar & Geçmiş**: "Yorumlar" ve "Geçmiş" sekmeleri tek bir sekme ("Yorum & Geçmiş") olarak birleştirildi ve ayrı bir "Geçmiş" sekmesi kaldırıldı.
+- **Mobil Sekme Karışma Sorunları**: Sekmeler arası geçişlerde "Etkinlik ve Yorumlar" (Unified Timeline) alanının her zaman altta sabit kalarak diğer sekmelerle üst üste binme hatası, mobil görünürlük koşul kontrolü eklenerek tamamen çözüldü.
+
 ## [2026-05-23] - Sürüm 4.6 - Karşılaşma Ekranı Mobil Fix & Görüntülü Görüşme İyileştirmeleri
 
 ### Güncellendi

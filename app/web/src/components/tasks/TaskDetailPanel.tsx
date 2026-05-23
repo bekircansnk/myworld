@@ -116,7 +116,7 @@ export function TaskDetailPanel() {
   const [isAIOpen, setIsAIOpen] = React.useState(false)
   const [isPhotosOpen, setIsPhotosOpen] = React.useState(true)
   const [isHistoryOpen, setIsHistoryOpen] = React.useState(true)
-  const [activeMobileTab, setActiveMobileTab] = React.useState<'photos'|'progress'|'ai'|'history'|'comments'|null>('comments')
+  const [activeMobileTab, setActiveMobileTab] = React.useState<'photos'|'progress'|'ai'|'comments'|null>('photos')
   const [commentDraft, setCommentDraft] = React.useState("")
   const [commentToDelete, setCommentToDelete] = React.useState<number | null>(null)
   const [currentUser, setCurrentUser] = React.useState<any>(null)
@@ -128,7 +128,7 @@ export function TaskDetailPanel() {
     }).catch(() => {})
   }, [])
   
-  const toggleMobileTab = (tab: 'photos'|'progress'|'ai'|'history'|'comments') => {
+  const toggleMobileTab = (tab: 'photos'|'progress'|'ai'|'comments') => {
     setActiveMobileTab(activeMobileTab === tab ? null : tab)
   }
 
@@ -1258,7 +1258,7 @@ export function TaskDetailPanel() {
               </div>
 
               {/* BÜTÜNLEŞİK YORUMLAR & HAREKET AKIŞI (Unified Timeline) */}
-              <div className="border-b border-slate-100 dark:border-white/5 select-none block flex-1 flex flex-col min-h-0">
+              <div className={`border-b border-slate-100 dark:border-white/5 select-none flex-1 flex flex-col min-h-0 ${activeMobileTab === 'comments' ? 'block' : 'hidden md:flex'}`}>
                 <div className="p-4 flex flex-col flex-1 min-h-0">
                   <h3 className="text-xs font-bold uppercase tracking-widest text-slate-700 dark:text-white/80 flex items-center gap-2 mb-3 shrink-0">
                     <MessageCircle className="w-4 h-4 text-indigo-500" />
@@ -1371,13 +1371,13 @@ export function TaskDetailPanel() {
 
               {/* MOBİL TAB BAR */}
               <div className="flex md:hidden items-center justify-around px-2 py-2 border-t border-slate-200/50 dark:border-white/10 bg-transparent pb-safe">
-                 <button onClick={() => toggleMobileTab('comments')} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${activeMobileTab === 'comments' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-500'}`}>
-                   <MessageCircle className="w-5 h-5"/>
-                   <span className="text-[9px] font-bold">Yorumlar</span>
-                 </button>
                  <button onClick={() => toggleMobileTab('photos')} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${activeMobileTab === 'photos' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-500'}`}>
                    <ImagePlus className="w-5 h-5"/>
                    <span className="text-[9px] font-bold">Fotoğraflar</span>
+                 </button>
+                 <button onClick={() => toggleMobileTab('comments')} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${activeMobileTab === 'comments' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-500'}`}>
+                   <MessageCircle className="w-5 h-5"/>
+                   <span className="text-[9px] font-bold">Yorum & Geçmiş</span>
                  </button>
                  <button onClick={() => toggleMobileTab('progress')} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${activeMobileTab === 'progress' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-500'}`}>
                    <TrendingUp className="w-5 h-5"/>
@@ -1386,10 +1386,6 @@ export function TaskDetailPanel() {
                  <button onClick={() => toggleMobileTab('ai')} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${activeMobileTab === 'ai' ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-500'}`}>
                    <Bot className="w-5 h-5"/>
                    <span className="text-[9px] font-bold">Yapay Zeka</span>
-                 </button>
-                 <button onClick={() => toggleMobileTab('history')} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${activeMobileTab === 'history' ? 'text-slate-800 dark:text-slate-300' : 'text-slate-400 dark:text-slate-500 hover:text-slate-500'}`}>
-                   <History className="w-5 h-5"/>
-                   <span className="text-[9px] font-bold">Geçmiş</span>
                  </button>
               </div>
 

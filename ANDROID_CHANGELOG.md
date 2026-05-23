@@ -9,6 +9,17 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v4.4
+**Tarih:** 23 Mayıs 2026
+**Değişiklikler:**
+- **[Kritik Arayüz - Görev Detay Mobil Alt Bar Düzeltmeleri]** Görev detay panelindeki (`TaskDetailPanel.tsx`) mobil alt bar (tab bar) yapısı ve sekme içerikleri tamamen revize edildi.
+- **[Yeni Düzen - Fotoğraflar En Başta]** Fotoğraflar sekmesi mobil alt barın 1. sırasına alındı ve görev detayı açıldığında varsayılan olarak bu sekmenin gösterilmesi sağlandı.
+- **[Bütünleşik Ekran - Yorumlar & Geçmiş]** Ayrı sekmeler halinde duran "Yorumlar" ve "Geçmiş" sekmeleri, halihazırda var olan kronolojik akış temel alınarak "Yorum & Geçmiş" sekmesinde tek bir ekran altında birleştirildi. Eski "Geçmiş" sekmesi kaldırıldı.
+- **[Kritik Çözüm - Mobil Sekmeler Arası Karışma Sorunu]** Mobil sekmeler arası geçişte etkinlik ve yorumlar akışının her zaman ekranın altında sabit kalması ve diğer sekmelerle üst üste binerek arayüzü bozması hatası, doğru sekme koşul kontrolleri entegre edilerek tamamen çözüldü. Artık sadece seçili sekmenin içeriği gösterilmektedir.
+- **[Sürüm Entegrasyonu - v4.4]** `versionCode` 34'e ve `versionName` "4.4"'e yükseltildi. Web static derleme, Capacitor senkronizasyonu ve debug APK üretilerek frontend fallback ve backend api endpoint'leri üzerinden yayına alındı.
+
+---
+
 ### v4.3
 **Tarih:** 23 Mayıs 2026
 **Değişiklikler:**
