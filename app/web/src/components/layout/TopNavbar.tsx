@@ -14,6 +14,8 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { useAuthStore, canViewCompany, isAdmin, isSuperAdmin, canAccessAdminPanel } from "@/store/authStore"
 import { ProfileSettings } from "@/components/auth/ProfileSettings"
 import { ProjectSettingsModal } from "@/components/projects/ProjectSettingsModal"
+import { useMeetingStore } from "@/stores/meetingStore"
+import { Video } from "lucide-react"
 
 export interface ApiCostData {
   input_tokens: number
@@ -36,6 +38,14 @@ export function TopNavbar() {
   const { tasks } = useTaskStore()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
+
+  const { activeMeeting, joinMeeting, startMeeting, fetchActiveMeeting } = useMeetingStore()
+
+  React.useEffect(() => {
+    if (selectedProjectId) {
+      fetchActiveMeeting(selectedProjectId)
+    }
+  }, [selectedProjectId, fetchActiveMeeting])
 
   // Panels
   const [showProjectMenu, setShowProjectMenu] = React.useState(false)
@@ -311,6 +321,34 @@ export function TopNavbar() {
         <div className="flex items-center gap-1 md:gap-2 shrink-0">
           {/* PWA Yükleme Butonu */}
           {renderPwaInstallBtn()}
+
+          {/* Görüntülü Görüşme Başlat/Katıl Butonu */}
+          {selectedProjectId && (
+            <button
+              onClick={async () => {
+                if (activeMeeting) {
+                  joinMeeting()
+                } else {
+                  try {
+                    await startMeeting(selectedProjectId)
+                  } catch (err) {
+                    console.error("Görüşme başlatma hatası:", err)
+                  }
+                }
+              }}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold shadow-md hover:shadow-lg transition-all 
+                ${activeMeeting 
+                  ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" 
+                  : "bg-emerald-500 hover:bg-emerald-600 text-white"
+                }`}
+              title={activeMeeting ? "Aktif Görüşmeye Katıl" : "Görüntülü Görüşme Başlat"}
+            >
+              <Video className="w-4 h-4" />
+              <span className="hidden sm:inline">
+                {activeMeeting ? "Görüşmeye Katıl" : "Görüşme Başlat"}
+              </span>
+            </button>
+          )}
 
           {/* Firmalar — Click/Hover ile açılır */}
           <div
