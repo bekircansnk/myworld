@@ -10,6 +10,7 @@ from app.models.user import User
 from app.models.task import Task
 from app.models.project import Project
 from app.models.task_comment import TaskComment
+from app.models.activity_log import ActivityLog
 from app.schemas.task_comment import TaskCommentCreate, TaskCommentResponse
 from app.routers.websocket import manager
 from app.services.webhook_service import WebhookService
@@ -39,6 +40,41 @@ async def create_comment(
     db.add(comment)
     await db.commit()
     await db.refresh(comment)
+
+    # Aktivite Logu oluştur
+    activity = ActivityLog(
+        user_id=current_user.id,
+        project_id=task.project_id,
+        action="task_comment_add",
+        module="comments",
+        details={
+            "task_id": task.id,
+            "task_title": task.title,
+            "content": comment_in.content[:150]
+        }
+    )
+    db.add(activity)
+    await db.commit()
+    await db.refresh(activity)
+
+    # WebSocket ile NEW_ACTIVITY yayınla
+    activity_ws_payload = {
+        "type": "NEW_ACTIVITY",
+        "data": {
+            "id": activity.id,
+            "action": activity.action,
+            "module": activity.module,
+            "created_at": activity.created_at.isoformat() if activity.created_at else None,
+            "details": activity.details,
+            "user": {
+                "id": current_user.id,
+                "username": current_user.username,
+                "name": current_user.name,
+                "avatar_url": current_user.avatar_url
+              }
+          }
+    }
+    background_tasks.add_task(manager.broadcast, activity_ws_payload)
 
     # User ilişkisini yükle
     result = await db.execute(

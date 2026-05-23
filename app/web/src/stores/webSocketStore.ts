@@ -96,6 +96,31 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
              }
           }
 
+          if (data.type === 'MEETING_STARTED') {
+             const { useMeetingStore } = await import('@/stores/meetingStore');
+             const { useProjectStore } = await import('@/stores/projectStore');
+             const selectedProjectId = useProjectStore.getState().selectedProjectId;
+             if (selectedProjectId === data.data.project_id) {
+               useMeetingStore.getState().setActiveMeeting(data.data);
+             }
+          }
+
+          if (data.type === 'MEETING_ENDED') {
+             const { useMeetingStore } = await import('@/stores/meetingStore');
+             const { useProjectStore } = await import('@/stores/projectStore');
+             const selectedProjectId = useProjectStore.getState().selectedProjectId;
+             if (selectedProjectId === data.data.project_id) {
+               useMeetingStore.getState().setActiveMeeting(null);
+             }
+          }
+
+          if (data.type === 'NEW_ACTIVITY') {
+             if (typeof window !== 'undefined') {
+               const event = new CustomEvent('pikselis-new-activity', { detail: data.data });
+               window.dispatchEvent(event);
+             }
+          }
+
         } catch (e) {
           console.error("WS message error", e);
         }

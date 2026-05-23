@@ -15,6 +15,8 @@ from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse, TaskReorder, 
 from app.dependencies.auth import get_current_user
 from app.dependencies.permissions import require_company_permission
 from app.models.user import User
+from app.models.activity_log import ActivityLog
+from app.routers.websocket import manager
 from app.services.gemini import _get_gemini_client, log_cost_awaitable
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
@@ -199,6 +201,42 @@ async def create_task(
                     current_user.name
                 )
 
+        # Aktivite Logu oluştur
+        activity = ActivityLog(
+            user_id=current_user.id,
+            project_id=db_task.project_id,
+            action="task_create",
+            module="tasks",
+            details={
+                "task_id": db_task.id,
+                "title": db_task.title,
+                "priority": db_task.priority,
+                "status": db_task.status
+            }
+        )
+        db.add(activity)
+        await db.commit()
+        await db.refresh(activity)
+
+        # WebSocket ile NEW_ACTIVITY yayınla
+        activity_ws_payload = {
+            "type": "NEW_ACTIVITY",
+            "data": {
+                "id": activity.id,
+                "action": activity.action,
+                "module": activity.module,
+                "created_at": activity.created_at.isoformat() if activity.created_at else None,
+                "details": activity.details,
+                "user": {
+                    "id": current_user.id,
+                    "username": current_user.username,
+                    "name": current_user.name,
+                    "avatar_url": current_user.avatar_url
+                }
+            }
+        }
+        background_tasks.add_task(manager.broadcast, activity_ws_payload)
+
         # 2. AI Kategorizasyon ve Süre/Proje Tahminini Arka Plana At
         try:
             # Kullanıcının erişebildiği TÜM aktif firmaları al (AI context için)
@@ -312,6 +350,43 @@ async def update_task(
                 project,
                 current_user.name
             )
+
+    # Aktivite Logu oluştur & WebSocket NEW_ACTIVITY yayınla
+    if new_status and old_status != new_status:
+        activity = ActivityLog(
+            user_id=current_user.id,
+            project_id=db_task.project_id,
+            action="task_status_change",
+            module="tasks",
+            details={
+                "task_id": db_task.id,
+                "title": db_task.title,
+                "old_status": old_status,
+                "new_status": new_status
+            }
+        )
+        db.add(activity)
+        await db.commit()
+        await db.refresh(activity)
+
+        # WebSocket ile NEW_ACTIVITY yayınla
+        activity_ws_payload = {
+            "type": "NEW_ACTIVITY",
+            "data": {
+                "id": activity.id,
+                "action": activity.action,
+                "module": activity.module,
+                "created_at": activity.created_at.isoformat() if activity.created_at else None,
+                "details": activity.details,
+                "user": {
+                    "id": current_user.id,
+                    "username": current_user.username,
+                    "name": current_user.name,
+                    "avatar_url": current_user.avatar_url
+                }
+            }
+        }
+        background_tasks.add_task(manager.broadcast, activity_ws_payload)
     # Refresh via select
     result_loaded = await db.execute(select(Task).options(selectinload(Task.project)).where(Task.id == task_id))
     db_task_refreshed = result_loaded.scalars().first()

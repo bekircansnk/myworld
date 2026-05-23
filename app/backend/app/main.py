@@ -38,6 +38,8 @@ from app.routers.admin import router as admin_router
 from app.routers.websocket import router as websocket_router
 from app.routers.calendar import router as calendar_router
 from app.routers.task_comments import router as task_comments_router
+from app.routers.meeting import router as meeting_router
+from app.routers.activity import router as activity_router
 from app.utils.logger import logger
 from app.services.scheduler import start_scheduler, shutdown_scheduler
 from fastapi.responses import JSONResponse
@@ -176,6 +178,8 @@ app.include_router(reports_router, prefix="/api/reports", tags=["Reports"])
 app.include_router(calendar_router, prefix="/api", tags=["Calendar"])
 app.include_router(websocket_router)
 app.include_router(task_comments_router)
+app.include_router(meeting_router)
+app.include_router(activity_router)
 
 # Venus Routers
 from app.routers.ads.ad_accounts import router as venus_accounts_router

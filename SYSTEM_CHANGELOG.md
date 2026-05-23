@@ -2,6 +2,18 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-23] - Sürüm 4.0 - Daily.co Görüntülü Arama & Canlı Aktivite Akışı (WebSocket Sync)
+
+### Eklendi
+- **Daily.co Yerleşik Görüntülü Arama Penceresi (InAppCallWindow)**: Sağ alt köşede yüzen, glassmorphic ve mobil uyumlu görüntülü görüşme penceresi eklendi. İframe (`allow="camera; microphone; fullscreen; display-capture; autoplay"`) üzerinden Daily.co odasına doğrudan bağlanır, küçültme/büyütme (minimize/expand) ve host ise herkes için sonlandırma özelliklerine sahiptir.
+- **Toplantı Süresi Sayacı (Meeting Timer)**: Arama başladığından itibaren geçen süreyi gösteren canlı ve hassas bir sayaç eklendi.
+- **Aktif Toplantı Duyuru Banner'ı (ActiveMeetingBanner)**: Şirkette aktif bir görüntülü görüşme başladığında tüm ekip üyelerinin ekranında parlayan bir banner gösterilir ve tek tıkla görüşmeye katılmaları sağlanır.
+- **Canlı Aktivite Akışı Widget'ı (ActivityFeedWidget)**: Dashboard'a yerleştirilen, WebSocket tabanlı canlı olay günlüğü widget'ı. Bir görev açıldığında, güncellendiğinde veya yorum yazıldığında tüm sisteme WebSocket üzerinden yayınlanan olaylar anında bu akışa prepend edilir ve fade-in mikro animasyonlarıyla lüks bir deneyim sunar.
+
+### Güncellendi
+- **Dashboard Grid Entegrasyonu**: Sağ panelde yer alan son görevlerin hemen altına Canlı Aktivite Akışı entegre edilerek kontrol paneli zenginleştirildi.
+- **Global Arama Desteği**: `app/page.tsx` içerisine `InAppCallWindow` global olarak render edilerek, kullanıcının sayfa değiştirmesi durumunda dahi görüntülü aramanın kesintisiz ve floating olarak sürmesi sağlandı.
+
 ## [2026-05-23] - Sürüm 3.9 - Yerleşik Görev Yorumlaşma (Piksel-Sohbet) & Discord/Slack Webhook Entegrasyonu
 
 ### Eklendi

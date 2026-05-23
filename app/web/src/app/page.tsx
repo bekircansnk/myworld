@@ -22,6 +22,7 @@ import { AdsLayout } from "@/components/ads-panel/AdsLayout"
 import { PhotoTrackingLayout } from "@/components/photo-tracking/PhotoTrackingLayout"
 import { OfflineBanner } from "@/components/ui/OfflineBanner"
 import { AdminPanel } from "@/components/admin/AdminPanel"
+import { InAppCallWindow } from "@/components/chat/InAppCallWindow"
 
 export default function DashboardPage() {
   const { user, isAuthenticated, isLoading: authLoading, checkAuth, _hasHydrated: authHydrated } = useAuthStore()
@@ -279,6 +280,9 @@ export default function DashboardPage() {
       {/* Görev Detay Paneli */}
       <TaskDetailPanel />
       <NoteDetailPanel />
+
+      {/* Görüntülü Arama Modal Penceresi */}
+      <InAppCallWindow />
 
       {/* Mobil Alt Navigasyon */}
       <MobileBottomNav />
