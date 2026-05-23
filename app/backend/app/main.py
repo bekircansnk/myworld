@@ -240,12 +240,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "4.1",
-        "version_code": 31,
-        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v4.1.apk",
+        "version": "4.2",
+        "version_code": 32,
+        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v4.2.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
-        "changelog": "- Kontrol paneli dikey hizalama ve takvim kompakt oran sorunu düzeltildi.\n- Akıllı Asistan dikeyde uzatılıp alt sınırlar eşitlendi.\n- Takvim günleri tablosu orantılı dikey esneme ile pürüzsüzleştirildi.\n- Android mobil uygulama için sürüm 4.1 güncellemesi yayında."
+        "changelog": "- Takvim günleri içindeki kaba ve taşan görev butonları yerine modern renk kodlu göstergeler (dots) ve zengin hover detay popover yapısı getirildi.\n- Android mobil uygulama için sürüm 4.2 güncellemesi yayında."
     }
 
 @app.get("/api/link-preview")

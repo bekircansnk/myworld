@@ -2,6 +2,14 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-23] - Sürüm 4.5 - Takvim Görev Gösterim Modernizasyonu & Detay Popover Altyapısı
+
+### Eklendi
+- **Dinamik Görev Detay Popover'ı (Hover-Popover)**: Takvim günlerinin üzerine fareyle gelindiğinde veya dokunulduğunda açılan, o güne ait görevlerin başlığını, durumunu ve proje ismini içeren premium glassmorphic popover arayüzü eklendi. Popover içerisindeki görevlere tıklanarak doğrudan detayları açılabiliyor.
+
+### Güncellendi
+- **Takvim Hücresi Görev Tasarımı**: Takvim günlerindeki sığmayan, taşan ve görsel yapıyı bozan butonlar tamamen kaldırıldı. Bunun yerine projenin rengiyle uyumlu, yan yana dizilmiş, minimalist renkli noktalar (dots) entegre edildi. Bu sayede takvim hem son derece temiz bir görünüme kavuştu hem de hangi günde görev olduğu kolayca ayırt edilebilir hale geldi.
+
 ## [2026-05-23] - Sürüm 4.4 - Kontrol Paneli Dikey Hizalama & Kompakt Takvim UX İyileştirmeleri
 
 ### Güncellendi

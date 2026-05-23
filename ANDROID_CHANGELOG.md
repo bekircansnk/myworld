@@ -9,6 +9,15 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v4.2
+**Tarih:** 23 Mayıs 2026
+**Değişiklikler:**
+- **[Kritik Arayüz - Takvim Hücresi Görev Modernizasyonu]** Takvim günleri içindeki eski, sığmayan ve taşan kaba görev butonları kaldırıldı. Yerlerine, projenin rengini taşıyan son derece minimal ve modern renkli noktalar (dots) yerleştirildi.
+- **[Yeni Özellik - Hızlı Görev Detay Popover'ı]** Hücrelerin üzerine hover olunca (veya dokunulduğunda) açılan, o güne ait tüm görevlerin adlarını, durumlarını ve firma etiketlerini listeyen yarı-saydam (glassmorphic) bir detay popover'ı entegre edildi. Popover içerisindeki görevlere tıklanarak doğrudan detayları görüntülenebiliyor.
+- **[Sürüm Entegrasyonu - v4.2]** `versionCode` 32'ye ve `versionName` "4.2"'ye yükseltildi. Web static derleme, Capacitor senkronizasyonu ve debug APK üretilerek frontend fallback ve backend api endpoint'leri üzerinden yayına alındı.
+
+---
+
 ### v4.1
 **Tarih:** 23 Mayıs 2026
 **Değişiklikler:**

@@ -621,35 +621,96 @@ export function DashboardWidgets() {
               ))}
             </div>
             <div className="grid grid-cols-7 grid-rows-6 gap-1 flex-1 min-h-0">
-              {calendarDays.map((cd, i) => (
-                <div
-                  key={i}
-                  className={`rounded-lg p-1 text-center transition-colors flex flex-col justify-between h-full min-h-[32px] ${cd.isToday
-                    ? 'bg-brand-yellow/20 ring-1 ring-brand-yellow/50'
-                    : cd.isCurrentMonth ? 'hover:bg-slate-50 dark:hover:bg-slate-700/50' : ''
+              {calendarDays.map((cd, i) => {
+                const hasTasks = cd.tasks.length > 0;
+                return (
+                  <div
+                    key={i}
+                    onClick={() => {
+                      if (hasTasks) {
+                        openTaskDetail(cd.tasks[0]);
+                      }
+                    }}
+                    className={`relative group rounded-lg p-1 text-center transition-all flex flex-col justify-between h-full min-h-[36px] cursor-pointer ${
+                      cd.isToday
+                        ? 'bg-brand-yellow/20 ring-1 ring-brand-yellow/50'
+                        : cd.isCurrentMonth
+                        ? 'hover:bg-slate-100 dark:hover:bg-slate-700/40 bg-slate-50/30 dark:bg-slate-800/10'
+                        : 'opacity-40 pointer-events-none'
                     }`}
-                >
-                  <div className={`text-[10px] font-medium leading-none py-0.5 ${cd.isToday ? 'text-brand-dark dark:text-white font-bold'
-                    : cd.isCurrentMonth ? 'text-brand-dark dark:text-gray-300' : 'text-slate-300 dark:text-slate-600'
+                  >
+                    {/* Gün Numarası */}
+                    <div className={`text-[10px] font-bold leading-none py-0.5 ${
+                      cd.isToday
+                        ? 'text-brand-yellow font-black'
+                        : cd.isCurrentMonth
+                        ? 'text-brand-dark dark:text-gray-300'
+                        : 'text-slate-300 dark:text-slate-600'
                     }`}>
-                    {cd.isCurrentMonth ? cd.day : ''}
+                      {cd.isCurrentMonth ? cd.day : ''}
+                    </div>
+
+                    {/* Görev Göstergeleri (Renkli Noktalar) */}
+                    {cd.isCurrentMonth && hasTasks && (
+                      <div className="flex gap-0.5 justify-center items-center mt-auto pb-0.5">
+                        {cd.tasks.slice(0, 3).map(task => {
+                          const project = task.project || projects.find(p => p.id === task.project_id);
+                          return (
+                            <span
+                              key={task.id}
+                              className="w-1.5 h-1.5 rounded-full ring-[1px] ring-white dark:ring-slate-900 transition-transform group-hover:scale-125"
+                              style={{ backgroundColor: project?.color || '#cbd5e1' }}
+                              title={task.title}
+                            />
+                          );
+                        })}
+                        {cd.tasks.length > 3 && (
+                          <span className="text-[6px] font-black text-brand-gray dark:text-gray-400 leading-none pl-0.5">
+                            +{cd.tasks.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Popover / Tooltip (Hover durumunda açılır) */}
+                    {cd.isCurrentMonth && hasTasks && (
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-56 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3 shadow-xl hidden group-hover:flex flex-col gap-2 z-50 pointer-events-auto text-left animate-in fade-in slide-in-from-bottom-2 duration-200">
+                        <div className="text-[10px] font-bold text-slate-400 dark:text-gray-500 border-b border-slate-100 dark:border-slate-800/60 pb-1.5 mb-1 flex justify-between items-center">
+                          <span>{cd.day} {format(currentTime, 'MMMM yyyy', { locale: tr })}</span>
+                          <span className="bg-brand-yellow/10 text-brand-yellow px-1.5 py-0.5 rounded-full text-[8px] font-black">{cd.tasks.length} Görev</span>
+                        </div>
+                        <div className="flex flex-col gap-1.5 max-h-36 overflow-y-auto scrollbar-hide">
+                          {cd.tasks.map(task => {
+                            const project = task.project || projects.find(p => p.id === task.project_id);
+                            return (
+                              <button
+                                key={task.id}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openTaskDetail(task);
+                                }}
+                                className="w-full text-left p-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 rounded-xl text-[10px] font-medium transition-colors flex items-start gap-2 group/item"
+                              >
+                                <span className="w-2 h-2 rounded-full mt-1 shrink-0 ring-[1px] ring-white dark:ring-slate-900" style={{ backgroundColor: project?.color || '#cbd5e1' }} />
+                                <div className="flex-1 min-w-0">
+                                  <span className={`block truncate ${task.status === 'done' ? 'line-through text-slate-400/70' : 'text-slate-700 dark:text-gray-200 group-hover/item:text-brand-yellow font-semibold'}`}>
+                                    {task.title}
+                                  </span>
+                                  {project && (
+                                    <span className="text-[8px] text-slate-400 dark:text-slate-500 block truncate font-medium">
+                                      {project.name}
+                                    </span>
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  {cd.tasks.slice(0, 1).map(task => (
-                    <button
-                      key={task.id}
-                      onClick={(e) => { e.stopPropagation(); openTaskDetail(task); }}
-                      className="w-full text-left px-1 py-0.5 rounded text-[7px] font-semibold leading-tight truncate block hover:opacity-80 transition mt-auto"
-                      style={{ backgroundColor: task.project?.color ? `${task.project.color}25` : '#f0f0f0', color: task.project?.color || '#333' }}
-                      title={task.title}
-                    >
-                      {task.title.length > 7 ? task.title.substring(0, 7) + '…' : task.title}
-                    </button>
-                  ))}
-                  {cd.tasks.length > 1 && (
-                    <div className="text-[7px] font-bold text-brand-gray dark:text-gray-500 mt-auto">+{cd.tasks.length - 1}</div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
