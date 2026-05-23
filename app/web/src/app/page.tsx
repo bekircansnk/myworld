@@ -37,11 +37,38 @@ export default function DashboardPage() {
     setMounted(true)
     checkAuth()
     
-    // Sabah Karşılama Kontrolü
-    const todayStr = new Date().toDateString()
-    const lastGreet = localStorage.getItem("pikselis_last_greet")
-    if (lastGreet !== todayStr) {
+    // Her yeni sekme açılışında veya yenilemede karşılama ekranını göster (Session Storage)
+    const sessionGreet = sessionStorage.getItem("pikselis_session_greet")
+    if (sessionGreet !== "true") {
       setShowMorning(true)
+    }
+
+    // --- BOŞTA KALMA (IDLE DETECTION) VE EKRAN TASARRUFU ---
+    let idleTimer: NodeJS.Timeout
+    const idleTimeoutVal = 10 * 60 * 1000 // 10 Dakika boşta kalma süresi
+
+    const resetIdleTimer = () => {
+      clearTimeout(idleTimer)
+      idleTimer = setTimeout(() => {
+        // Kullanıcı 10 dakika boyunca aktif değilse tasarruf moduna (Karşılama Ekranı) al
+        setShowMorning(true)
+        sessionStorage.removeItem("pikselis_session_greet") // Tekrar oturum selamlamasını sıfırla
+      }, idleTimeoutVal)
+    }
+
+    // Aktiflik dinleyicileri
+    const activityEvents = ["mousemove", "mousedown", "keypress", "touchstart", "scroll"]
+    activityEvents.forEach(event => {
+      window.addEventListener(event, resetIdleTimer)
+    })
+
+    resetIdleTimer() // Zamanlayıcıyı başlat
+
+    return () => {
+      clearTimeout(idleTimer)
+      activityEvents.forEach(event => {
+        window.removeEventListener(event, resetIdleTimer)
+      })
     }
   }, [])
 
@@ -67,12 +94,14 @@ export default function DashboardPage() {
     }
   }, [isAuthenticated])
 
-  // Firma veya viewMode değiştiğinde tüm modül verilerini yeniden çek
+  // Firma veya viewMode veya karşılama ekranı durumu değiştiğinde tüm modül verilerini yeniden çek
   React.useEffect(() => {
     if (!isAuthenticated || !selectedProjectId || !projectHydrated) return
 
     const refreshData = (isInitial = false) => {
-      if (!isInitial && document.hidden) return
+      // Eğer sekme arka plandaysa veya Karşılama Ekranı (Tasarruf Modu) açık ise poll işlemlerini pas geç (İşlemci & RAM tasarrufu)
+      if (!isInitial && (document.hidden || showMorning)) return
+      
       if (viewMode === 'all_tasks' || viewMode === 'project' || viewMode === 'dashboard') {
         fetchTasks(selectedProjectId)
       }
@@ -89,10 +118,10 @@ export default function DashboardPage() {
     const pollInterval = setInterval(() => refreshData(false), 60000)
 
     return () => clearInterval(pollInterval)
-  }, [isAuthenticated, selectedProjectId, viewMode, projectHydrated])
+  }, [isAuthenticated, selectedProjectId, viewMode, projectHydrated, showMorning])
 
   const handleMorningDismiss = () => {
-    localStorage.setItem("pikselis_last_greet", new Date().toDateString())
+    sessionStorage.setItem("pikselis_session_greet", "true")
     setShowMorning(false)
   }
 

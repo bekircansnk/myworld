@@ -184,12 +184,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "3.6",
-        "version_code": 27,
-        "download_url": "https://myworld-twqx.onrender.com/static/Pikselis_v3.6.apk",
+        "version": "3.7",
+        "version_code": 28,
+        "download_url": "https://myworld-twqx.onrender.com/static/Pikselis_v3.7.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
-        "changelog": "- Yepyeni akıllı karşılama ve yapay zeka destekli gün özeti ekranı eklendi.\n- Günün saatine göre değişen renk auraları ve tebrik mesajları entegre edildi.\n- Bugünün görevleri, takvim etkinlikleri ve sarkan işler özet paneline dahil edildi.\n- Gemini AI motivasyon ve asistan ipucu kartı eklendi."
+        "changelog": "- Boşta kalma (Idle) durumunda otomatik karşılama/ekran tasarrufu modu eklendi.\n- Karşılama ekranı açıkken poll veri güncellemeleri duraklatılarak RAM ve CPU tasarrufu sağlandı.\n- Her yeni sekme açılışında veya yenilemede karşılama ekranı gösterme entegre edildi.\n- Sol taraftaki AI raporunun altına pürüzsüz yatay kaydırılabilir 'Bekleyen İşler' kart listesi eklendi."
     }
 
 @app.get("/api/link-preview")

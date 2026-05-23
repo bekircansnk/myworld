@@ -2,6 +2,14 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-23] - Sürüm 3.7 - Boşta Kalma Tasarruf Modu & Bekleyen İşler Kaydırıcı Kartları
+
+### Eklendi
+- **Boşta Kalma (Idle Detection) & Ekran Tasarrufu Modu:** Kullanıcı 10 dakika boyunca fare/klavye/dokunmatik eylemi gerçekleştirmezse uygulama otomatik olarak karşılama ekranına (Tasarruf Modu) geçer.
+- **Poll Duraklatma (İşlemci & RAM Sakinliği):** Karşılama ekranı açıkken veya boşta kalmışken arka plandaki backend veri sorgulamaları (poll interval) geçici olarak tamamen durdurularak ağ ve işlemci yükü sıfıra indirilir.
+- **Her Yeni Sekme Karşılaması:** Karşılama ekranı artık günde 1 kez değil, sessionStorage kullanılarak her yeni sekmeye veya sayfa yenilenmesine anında açılacak şekilde uyarlandı.
+- **Yatay Kaydırılabilir "Bekleyen İşler" Kartları:** Sol kolondaki AI motivasyon kartının altına, son tarihi gelecek veya son tarihi atanmamış tüm tamamlanmamış görevlerin listelendiği, yatayda kaydırılabilir snap-aligned premium kart listesi eklendi.
+
 ## [2026-05-23] - Akıllı Karşılama ve Yapay Zeka Destekli Gün Özeti Ekranı
 
 ### Eklendi

@@ -9,6 +9,15 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v3.7
+**Tarih:** 23 Mayıs 2026
+**Değişiklikler:**
+- **[Yeni Özellik - Boşta Kalma (Idle) ve Ekran Tasarrufu Modu]** Cihazda veya bilgisayarda 10 dakika boyunca hiçbir işlem yapılmadığında, uygulama otomatik olarak karşılama/tasarruf ekranına geçer. Bu moddayken arka plandaki backend veri çekme/poll işlemleri tamamen duraklatılarak yüksek RAM ve CPU tasarrufu (işlemci sakinliği) sağlanır.
+- **[Yeni Özellik - Sekme Bazlı Karşılama]** Her yeni sekmeden girildiğinde veya sayfa yenilendiğinde akıllı karşılama ekranı anında tetiklenir (sessionStorage entegrasyonu).
+- **[Yeni Özellik - Bekleyen İşler Kaydırıcı Kartları]** Sol kolondaki AI motivasyon kartının altına yatayda pürüzsüz kaydırılabilir, SNAP destekli modern "Bekleyen İşler" kart listesi eklendi. Aktif genel görevler öncelik ve firma etiketleriyle birlikte anlık izlenebilir hale getirildi.
+
+---
+
 ### v3.6
 **Tarih:** 23 Mayıs 2026
 **Değişiklikler:**

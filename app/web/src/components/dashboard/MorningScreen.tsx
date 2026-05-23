@@ -103,7 +103,7 @@ export function MorningScreen({ onDismiss }: MorningScreenProps) {
 
   // Veri Analizi ve Filtreleme (Sadece Client-side'da çalışır, Hydration hatasını önler)
   const stats = React.useMemo(() => {
-    if (!mounted) return { todayTasks: [], pendingTasks: [], todayEvents: [], completedYesterday: 0 }
+    if (!mounted) return { todayTasks: [], pendingTasks: [], todayEvents: [], completedYesterday: 0, waitingTasks: [] }
 
     const now = new Date()
     const todayStr = now.toISOString().split('T')[0] // YYYY-MM-DD
@@ -141,7 +141,15 @@ export function MorningScreen({ onDismiss }: MorningScreenProps) {
       return compDate === yesterdayStr
     }).length
 
-    return { todayTasks, pendingTasks, todayEvents, completedYesterday }
+    // 5. Bekleyen İşler (Gelecek tarihli veya son tarihi olmayan tamamlanmamış aktif görevler)
+    const waitingTasks = tasks.filter(t => {
+      if (t.status === 'done' || t.is_deleted || t.parent_task_id) return false
+      if (!t.due_date) return true // Son tarihi yoksa bekleyen genel iştir
+      const taskDate = t.due_date.split('T')[0]
+      return taskDate > todayStr // Gelecek tarihli
+    })
+
+    return { todayTasks, pendingTasks, todayEvents, completedYesterday, waitingTasks }
   }, [mounted, tasks, events])
 
   // Hydration öncesi Next.js'in tutarsız HTML üretmesini engelle
@@ -191,7 +199,7 @@ export function MorningScreen({ onDismiss }: MorningScreenProps) {
         {/* Orta Bölüm: AI Analiz & Görev Özet Gridi */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 my-8 overflow-y-auto max-h-[55vh] pr-1.5 custom-scrollbar">
           
-          {/* Sol Kolon (6/12): AI Motivasyon & Asistan Tavsiyesi */}
+          {/* Sol Kolon (6/12): AI Motivasyon & Bekleyen İşler */}
           <div className="lg:col-span-6 flex flex-col gap-6">
             <div className="bg-gradient-to-br from-indigo-500/10 via-primary/5 to-transparent border border-primary/20 rounded-[24px] p-6 relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -242,6 +250,45 @@ export function MorningScreen({ onDismiss }: MorningScreenProps) {
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* Bekleyen İşler (Yatay Kaydırılabilir) */}
+            <div className="bg-card/60 border border-border/50 rounded-[24px] p-6 hover:border-indigo-500/20 transition-colors">
+              <div className="flex items-center justify-between mb-3.5">
+                <div className="flex items-center gap-2 font-bold text-sm tracking-wide text-foreground uppercase">
+                  <Sparkles className="w-4 h-4 text-indigo-500 animate-pulse" />
+                  Bekleyen İşler ({stats.waitingTasks.length})
+                </div>
+              </div>
+
+              {stats.waitingTasks.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic py-1">Aktif bekleyen bir işiniz bulunmuyor.</p>
+              ) : (
+                <div className="flex gap-3.5 overflow-x-auto pb-2 pt-1 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-indigo-500/25">
+                  {stats.waitingTasks.map(task => (
+                    <div 
+                      key={task.id} 
+                      className="min-w-[210px] max-w-[210px] p-4 bg-background/50 border border-border/40 rounded-2xl hover:border-indigo-500/30 transition-all flex flex-col gap-2 shrink-0 snap-start shadow-sm"
+                    >
+                      <div className="flex items-center justify-between gap-1.5">
+                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                          task.priority === 'urgent' ? 'bg-red-500/10 text-red-500' : task.priority === 'low' ? 'bg-blue-500/10 text-blue-500' : 'bg-amber-500/10 text-amber-500'
+                        }`}>
+                          {task.priority === 'urgent' ? 'Acil' : task.priority === 'low' ? 'Düşük' : 'Orta'}
+                        </span>
+                        {task.project && (
+                          <span className="text-[9px] px-2 py-0.5 bg-indigo-500/10 text-indigo-400 rounded-full font-semibold truncate max-w-[100px]">
+                            {task.project.name}
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="text-xs font-semibold text-foreground line-clamp-2 h-8 leading-tight flex-1" title={task.title}>
+                        {task.title}
+                      </h4>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
