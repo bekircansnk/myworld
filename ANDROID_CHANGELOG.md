@@ -9,6 +9,16 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v3.6
+**Tarih:** 23 Mayıs 2026
+**Değişiklikler:**
+- **[Yeni Özellik - Akıllı Karşılama & Yapay Zeka Destekli Gün Özeti]** Sabah karşılama ekranı (MorningScreen.tsx) tamamen yenilendi. Artık saate göre dinamik renk auraları ("Günaydın", "Tünaydın", "İyi Akşamlar", "İyi Geceler") ile karşılıyor.
+- **[Zustand & Canlı Entegrasyon]** Bugün son tarihi olan görevler, bugünün takvim etkinlikleri ve geçmişten sarkan tamamlanmamış görevler anlık olarak karşılama ekranında özetleniyor.
+- **[Gemini AI Motivasyonu]** `/api/ai/motivation` üzerinden çekilen yapay zeka analizleri ve asistan tavsiyeleri doğrudan karşılama ekranına entegre edilerek tek tıkla yenilenebilir hale getirildi.
+- **[Çoklu Platform & Canlıda Çalışma Uyum Yeteneği]** Mobil WebView, Android Capacitor uygulaması, tabletler ve masaüstü bilgisayarlarda %100 responsive, dokunmatik uyumlu ve akıcı çalışacak şekilde optimize edildi. Hydration hataları engellendi.
+
+---
+
 ### v3.5
 **Tarih:** 22 Mayıs 2026
 **Değişiklikler:**

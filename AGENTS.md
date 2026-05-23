@@ -3,8 +3,11 @@ Bu uygulama kuralları, `/Users/bekir/.gemini/GEMINI.md` adresindeki ANA SİSTEM
 # 🌍 MY WORLD - PROJEYE ÖZEL KURALLAR (AGENTS.md)
 
 ## 🚀 HİPER HIZ VE OPERASYON
-1. **Build Kontrolü:** Commit ve Push atmadan önce `npm run build` (frontend) ve backend kontrolleri yapılmalıdır. Hata varsa commit atılamaz.
-2. **Otomatik Yayın:** Başarılı her görev sonunda `git commit` ve `git push` otomatik olarak yapılacaktır (Kullanıcıdan onay beklemeden).
+1. **Canlıda (Production) Çalışma İlkesi:** Kullanıcı her zaman canlı ortamda çalışmaktadır ve asla lokal bilgisayarında test yapmamaktadır. Yapılan her değişiklik otomatik olarak `git commit` ve `git push` ile canlıya (Vercel & Render.com) yansımaktadır. Bu nedenle, kod kalitesi, veri güvenliği ve derleme (build) kontrolü canlıya çıkmadan önce `npm run build` ile %100 güvence altına alınmalıdır.
+2. **Çoklu Platform ve Evrensel Uyumluluk:** Yapılan her yenilik, görsel veya fonksiyonel geliştirme; Android uygulaması (Capacitor), Mobil tarayıcılar (telefon/tablet) ve Masaüstü bilgisayarlar dahil tüm platformlarda eşit, eşzamanlı ve hatasız çalışacak şekilde tasarlanmalı ve kodlanmalıdır. "Sadece web'de çalışıyor" yaklaşımı kesinlikle kabul edilemez.
+3. **Build Kontrolü:** Commit ve Push atmadan önce `npm run build` (frontend) ve backend kontrolleri yapılmalıdır. Hata varsa commit atılamaz.
+4. **Otomatik Yayın:** Başarılı her görev sonunda `git commit` ve `git push` otomatik olarak yapılacaktır (Kullanıcıdan onay beklemeden).
+
 
 ## 📊 Kayıt, Günlük ve Hata Yönetimi (ZORUNLU)
 1. **ANDROID_CHANGELOG.md:** Her APK güncellemesinde sürüm notları buraya eklenmelidir.
