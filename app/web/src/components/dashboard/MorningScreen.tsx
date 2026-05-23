@@ -2,68 +2,353 @@
 
 import * as React from "react"
 import { Button } from "@/components/ui/button"
-import { Sun, Coffee, BookOpen, Dumbbell, Sparkles } from "lucide-react"
+import { 
+  Sun, Moon, Sunrise, Sunset, Sparkles, 
+  CheckCircle2, Clock, Calendar, AlertCircle, 
+  ArrowRight, BrainCircuit, RefreshCw 
+} from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
+import { useTaskStore } from "@/stores/taskStore"
+import { useCalendarStore } from "@/stores/calendarStore"
+import { useProjectStore } from "@/stores/projectStore"
+import { api } from "@/lib/api"
+import { Task } from "@/types"
+import { CalendarEvent } from "@/types/calendar"
 
 interface MorningScreenProps {
   onDismiss: () => void;
 }
 
-const ACTIVITIES = [
-  { icon: <BookOpen className="w-5 h-5" />, text: "15 dk kitap oku" },
-  { icon: <Coffee className="w-5 h-5" />, text: "Günün kahvesini demlerken esne" },
-  { icon: <Dumbbell className="w-5 h-5" />, text: "10 dk sabah egzersizi yap" },
-]
-
 export function MorningScreen({ onDismiss }: MorningScreenProps) {
   const { user } = useAuthStore()
+  const { tasks, fetchTasks } = useTaskStore()
+  const { events, fetchEvents } = useCalendarStore()
+  const { selectedProjectId } = useProjectStore()
+
+  // Durum Yönetimi (State Management)
+  const [mounted, setMounted] = React.useState(false)
   const [isVisible, setIsVisible] = React.useState(false)
-  const currentActivity = React.useMemo(() => ACTIVITIES[new Date().getDay() % ACTIVITIES.length], [])
+  const [motivation, setMotivation] = React.useState<string>("")
+  const [isAiLoading, setIsAiLoading] = React.useState(false)
 
+  // Saate Göre Karşılama ve Tema Belirleme
+  const greetingInfo = React.useMemo(() => {
+    if (!mounted) return { text: "Günaydın", icon: <Sunrise className="w-8 h-8 text-amber-500 animate-pulse" />, gradient: "from-amber-500/20 via-orange-500/10 to-transparent" }
+    
+    const hour = new Date().getHours()
+    if (hour >= 5 && hour < 12) {
+      return {
+        text: "Günaydın",
+        icon: <Sunrise className="w-8 h-8 text-amber-500 animate-pulse" />,
+        gradient: "from-amber-500/20 via-orange-500/10 to-transparent"
+      }
+    } else if (hour >= 12 && hour < 17) {
+      return {
+        text: "Tünaydın",
+        icon: <Sun className="w-8 h-8 text-yellow-500 animate-spin-slow" />,
+        gradient: "from-yellow-500/20 via-amber-500/10 to-transparent"
+      }
+    } else if (hour >= 17 && hour < 22) {
+      return {
+        text: "İyi Akşamlar",
+        icon: <Sunset className="w-8 h-8 text-rose-500" />,
+        gradient: "from-rose-500/20 via-purple-500/10 to-transparent"
+      }
+    } else {
+      return {
+        text: "İyi Geceler",
+        icon: <Moon className="w-8 h-8 text-indigo-400" />,
+        gradient: "from-indigo-500/25 via-slate-900/40 to-transparent"
+      }
+    }
+  }, [mounted])
+
+  // AI Motivasyon Mesajını Çek
+  const fetchAiMotivation = async () => {
+    setIsAiLoading(true)
+    try {
+      const res = await api.get("/api/ai/motivation")
+      if (res.data && res.data.message) {
+        setMotivation(res.data.message)
+      } else {
+        setMotivation("Bugün harika şeyler yapabileceğini biliyorum. Adım adım hedeflerine odaklan!")
+      }
+    } catch (err) {
+      console.error("AI motivasyon mesajı çekilemedi:", err)
+      setMotivation("Harika bir gün olsun! Bugün tüm görevlerini başarıyla tamamlaman için sabırsızlanıyorum.")
+    } finally {
+      setIsAiLoading(false)
+    }
+  }
+
+  // İlk Yükleme ve Veri Senkronizasyonu
   React.useEffect(() => {
-    // Component unmount olurken bile animasyonu hissetmek için kısa bir timeout ile render ediliyor
+    setMounted(true)
     setIsVisible(true)
-  }, [])
+    
+    // Eğer Zustand store'lar boşsa verileri tetikle
+    if (selectedProjectId) {
+      fetchTasks(selectedProjectId)
+      fetchEvents(selectedProjectId)
+    }
+    
+    fetchAiMotivation()
+  }, [selectedProjectId])
 
+  // Kapatma Animasyonu Yönetimi
   const handleStart = () => {
     setIsVisible(false)
-    setTimeout(() => onDismiss(), 300) // Animasyon süresi
+    setTimeout(() => onDismiss(), 400) // Pürüzsüz geçiş için animasyon süresi
+  }
+
+  // Veri Analizi ve Filtreleme (Sadece Client-side'da çalışır, Hydration hatasını önler)
+  const stats = React.useMemo(() => {
+    if (!mounted) return { todayTasks: [], pendingTasks: [], todayEvents: [], completedYesterday: 0 }
+
+    const now = new Date()
+    const todayStr = now.toISOString().split('T')[0] // YYYY-MM-DD
+    
+    // Dünün Tarihini Hesapla
+    const yesterday = new Date()
+    yesterday.setDate(now.getDate() - 1)
+    const yesterdayStr = yesterday.toISOString().split('T')[0]
+
+    // 1. Bugünün Görevleri (due_date bugün olan ve tamamlanmamış)
+    const todayTasks = tasks.filter(t => {
+      if (!t.due_date || t.status === 'done' || t.is_deleted) return false
+      const taskDate = t.due_date.split('T')[0]
+      return taskDate === todayStr
+    })
+
+    // 2. Günden Kalanlar (Tamamlanmamış ve son tarihi geçmiş olan görevler)
+    const pendingTasks = tasks.filter(t => {
+      if (t.status === 'done' || t.is_deleted) return false
+      if (!t.due_date) return false
+      const taskDate = t.due_date.split('T')[0]
+      return taskDate < todayStr // Tarihi bugünden küçük olanlar
+    }).slice(0, 3) // En fazla 3 tanesini göster, ekranı yorma
+
+    // 3. Bugünün Takvim Etkinlikleri
+    const todayEvents = events.filter(e => {
+      if (e.isCompleted) return false
+      return e.date === todayStr
+    })
+
+    // 4. Dün Tamamlanan Görevler
+    const completedYesterday = tasks.filter(t => {
+      if (t.status !== 'done' || t.is_deleted || !t.completed_at) return false
+      const compDate = t.completed_at.split('T')[0]
+      return compDate === yesterdayStr
+    }).length
+
+    return { todayTasks, pendingTasks, todayEvents, completedYesterday }
+  }, [mounted, tasks, events])
+
+  // Hydration öncesi Next.js'in tutarsız HTML üretmesini engelle
+  if (!mounted) {
+    return null
   }
 
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-      <div className={`relative max-w-lg w-full p-8 md:p-12 text-center flex flex-col items-center justify-center transform transition-all duration-500 delay-100 ${isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-8 opacity-0 scale-95'}`}>
-         
-         <div className="w-20 h-20 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-500 mb-6 flex items-center justify-center shadow-inner relative">
-           <Sun className="w-10 h-10" />
-           <div className="absolute inset-0 rounded-full animate-ping bg-yellow-400/20 duration-1000"></div>
-         </div>
+    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-md transition-all duration-500 ease-out ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+      
+      {/* Arka Plandaki Estetik Gradyan Halka */}
+      <div className={`absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-gradient-to-tr ${greetingInfo.gradient} blur-[120px] opacity-75 pointer-events-none transition-all duration-700`} />
 
-         <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4">
-           Günaydın {user?.username}!
-         </h1>
-         <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-sm">
-           Bugün harika şeyler yapabileceğini biliyorum. Ama işe koyulmadan önce, kendine biraz vakit ayır...
-         </p>
+      <div className={`relative max-w-5xl w-full mx-4 p-6 md:p-10 bg-card/40 border border-border/60 backdrop-blur-xl rounded-[32px] shadow-2xl flex flex-col transform transition-all duration-700 ease-out overflow-hidden ${isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-12 opacity-0 scale-95'}`}>
+        
+        {/* Üst Karşılama Bölümü */}
+        <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6 pb-8 border-b border-border/50">
+          <div className="flex flex-col items-center md:items-start text-center md:text-left">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2.5 bg-primary/10 rounded-2xl">
+                {greetingInfo.icon}
+              </div>
+              <span className="text-sm font-semibold tracking-wider uppercase text-muted-foreground">{greetingInfo.text}</span>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground">
+              Tekrar Hoş Geldin, <span className="bg-gradient-to-r from-primary to-indigo-500 bg-clip-text text-transparent">{user?.username}</span>!
+            </h1>
+            <p className="text-sm text-muted-foreground mt-2 max-w-xl">
+              İşte yeni bir gün ve yeni fırsatlar. Bugünün odağını belirlemeden önce senin için hazırladığım özete bir göz at.
+            </p>
+          </div>
 
-         <div className="bg-card border border-border/50 rounded-2xl p-6 w-full mb-10 shadow-sm flex items-center gap-4 text-left">
-           <div className="min-w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center">
-             {currentActivity.icon}
-           </div>
-           <div>
-             <h3 className="font-semibold text-foreground uppercase tracking-wider text-xs mb-1">Günün Küçük Rutini</h3>
-             <p className="text-foreground/90 font-medium">{currentActivity.text}</p>
-           </div>
-         </div>
+          {/* Dün Neler Yaptık Kartı */}
+          {stats.completedYesterday > 0 && (
+            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex items-center gap-3.5 max-w-[280px] w-full animate-fade-in">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/25 flex items-center justify-center text-emerald-500">
+                <CheckCircle2 className="w-5.5 h-5.5" />
+              </div>
+              <div>
+                <h4 className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Dünün Başarısı</h4>
+                <p className="text-sm font-bold text-foreground mt-0.5">{stats.completedYesterday} Görev Tamamlandı!</p>
+              </div>
+            </div>
+          )}
+        </div>
 
-         <Button 
+        {/* Orta Bölüm: AI Analiz & Görev Özet Gridi */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 my-8 overflow-y-auto max-h-[55vh] pr-1.5 custom-scrollbar">
+          
+          {/* Sol Kolon (6/12): AI Motivasyon & Asistan Tavsiyesi */}
+          <div className="lg:col-span-6 flex flex-col gap-6">
+            <div className="bg-gradient-to-br from-indigo-500/10 via-primary/5 to-transparent border border-primary/20 rounded-[24px] p-6 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <BrainCircuit className="w-24 h-24 text-primary" />
+              </div>
+              
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2 text-primary font-bold text-sm tracking-wide uppercase">
+                  <BrainCircuit className="w-5 h-5" />
+                  Yapay Zeka Günlük Raporu
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={fetchAiMotivation}
+                  disabled={isAiLoading}
+                  className="h-8 w-8 rounded-full hover:bg-primary/10 text-muted-foreground"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isAiLoading ? 'animate-spin' : ''}`} />
+                </Button>
+              </div>
+
+              {isAiLoading ? (
+                <div className="space-y-3 py-2">
+                  <div className="h-4 bg-muted animate-pulse rounded w-3/4"></div>
+                  <div className="h-4 bg-muted animate-pulse rounded w-5/6"></div>
+                  <div className="h-4 bg-muted animate-pulse rounded w-2/3"></div>
+                </div>
+              ) : (
+                <p className="text-foreground/90 leading-relaxed font-medium text-[15px] italic">
+                  "{motivation || "Bugün odaklanman gereken tüm hedefler hazır. Harika işler çıkaracağına eminim!"}"
+                </p>
+              )}
+
+              {/* Akıllı Durum Tavsiyesi */}
+              <div className="mt-6 pt-5 border-t border-border/50 flex gap-3 text-xs text-muted-foreground">
+                <div className="p-1 bg-amber-500/10 text-amber-500 rounded-lg h-fit">
+                  <AlertCircle className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="font-semibold text-foreground">Asistan İpucu:</span>
+                  {stats.pendingTasks.length > 0 ? (
+                    <p className="mt-0.5">Geçmişten sarkan {stats.pendingTasks.length} adet işin bulunuyor. Güne bunları planlayarak başlamak harika bir adım olabilir.</p>
+                  ) : stats.todayTasks.length > 0 ? (
+                    <p className="mt-0.5">Bugün için öncelikli {stats.todayTasks.length} görevin var. Zamanını verimli yönetmeye odaklan.</p>
+                  ) : (
+                    <p className="mt-0.5">Bugün listende acil bir görev görünmüyor! Takvim etkinliklerini inceleyip yeni hedefler belirleyebilirsin.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Sağ Kolon (6/12): Bugünün Görevleri, Takvimi ve Günden Kalanlar */}
+          <div className="lg:col-span-6 grid grid-cols-1 gap-6">
+            
+            {/* Bugün Yapılacaklar (Due Today) */}
+            <div className="bg-card/60 border border-border/50 rounded-2xl p-5 hover:border-primary/20 transition-colors">
+              <div className="flex items-center justify-between mb-3.5">
+                <div className="flex items-center gap-2 font-bold text-sm tracking-wide text-foreground uppercase">
+                  <Clock className="w-4 h-4 text-primary" />
+                  Bugün Yapılacaklar ({stats.todayTasks.length})
+                </div>
+              </div>
+
+              {stats.todayTasks.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic py-1">Bugün için son tarihi olan bir görev görünmüyor.</p>
+              ) : (
+                <div className="space-y-2.5 max-h-40 overflow-y-auto custom-scrollbar">
+                  {stats.todayTasks.map(task => (
+                    <div key={task.id} className="flex items-center gap-2.5 p-2 bg-background/50 border border-border/30 rounded-xl hover:bg-background/80 transition-colors">
+                      <div className={`w-2 h-2 rounded-full ${task.priority === 'urgent' ? 'bg-red-500' : task.priority === 'low' ? 'bg-blue-500' : 'bg-amber-500'}`} />
+                      <span className="text-xs font-semibold text-foreground line-clamp-1 flex-1">{task.title}</span>
+                      {task.project && (
+                        <span className="text-[10px] px-2 py-0.5 bg-primary/10 text-primary rounded-full font-medium">
+                          {task.project.name}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Bugünün Takvimi */}
+            <div className="bg-card/60 border border-border/50 rounded-2xl p-5 hover:border-indigo-500/20 transition-colors">
+              <div className="flex items-center justify-between mb-3.5">
+                <div className="flex items-center gap-2 font-bold text-sm tracking-wide text-foreground uppercase">
+                  <Calendar className="w-4 h-4 text-indigo-500" />
+                  Takvim Etkinlikleri ({stats.todayEvents.length})
+                </div>
+              </div>
+
+              {stats.todayEvents.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic py-1">Bugün için planlanmış bir etkinlik bulunmuyor.</p>
+              ) : (
+                <div className="space-y-2.5 max-h-40 overflow-y-auto custom-scrollbar">
+                  {stats.todayEvents.map(event => (
+                    <div key={event.id} className="flex items-center justify-between p-2 bg-background/50 border border-border/30 rounded-xl hover:bg-background/80 transition-colors">
+                      <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                        <span className="text-xs font-semibold text-foreground truncate">{event.title}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-muted-foreground text-[10px] font-semibold bg-muted px-2 py-0.5 rounded-full shrink-0">
+                        <Clock className="w-3 h-3" />
+                        {event.startTime || "Tüm Gün"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Günden Sarkanlar (Geçmiş İşler) */}
+            {stats.pendingTasks.length > 0 && (
+              <div className="bg-card/60 border border-border/50 rounded-2xl p-5 hover:border-rose-500/20 transition-colors">
+                <div className="flex items-center justify-between mb-3.5">
+                  <div className="flex items-center gap-2 font-bold text-sm tracking-wide text-foreground uppercase">
+                    <AlertCircle className="w-4 h-4 text-rose-500 animate-pulse" />
+                    Geçmişten Kalanlar ({stats.pendingTasks.length})
+                  </div>
+                </div>
+
+                <div className="space-y-2.5 max-h-40 overflow-y-auto custom-scrollbar">
+                  {stats.pendingTasks.map(task => (
+                    <div key={task.id} className="flex items-center gap-2.5 p-2 bg-background/50 border border-border/30 rounded-xl hover:bg-rose-500/5 transition-colors">
+                      <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                      <span className="text-xs font-semibold text-foreground line-clamp-1 flex-1">{task.title}</span>
+                      <span className="text-[10px] text-rose-500 font-bold bg-rose-500/10 px-2 py-0.5 rounded-full shrink-0">
+                        Gecikti
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          </div>
+
+        </div>
+
+        {/* Alt Aksiyon Buton Paneli */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-border/50 mt-auto">
+          <div className="text-xs text-muted-foreground font-medium text-center sm:text-left">
+            💡 <span className="font-semibold text-foreground">İpucu:</span> Yapay zeka ile gününü anında planlamak için ana sayfadaki AI Sohbet asistanını kullanabilirsin.
+          </div>
+
+          <Button 
             onClick={handleStart}
             size="lg" 
-            className="w-full sm:w-auto text-base h-14 px-10 rounded-full shadow-lg hover:shadow-xl transition-all font-semibold gap-2"
-         >
-            <Sparkles className="w-5 h-5" />
+            className="w-full sm:w-auto text-sm h-12 px-8 rounded-full shadow-lg hover:shadow-xl transition-all font-bold gap-2 bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 text-white"
+          >
+            <Sparkles className="w-4 h-4" />
             Hazırım, Günü Başlat
-         </Button>
+            <ArrowRight className="w-4 h-4 ml-1" />
+          </Button>
+        </div>
+
       </div>
     </div>
   )

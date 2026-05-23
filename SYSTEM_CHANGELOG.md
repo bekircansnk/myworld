@@ -2,6 +2,20 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-23] - Akıllı Karşılama ve Yapay Zeka Destekli Gün Özeti Ekranı
+
+### Eklendi
+- **Yapay Zeka Destekli Sabah Karşılama Paneli (MorningScreen.tsx):** Mevcut statik sabah ekranı tamamen yenilenerek glassmorphic, dinamik ve saate duyarlı bir günün başlangıcı paneline dönüştürüldü.
+- **Dinamik Karşılama Mimarisi:** Saate göre otomatik "Günaydın", "Tünaydın", "İyi Akşamlar", "İyi Geceler" tebrikleri ve buna eşlik eden canlı renk auraları/degradeleri.
+- **Bugünün Görevleri & Takvim:** `taskStore` ve `calendarStore` entegrasyonu ile son tarihi bugün olan görevler ve bugünün takvim etkinlikleri anında listeleniyor.
+- **Geçmişten Kalanlar (Gecikmiş İşler):** Geçmiş günlerde planlanmış ancak tamamlanmamış en kritik 3 görevi gösteren "Günden Kalanlar" bölümü.
+- **Dünün Başarıları:** Dün başarıyla tamamlanan görevlerin sayısını gösteren motivasyon kartı.
+- **Gemini AI Entegrasyonu:** `/api/ai/motivation` üzerinden çekilen asistan tavsiyeleri ve o güne özel asistan ipucu metinleri.
+- **Hydration Koruma Filtresi:** Next.js client-side/server-side render tutarsızlıklarını ve hydration hatalarını önleyen `mounted` ve client-side tabanlı tarih eşleştirme mantığı.
+
+### Güncellendi
+- **Arayüz Tasarımı:** Premium glassmorphism paneller, pürüzsüz hover mikro-animasyonları, lüks tasarım standartlarına uygun arayüz elemanları ve "Hazırım, Günü Başlat!" geçiş butonu eklendi.
+
 ## [2026-05-22] - Görev Kartlarının Kaybolması ve Alt Görev Ekleme Hatalarının Çözümü
 
 ### Çözüldü
