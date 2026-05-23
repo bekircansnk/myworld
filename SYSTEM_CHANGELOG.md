@@ -2,6 +2,16 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-23] - Sürüm 3.9 - Yerleşik Görev Yorumlaşma (Piksel-Sohbet) & Discord/Slack Webhook Entegrasyonu
+
+### Eklendi
+- **Yerleşik Görev Yorumlaşma (task_comments) Altyapısı**: Üçüncü partilere bağımlı kalmadan, tamamen Pikseliş veritabanı (PostgreSQL/Neon) tabanlı bir görev içi konuşma ve yorumlaşma sistemi entegre edildi.
+- **WebSocket ile Anlık Mesajlaşma (Real-time Comments)**: `webSocketStore.ts` ve FastAPI WebSocket sunucusu genişletilerek, bir göreve yeni bir yorum yazıldığında veya silindiğinde, detay paneli açık olan tüm ekip üyelerinin ekranında yorumlar anlık ve sıfır gecikmeyle güncellenmektedir.
+- **Discord & Slack Webhook Entegrasyonu**: Proje/Firma detay ayarlarına zengin tasarımlı Discord ve Slack Webhook URL girişleri eklenerek, görev oluşturulduğunda, görev durumları güncellendiğinde (todo ➡️ done vb.) veya göreve yeni bir yorum eklendiğinde otomatik ve asenkron (`BackgroundTasks`) olarak ilgili kanallara anlık rich bildirim kartları gitmesi sağlandı.
+- **Masaüstü & Mobil Sekmeli Tasarım (UX Overhaul)**: Görev detay panelindeki (sağ panel) "İşlem Geçmişi" alanı, son derece premium bir **"Yorumlar"** ve **"Geçmiş"** sekmeli (Tabs) paneline dönüştürüldü.
+- **Mobil PWA & Capacitor Desteği**: Mobil kullanıcılar için detay paneli alt tab barına şık bir **"💬 Yorumlar"** sekmesi eklenerek, telefondan da anlık iş birliği yapılması sağlandı.
+- **ConfirmDialog Yorum Silme Entegrasyonu**: Yorum silme onaylarında tarayıcı native dialog diyalogları yerine, projenin özgün in-app `ConfirmDialog` bileşeni kullanıldı.
+
 ## [2026-05-23] - Sürüm 3.8 - Tamamlanan Görevlerin Takvimden Kaldırılması & Detay Paneli Buton Revizyonu
 
 ### Çözüldü
