@@ -14,6 +14,7 @@ import { useProjectStore } from "@/stores/projectStore"
 import { api } from "@/lib/api"
 import { Task } from "@/types"
 import { CalendarEvent } from "@/types/calendar"
+import { useGamificationStore } from "@/stores/gamificationStore"
 
 interface MorningScreenProps {
   onDismiss: () => void;
@@ -182,18 +183,34 @@ export function MorningScreen({ onDismiss }: MorningScreenProps) {
             </p>
           </div>
 
-          {/* Dün Neler Yaptık Kartı */}
-          {stats.completedYesterday > 0 && (
-            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex items-center gap-3.5 max-w-[280px] w-full animate-fade-in">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/25 flex items-center justify-center text-emerald-500">
-                <CheckCircle2 className="w-5.5 h-5.5" />
+          {/* Dün Neler Yaptık Kartı & XP Durumu */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+            {/* XP ve Seviye Durumu (Oyunlaştırma Köşesi) */}
+            <div className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-indigo-500/20 rounded-2xl p-4 flex items-center gap-3.5 w-full sm:w-auto min-w-[220px]">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-500">
+                <span className="text-xl">🏆</span>
               </div>
-              <div>
-                <h4 className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Dünün Başarısı</h4>
-                <p className="text-sm font-bold text-foreground mt-0.5">{stats.completedYesterday} Görev Tamamlandı!</p>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest leading-none">Gelişim Seviyeniz</h4>
+                <p className="text-xs font-black text-foreground mt-1">Seviye {useGamificationStore.getState().userLevel} • {useGamificationStore.getState().userXp} XP</p>
+                <div className="w-full bg-slate-200 dark:bg-zinc-800 h-1 rounded-full overflow-hidden mt-1.5">
+                  <div className="bg-indigo-500 h-full" style={{ width: `${useGamificationStore.getState().userXp % 100}%` }} />
+                </div>
               </div>
             </div>
-          )}
+
+            {stats.completedYesterday > 0 && (
+              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex items-center gap-3.5 w-full sm:w-auto min-w-[200px] animate-fade-in">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/25 flex items-center justify-center text-emerald-500">
+                  <CheckCircle2 className="w-5.5 h-5.5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Dünün Başarısı</h4>
+                  <p className="text-sm font-bold text-foreground mt-0.5">{stats.completedYesterday} Görev Tamamlandı!</p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Orta Bölüm: AI Analiz & Görev Özet Gridi */}

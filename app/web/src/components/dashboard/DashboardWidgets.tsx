@@ -487,11 +487,6 @@ export function DashboardWidgets() {
               </div>
             </div>
           </div>
-
-          {/* Gamification Panel — Sol kolda premium konumlandırma */}
-          <div className="hidden lg:flex flex-col shrink-0">
-            <GamificationWidget />
-          </div>
         </div>
 
         {/* ========= ORTA KOLON ========= */}
