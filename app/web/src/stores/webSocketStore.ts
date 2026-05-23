@@ -72,6 +72,30 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
              useTaskStore.getState().fetchTasks();
           }
 
+          if (data.type === 'NEW_COMMENT') {
+             const { useTaskStore } = await import('@/stores/taskStore');
+             const selectedTask = useTaskStore.getState().selectedTask;
+             if (selectedTask && selectedTask.id === data.data.task_id) {
+               // Çift ekleme hatasını önlemek için kontrol et
+               const comments = useTaskStore.getState().comments;
+               if (!comments.some(c => c.id === data.data.id)) {
+                 useTaskStore.setState((state) => ({
+                   comments: [...state.comments, data.data]
+                 }));
+               }
+             }
+          }
+
+          if (data.type === 'DELETE_COMMENT') {
+             const { useTaskStore } = await import('@/stores/taskStore');
+             const selectedTask = useTaskStore.getState().selectedTask;
+             if (selectedTask && selectedTask.id === data.data.task_id) {
+               useTaskStore.setState((state) => ({
+                 comments: state.comments.filter(c => c.id !== data.data.id)
+               }));
+             }
+          }
+
         } catch (e) {
           console.error("WS message error", e);
         }

@@ -186,6 +186,19 @@ async def create_task(
         await db.commit()
         await db.refresh(db_task)
 
+        # Webhook bildirimini arka plana at
+        if db_task.project_id:
+            proj_result = await db.execute(select(Project).where(Project.id == db_task.project_id))
+            project = proj_result.scalar()
+            if project:
+                from app.services.webhook_service import WebhookService
+                background_tasks.add_task(
+                    WebhookService.send_task_created,
+                    db_task,
+                    project,
+                    current_user.name
+                )
+
         # 2. AI Kategorizasyon ve Süre/Proje Tahminini Arka Plana At
         try:
             # Kullanıcının erişebildiği TÜM aktif firmaları al (AI context için)
@@ -242,6 +255,7 @@ async def create_task(
 async def update_task(
     task_id: int,
     task_update: TaskUpdate,
+    background_tasks: BackgroundTasks,
     request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_company_permission("tasks", "edit"))
@@ -264,6 +278,9 @@ async def update_task(
         
     update_data = task_update.model_dump(exclude_unset=True)
     
+    old_status = db_task.status
+    new_status = update_data.get("status")
+
     # Status => done yapıldığında zamanını kaydet
     if "status" in update_data and update_data["status"] == "done" and db_task.status != "done":
         db_task.completed_at = datetime.now(timezone.utc)
@@ -280,6 +297,21 @@ async def update_task(
         flag_modified(db_task, "task_photos")
         
     await db.commit()
+
+    # Webhook tetikle
+    if new_status and old_status != new_status and db_task.project_id:
+        proj_result = await db.execute(select(Project).where(Project.id == db_task.project_id))
+        project = proj_result.scalar()
+        if project:
+            from app.services.webhook_service import WebhookService
+            background_tasks.add_task(
+                WebhookService.send_task_status_changed,
+                db_task,
+                old_status,
+                new_status,
+                project,
+                current_user.name
+            )
     # Refresh via select
     result_loaded = await db.execute(select(Task).options(selectinload(Task.project)).where(Task.id == task_id))
     db_task_refreshed = result_loaded.scalars().first()
@@ -289,6 +321,7 @@ async def update_task(
 async def update_task_status(
     task_id: int,
     request: Request,
+    background_tasks: BackgroundTasks,
     status: str = Query(..., description="todo, in_progress, done"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_company_permission("tasks", "edit"))
@@ -308,6 +341,7 @@ async def update_task_status(
     if db_task is None:
         raise HTTPException(status_code=404, detail="Task not found")
         
+    old_status = db_task.status
     db_task.status = status
     if status == "done":
         db_task.completed_at = datetime.now(timezone.utc)
@@ -316,6 +350,21 @@ async def update_task_status(
         
     await db.commit()
     await db.refresh(db_task)
+
+    # Webhook tetikle
+    if old_status != status and db_task.project_id:
+        proj_result = await db.execute(select(Project).where(Project.id == db_task.project_id))
+        project = proj_result.scalar()
+        if project:
+            from app.services.webhook_service import WebhookService
+            background_tasks.add_task(
+                WebhookService.send_task_status_changed,
+                db_task,
+                old_status,
+                status,
+                project,
+                current_user.name
+            )
     return db_task
 
 @router.post("/{task_id}/subtasks", response_model=TaskResponse)

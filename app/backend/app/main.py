@@ -37,6 +37,7 @@ from app.routers.auth import router as auth_router
 from app.routers.admin import router as admin_router
 from app.routers.websocket import router as websocket_router
 from app.routers.calendar import router as calendar_router
+from app.routers.task_comments import router as task_comments_router
 from app.utils.logger import logger
 from app.services.scheduler import start_scheduler, shutdown_scheduler
 from fastapi.responses import JSONResponse
@@ -56,24 +57,74 @@ async def lifespan(app: FastAPI):
             # task_photos kolonu — JSONB (PostgreSQL) veya TEXT (SQLite) olarak ekle
             try:
                 await conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS task_photos JSONB DEFAULT '[]'::jsonb"))
-                logger.info("✅ task_photos kolonu (JSONB) kontrol edildi")
+                logger.info("✅ tasks.task_photos kolonu (JSONB) kontrol edildi")
             except Exception:
                 try:
                     await conn.execute(text("ALTER TABLE tasks ADD COLUMN task_photos TEXT DEFAULT '[]'"))
-                    logger.info("✅ task_photos (TEXT) kolonu eklendi")
+                    logger.info("✅ tasks.task_photos (TEXT) kolonu eklendi")
                 except Exception:
                     pass  # Zaten var
 
             # created_at kolonu — eksikse ekle
             try:
                 await conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()"))
-                logger.info("✅ created_at kolonu kontrol edildi")
+                logger.info("✅ tasks.created_at kolonu kontrol edildi")
             except Exception:
                 try:
                     await conn.execute(text("ALTER TABLE tasks ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP"))
-                    logger.info("✅ created_at (DATETIME) kolonu eklendi")
+                    logger.info("✅ tasks.created_at (DATETIME) kolonu eklendi")
                 except Exception:
                     pass  # Zaten var
+
+            # projects tablosu webhook kolonları
+            try:
+                await conn.execute(text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS discord_webhook_url VARCHAR"))
+                logger.info("✅ projects.discord_webhook_url kolonu kontrol edildi")
+            except Exception:
+                try:
+                    await conn.execute(text("ALTER TABLE projects ADD COLUMN discord_webhook_url TEXT"))
+                    logger.info("✅ projects.discord_webhook_url kolonu eklendi")
+                except Exception:
+                    pass
+
+            try:
+                await conn.execute(text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS slack_webhook_url VARCHAR"))
+                logger.info("✅ projects.slack_webhook_url kolonu kontrol edildi")
+            except Exception:
+                try:
+                    await conn.execute(text("ALTER TABLE projects ADD COLUMN slack_webhook_url TEXT"))
+                    logger.info("✅ projects.slack_webhook_url kolonu eklendi")
+                except Exception:
+                    pass
+
+            # task_comments tablosunu oluştur
+            try:
+                # PostgreSQL uyumlu CREATE TABLE
+                await conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS task_comments (
+                        id SERIAL PRIMARY KEY,
+                        task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+                        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                        content TEXT NOT NULL,
+                        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                    )
+                """))
+                logger.info("✅ task_comments tablosu (PostgreSQL) kontrol edildi/oluşturuldu")
+            except Exception as e:
+                # SQLite için SERIAL yerine INTEGER PRIMARY KEY AUTOINCREMENT
+                try:
+                    await conn.execute(text("""
+                        CREATE TABLE IF NOT EXISTS task_comments (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+                            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                            content TEXT NOT NULL,
+                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        )
+                    """))
+                    logger.info("✅ task_comments tablosu (SQLite) oluşturuldu")
+                except Exception as ex:
+                    logger.warning(f"task_comments tablosu oluşturulurken hata: {ex}")
 
     except Exception as e:
         logger.warning(f"DB migration kontrolü sırasında hata (kritik değil): {e}")
@@ -124,6 +175,7 @@ app.include_router(telegram_router, prefix="/api/telegram", tags=["Telegram Bot"
 app.include_router(reports_router, prefix="/api/reports", tags=["Reports"])
 app.include_router(calendar_router, prefix="/api", tags=["Calendar"])
 app.include_router(websocket_router)
+app.include_router(task_comments_router)
 
 # Venus Routers
 from app.routers.ads.ad_accounts import router as venus_accounts_router

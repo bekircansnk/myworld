@@ -29,3 +29,4 @@ class Task(Base):
     user = relationship("User", back_populates="tasks")
     project = relationship("Project", back_populates="tasks")
     subtasks = relationship("Task", backref="parent_task", remote_side=[id])
+    comments = relationship("TaskComment", back_populates="task", cascade="all, delete-orphan")

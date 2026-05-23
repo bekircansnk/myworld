@@ -8,6 +8,8 @@ class ProjectBase(BaseModel):
     icon: Optional[str] = None
     description: Optional[str] = None
     sort_order: Optional[int] = 0
+    discord_webhook_url: Optional[str] = None
+    slack_webhook_url: Optional[str] = None
 
 class ProjectCreate(ProjectBase):
     pass
@@ -19,6 +21,8 @@ class ProjectUpdate(BaseModel):
     description: Optional[str] = None
     is_active: Optional[bool] = None
     sort_order: Optional[int] = None
+    discord_webhook_url: Optional[str] = None
+    slack_webhook_url: Optional[str] = None
 
 class ProjectResponse(ProjectBase):
     id: int

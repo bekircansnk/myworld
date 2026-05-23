@@ -13,6 +13,8 @@ class Project(Base):
     description = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     sort_order = Column(Integer, default=0)
+    discord_webhook_url = Column(String, nullable=True)
+    slack_webhook_url = Column(String, nullable=True)
 
     user = relationship("User", back_populates="projects")
     tasks = relationship("Task", back_populates="project")

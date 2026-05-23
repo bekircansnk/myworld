@@ -3,10 +3,11 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { api } from '@/lib/api';
 import { idbStorage } from '@/lib/idb-storage';
 import { enqueue } from '@/lib/syncQueue';
-import { Task } from '@/types';
+import { Task, TaskComment } from '@/types';
 
 interface TaskState {
   tasks: Task[];
+  comments: TaskComment[];
   isLoading: boolean;
   error: string | null;
   _hasHydrated: boolean;
@@ -21,6 +22,9 @@ interface TaskState {
   openTaskDetail: (task: Task) => void;
   closeTaskDetail: () => void;
   addSubtask: (parentId: number, taskData: Partial<Task>) => Promise<void>;
+  fetchComments: (taskId: number) => Promise<void>;
+  addComment: (taskId: number, content: string) => Promise<void>;
+  deleteComment: (commentId: number) => Promise<void>;
   reset: () => void;
 }
 
@@ -28,6 +32,7 @@ export const useTaskStore = create<TaskState>()(
   persist(
     (set, get) => ({
       tasks: [],
+      comments: [],
       isLoading: false,
       error: null,
       selectedTask: null,
@@ -276,7 +281,40 @@ export const useTaskStore = create<TaskState>()(
           }
         }
       },
-      reset: () => set({ tasks: [], selectedTask: null, isDetailPanelOpen: false, error: null })
+      fetchComments: async (taskId) => {
+        try {
+          const response = await api.get(`/api/tasks/${taskId}/comments`);
+          set({ comments: response.data });
+        } catch (error: any) {
+          console.error("Yorumlar yüklenirken hata oluştu:", error);
+          set({ error: error.message });
+        }
+      },
+      addComment: async (taskId, content) => {
+        try {
+          const response = await api.post(`/api/tasks/${taskId}/comments`, { content });
+          set((state) => ({
+            comments: [...state.comments, response.data]
+          }));
+        } catch (error: any) {
+          console.error("Yorum eklenirken hata oluştu:", error);
+          set({ error: error.message });
+          throw error;
+        }
+      },
+      deleteComment: async (commentId) => {
+        try {
+          await api.delete(`/api/tasks/comments/${commentId}`);
+          set((state) => ({
+            comments: state.comments.filter((c) => c.id !== commentId)
+          }));
+        } catch (error: any) {
+          console.error("Yorum silinirken hata oluştu:", error);
+          set({ error: error.message });
+          throw error;
+        }
+      },
+      reset: () => set({ tasks: [], comments: [], selectedTask: null, isDetailPanelOpen: false, error: null })
     }),
     {
       name: 'pikselis-tasks',

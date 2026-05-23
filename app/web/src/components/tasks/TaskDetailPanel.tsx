@@ -91,7 +91,8 @@ export function TaskDetailPanel() {
   const {
     selectedTask, isDetailPanelOpen, closeTaskDetail,
     updateTaskStatus, updateTask, tasks, fetchTasks,
-    addSubtask, deleteTask
+    addSubtask, deleteTask,
+    comments, fetchComments, addComment, deleteComment
   } = useTaskStore()
   const { projects } = useProjectStore()
 
@@ -114,10 +115,20 @@ export function TaskDetailPanel() {
   const [isProgressOpen, setIsProgressOpen] = React.useState(false)
   const [isAIOpen, setIsAIOpen] = React.useState(false)
   const [isPhotosOpen, setIsPhotosOpen] = React.useState(true)
-  const [isHistoryOpen, setIsHistoryOpen] = React.useState(false)
-  const [activeMobileTab, setActiveMobileTab] = React.useState<'photos'|'progress'|'ai'|'history'|null>('photos')
+  const [isHistoryOpen, setIsHistoryOpen] = React.useState(true)
+  const [activeMobileTab, setActiveMobileTab] = React.useState<'photos'|'progress'|'ai'|'history'|'comments'|null>('comments')
+  const [commentDraft, setCommentDraft] = React.useState("")
+  const [commentToDelete, setCommentToDelete] = React.useState<number | null>(null)
+  const [currentUser, setCurrentUser] = React.useState<any>(null)
+  const [activeRightTab, setActiveRightTab] = React.useState<'comments' | 'history'>('comments')
+
+  React.useEffect(() => {
+    import('@/store/authStore').then(({ useAuthStore }) => {
+      setCurrentUser(useAuthStore.getState().user || null)
+    }).catch(() => {})
+  }, [])
   
-  const toggleMobileTab = (tab: 'photos'|'progress'|'ai'|'history') => {
+  const toggleMobileTab = (tab: 'photos'|'progress'|'ai'|'history'|'comments') => {
     setActiveMobileTab(activeMobileTab === tab ? null : tab)
   }
 
@@ -185,6 +196,7 @@ export function TaskDetailPanel() {
 
   React.useEffect(() => {
     if (selectedTask && isDetailPanelOpen) {
+      fetchComments(selectedTask.id)
       if (!selectedTask.ai_analysis && !hasFetchedAI.current) {
         hasFetchedAI.current = true
         fetchAIAnalysis()
@@ -786,6 +798,19 @@ export function TaskDetailPanel() {
            handleCloseDetail();
         }}
       />
+      <ConfirmDialog 
+        isOpen={commentToDelete !== null} 
+        onOpenChange={(open) => { if (!open) setCommentToDelete(null) }}
+        title="Yorumu Sil"
+        description="Bu yorumu silmek istediğinize emin misiniz? Bu işlem geri alınamaz."
+        confirmText="Sil"
+        onConfirm={async () => {
+           if (commentToDelete) {
+             await deleteComment(commentToDelete);
+             setCommentToDelete(null);
+           }
+        }}
+      />
       {/* Fullscreen Overlay */}
       <div
         className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 transition-opacity duration-200"
@@ -1197,24 +1222,159 @@ export function TaskDetailPanel() {
                 </div>
               </div>
 
-              {/* ALT: İŞLEM GEÇMİŞİ — ACCORDION, VARSAYILAN KAPALI */}
+              {/* ALT: YORUMLAR & İŞLEM GEÇMİŞİ — ACCORDION / TABS */}
               <div 
-                className={`border-b border-slate-100 dark:border-white/5 select-none ${activeMobileTab === 'history' ? 'block' : 'hidden md:block'}`}
+                className={`border-b border-slate-100 dark:border-white/5 ${
+                  activeMobileTab === 'comments' || activeMobileTab === 'history' ? 'block' : 'hidden md:block'
+                }`}
               >
                 <div className="p-3 md:p-4">
-                  <div className="hidden md:flex items-center justify-between cursor-pointer" onClick={() => setIsHistoryOpen(!isHistoryOpen)}>
-                    <h3 className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-700 dark:text-white/80 flex items-center gap-2">
-                      <History className="w-4 h-4 text-emerald-500" />
-                      İşlem Geçmişi
-                    </h3>
-                    <ChevronDown className={`w-3.5 h-3.5 transition-transform text-slate-400 ${isHistoryOpen ? 'rotate-180' : ''}`} />
+                  {/* Masaüstü Sekme Butonları (Tabs) */}
+                  <div className="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-black/20 p-1 rounded-xl mb-4 shrink-0">
+                    <button
+                      onClick={() => setActiveRightTab('comments')}
+                      className={`flex-1 text-center py-1.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                        activeRightTab === 'comments'
+                          ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm'
+                          : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-white/70'
+                      }`}
+                    >
+                      <MessageCircle className="w-3.5 h-3.5" />
+                      Yorumlar
+                      {comments.length > 0 && (
+                        <span className="text-[10px] bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full font-black">
+                          {comments.length}
+                        </span>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setActiveRightTab('history')}
+                      className={`flex-1 text-center py-1.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                        activeRightTab === 'history'
+                          ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm'
+                          : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-white/70'
+                      }`}
+                    >
+                      <History className="w-3.5 h-3.5" />
+                      Geçmiş
+                    </button>
                   </div>
 
-                  <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isHistoryOpen ? 'md:max-h-[400px] md:mt-3' : 'md:max-h-0'} max-h-none mt-2 md:mt-0`}
-                    onClick={e => e.stopPropagation()}>
+                  {/* Mobil Header (Masaüstünde Gizli) */}
+                  <div className="md:hidden flex items-center justify-between mb-2">
+                    <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-700 dark:text-white/80 flex items-center gap-1.5">
+                      {activeMobileTab === 'comments' ? (
+                        <>
+                          <MessageCircle className="w-4 h-4 text-indigo-500" />
+                          Görev Yorumları ({comments.length})
+                        </>
+                      ) : (
+                        <>
+                          <History className="w-4 h-4 text-emerald-500" />
+                          İşlem Geçmişi
+                        </>
+                      )}
+                    </h3>
+                  </div>
+
+                  {/* ============ SEKMELİ İÇERİK ALANI ============ */}
+                  
+                  {/* SEKME 1: YORUMLAR (Hem Masaüstü hem Mobil Uyumlu) */}
+                  <div className={`${
+                    (activeRightTab === 'comments' && !activeMobileTab) || activeMobileTab === 'comments'
+                      ? 'block'
+                      : 'hidden'
+                  } flex flex-col min-h-0`}>
+                    
+                    {/* Yorum Akışı (Scrollable) */}
+                    <div className="max-h-[25vh] md:max-h-[300px] overflow-y-auto space-y-3 pr-1 py-1 min-h-[80px]">
+                      {comments.map((c) => (
+                        <div key={c.id} className="group/item flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50/70 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:border-slate-200 dark:hover:border-white/10 transition-all shadow-sm">
+                          {/* Yazar Avatarı */}
+                          <div className="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-bold flex items-center justify-center overflow-hidden flex-shrink-0">
+                            {c.user?.avatar_url ? (
+                              <img src={c.user.avatar_url} alt={c.user.name} className="w-full h-full object-cover" />
+                            ) : (
+                              c.user?.name?.slice(0, 2).toUpperCase() || "YK"
+                            )}
+                          </div>
+                          
+                          {/* Yorum Detayı */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-1.5 mb-1">
+                              <span className="text-xs font-bold text-slate-800 dark:text-white/95 truncate">
+                                {c.user?.name}
+                              </span>
+                              <span className="text-[9px] font-medium text-slate-400 dark:text-white/40 shrink-0">
+                                {c.created_at ? formatDistanceToNow(new Date(c.created_at), { addSuffix: true, locale: tr }) : ""}
+                              </span>
+                            </div>
+                            <p className="text-xs font-medium text-slate-600 dark:text-white/80 whitespace-pre-wrap break-words leading-relaxed leading-[1.6]">
+                              {c.content}
+                            </p>
+                          </div>
+
+                          {/* Yorum Silme Butonu (Sadece yazan kişiye) */}
+                          {currentUser && c.user_id === currentUser.id && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setCommentToDelete(c.id); }}
+                              className="opacity-0 group-hover/item:opacity-100 transition-opacity text-slate-400 hover:text-red-500 p-0.5 rounded-lg shrink-0 self-start"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+
+                      {comments.length === 0 && (
+                        <p className="text-xs font-medium text-slate-400 dark:text-white/30 py-6 text-center italic">
+                          Henüz bir konuşma yok. İlk yorumu siz yazarak ekibi bilgilendirin! 💬
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Yorum Yazma Kutusu */}
+                    <div className="mt-3 flex items-center gap-2 border-t border-slate-100 dark:border-white/5 pt-3" onClick={e => e.stopPropagation()}>
+                      <Input
+                        value={commentDraft}
+                        onChange={(e) => setCommentDraft(e.target.value)}
+                        placeholder="Bir şeyler yazın..."
+                        className="text-xs font-semibold h-9 flex-1 bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/10 rounded-xl"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            if (commentDraft.trim()) {
+                              addComment(selectedTask.id, commentDraft.trim());
+                              setCommentDraft("");
+                            }
+                          }
+                        }}
+                      />
+                      <Button
+                        size="sm"
+                        disabled={!commentDraft.trim()}
+                        className="h-9 w-9 p-0 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white shrink-0 active:scale-95 transition-transform"
+                        onClick={() => {
+                          if (commentDraft.trim()) {
+                            addComment(selectedTask.id, commentDraft.trim());
+                            setCommentDraft("");
+                          }
+                        }}
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* SEKME 2: GEÇMİŞ (Masaüstü ve Mobil Log Akışı) */}
+                  <div className={`${
+                    (activeRightTab === 'history' && !activeMobileTab) || activeMobileTab === 'history'
+                      ? 'block'
+                      : 'hidden'
+                  }`}>
                     <div className="relative">
                       <div className="absolute left-[13px] top-2 bottom-2 w-px bg-slate-200 dark:bg-white/10" />
-                      <div className="space-y-3 pt-1">
+                      <div className="space-y-3 pt-1 max-h-[35vh] md:max-h-[300px] overflow-y-auto">
                         {activityLog.map(event => (
                           <div key={event.id} className="flex items-start gap-3 relative">
                             {getActivityIcon(event)}
@@ -1232,6 +1392,7 @@ export function TaskDetailPanel() {
                       </div>
                     </div>
                   </div>
+
                 </div>
               </div>
 
@@ -1239,6 +1400,10 @@ export function TaskDetailPanel() {
 
               {/* MOBİL TAB BAR */}
               <div className="flex md:hidden items-center justify-around px-2 py-2 border-t border-slate-200/50 dark:border-white/10 bg-transparent pb-safe">
+                 <button onClick={() => toggleMobileTab('comments')} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${activeMobileTab === 'comments' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-500'}`}>
+                   <MessageCircle className="w-5 h-5"/>
+                   <span className="text-[9px] font-bold">Yorumlar</span>
+                 </button>
                  <button onClick={() => toggleMobileTab('photos')} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${activeMobileTab === 'photos' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-500'}`}>
                    <ImagePlus className="w-5 h-5"/>
                    <span className="text-[9px] font-bold">Fotoğraflar</span>

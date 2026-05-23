@@ -8,6 +8,8 @@ export interface Project {
   is_active: boolean;
   sort_order: number;
   created_at: string;
+  discord_webhook_url?: string;
+  slack_webhook_url?: string;
 }
 
 export interface DrivePhoto {
@@ -55,4 +57,20 @@ export interface Note {
   source: string;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface UserMin {
+  id: number;
+  username: string;
+  name: string;
+  avatar_url: string | null;
+}
+
+export interface TaskComment {
+  id: number;
+  task_id: number;
+  user_id: number;
+  content: string;
+  created_at: string;
+  user: UserMin;
 }

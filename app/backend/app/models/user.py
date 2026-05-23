@@ -30,6 +30,7 @@ class User(Base):
     calendar_events = relationship("CalendarEvent")
     chat_sessions = relationship("ChatSession", back_populates="user")
     chat_messages = relationship("ChatMessage", back_populates="user")
+    comments = relationship("TaskComment", back_populates="user", cascade="all, delete-orphan")
     
     # Admin tarafından oluşturulan kullanıcılar
     created_users = relationship("User", backref="creator", remote_side=[id], foreign_keys=[created_by])

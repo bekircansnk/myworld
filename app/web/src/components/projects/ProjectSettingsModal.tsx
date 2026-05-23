@@ -24,6 +24,8 @@ export function ProjectSettingsModal({
   const [name, setName] = React.useState("")
   const [color, setColor] = React.useState("")
   const [description, setDescription] = React.useState("")
+  const [discordWebhookUrl, setDiscordWebhookUrl] = React.useState("")
+  const [slackWebhookUrl, setSlackWebhookUrl] = React.useState("")
   const [isLoading, setIsLoading] = React.useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false)
 
@@ -32,13 +34,21 @@ export function ProjectSettingsModal({
       setName(project.name)
       setColor(project.color)
       setDescription(project.description || "")
+      setDiscordWebhookUrl(project.discord_webhook_url || "")
+      setSlackWebhookUrl(project.slack_webhook_url || "")
     }
   }, [project, isOpen])
 
   const handleUpdate = async () => {
     if (!project || !name.trim()) return
     setIsLoading(true)
-    await updateProject(project.id, { name, color, description })
+    await updateProject(project.id, { 
+      name, 
+      color, 
+      description,
+      discord_webhook_url: discordWebhookUrl,
+      slack_webhook_url: slackWebhookUrl
+    })
     setIsLoading(false)
     onClose()
   }
@@ -80,7 +90,7 @@ export function ProjectSettingsModal({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4 overflow-y-auto custom-scrollbar max-h-[60vh] px-1">
+        <div className="grid gap-4 py-4 overflow-y-auto custom-scrollbar max-h-[70vh] px-1">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="edit-name" className="text-right">İsim</Label>
             <Input 
@@ -115,6 +125,26 @@ export function ProjectSettingsModal({
               value={description} 
               onChange={(e) => setDescription(e.target.value)} 
               className="col-span-3 min-h-[80px]" 
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="discord-webhook" className="text-right text-[11px] font-bold">Discord Webhook</Label>
+            <Input 
+              id="discord-webhook" 
+              value={discordWebhookUrl} 
+              onChange={(e) => setDiscordWebhookUrl(e.target.value)} 
+              className="col-span-3 text-xs" 
+              placeholder="https://discord.com/api/webhooks/..."
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="slack-webhook" className="text-right text-[11px] font-bold">Slack Webhook</Label>
+            <Input 
+              id="slack-webhook" 
+              value={slackWebhookUrl} 
+              onChange={(e) => setSlackWebhookUrl(e.target.value)} 
+              className="col-span-3 text-xs" 
+              placeholder="https://hooks.slack.com/services/..."
             />
           </div>
         </div>
