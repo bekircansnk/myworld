@@ -9,6 +9,16 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v4.0
+**Tarih:** 23 Mayıs 2026
+**Değişiklikler:**
+- **[Yeni Özellik - Daily.co Yerleşik Görüntülü Arama]** Android uygulaması içerisine doğrudan entegre edilmiş, floating ve glassmorphic görüntülü görüşme modalı (`InAppCallWindow.tsx`) eklendi. Kullanıcılar başka bir uygulamaya geçmeden, telefonlarından anlık olarak toplantılara katılabiliyor.
+- **[Yeni Özellik - Canlı Aktivite Akışı]** Kontrol paneline eklenen WebSocket tabanlı canlı aktivite akışı widget'ı sayesinde, ekip üyelerinin yaptığı işler mobil ekranda da fade-in mikro animasyonlarıyla anlık izlenebilir hale getirildi.
+- **[Yeni Özellik - Toplantı Bildirim Banner'ı]** Firmada aktif bir görüntülü görüşme başladığında mobil ekranın en üstünde glowing bir banner belirmesi ve tek tıkla görüşmeye katılmayı sağlayan mekanizma kuruldu.
+- **[Evrensel Kapsam Uyum Kontrolü]** Tüm arayüz ve özellikler Android mobil tarayıcılar, tabletler ve Capacitor WebView standartlarına göre 100% dokunmatik uyumlu ve yüksek performanslı (sıfır titreme) olarak optimize edildi.
+
+---
+
 ### v3.8
 **Tarih:** 23 Mayıs 2026
 **Değişiklikler:**

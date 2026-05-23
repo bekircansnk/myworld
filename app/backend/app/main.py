@@ -240,12 +240,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "3.8",
-        "version_code": 29,
-        "download_url": "https://myworld-twqx.onrender.com/static/Pikselis_v3.8.apk",
+        "version": "4.0",
+        "version_code": 30,
+        "download_url": "https://myworld-twqx.onrender.com/static/Pikselis_v4.0.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
-        "changelog": "- Tamamlanan görevlerin takvim sayfasında gecikmiş/kırmızı olarak listelenmesi hatası tamamen çözüldü.\n- Görev detay panelinin (sağ panel) sağ üst butonları sıralanarak Kapat butonu en sağa alındı (Silme butonuyla çakışma önlendi).\n- Görev detay paneline doğrudan 'Tamamlandı' toggle butonu entegre edilerek takvimden hızlı tamamlama yeteneği eklendi."
+        "changelog": "- Daily.co entegrasyonuyla kesintisiz yerleşik görüntülü görüşme özelliği eklendi.\n- Canlı Aktivite Akışı (ActivityFeedWidget) ile ekip olaylarını anlık izleme desteği.\n- Aktif görüntülü aramalarda glowing banner uyarısı.\n- Mobil cihazlar ve WebView standartlarına göre 100% responsive optimizasyon."
     }
 
 @app.get("/api/link-preview")
