@@ -17,7 +17,6 @@ import { EVENT_COLORS, CalendarEvent } from "@/types/calendar"
 import { EventDetailDialog } from "@/components/calendar/CalendarPage"
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { useAuthStore } from "@/store/authStore"
-import { useMeetingStore } from "@/stores/meetingStore"
 import { Button } from "@/components/ui/button"
 
 // Firma ikonları — SVG mini logolar
@@ -52,13 +51,6 @@ export function DashboardWidgets() {
   const { tasks, openTaskDetail, updateTaskStatus, fetchTasks } = useTaskStore()
   const { projects, setViewMode, setSelectedProjectId, selectedProjectId } = useProjectStore()
   const { user } = useAuthStore()
-  const { activeMeeting, joinMeeting, fetchActiveMeeting } = useMeetingStore()
-
-  React.useEffect(() => {
-    if (selectedProjectId) {
-      fetchActiveMeeting(selectedProjectId)
-    }
-  }, [selectedProjectId, fetchActiveMeeting])
 
   // === CLOCK (dakika bazlı güncelleme — CPU tasarrufu) ===
   const [currentTime, setCurrentTime] = React.useState(new Date())
@@ -313,29 +305,7 @@ export function DashboardWidgets() {
         onConfirm={handleClearHistory}
       />
 
-      {/* Canlı Toplantı Banner */}
-      {activeMeeting && (
-        <div className="w-full bg-gradient-to-r from-red-500/10 via-brand-yellow/10 to-red-500/10 border border-brand-yellow/20 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg shadow-brand-yellow/5 animate-pulse shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center border border-red-500/30">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-              </span>
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold text-brand-dark dark:text-white">Şu Anda Şirketinizde Aktif Görüntülü Görüşme Var</h4>
-              <p className="text-xs text-brand-gray dark:text-gray-400">Başlatan: <span className="font-semibold text-brand-dark dark:text-white">{activeMeeting.started_by}</span></p>
-            </div>
-          </div>
-          <Button 
-            onClick={joinMeeting}
-            className="bg-brand-yellow hover:bg-brand-yellow/80 text-brand-dark font-bold text-xs px-6 py-2 rounded-full shadow-md shadow-brand-yellow/10 shrink-0"
-          >
-            Görüşmeye Katıl
-          </Button>
-        </div>
-      )}
+
 
       {/* === HEADER STATS === */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-3 md:gap-6 shrink-0 mb-2 md:mb-4">

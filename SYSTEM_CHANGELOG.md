@@ -2,6 +2,15 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-05-24] - Sürüm 4.8 - Görüntülü Görüşme Temizliği & Yerel Motivasyon Havuzu Entegrasyonu
+
+### Kaldırıldı
+- **Görüntülü Görüşme Özelliği**: Toplantı başlatma ve lobi/katılım altyapısı, `TopNavbar.tsx`, `DashboardWidgets.tsx`, `page.tsx` ve `webSocketStore.ts` dosyalarındaki görüntülü görüşme butonları, bildirim banner'ları, import'lar ve dinleyiciler tamamen temizlendi.
+- **Toplantı Dosyaları**: `InAppCallWindow.tsx` bileşeni ve `meetingStore.ts` durum yönetim dosyası `.silinecekler_cop_kutusu/` dizinine taşınarak projeden arındırıldı.
+
+### Güncellendi
+- **Yerel Motivasyon Havuzu (MorningScreen.tsx)**: Karşılama ekranındaki Gemini AI tabanlı motivasyon mesajı üretimi yavaşlık ve API yükü nedeniyle kaldırıldı. Bunun yerine dosya içerisinde statik olarak tanımlanan 100+ premium iş dünyası, verimlilik ve planlama motivasyon sözünden anlık rastgele seçim yapan yerel bir havuz mimarisine geçildi. Karşılama ekranının bekleme süresi sıfıra indirildi.
+
 ## [2026-05-23] - Sürüm 4.7 - Görev Detay Mobil Alt Bar & Sekme İyileştirmeleri
 
 ### Güncellendi

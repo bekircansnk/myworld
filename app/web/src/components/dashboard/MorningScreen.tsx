@@ -63,22 +63,117 @@ export function MorningScreen({ onDismiss }: MorningScreenProps) {
     }
   }, [mounted])
 
-  // AI Motivasyon Mesajını Çek
-  const fetchAiMotivation = async () => {
+const MOTIVATIONAL_QUOTES = [
+  "Bugün yapacağın en küçük bir ilerleme, yarınki büyük hedefine giden yolu açar.",
+  "Güne en önemli işini tamamlayarak başla. Zor olanı önce halledersen, günün geri kalanı kolaylaşır.",
+  "Üretkenlik çok çalışmak değil, odaklanmaktır. Bugün hedeflerini sadeleştir.",
+  "Harika işler yapmanın tek yolu, yaptığın işi sevmektir. Bugünün tadını çıkar!",
+  "Hatalar, denediğinin ve ilerlediğinin kanıtıdır. Hatalardan öğren ve devam et.",
+  "Bugünün planını sabah yaparsan, gün içindeki kararsızlıkları en aza indirirsin.",
+  "Zorlu görevleri küçük parçalara böl. Alt görevleri kullanmayı unutma!",
+  "Her gün %1 daha iyi olmak, uzun vadede seni bambaşka bir noktaya taşır.",
+  "Bugün odaklan, yarın kendine teşekkür edeceksin.",
+  "Derin çalışma seansları (Deep Work) yarat. Dikkat dağıtıcıları uzaklaştır ve sadece işine odaklan.",
+  "Başarı, hazırlık ve fırsatın karşılaştığı yerdir. Bugün yeni fırsatlara hazır mısın?",
+  "Motivasyon başlamanı sağlar, alışkanlıklar ise devam ettirir. Bugün iyi bir alışkanlık edin.",
+  "Zorluklar, yeteneklerini geliştirebileceğin en iyi fırsatlardır. Güçlükleri kucakla.",
+  "Bugün dünden daha verimli bir gün geçirmek için yepyeni bir sayfa.",
+  "Başarı, her gün sabırla yapılan küçük tekrarların toplamıdır.",
+  "Zihnini sadeleştir, önceliklerini belirle ve sadece sıradaki göreve odaklan.",
+  "Büyük hedeflere ulaşmak, küçük adımları kararlılıkla atmaktan geçer.",
+  "Bugün kendinin en iyi versiyonu olmak için yeni bir şansın var.",
+  "Yapabileceğinize inanın; yolun yarısını zaten tamamlamış olursunuz.",
+  "Günün başarısı, ne kadar meşgul olduğunla değil, ne kadar odaklandığınla ölçülür.",
+  "Ertelemek, zaman hırsızıdır. Bugün ertelemek yerine sadece 5 dakika odaklanarak başla.",
+  "Yaratıcılık, cesaret gerektirir. Bugün yeni fikirler denemekten çekinme.",
+  "Düzenli olmak zihni özgürleştirir. Planını kontrol et ve adım adım ilerle.",
+  "Her büyük mimari, küçük bir çizgiyle başlar. Bugünün görevlerini küçümseme.",
+  "Bugün zihnini gereksiz yüklerden arındır. Sadece yapabileceğin en iyi işe odaklan.",
+  "Umutsuzluğa kapıldığında neden başladığını hatırla. Yolun sonu harika olacak.",
+  "Kendi sınırlarını aşmak için konfor alanından çıkmalısın. Bugün biraz daha fazlasını dene.",
+  "Başarı sessizce kazanılır, gürültüyle kutlanır. Bugün sessizce üretme günü.",
+  "Zaman en değerli sermayendir. Onu seni geliştirmeyen şeylere harcama.",
+  "Kendine güven. Bugüne kadar başardığın her şey, gelecekte başarabileceklerinin kanıtıdır.",
+  "Disiplin, isteklerinle hedeflerin arasında köprü kurar. Köprüyü bugün inşa et.",
+  "Güne bir gülümsemeyle ve net bir planla başla. Pozitif enerji verimliliği artırır.",
+  "En iyi kod, yazılmamış kod kadar sade olandır. İşlerinde de sadeliği hedefle.",
+  "Bugün yarım kalan işleri tamamlamak için harika bir gün. Eskileri bitir, yenilere yer aç.",
+  "Büyük sonuçlar, tutarlı çabaların ürünüdür. Bugünün çabası yarının meyvesidir.",
+  "Kararlılık, engelleri basamaklara dönüştürür. Adımını sağlam at.",
+  "Kendini başkalarıyla değil, dünkü halinle kıyasla. Her gün biraz daha ileri git.",
+  "Bugün hedeflerine ulaşmak için enerjini yüksek tut. Başarı enerjiyi sever.",
+  "İyi planlanmış bir gün, sürprizleri en aza indirir. Günlük özetini iyi incele.",
+  "Odaklanmak 'evet' demek değil, diğer yüzlerce iyi fikre 'hayır' demektir.",
+  "Başarı, başarısızlıktan başarısızlığa coşkuyu kaybetmeden yürümektir.",
+  "Gelecek, bugün ne yaptığına bağlı olarak şekillenir. Bugünün hakkını ver.",
+  "Yorulunca dinlenmeyi öğren, pes etmeyi değil.",
+  "Bugün karşılaştığın her problem, çözülmeyi bekleyen bir bulmacadır. Keyfini çıkar.",
+  "Zor işleri sabah saatlerinde hallet. Günün geri kalanında zihnin çok daha hafif olsun.",
+  "Küçük adımlar atarak da dağın zirvesine ulaşabilirsin. Sabırlı ol.",
+  "Bugün sadece kendi işine odaklan ve dış gürültüleri kapat.",
+  "Başarılı olmak için dahi olmaya gerek yok; kararlı olmak yeterlidir.",
+  "Her gün yeni bir başlangıçtır. Dünün hatalarını dün bırak, bugün yepyeni bir gün.",
+  "Fikirler ucuzdur, asıl olan uygulamaktır. Bugün fikirlerini hayata geçir.",
+  "Zorluklar seni durdurmak için değil, güçlendirmek içindir. Devam et.",
+  "Bugün iş listeni kontrol et, en kritik 3 görevi seç ve onları bitirmeden uyuma.",
+  "Kendine inanmak, başarının ilk sırrıdır. Bugün yapabileceğine inan.",
+  "En büyük başarılar, kimse sana inanmadığında çalışmaya devam etmektir.",
+  "Verimlilik, daha az zamanda daha akıllıca çalışmaktır. Sistemini optimize et.",
+  "Bugün tüm dikkatini tek bir işe ver. Multitasking üretkenliği öldürür.",
+  "Yapılacak en iyi şey, başlamaktır. İlk adımı at, devamı kendiliğinden gelecektir.",
+  "Başarı bir varış noktası değil, bir yolculuktur. Bugün bu yolculuğun tadını çıkar.",
+  "Bugün işlerini bitirip arkana yaslandığında hissedeceğin o huzuru hayal et.",
+  "Zamanını planla, planına sadık kal. Disiplin seni özgürleştirecektir.",
+  "Bugün hedeflerine giden yolda bir taş daha koy. Yarın o duvar yükselecek.",
+  "Zihnindeki şüpheleri sustur. Sen bu işi yapabilecek yeteneğe sahipsin.",
+  "Daha akıllı çalış, daha çok değil. Önceliklerini doğru belirle.",
+  "Bugün karşılaştığın her zorlukta bir fırsat ara. Bakış açını değiştir.",
+  "Küçük başarıları da kutla. Onlar büyük zaferlerin habercisidir.",
+  "Başarı, ertelemeyi bıraktığın an başlar. Şimdi harekete geç.",
+  "Kendini geliştirmek için her gün en az bir yeni şey öğren.",
+  "Bugün iş listendeki en eski görevi tamamla. O yükten kurtulmak seni hafifletecek.",
+  "Mükemmellik bir eylem değil, bir alışkanlıktır. İşini bugün de mükemmel yap.",
+  "Zor zamanlar geçer, ama güçlü insanlar kalır. Sen güçlüsün.",
+  "Bugün enerjini çalan her şeye sınır koy. Kendi alanını koru.",
+  "Başarı, hazırlıklı olanlar için kaçınılmazdır. Bugün hazırlığını tamamla.",
+  "Zihnini olumlu düşüncelerle besle. Pozitif zihin, pozitif sonuçlar üretir.",
+  "Ertelemek, hayatı ıskalamaktır. Bugünün işini yarına bırakma.",
+  "Bugün işinde detaylara önem ver. Farkı yaratan detaylardır.",
+  "Kararlı bir insan, şartlar ne olursa olsun yolunu bulur.",
+  "Bugün planını sadelikte tut. Az ama öz iş üret.",
+  "Yol ne kadar uzun olursa olsun, ilk adımla başlar. Adımını at.",
+  "Bugün tüm dikkatini toparla ve derin odaklanma moduna geç.",
+  "Kendine verdiğin sözleri tut. En önemli güven, kendine olan güvenindir.",
+  "Başarı, hayallerine sadık kalma cesaretidir. Hayallerinin peşinden git.",
+  "Bugün işlerini tutkuyla yap. Aşkla yapılan iş her zaman parlar.",
+  "Zorluklar seni yıldırmasın, hedefine giden yolda sadece birer testtir.",
+  "Bugün listenizdeki işleri bitirmek için enerjik bir şarkıyla başlayın.",
+  "Verimli bir gün geçirmek için uyku ve dinlenme dengene de özen göster.",
+  "Başarı, sabır ve emeğin ortak ürünüdür. Sabırla ekmeye devam et.",
+  "Bugün işinde yaratıcı çözümler üret. Alışılmışın dışına çık.",
+  "Zor bir görevi tamamlamanın en iyi yolu, onu hemen yapmaya başlamaktır.",
+  "Bugün hedefine ulaşmak için odak noktanı kaybetme.",
+  "Kendine zaman tanı. Büyük değişimler aniden değil, yavaşça gerçekleşir.",
+  "Bugün tüm işlerini düzenli ve temiz bir şekilde yönet. Düzen başarıyı getirir.",
+  "Başarısızlık, daha zekice başlama fırsatından başka bir şey değildir.",
+  "Bugün iş listeni temizlemek için harika bir gün. Odaklan ve bitir.",
+  "Zihnini sakinleştir. Sakin bir zihin, en karmaşık sorunları bile çözer.",
+  "Bugün hedeflerine giden yolda kararlı adımlarla ilerle.",
+  "Kendine inan ve yeteneklerine güven. Bugün harika şeyler yapacaksın.",
+  "Başarı, tutarlılıkta gizlidir. Her gün az da olsa çabalamaya devam et.",
+  "Bugün işlerini yaparken keyif almayı unutma. Mutlu çalışmak verimi artırır.",
+  "Zorluklar, başarının değerini artıran unsurlardır. Yılma, devam et.",
+  "Bugün yepyeni bir gün ve yepyeni başarılar seni bekliyor. Hazır mısın?"
+];
+
+  // AI Motivasyon Mesajını Çek (Hafızadan anında)
+  const fetchAiMotivation = () => {
     setIsAiLoading(true)
-    try {
-      const res = await api.get("/api/ai/motivation")
-      if (res.data && res.data.message) {
-        setMotivation(res.data.message)
-      } else {
-        setMotivation("Bugün harika şeyler yapabileceğini biliyorum. Adım adım hedeflerine odaklan!")
-      }
-    } catch (err) {
-      console.error("AI motivasyon mesajı çekilemedi:", err)
-      setMotivation("Harika bir gün olsun! Bugün tüm görevlerini başarıyla tamamlaman için sabırsızlanıyorum.")
-    } finally {
+    setTimeout(() => {
+      const randomIndex = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)
+      setMotivation(MOTIVATIONAL_QUOTES[randomIndex])
       setIsAiLoading(false)
-    }
+    }, 150)
   }
 
   // İlk Yükleme ve Veri Senkronizasyonu

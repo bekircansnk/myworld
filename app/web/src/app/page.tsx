@@ -22,7 +22,6 @@ import { AdsLayout } from "@/components/ads-panel/AdsLayout"
 import { PhotoTrackingLayout } from "@/components/photo-tracking/PhotoTrackingLayout"
 import { OfflineBanner } from "@/components/ui/OfflineBanner"
 import { AdminPanel } from "@/components/admin/AdminPanel"
-import { InAppCallWindow } from "@/components/chat/InAppCallWindow"
 import { CRMLayout } from "@/components/crm/CRMLayout"
 
 export default function DashboardPage() {
@@ -290,9 +289,6 @@ export default function DashboardPage() {
       {/* Görev Detay Paneli */}
       <TaskDetailPanel />
       <NoteDetailPanel />
-
-      {/* Görüntülü Arama Modal Penceresi */}
-      <InAppCallWindow />
 
       {/* Mobil Alt Navigasyon */}
       <MobileBottomNav />

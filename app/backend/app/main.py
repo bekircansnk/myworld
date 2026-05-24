@@ -240,12 +240,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "4.4",
-        "version_code": 34,
-        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v4.4.apk",
+        "version": "4.5",
+        "version_code": 35,
+        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v4.5.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
-        "changelog": "- Görev detay paneli mobil tab bar sekme düzenleri iyileştirildi; Fotoğraflar varsayılan olarak 1. sıraya alındı.\n- Yorumlar ve Geçmiş sekmeleri tek bir ekranda 'Yorum & Geçmiş' olarak birleştirildi.\n- Mobil sekmeler arası geçişte yaşanan içerik karışma ve üst üste binme problemleri tamamen giderildi."
+        "changelog": "- Görüntülü görüşme özelliği ve arayüzdeki ilgili tüm butonlar tamamen kaldırıldı.\n- Karşılama ekranındaki (MorningScreen.tsx) yapay zeka motivasyon özetleri, anlık yavaş API istekleri yerine 100+ premium motivasyon sözü içeren hızlı ve yerel bir havuzdan rastgele çekilecek şekilde optimize edildi."
     }
 
 @app.get("/api/link-preview")

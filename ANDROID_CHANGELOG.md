@@ -9,6 +9,15 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v4.5
+**Tarih:** 24 Mayıs 2026
+**Değişiklikler:**
+- **[Kritik Temizlik - Görüntülü Görüşme Altyapısının Kaldırılması]** Görüntülü görüşme özelliği tamamen kaldırıldı; ilgili tüm frontend kodları, InAppCallWindow bileşeni, meetingStore ve navbar/dashboard'daki butonlar temizlendi.
+- **[Optimizasyon - Yerel Motivasyon Havuzu]** Karşılama ekranındaki (MorningScreen.tsx) yapay zeka motivasyon özetleri, yavaş API istekleri yerine 100+ premium motivasyon sözü içeren hızlı ve yerel bir havuzdan rastgele çekilecek şekilde optimize edildi. Bu sayede karşılama ekranı anında ve hızlıca yüklenmektedir.
+- **[Sürüm Entegrasyonu - v4.5]** `versionCode` 35'e ve `versionName` "4.5"'e yükseltildi. Web static derleme, Capacitor senkronizasyonu ve debug APK üretilerek frontend fallback ve backend api endpoint'leri üzerinden yayına alındı.
+
+---
+
 ### v4.4
 **Tarih:** 23 Mayıs 2026
 **Değişiklikler:**

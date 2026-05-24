@@ -14,8 +14,6 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { useAuthStore, canViewCompany, isAdmin, isSuperAdmin, canAccessAdminPanel } from "@/store/authStore"
 import { ProfileSettings } from "@/components/auth/ProfileSettings"
 import { ProjectSettingsModal } from "@/components/projects/ProjectSettingsModal"
-import { useMeetingStore } from "@/stores/meetingStore"
-import { Video } from "lucide-react"
 
 export interface ApiCostData {
   input_tokens: number
@@ -38,14 +36,6 @@ export function TopNavbar() {
   const { tasks } = useTaskStore()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
-
-  const { activeMeeting, joinMeeting, startMeeting, fetchActiveMeeting } = useMeetingStore()
-
-  React.useEffect(() => {
-    if (selectedProjectId) {
-      fetchActiveMeeting(selectedProjectId)
-    }
-  }, [selectedProjectId, fetchActiveMeeting])
 
   // Panels
   const [showProjectMenu, setShowProjectMenu] = React.useState(false)
@@ -411,30 +401,6 @@ export function TopNavbar() {
 
         {/* Sağ: Aksiyonlar */}
         <div className="flex items-center gap-1 md:gap-2 shrink-0">
-          {/* Görüntülü Görüşme Başlat/Katıl Butonu (Yuvarlak & Minimal) */}
-          {selectedProjectId && (
-            <button
-              onClick={async () => {
-                if (activeMeeting) {
-                  joinMeeting()
-                } else {
-                  try {
-                    await startMeeting(selectedProjectId)
-                  } catch (err) {
-                    console.error("Görüşme başlatma hatası:", err)
-                  }
-                }
-              }}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-md hover:shadow-lg hover:scale-105
-                ${activeMeeting 
-                  ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" 
-                  : "bg-emerald-500 hover:bg-emerald-600 text-white"
-                }`}
-              title={activeMeeting ? "Aktif Görüşmeye Katıl" : "Görüntülü Görüşme Başlat"}
-            >
-              <Video className="w-4 h-4" />
-            </button>
-          )}
 
           {/* Firmalar — Click/Hover ile açılır */}
           <div
@@ -701,10 +667,10 @@ export function TopNavbar() {
                           a.click();
                           document.body.removeChild(a);
                         } else {
-                          window.open("https://myworld-twqx.onrender.com/static/Pikselis_v4.4.apk", "_blank"); // Fallback
+                          window.open("https://myworld-twqx.onrender.com/static/Pikselis_v4.5.apk", "_blank"); // Fallback
                         }
                       } catch (err) {
-                        window.open("https://myworld-twqx.onrender.com/static/Pikselis_v4.4.apk", "_blank"); // Fallback
+                        window.open("https://myworld-twqx.onrender.com/static/Pikselis_v4.5.apk", "_blank"); // Fallback
                       }
                     }}
                     className="w-full text-left px-4 py-3.5 text-xs text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 hover:from-indigo-600 hover:to-purple-600 transition-all font-black flex items-center gap-3 shadow-md rounded-2xl"
