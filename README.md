@@ -1,12 +1,46 @@
 # 🌍 Pikseliş
 
-<p align="center">
-  <img src="image/pikselis_showcase.png" alt="Pikseliş AI Life Coach Showcase" width="100%">
-</p>
-
 **Yapay Zeka Destekli Kişisel Yaşam, İş ve Fotoğraf Takip Yönetim Sistemi**
 
 Pikseliş; sadece sıradan bir "yapılacaklar listesi" veya görev yöneticisi değildir. Kullanıcıyı tanıyan, yönlendiren, motive eden ve iş akışlarını tek bir merkezden yöneten akıllı bir yaşam orkestratörüdür. Masaüstünden Android mobil uygulamasına kadar (Capacitor & PWA) her platformda eş zamanlı ve %100 uyumlu çalışan modern bir ekosistem sunar.
+
+---
+
+## 📸 Uygulama Arayüzü & Özellikleri
+
+### 1️⃣ İşini Tek Ekrandan Yönet
+FastAPI backend ve Next.js frontend mimarisi sayesinde görevlerinizden takviminize, notlarınızdan CRM modüllerine kadar tüm iş süreçlerinizi tek bir platform üzerinden eşzamanlı olarak yönetebilirsiniz.
+
+<p align="center">
+  <img src="image/showcase_01.jpg" alt="Pikseliş - İşini Tek Ekrandan Yönet" width="100%">
+</p>
+
+---
+
+### 2️⃣ AI ile Planla, Hızla Aksiyona Geç
+Google Gemini AI entegrasyonlu Akıllı Asistanınızla doğal dilde sohbet ederek günlük planınızı oluşturabilir, saniyeler içinde görev ekleyebilir ve kalıcı hafıza desteği sayesinde asistanınızın sizi her zaman hatırlamasını sağlayabilirsiniz.
+
+<p align="center">
+  <img src="image/showcase_02.jpg" alt="Pikseliş - AI ile Planla" width="100%">
+</p>
+
+---
+
+### 3️⃣ Takvim ve Görevlerini Düzenle
+Dokunmatik uyumlu sürükle-bırak destekli aylık takvim, bekleyen görevler listesi ve detaylı planlama araçlarıyla etkinliklerinizi ve zamanınızı kolayca kontrol altında tutun.
+
+<p align="center">
+  <img src="image/showcase_03.jpg" alt="Pikseliş - Takvim ve Görev Yönetimi" width="100%">
+</p>
+
+---
+
+### 4️⃣ İlerlemeni Anlık Olarak Gör
+Gelişmiş kontrol paneli üzerinden aktif işleri, tamamlanma durumlarını, çalışma sayacı (timer) ile çalışma sürelerinizi ve günlük odağınızı tek bakışta izleyin.
+
+<p align="center">
+  <img src="image/showcase_04.jpg" alt="Pikseliş - İlerleme Paneli" width="100%">
+</p>
 
 ---
 
@@ -16,61 +50,6 @@ Pikseliş, **Evrensel Kapsam** ilkesine göre tasarlanmıştır. Web platformund
 - **Çevrimdışı Çalışma (Offline-First):** Serwist Service Worker entegrasyonu ve IndexedDB tabanlı kuyruklama sistemi sayesinde internet kesildiğinde verileri saklar, internet geldiğinde arka planda otomatik senkronize eder.
 - **Uygulama İçi Güncelleme Kontrolü (OTA):** Uygulama her açıldığında veya ön plana geldiğinde yeni APK sürümünü kontrol eder ve kullanıcıyı esnek bir bildirimle uyarır (Zorunlu engelleme olmaksızın).
 - **Native Mobil Hissiyatı:** iOS/Android cihazlarda tarayıcı rubber-banding (sayfa sekmesi) etkileri kaldırılmış, ekrana uzun basınca çıkan web bağlam menüleri devre dışı bırakılmış ve mobil alt navigasyon (Bottom Nav) eklenmiştir.
-
----
-
-## ✨ Öne Çıkan Özellikler & Yenilikler
-
-### 🤖 Akıllı Karşılama & Yerel Motivasyon (Morning Screen)
-- Uygulama ilk açıldığında veya yeni bir sekme başlatıldığında sizi saate göre dinamik renk auraları ("Günaydın", "Tünaydın", "İyi Akşamlar", "İyi Geceler") ile karşılıyor.
-- Bugünün takvim etkinliklerini, teslim tarihi gelen görevleri ve geçmişten sarkan işleri özetler.
-- **Yerel Motivasyon Havuzu (v4.5):** Yavaş API istekleri yerine, 100+ premium motivasyon sözü içeren hızlı yerel havuzdan rastgele çekim yaparak ekranın anında açılmasını sağlar.
-
-<p align="center">
-  <img src="image/morning_screen.png" alt="Morning Screen Karşılama Ekranı" width="90%">
-</p>
-
-### 📋 Serbest Sıralamalı Mobil Uyumlu Kanban
-- **3 Sütunlu Sade Akış:** "Yapılacak", "Devam Eden" ve "Tamamlanan" sütunlarıyla sadeleştirilmiş görev takibi.
-- **Swipeable & Auto-scroll:** Mobil ekranlarda kaydırılabilir sütun geçişleri ve kartı taşırken sütunun otomatik sağa/sola kayması.
-- **Serbest Sıralama:** Drag & Drop kütüphanesi (titreme etkilerinden arındırılmış) ile görev kartlarını tahta üzerinde serbestçe sıralayabilirsiniz.
-
-<p align="center">
-  <img src="image/dashboard.jpg" alt="Pikseliş Kontrol Paneli Dashboard" width="90%">
-</p>
-
-### 📅 Gelişmiş Kompakt Takvim (Touch-Friendly)
-- Takvim günleri içindeki eski, sığmayan ve taşan kaba görev butonları kaldırılmıştır.
-- Yerlerine minimal, modern ve projenin rengini taşıyan renkli noktalar (dots) eklenmiştir.
-- Hücrenin üzerine gelindiğinde veya dokunulduğunda o güne ait görevleri, durumlarını ve firma etiketlerini listeyen yarı-saydam (glassmorphic) bir detay popover'ı açılır.
-- Dokunmatik ekranlarda veri kaybı yaşatmayan akıllı sürükle-bırak desteği sunar.
-
-<p align="center">
-  <img src="image/calendar.jpg" alt="Pikseliş Takvim Ekranı" width="90%">
-</p>
-
-### 🤖 Akıllı Asistan & Yapay Zeka Sohbeti (AI Chat)
-- Akıllı Asistan ile konuşarak görev planlayabilir, takviminizi düzenleyebilir ve anında not alabilirsiniz.
-- Kalıcı hafıza entegrasyonu sayesinde tüm konuşmalarınız güvenli bir şekilde saklanır ve asistanınız sizi geçmiş kararlarınızla destekler.
-
-<p align="center">
-  <img src="image/chat.jpg" alt="Pikseliş AI Sohbet Ekranı" width="90%">
-</p>
-
-### 📊 Fotoğraf Takip (Photo Tracking) & Model Yönetimi
-- Görevler için yüklenen fotoğrafların durumları, revizyon adetleri, renk şemaları ve notları sağlam bir şema ile yönetilir.
-- **Tam Ekran Lightbox:** Fotoğraflar `createPortal` ile alt panellerde sıkışmadan tam ekran açılır; indirme ve silme işlemleri bu ekrandan güvenle yapılır.
-
-### 📈 Reklam Takibi & AI Rapor Merkezi
-- Reklam KPI'larının takibi, CSV/XLSX veri yükleme desteği ve Optimistic UI güncellemeleri.
-- Google Gemini AI destekli otomatik PDF rapor üretimi ile reklam performans verilerini analiz eder.
-
-### 🔄 Çift Yönlü Excel Senkronizasyonu
-- `openpyxl` tabanlı, çift yönlü veri aktarımı. Veri kaybı veya format bozulması yaşamadan Excel dosyasından içe (import) ve dışa (export) aktarım yapabilmektedir.
-
-### 💤 Boşta Kalma (Idle) & Ekran Tasarrufu Modu
-- Cihazda veya bilgisayarda 10 dakika boyunca işlem yapılmadığında uygulama otomatik olarak karşılama/tasarruf ekranına geçer.
-- Bu moddayken arka plandaki tüm polling/veri çekme işlemleri duraklatılarak RAM ve CPU tasarrufu sağlanır.
 
 ---
 
