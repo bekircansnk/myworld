@@ -12,7 +12,7 @@ Pikseliş; sadece sıradan bir "yapılacaklar listesi" veya görev yöneticisi d
 FastAPI backend ve Next.js frontend mimarisi sayesinde görevlerinizden takviminize, notlarınızdan CRM modüllerine kadar tüm iş süreçlerinizi tek bir platform üzerinden eşzamanlı olarak yönetebilirsiniz.
 
 <p align="center">
-  <img src="image/showcase_01.jpg" alt="Pikseliş - İşini Tek Ekrandan Yönet" width="100%">
+  <img src="image/showcase_01.png" alt="Pikseliş - İşini Tek Ekrandan Yönet" width="100%">
 </p>
 
 ---
@@ -21,7 +21,7 @@ FastAPI backend ve Next.js frontend mimarisi sayesinde görevlerinizden takvimin
 Google Gemini AI entegrasyonlu Akıllı Asistanınızla doğal dilde sohbet ederek günlük planınızı oluşturabilir, saniyeler içinde görev ekleyebilir ve kalıcı hafıza desteği sayesinde asistanınızın sizi her zaman hatırlamasını sağlayabilirsiniz.
 
 <p align="center">
-  <img src="image/showcase_02.jpg" alt="Pikseliş - AI ile Planla" width="100%">
+  <img src="image/showcase_02.png" alt="Pikseliş - AI ile Planla" width="100%">
 </p>
 
 ---
@@ -30,7 +30,7 @@ Google Gemini AI entegrasyonlu Akıllı Asistanınızla doğal dilde sohbet eder
 Dokunmatik uyumlu sürükle-bırak destekli aylık takvim, bekleyen görevler listesi ve detaylı planlama araçlarıyla etkinliklerinizi ve zamanınızı kolayca kontrol altında tutun.
 
 <p align="center">
-  <img src="image/showcase_03.jpg" alt="Pikseliş - Takvim ve Görev Yönetimi" width="100%">
+  <img src="image/showcase_03.png" alt="Pikseliş - Takvim ve Görev Yönetimi" width="100%">
 </p>
 
 ---
@@ -39,7 +39,7 @@ Dokunmatik uyumlu sürükle-bırak destekli aylık takvim, bekleyen görevler li
 Gelişmiş kontrol paneli üzerinden aktif işleri, tamamlanma durumlarını, çalışma sayacı (timer) ile çalışma sürelerinizi ve günlük odağınızı tek bakışta izleyin.
 
 <p align="center">
-  <img src="image/showcase_04.jpg" alt="Pikseliş - İlerleme Paneli" width="100%">
+  <img src="image/showcase_04.png" alt="Pikseliş - İlerleme Paneli" width="100%">
 </p>
 
 ---
