@@ -33,7 +33,7 @@ data/backups/
 
 # Gizli / Git'e yuklenmeyecek belgeler, raporlar ve resimler
 /docs/
-/image/
+/image/ANDROID_CHANGELOG/
 /iyzads/
 /AGENTS.md
 /ANDROID_CHANGELOG.md

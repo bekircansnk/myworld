@@ -1,5 +1,9 @@
 # 🌍 Pikseliş
 
+<p align="center">
+  <img src="image/pikselis_showcase.png" alt="Pikseliş AI Life Coach Showcase" width="100%">
+</p>
+
 **Yapay Zeka Destekli Kişisel Yaşam, İş ve Fotoğraf Takip Yönetim Sistemi**
 
 Pikseliş; sadece sıradan bir "yapılacaklar listesi" veya görev yöneticisi değildir. Kullanıcıyı tanıyan, yönlendiren, motive eden ve iş akışlarını tek bir merkezden yöneten akıllı bir yaşam orkestratörüdür. Masaüstünden Android mobil uygulamasına kadar (Capacitor & PWA) her platformda eş zamanlı ve %100 uyumlu çalışan modern bir ekosistem sunar.
@@ -18,20 +22,40 @@ Pikseliş, **Evrensel Kapsam** ilkesine göre tasarlanmıştır. Web platformund
 ## ✨ Öne Çıkan Özellikler & Yenilikler
 
 ### 🤖 Akıllı Karşılama & Yerel Motivasyon (Morning Screen)
-- Uygulama ilk açıldığında veya yeni bir sekme başlatıldığında sizi saate göre dinamik renk auraları ("Günaydın", "Tünaydın", "İyi Akşamlar", "İyi Geceler") ile karşılar.
+- Uygulama ilk açıldığında veya yeni bir sekme başlatıldığında sizi saate göre dinamik renk auraları ("Günaydın", "Tünaydın", "İyi Akşamlar", "İyi Geceler") ile karşılıyor.
 - Bugünün takvim etkinliklerini, teslim tarihi gelen görevleri ve geçmişten sarkan işleri özetler.
 - **Yerel Motivasyon Havuzu (v4.5):** Yavaş API istekleri yerine, 100+ premium motivasyon sözü içeren hızlı yerel havuzdan rastgele çekim yaparak ekranın anında açılmasını sağlar.
+
+<p align="center">
+  <img src="image/morning_screen.png" alt="Morning Screen Karşılama Ekranı" width="90%">
+</p>
 
 ### 📋 Serbest Sıralamalı Mobil Uyumlu Kanban
 - **3 Sütunlu Sade Akış:** "Yapılacak", "Devam Eden" ve "Tamamlanan" sütunlarıyla sadeleştirilmiş görev takibi.
 - **Swipeable & Auto-scroll:** Mobil ekranlarda kaydırılabilir sütun geçişleri ve kartı taşırken sütunun otomatik sağa/sola kayması.
 - **Serbest Sıralama:** Drag & Drop kütüphanesi (titreme etkilerinden arındırılmış) ile görev kartlarını tahta üzerinde serbestçe sıralayabilirsiniz.
 
+<p align="center">
+  <img src="image/dashboard.jpg" alt="Pikseliş Kontrol Paneli Dashboard" width="90%">
+</p>
+
 ### 📅 Gelişmiş Kompakt Takvim (Touch-Friendly)
 - Takvim günleri içindeki eski, sığmayan ve taşan kaba görev butonları kaldırılmıştır.
 - Yerlerine minimal, modern ve projenin rengini taşıyan renkli noktalar (dots) eklenmiştir.
 - Hücrenin üzerine gelindiğinde veya dokunulduğunda o güne ait görevleri, durumlarını ve firma etiketlerini listeyen yarı-saydam (glassmorphic) bir detay popover'ı açılır.
 - Dokunmatik ekranlarda veri kaybı yaşatmayan akıllı sürükle-bırak desteği sunar.
+
+<p align="center">
+  <img src="image/calendar.jpg" alt="Pikseliş Takvim Ekranı" width="90%">
+</p>
+
+### 🤖 Akıllı Asistan & Yapay Zeka Sohbeti (AI Chat)
+- Akıllı Asistan ile konuşarak görev planlayabilir, takviminizi düzenleyebilir ve anında not alabilirsiniz.
+- Kalıcı hafıza entegrasyonu sayesinde tüm konuşmalarınız güvenli bir şekilde saklanır ve asistanınız sizi geçmiş kararlarınızla destekler.
+
+<p align="center">
+  <img src="image/chat.jpg" alt="Pikseliş AI Sohbet Ekranı" width="90%">
+</p>
 
 ### 📊 Fotoğraf Takip (Photo Tracking) & Model Yönetimi
 - Görevler için yüklenen fotoğrafların durumları, revizyon adetleri, renk şemaları ve notları sağlam bir şema ile yönetilir.
@@ -76,11 +100,11 @@ Pikseliş, **Evrensel Kapsam** ilkesine göre tasarlanmıştır. Web platformund
 │       ├── app/           # API Endpoint'leri, Modeller, Şemalar
 │       └── alembic/       # Veritabanı Migrasyon Dosyaları
 ├── docs/                  # Proje planları, analiz raporları (Git dışı / Yerel)
-├── image/                 # Android değişiklik günlüğü görselleri (Git dışı / Yerel)
+├── image/                 # Tanıtıcı görseller ve Android değişiklik günlüğü resimleri
 └── iyzads/                # Ekran görüntüleri ve test resimleri (Git dışı / Yerel)
 ```
 > [!NOTE]
-> Proje içindeki `docs/`, `image/` ve `iyzads/` klasörleri ile `AGENTS.md` gibi dosyalar yerel ortamınızda geliştirme süreçlerini takip etmeniz amacıyla durmakta olup, `.gitignore` dosyası aracılığıyla GitHub (Git) reposu dışında tutulmaktadır.
+> Proje içindeki `docs/` ve `iyzads/` klasörleri ile `AGENTS.md` gibi dosyalar yerel ortamınızda geliştirme süreçlerini takip etmeniz amacıyla durmakta olup, `.gitignore` dosyası aracılığıyla GitHub (Git) reposu dışında tutulmaktadır. Tanıtım görselleri içeren `/image/` klasörü ise GitHub üzerinde görsellerin sergilenebilmesi için Git takibine alınmıştır (ancak içerisindeki `image/ANDROID_CHANGELOG/` alt klasörü yoksayılmaya devam etmektedir).
 
 ---
 
