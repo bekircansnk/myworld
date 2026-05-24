@@ -37,7 +37,7 @@ Pikseliş, **Evrensel Kapsam** ilkesine göre tasarlanmıştır. Web platformund
 - Görevler için yüklenen fotoğrafların durumları, revizyon adetleri, renk şemaları ve notları sağlam bir şema ile yönetilir.
 - **Tam Ekran Lightbox:** Fotoğraflar `createPortal` ile alt panellerde sıkışmadan tam ekran açılır; indirme ve silme işlemleri bu ekrandan güvenle yapılır.
 
-### 📈 Venus Ads v2 & AI Rapor Merkezi
+### 📈 Reklam Takibi & AI Rapor Merkezi
 - Reklam KPI'larının takibi, CSV/XLSX veri yükleme desteği ve Optimistic UI güncellemeleri.
 - Google Gemini AI destekli otomatik PDF rapor üretimi ile reklam performans verilerini analiz eder.
 
