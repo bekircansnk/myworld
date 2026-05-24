@@ -163,9 +163,9 @@ export function AppUpdateChecker() {
 
                 // Dosyayı Filesystem ile kaydet
                 const result = await Filesystem.writeFile({
-                  path: `Download/${fileName}`,
+                  path: fileName,
                   data: base64Data,
-                  directory: Directory.External,
+                  directory: Directory.Cache,
                   recursive: true,
                 });
 
@@ -210,7 +210,13 @@ export function AppUpdateChecker() {
       setTimeout(() => setState("idle"), 3000);
     } catch (err: any) {
       console.error("Güncelleme hatası:", err);
-      setErrorMsg(err?.message || "Bilinmeyen hata");
+      const isPermError = err?.message === "INSTALL_PERMISSION_REQUIRED" || 
+                         (err && typeof err === "object" && err.toString().includes("INSTALL_PERMISSION_REQUIRED"));
+      if (isPermError) {
+        setErrorMsg("Bilinmeyen kaynaklardan uygulama yükleme izni kapalı. İzin ayarları ekranı açıldı, lütfen izin verip tekrar güncellemeyi deneyin.");
+      } else {
+        setErrorMsg(err?.message || "Bilinmeyen hata");
+      }
       setState("error");
     }
   }, [versionInfo]);

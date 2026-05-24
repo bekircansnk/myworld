@@ -91,10 +91,10 @@ export function InstallAppBanner() {
                   a.click();
                   document.body.removeChild(a);
                 } else {
-                  window.open("https://myworld-twqx.onrender.com/static/Pikselis_v4.5.apk", "_blank");
+                  window.open("https://myworld-twqx.onrender.com/static/Pikselis_v4.6.apk", "_blank");
                 }
               } catch (err) {
-                window.open("https://myworld-twqx.onrender.com/static/Pikselis_v4.5.apk", "_blank");
+                window.open("https://myworld-twqx.onrender.com/static/Pikselis_v4.6.apk", "_blank");
               }
               setTimeout(handleDismiss, 1000);
             }}

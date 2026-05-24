@@ -32,6 +32,18 @@ public class ApkInstallerPlugin extends Plugin {
                 return;
             }
 
+            // Android 8.0+ Bilinmeyen Uygulamaları Yükleme İzni Kontrolü
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (!getContext().getPackageManager().canRequestPackageInstalls()) {
+                    Intent settingsIntent = new Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
+                    settingsIntent.setData(Uri.parse("package:" + getContext().getPackageName()));
+                    settingsIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    getContext().startActivity(settingsIntent);
+                    call.reject("INSTALL_PERMISSION_REQUIRED");
+                    return;
+                }
+            }
+
             Uri uri;
             Intent intent = new Intent(Intent.ACTION_VIEW);
 
