@@ -30,3 +30,18 @@ app/backend/uploads/*
 *.command
 .env.production
 data/backups/
+
+# Gizli / Git'e yuklenmeyecek belgeler, raporlar ve resimler
+/docs/
+/image/
+/iyzads/
+/AGENTS.md
+/ANDROID_CHANGELOG.md
+/ARCHITECTURE.md
+/DEBUG_PROTOCOL.md
+/SYSTEM_CHANGELOG.md
+/iş planı.md
+/app/ANDROID_CHANGELOG.md
+/app/web/android_project_export.zip
+/app/web/public/venus_ads_rehber.md
+
