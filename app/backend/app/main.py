@@ -240,12 +240,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "4.6",
-        "version_code": 36,
-        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v4.6.apk",
+        "version": "4.7",
+        "version_code": 37,
+        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v4.7.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
-        "changelog": "- Android 10+ harici depolama ve Scoped Storage kısıtlamaları nedeniyle yaşanan APK indirme ve yazma hatası, indirme dizini Directory.Cache (dahili cache) olarak değiştirilerek tamamen çözüldü.\n- Bilinmeyen kaynaklardan yükleme izni kapalıysa uygulamanın çökmesi engellendi; kullanıcı otomatik olarak Android İzin Ayarları ekranına yönlendirilecek ve izin verip geri döndüğünde güncellemeye devam edebilecek şekilde optimize edildi."
+        "changelog": "- Android APK sürümü ve indirme altyapısı en güncel v4.7 standartlarına güncellendi.\n- Dosya yolları, backend app-version endpoint'i ve frontend fallback indirme linkleri yeni APK sürümüyle senkronize edildi."
     }
 
 @app.get("/api/link-preview")

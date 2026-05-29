@@ -1,0 +1,85 @@
+# docker-compose.yml
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: pikselis-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: myworld
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d myworld"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: pikselis-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ./app/backend
+      dockerfile: Dockerfile
+    container_name: pikselis-backend
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app/backend:/app
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/myworld
+      - REDIS_URL=redis://redis:6379/0
+      - FRONTEND_URL=http://localhost:3000
+    command: >
+      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./app/web
+      dockerfile: Dockerfile
+    container_name: pikselis-web
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./app/web:/app
+      - /app/web/node_modules
+      - /app/web/.next
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    env_file:
+      - ./app/web/.env.local
+    depends_on:
+      - backend
+
+volumes:
+  pg_data:
+    driver: local
+  redis_data:
+    driver: local
