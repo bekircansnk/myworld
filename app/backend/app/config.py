@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     db_port: int
     database_url: str
 
+    # MSSQL Settings (Venus)
+    mssql_user: str = "venusreadonly"
+    mssql_password: str = "Venus3889*!"
+
     # Redis
     redis_url: str = "redis://localhost:6379/0"
 
