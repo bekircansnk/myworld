@@ -5,7 +5,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 REPLACEMENTS = [
-    ("pikselis-dashboard.vercel.app", "pikselis-dashboard.vercel.app"),
+    ("pikselis-" + "dashboard.vercel.app", "planla.pikselai.com"),
+    ("pikselis-" + "steel.vercel.app", "planla.pikselai.com"),
     ("Pikseliş", "Pikseliş"), # just in case
 ]
 

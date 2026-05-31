@@ -149,8 +149,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         settings.frontend_url,
-        "https://pikselis-dashboard.vercel.app",
-        "https://pikselis-dashboard.vercel.app",
+        "https://planla.pikselai.com",
         "http://localhost:3000",
         "https://localhost",
         "http://localhost",
@@ -216,8 +215,7 @@ async def global_exception_handler(request, exc: Exception):
     origin = request.headers.get("origin", "")
     allowed_origins = [
         settings.frontend_url,
-        "https://pikselis-dashboard.vercel.app",
-        "https://pikselis-dashboard.vercel.app",
+        "https://planla.pikselai.com",
         "http://localhost:3000",
         "https://localhost",
         "http://localhost",
@@ -242,7 +240,7 @@ async def get_app_version():
     return {
         "version": "4.7",
         "version_code": 37,
-        "download_url": "https://pikselis-dashboard.vercel.app/Pikselis_v4.7.apk",
+        "download_url": "https://planla.pikselai.com/Pikselis_v4.7.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
         "changelog": "- Android APK sürümü ve indirme altyapısı en güncel v4.7 standartlarına güncellendi.\n- Dosya yolları, backend app-version endpoint'i ve frontend fallback indirme linkleri yeni APK sürümüyle senkronize edildi."
