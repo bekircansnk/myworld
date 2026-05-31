@@ -277,7 +277,6 @@ async def create_task(
         db_task_loaded = result.scalars().first()
         return db_task_loaded
     except Exception as e:
-        from app.models.activity_log import ActivityLog
         import traceback
         error_log = ActivityLog(
             user_id=current_user.id,
