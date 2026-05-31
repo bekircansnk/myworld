@@ -22,7 +22,7 @@ import { AdsLayout } from "@/components/ads-panel/AdsLayout"
 import { PhotoTrackingLayout } from "@/components/photo-tracking/PhotoTrackingLayout"
 import { OfflineBanner } from "@/components/ui/OfflineBanner"
 import { AdminPanel } from "@/components/admin/AdminPanel"
-import { CRMLayout } from "@/components/crm/CRMLayout"
+
 
 export default function DashboardPage() {
   const { user, isAuthenticated, isLoading: authLoading, checkAuth, _hasHydrated: authHydrated } = useAuthStore()
@@ -182,9 +182,7 @@ export default function DashboardPage() {
   } else if (viewMode === 'dashboard') {
     pageTitle = currentProject ? `${currentProject.name} — Kontrol Paneli` : "Kontrol Paneli"
     pageDescription = "Firmanın genel durumunu görüntüleyin."
-  } else if (viewMode === 'crm') {
-    pageTitle = currentProject ? `${currentProject.name} — CRM Paneli` : "CRM Paneli"
-    pageDescription = "Satış kanalları, adaylar ve çoklu kanal iletişimlerini yönetin."
+
   }
 
   const isDashboard = viewMode === 'dashboard'
@@ -193,7 +191,7 @@ export default function DashboardPage() {
   const isReklamAds = viewMode === 'ads'
   const isPhotoTracking = viewMode === 'photo_tracking'
   const isAdminPanel = viewMode === 'admin'
-  const isCRM = viewMode === 'crm'
+
   
   const renderErrorState = (message: string) => (
     <div className="flex flex-col h-full w-full overflow-hidden" id="app-root">
@@ -226,12 +224,7 @@ export default function DashboardPage() {
   if (isPhotoTracking && !canViewModule('photo_tracking')) return renderErrorState("Bu modüle erişim yetkiniz yok.");
   if (isAdminPanel && !canAccessAdminPanel(user)) return renderErrorState("Yönetim paneline erişim yetkiniz yok.");
 
-  return isCRM ? (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-white text-slate-900" id="crm-app-root">
-      <OfflineBanner />
-      <CRMLayout projectId={selectedProjectId} />
-    </div>
-  ) : (
+  return (
     <div className="flex flex-col h-full w-full overflow-hidden" id="app-root">
       {/* ÜST NAVBAR — Yatay, tüm ekranlarda */}
       <TopNavbar />

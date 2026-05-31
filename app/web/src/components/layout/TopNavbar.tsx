@@ -358,7 +358,6 @@ export function TopNavbar() {
     ...(canViewCompany(user, 'ai_chat', selectedProjectId) ? [{ id: 'ai_chat', label: 'AI Sohbet', icon: Bot }] : []),
     ...(canViewCompany(user, 'ads', selectedProjectId) ? [{ id: 'ads', label: 'Reklam', icon: Megaphone }] : []),
     ...(canViewCompany(user, 'photo_tracking', selectedProjectId) ? [{ id: 'photo_tracking', label: 'Fotoğraf Takip', icon: Camera }] : []),
-    ...(selectedProjectId ? [{ id: 'crm', label: 'CRM', icon: Briefcase }] : []),
     ...(canAccessAdminPanel(user) ? [{ id: 'admin', label: 'Yönetim', icon: Shield }] : []),
   ]
 

@@ -4,7 +4,7 @@ import { api } from '@/lib/api';
 import { idbStorage } from '@/lib/idb-storage';
 import { Project } from '@/types';
 
-export type ViewMode = 'dashboard' | 'all_tasks' | 'project' | 'calendar' | 'notes' | 'ai_chat' | 'ads' | 'photo_tracking' | 'admin' | 'crm';
+export type ViewMode = 'dashboard' | 'all_tasks' | 'project' | 'calendar' | 'notes' | 'ai_chat' | 'ads' | 'photo_tracking' | 'admin';
 
 interface ProjectState {
   projects: Project[];
