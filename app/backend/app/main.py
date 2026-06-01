@@ -238,12 +238,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "4.9",
-        "version_code": 39,
-        "download_url": "https://planla.pikselai.com/Pikselis_v4.9.apk",
+        "version": "5.0",
+        "version_code": 40,
+        "download_url": "https://planla.pikselai.com/Pikselis_v5.0.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
-        "changelog": "- Pikseliş özgün logo ve premium ikon tasarımı tüm platformlarda (Web, PWA, Android) yayına alındı.\n- Sekme başlıklarındaki Vercel varsayılan simgeleri kaldırıldı.\n- Android launcher ve splash ekranları yeni logonuzla güncellendi."
+        "changelog": "- Trello bazlı, son derece estetik ve aydınlık renklerde yepyeni bir 3D cam logo tasarımı entegre edildi.\n- Tüm faviconlar, PWA ikonları, Android launcher ve splash ekranları yenilendi.\n- Vercel logosuna ait tüm kalıntılar temizlendi."
     }
 
 @app.get("/api/link-preview")
