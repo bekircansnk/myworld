@@ -238,12 +238,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "4.8",
-        "version_code": 38,
-        "download_url": "https://planla.pikselai.com/Pikselis_v4.8.apk",
+        "version": "4.9",
+        "version_code": 39,
+        "download_url": "https://planla.pikselai.com/Pikselis_v4.9.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
-        "changelog": "- Android APK sürümü ve indirme altyapısı yeni alan adı (planla.pikselai.com) v4.8 standartlarına güncellendi.\n- Dosya yolları, backend app-version endpoint'i ve frontend fallback indirme linkleri yeni APK sürümüyle senkronize edildi."
+        "changelog": "- Pikseliş özgün logo ve premium ikon tasarımı tüm platformlarda (Web, PWA, Android) yayına alındı.\n- Sekme başlıklarındaki Vercel varsayılan simgeleri kaldırıldı.\n- Android launcher ve splash ekranları yeni logonuzla güncellendi."
     }
 
 @app.get("/api/link-preview")
