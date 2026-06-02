@@ -155,8 +155,17 @@ export function LoginOverlay() {
           <div className="p-8">
             
             {/* Header Section */}
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-extrabold bg-gradient-to-br from-indigo-500 to-violet-500 dark:from-indigo-400 dark:to-fuchsia-400 bg-clip-text text-transparent mb-2">Pikseliş</h1>
+            <div className="text-center mb-8 flex flex-col items-center justify-center">
+              <div className="flex items-center justify-center gap-3.5 mb-2">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg overflow-hidden border border-slate-200/50 dark:border-white/10 bg-white/5 shrink-0 transform transition-all duration-500 hover:scale-105">
+                  <img 
+                    src="/icons/icon-512x512.png" 
+                    alt="Pikseliş Logo" 
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <h1 className="text-3xl font-extrabold bg-gradient-to-br from-indigo-500 to-violet-500 dark:from-indigo-400 dark:to-fuchsia-400 bg-clip-text text-transparent tracking-tight">Pikseliş</h1>
+              </div>
               <p className="text-sm text-slate-500 dark:text-slate-400">
                 {viewState === 'forgot' ? 'Şifrenizi sıfırlamak için e-postanızı girin.' 
                   : viewState === 'otp' ? 'E-postanıza gelen 6 haneli kodu girin.'
