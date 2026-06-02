@@ -446,6 +446,7 @@ async def create_subtask(
     task_id: int,
     subtask: TaskCreate,
     request: Request,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_company_permission("tasks", "edit"))
 ):
@@ -474,6 +475,10 @@ async def create_subtask(
     await db.commit()
     await db.refresh(db_task)
     
+    # WebSocket ile bildir
+    background_tasks.add_task(manager.broadcast, {"type": "task_update", "project_id": db_task.project_id, "task_id": db_task.id})
+    background_tasks.add_task(manager.broadcast, {"type": "task_update", "project_id": parent_task.project_id, "task_id": parent_task.id})
+    
     query = select(Task).options(selectinload(Task.project)).where(Task.id == db_task.id)
     result = await db.execute(query)
     return result.scalars().first()
@@ -482,6 +487,7 @@ async def create_subtask(
 async def generate_task_ai_analysis(
     task_id: int,
     request: Request,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_company_permission("tasks", "edit"))
 ):
@@ -543,6 +549,10 @@ Alt Görevler: {len(subtasks)} adet ({done_count} tamamlandı)
         
         await db.commit()
         await db.refresh(db_task)
+        
+        # WebSocket ile bildir
+        background_tasks.add_task(manager.broadcast, {"type": "task_update", "project_id": db_task.project_id, "task_id": db_task.id})
+        
         return db_task
     except Exception as e:
         print(f"AI Analysis error: {e}")
@@ -552,6 +562,7 @@ Alt Görevler: {len(subtasks)} adet ({done_count} tamamlandı)
 async def delete_task(
     task_id: int,
     request: Request,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_company_permission("tasks", "delete"))
 ):
@@ -572,6 +583,10 @@ async def delete_task(
         
     db_task.is_deleted = True
     await db.commit()
+    
+    # WebSocket ile bildir
+    background_tasks.add_task(manager.broadcast, {"type": "task_update", "project_id": db_task.project_id, "task_id": db_task.id})
+    
     return {"status": "ok"}
 
 async def background_categorize_task(task_id: int, task_text: str, project_context: str, tasks_context: str):

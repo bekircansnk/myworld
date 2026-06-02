@@ -67,9 +67,14 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
              await useProjectStore.getState().fetchProjects();
           }
 
-          if (data.type === 'new_task') {
+          if (data.type === 'new_task' || data.type === 'task_update') {
              const { useTaskStore } = await import('@/stores/taskStore');
-             useTaskStore.getState().fetchTasks();
+             const { useProjectStore } = await import('@/stores/projectStore');
+             const currentProjId = useProjectStore.getState().selectedProjectId;
+             
+             if (!data.project_id || data.project_id === currentProjId) {
+                await useTaskStore.getState().fetchTasks();
+             }
           }
 
           if (data.type === 'NEW_COMMENT') {

@@ -2,6 +2,14 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-06-02] - Sürüm 5.8 - Realtime WebSocket Görev Senkronizasyonu & Hızlı Çift Yönlü Güncelleme
+
+### Eklendi
+- **Çift Yönlü Realtime Görev Eşleşmesi:** Backend üzerindeki tüm görev oluşturma, güncelleme, durum değiştirme, silme, sıralama ve alt görev ekleme endpoint'lerine WebSocket `task_update` event yayını entegre edildi.
+- **Frontend Anlık Re-fetch:** `webSocketStore.ts` güncellenerek `task_update` yayını alındığında, eğer güncellenen görev kullanıcının seçili şirketindeyse anında `fetchTasks()` tetiklenmesi sağlandı. Böylece bilgisayar ile mobil telefon arasında sıfır saniye gecikmeli (anında) çift yönlü senkronizasyon kuruldu.
+
+---
+
 ## [2026-06-02] - Sürüm 5.7 - Görev Açıklama Taslak Koruma & Silinme Sorunu Çözümü
 
 ### Çözüldü
