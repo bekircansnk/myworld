@@ -37,30 +37,15 @@ export function Sidebar() {
       </button>
 
       {/* 3D Hareketli Logo Alanı */}
-      <div className={`p-6 border-b border-slate-200/50 dark:border-white/5 flex items-center ${isExpanded ? 'justify-between' : 'justify-center'}`}>
-        <div className="flex items-center gap-3 group cursor-pointer" onClick={() => setIsExpanded(true)}>
-          <div className="relative w-10 h-10 flex items-center justify-center transform transition-transform duration-700 group-hover:rotate-180 shrink-0">
-            {/* Animasyonlu SVG Küre */}
-            <svg viewBox="0 0 100 100" className="w-full h-full animate-float drop-shadow-lg">
-              <defs>
-                <linearGradient id="globeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#818cf8" />
-                  <stop offset="100%" stopColor="#c084fc" />
-                </linearGradient>
-                <filter id="glow">
-                  <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                  <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                  </feMerge>
-                </filter>
-              </defs>
-              <circle cx="50" cy="50" r="45" fill="url(#globeGrad)" filter="url(#glow)" className="opacity-90 dark:opacity-80"/>
-              <ellipse cx="50" cy="50" rx="45" ry="15" fill="none" stroke="white" strokeWidth="2" strokeOpacity="0.4" transform="rotate(20 50 50)"/>
-              <ellipse cx="50" cy="50" rx="15" ry="45" fill="none" stroke="white" strokeWidth="2" strokeOpacity="0.4" transform="rotate(20 50 50)"/>
-              <path d="M 5 50 Q 50 80 95 50" fill="none" stroke="white" strokeWidth="2" strokeOpacity="0.5" />
-            </svg>
-            <div className="absolute inset-0 bg-white/20 rounded-full blur-md group-hover:bg-white/40 transition-all duration-300" />
+      <div className={`p-5 border-b border-slate-200/50 dark:border-white/5 flex items-center ${isExpanded ? 'justify-between' : 'justify-center'}`}>
+        <div className="flex items-center gap-3.5 group cursor-pointer" onClick={() => setIsExpanded(true)}>
+          <div className={`relative ${isExpanded ? 'w-14 h-14' : 'w-12 h-12'} flex items-center justify-center transform transition-all duration-500 hover:scale-105 shrink-0`}>
+            {/* Yeni Premium Logo Entegrasyonu */}
+            <img 
+              src="/icons/icon-512x512.png" 
+              alt="Pikseliş Logo" 
+              className="w-full h-full object-contain rounded-2xl shadow-lg border border-slate-200/50 dark:border-white/10 bg-white/5"
+            />
           </div>
           {isExpanded && (
             <span className="font-extrabold text-2xl tracking-tight text-gradient drop-shadow-sm whitespace-nowrap">

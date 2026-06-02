@@ -17,10 +17,20 @@ Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değ
 
 ---
 
-## [2026-06-02] - Sürüm 5.7 - Görev & Kanban Odaklı Logo Promptları Tasarımı
+## [2026-06-02] - Sürüm 5.8 - Yeni Premium Görev Odaklı Logo Entegrasyonu
+
+### Eklendi
+- **Yeni Premium Logo Entegrasyonu:** Kullanıcının seçtiği görev ve Kanban odaklı yeni premium logo tüm sistem genelinde devreye alındı.
+- **Capacitor Android Launcher ve Splash Entegrasyonu:** `capacitor-assets` aracı çalıştırılarak Android platformu için 87 adet launcher ikonu (`ic_launcher.png`, `ic_launcher_round.png`) ve splash screen görseli yeni logomuzla yüksek çözünürlüklü olarak otomatik üretildi.
+- **PWA İkonları ve Favicon:** PWA manifestosunda yer alan tüm `.webp` / `.png` ikonları ve favicon.ico, sips ve asset generator araçlarıyla güncellendi.
 
 ### Güncellendi
-- **Görev & Kanban Odaklı Logo Promptları:** planla.pikselai.com uygulamasının ruhuna (görev kartları, Kanban sütunları, listeler, yeşil onay işaretleri ve görev tamamlandığındaki başarı hissiyatı) odaklanan, son derece yaratıcı ve belirgin 20 adet premium aydınlık mod logo promptu `/logo_prompt_kutuphanesi.md` dosyasında sıfırdan tasarlandı.
+- **Sidebar Logosunun Büyütülmesi (`Sidebar.tsx`):** Masaüstü sol menüsündeki eski SVG animasyon kaldırıldı, yerine yeni premium logomuzun `512x512` görseli `w-14 h-14` boyutunda şık ve büyük olarak yerleştirildi.
+- **TopNavbar Mobil Logosunun Büyütülmesi (`TopNavbar.tsx`):** Mobil üst barda yer alan eski "MW" kutusu kaldırıldı, yerine yeni logomuz `w-11 h-11` boyutunda şık ve büyük olarak yerleştirildi.
+
+---
+
+## [2026-06-02] - Sürüm 5.7 - Görev & Kanban Odaklı Logo Promptları Tasarımı
 
 ---
 
