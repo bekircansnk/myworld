@@ -240,7 +240,7 @@ async def get_app_version():
     return {
         "version": "5.1",
         "version_code": 41,
-        "download_url": "https://planla.pikselai.com/Pikselis_v5.1.apk",
+        "download_url": "https://myworld-twqx.onrender.com/static/Pikselis_v5.1.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
         "changelog": "- Seçtiğiniz premium görev ve Kanban odaklı yeni logo tüm platformlara (Web, PWA, Android) entegre edildi.\n- Giriş ekranındaki başlık yanına şık yeni logomuz eklendi.\n- Android launcher ikonları ve splash ekranları yüksek çözünürlüklü olarak tamamen yenilendi.\n- Mobil APK dosya boyutu matruşka temizliği ile 17 Megabayta düşürülerek hızlandırıldı."
