@@ -17,6 +17,15 @@ Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değ
 
 ---
 
+## [2026-06-03] - Sürüm 5.9 - Mobil Arayüz Taşma Düzeltmesi & Safe Area Desteği (v5.2)
+
+### Düzeltildi
+- **Sol Üst Logo & Taşma Problemi:** Mobil/Android görünümde sol üstteki büyük logo kaldırıldı. Başlık alanı (`text-sm font-extrabold`) daraltılarak sağdaki butonların ekran daraldığında (360px - 400px arası) sığmayarak alt satıra veya yukarıya kayması sorunu giderildi.
+- **Safe Area Padding Entegrasyonu:** Üst navigasyon barı (`header`) için `safe-area-inset-top` padding'i entegre edilerek, Android cihazlarda durum çubuğunun (saat ve pil göstergeleri olan en üst bant) butonların üstüne binerek tıklamaları engellemesi sorunu tamamen çözüldü.
+- **APK Sürüm Güncellemesi:** Sürüm v5.2, Code 42 olarak güncellendi ve OTA güncelleme paketi olarak dağıtıldı.
+
+---
+
 ## [2026-06-02] - Sürüm 5.8 - Yeni Premium Görev Odaklı Logo Entegrasyonu
 
 ### Eklendi

@@ -369,18 +369,11 @@ export function TopNavbar() {
   }
 
   return (
-    <header className="w-full bg-[#f5f2e8]/80 dark:bg-[#0f1117]/80 backdrop-blur-xl border-b border-[#e8e4d8]/40 dark:border-white/5 px-3 md:px-4 lg:px-8 py-2 md:py-3 shrink-0 z-30 print:hidden">
+    <header className="w-full bg-[#f5f2e8]/80 dark:bg-[#0f1117]/80 backdrop-blur-xl border-b border-[#e8e4d8]/40 dark:border-white/5 px-3 md:px-4 lg:px-8 pt-[calc(env(safe-area-inset-top,0px)+8px)] pb-2 md:py-3 shrink-0 z-30 print:hidden">
       <div className="flex items-center justify-between gap-2 md:gap-4">
-        {/* Sol: Mobilde logo, masaüstünde navigation */}
-        <div className="flex items-center gap-3 md:hidden shrink-0">
-          <div className="w-11 h-11 rounded-2xl flex items-center justify-center shadow-md overflow-hidden border border-slate-200/50 dark:border-white/10 bg-white/5">
-            <img 
-              src="/icons/icon-512x512.png" 
-              alt="Pikseliş Logo" 
-              className="w-full h-full object-contain"
-            />
-          </div>
-          <span className="text-base font-extrabold text-brand-dark dark:text-white">Pikseliş</span>
+        {/* Sol: Mobilde logoyu kaldırdık, sadece küçük başlık */}
+        <div className="flex items-center gap-1.5 md:hidden shrink-0">
+          <span className="text-sm font-extrabold text-brand-dark dark:text-white">Pikseliş</span>
         </div>
         <nav className="hidden md:flex items-center gap-1 overflow-visible">
           {navItems.map(item => {
@@ -670,10 +663,10 @@ export function TopNavbar() {
                           a.click();
                           document.body.removeChild(a);
                         } else {
-                          window.open("https://myworld-twqx.onrender.com/static/Pikselis_v5.1.apk", "_blank"); // Fallback
+                          window.open("https://myworld-twqx.onrender.com/static/Pikselis_v5.2.apk", "_blank"); // Fallback
                         }
                       } catch (err) {
-                        window.open("https://myworld-twqx.onrender.com/static/Pikselis_v5.1.apk", "_blank"); // Fallback
+                        window.open("https://myworld-twqx.onrender.com/static/Pikselis_v5.2.apk", "_blank"); // Fallback
                       }
                     }}
                     className="w-full text-left px-4 py-3.5 text-xs text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 hover:from-indigo-600 hover:to-purple-600 transition-all font-black flex items-center gap-3 shadow-md rounded-2xl"

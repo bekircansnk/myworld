@@ -238,12 +238,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "5.1",
-        "version_code": 41,
-        "download_url": "https://myworld-twqx.onrender.com/static/Pikselis_v5.1.apk",
+        "version": "5.2",
+        "version_code": 42,
+        "download_url": "https://myworld-twqx.onrender.com/static/Pikselis_v5.2.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
-        "changelog": "- Seçtiğiniz premium görev ve Kanban odaklı yeni logo tüm platformlara (Web, PWA, Android) entegre edildi.\n- Giriş ekranındaki başlık yanına şık yeni logomuz eklendi.\n- Android launcher ikonları ve splash ekranları yüksek çözünürlüklü olarak tamamen yenilendi.\n- Mobil APK dosya boyutu matruşka temizliği ile 17 Megabayta düşürülerek hızlandırıldı."
+        "changelog": "- Android mobil görünümdeki sol üst logo kaldırıldı, alan daralması ve sığmama/taşma hatası çözüldü.\n- Safe area padding desteği eklenerek üst menünün durum çubuğu arkasında kalıp tıklanamaz olması önlendi.\n- Mobil APK sürümü v5.2 (Code 42) olarak güncellendi."
     }
 
 @app.get("/api/link-preview")

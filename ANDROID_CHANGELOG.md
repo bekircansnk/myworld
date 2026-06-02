@@ -9,6 +9,15 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v5.2
+**Tarih:** 3 Haziran 2026
+**Değişiklikler:**
+- **[Kritik Arayüz - Mobil/Android Logo Taşması Giderildi]** Android/mobil sürümde sol üstteki büyük logo kaldırıldı. Başlık alanı küçültülerek sağdaki butonların (Firma, Bildirim, Tema, Profil) sıkışıp alt satırlara kayması ve ekranın taşması sorunu kökten çözüldü.
+- **[Safe Area Desteği]** Üst navigasyon barına `safe-area-inset-top` padding'i entegre edilerek, Android cihazlarda durum çubuğunun (saat/pil alanı) arkasında kalarak tıklanamaz olması sorunu tamamen çözüldü.
+- **[Sürüm Yükseltme]** `versionCode 42` ve `versionName "5.2"` olarak yeni debug APK derlendi.
+
+---
+
 ### v5.1
 **Tarih:** 2 Haziran 2026
 **Değişiklikler:**
