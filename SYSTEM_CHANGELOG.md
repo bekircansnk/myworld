@@ -2,6 +2,17 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-06-03] - Sürüm 6.0 - Android OTA Güncelleme Tetikleme ve Responsive Arayüz Düzeltmeleri (v5.3)
+
+### Eklendi
+- **Dirençli OTA Güncelleme Sistemi:** Render.com soğuk başlama (cold start) uykusundan uyanırken oluşan gecikmelere karşı sürüm kontrolünde 30 saniye timeout ve exponential backoff ile 3 kez retry mekanizması eklendi. Bağlantı kesintilerinde veya yavaş ağlarda sürüm kontrolünün kesinlikle çalışması sağlandı.
+- **Android Safe Area Padding Desteği:** Android cihazlarda durum çubuğunun (status bar) webview'ın üzerine binerek üst menüyü tıklanamaz hale getirmesi, `Capacitor` platform kontrolüyle Android cihazlarda üst padding (padding-top) dinamik olarak artırılarak (`pt-10` veya `calc(safe-area+34px)`) tamamen çözüldü.
+
+### Çözüldü
+- **Responsive Sıkışma Hataları:** Üst navigasyon barındaki (TopNavbar) butonlar (Firmalar, Bildirim, Tema, Profil) mobil cihazlarda yan yana sığmayıp responsive kayma yapıyordu. Mobilde aralarındaki gap azaltıldı, ikon boyutları ve paddingler `w-8 h-8` olarak optimize edildi. Firmalar butonundaki uzun isimlerin truncate sınırı mobilde `max-w-[60px]` seviyesine çekilerek taşmalar tamamen engellendi.
+
+---
+
 ## [2026-06-02] - Sürüm 5.8 - Realtime WebSocket Görev Senkronizasyonu & Hızlı Çift Yönlü Güncelleme
 
 ### Eklendi
