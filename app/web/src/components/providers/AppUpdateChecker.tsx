@@ -83,7 +83,12 @@ export function AppUpdateChecker() {
 
       const data: VersionInfo = await res.json();
 
-      if (isNewerVersion(appInfo.version, data.version)) {
+      const deviceBuild = parseInt(appInfo.build, 10) || 0;
+      const serverBuild = data.version_code || 0;
+
+      const hasNewVersion = isNewerVersion(appInfo.version, data.version) || (serverBuild > deviceBuild);
+
+      if (hasNewVersion) {
         setVersionInfo(data);
         setState("available");
       } else {
