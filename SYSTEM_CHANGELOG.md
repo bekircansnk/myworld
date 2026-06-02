@@ -2,6 +2,13 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-06-02] - Sürüm 5.7 - Görev Açıklama Taslak Koruma & Silinme Sorunu Çözümü
+
+### Çözüldü
+- **Görev Açıklaması Silinme Sorunu:** Görev detay panelinde açıklama düzenleme alanında, periyodik poll (veri yenileme) veya WebSocket realtime güncellemeleri nedeniyle `selectedTask` güncellendiğinde, kullanıcının yazmakta olduğu taslak metninin (`descriptionDraft`) eski veritabanı açıklamasıyla ezilerek silinmesi hatası, `isEditingDesc` durumunun `false`'tan `true`'ya ilk geçiş anını useRef ile takip eden ve sadece düzenleme moduna girildiğinde veriyi dolduran bir yapı (`prevIsEditingDesc`) kurularak tamamen çözüldü.
+
+---
+
 ## [2026-06-02] - Sürüm 5.6 - Arayüz Renk Uyumlu Logo Promptları Revizyonu
 
 ### Güncellendi

@@ -207,10 +207,12 @@ export function TaskDetailPanel() {
   }, [selectedTask?.description])
 
   // Effects
+  const prevIsEditingDesc = React.useRef(false)
   React.useEffect(() => {
-    if (isEditingDesc && selectedTask) {
+    if (isEditingDesc && !prevIsEditingDesc.current && selectedTask) {
       setDescriptionDraft(selectedTask.description || "")
     }
+    prevIsEditingDesc.current = isEditingDesc
   }, [isEditingDesc, selectedTask])
 
   React.useEffect(() => {
