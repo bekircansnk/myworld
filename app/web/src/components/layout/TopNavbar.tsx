@@ -63,8 +63,10 @@ export function TopNavbar() {
 
   React.useEffect(() => {
     // Android tespiti
-    if (typeof navigator !== 'undefined') {
-      setIsAndroid(/android/i.test(navigator.userAgent))
+    if (typeof window !== 'undefined') {
+      const isCapacitorAndroid = typeof window !== 'undefined' && (window as any).Capacitor?.getPlatform() === 'android';
+      const isAgentAndroid = /android/i.test(navigator.userAgent);
+      setIsAndroid(isCapacitorAndroid || isAgentAndroid);
     }
 
     const handler = (e: any) => {
@@ -369,7 +371,9 @@ export function TopNavbar() {
   }
 
   return (
-    <header className="w-full bg-[#f5f2e8]/80 dark:bg-[#0f1117]/80 backdrop-blur-xl border-b border-[#e8e4d8]/40 dark:border-white/5 px-3 md:px-4 lg:px-8 pt-[calc(env(safe-area-inset-top,0px)+8px)] pb-2 md:py-3 shrink-0 z-30 print:hidden">
+    <header className={`w-full bg-[#f5f2e8]/80 dark:bg-[#0f1117]/80 backdrop-blur-xl border-b border-[#e8e4d8]/40 dark:border-white/5 px-3 md:px-4 lg:px-8 pb-2 md:py-3 shrink-0 z-30 print:hidden ${
+      isAndroid ? 'pt-[calc(env(safe-area-inset-top,0px)+34px)]' : 'pt-[calc(env(safe-area-inset-top,0px)+8px)]'
+    }`}>
       <div className="flex items-center justify-between gap-2 md:gap-4">
         {/* Sol: Mobilde logoyu kaldırdık, sadece küçük başlık */}
         <div className="flex items-center gap-1.5 md:hidden shrink-0">
@@ -396,7 +400,7 @@ export function TopNavbar() {
         </nav>
 
         {/* Sağ: Aksiyonlar */}
-        <div className="flex items-center gap-1 md:gap-2 shrink-0">
+        <div className="flex items-center gap-0.5 sm:gap-1 md:gap-2 shrink-0">
 
           {/* Firmalar — Click/Hover ile açılır */}
           <div
@@ -416,12 +420,12 @@ export function TopNavbar() {
           >
             <button
               onClick={() => setShowProjectMenu(prev => !prev)}
-              className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-1.5 md:py-2.5 rounded-xl md:rounded-full text-[11px] md:text-sm font-bold whitespace-nowrap transition-all border md:border-none border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 shadow-sm"
+              className="flex items-center gap-1 md:gap-2 px-1.5 sm:px-2.5 md:px-4 py-1.5 md:py-2.5 rounded-xl md:rounded-full text-[10px] sm:text-[11px] md:text-sm font-bold whitespace-nowrap transition-all border md:border-none border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 shadow-sm"
             >
               {currentProject && (
                 <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full shrink-0" style={{ backgroundColor: currentProject.color || '#6366f1' }} />
               )}
-              <span className="truncate max-w-[80px] md:max-w-[150px]">{currentProject?.name || 'Firma Seçin'}</span>
+              <span className="truncate max-w-[60px] xs:max-w-[80px] md:max-w-[150px]">{currentProject?.name || 'Firma Seçin'}</span>
               <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showProjectMenu ? 'rotate-180' : ''}`} />
             </button>
 
@@ -468,9 +472,9 @@ export function TopNavbar() {
           <div className="relative" ref={notifRef}>
             <button
               onClick={() => { setShowNotifPanel(!showNotifPanel); setShowUserPanel(false); }}
-              className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative"
+              className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative"
             >
-              <Bell className="w-4 h-4 text-brand-gray dark:text-gray-400" />
+              <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-gray dark:text-gray-400" />
               {unreadCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm">
                   {unreadCount}
@@ -609,9 +613,9 @@ export function TopNavbar() {
           {mounted && (
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
             >
-              {theme === "dark" ? <Sun className="w-4 h-4 text-brand-yellow" /> : <Moon className="w-4 h-4 text-brand-dark" />}
+              {theme === "dark" ? <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-yellow" /> : <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-dark" />}
             </button>
           )}
 
@@ -619,12 +623,12 @@ export function TopNavbar() {
           <div className="relative" ref={userRef}>
             <button
               onClick={() => { setShowUserPanel(!showUserPanel); setShowNotifPanel(false); }}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors overflow-hidden border-2 ${showUserPanel ? 'border-brand-yellow' : 'border-transparent bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors overflow-hidden border-2 ${showUserPanel ? 'border-brand-yellow' : 'border-transparent bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
             >
               {user?.avatar_url ? (
                 <img src={user.avatar_url.startsWith('http') ? user.avatar_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${user.avatar_url}`} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <User className="w-4 h-4 text-brand-gray dark:text-gray-400" />
+                <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-gray dark:text-gray-400" />
               )}
             </button>
 
@@ -663,10 +667,10 @@ export function TopNavbar() {
                           a.click();
                           document.body.removeChild(a);
                         } else {
-                          window.open("https://myworld-twqx.onrender.com/static/Pikselis_v5.2.apk", "_blank"); // Fallback
+                          window.open("https://myworld-twqx.onrender.com/static/Pikselis_v5.3.apk", "_blank"); // Fallback
                         }
                       } catch (err) {
-                        window.open("https://myworld-twqx.onrender.com/static/Pikselis_v5.2.apk", "_blank"); // Fallback
+                        window.open("https://myworld-twqx.onrender.com/static/Pikselis_v5.3.apk", "_blank"); // Fallback
                       }
                     }}
                     className="w-full text-left px-4 py-3.5 text-xs text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 hover:from-indigo-600 hover:to-purple-600 transition-all font-black flex items-center gap-3 shadow-md rounded-2xl"

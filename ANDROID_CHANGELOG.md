@@ -9,6 +9,15 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v5.3
+**Tarih:** 3 Haziran 2026
+**Değişiklikler:**
+- **[Kritik OTA Güncelleme Tetikleme Düzeltmesi]** Mobil uygulamanın açılışında sürüm kontrolünün (OTA) anında ve kesintisiz çalışması sağlandı.
+- **[Hata Toleranslı Bağlantı Kontrolü]** Render.com soğuk başlama (cold start) durumlarına karşı 30 saniyelik timeout ve exponential backoff ile 3 kez retry mekanizması eklendi. Mobil ağ kesintilerinde veya yavaşlığında güncelleme kontrolü daha kararlı hale getirildi.
+- **[Sürüm Yükseltme]** `versionCode 43` ve `versionName "5.3"` debug APK derlemesi yapıldı.
+
+---
+
 ### v5.2
 **Tarih:** 3 Haziran 2026
 **Değişiklikler:**

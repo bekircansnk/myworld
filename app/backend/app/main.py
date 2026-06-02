@@ -238,12 +238,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "5.2",
-        "version_code": 42,
-        "download_url": "https://myworld-twqx.onrender.com/static/Pikselis_v5.2.apk",
+        "version": "5.3",
+        "version_code": 43,
+        "download_url": "https://myworld-twqx.onrender.com/static/Pikselis_v5.3.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
-        "changelog": "- Android mobil görünümdeki sol üst logo kaldırıldı, alan daralması ve sığmama/taşma hatası çözüldü.\n- Safe area padding desteği eklenerek üst menünün durum çubuğu arkasında kalıp tıklanamaz olması önlendi.\n- Mobil APK sürümü v5.2 (Code 42) olarak güncellendi."
+        "changelog": "- Android uygulamasında açılışta güncelleme (OTA) kontrolü anında tetiklenecek şekilde optimize edildi.\n- Render.com sunucusunun soğuk başlama gecikmelerine karşı 30 saniye timeout ve 3 denemeli retry mekanizması eklendi.\n- Bağlantı hataları ve mobil ağ yavaşlıklarına karşı hata toleransı artırıldı.\n- Sürüm v5.3 (Code 43) olarak güncellendi."
     }
 
 @app.get("/api/link-preview")

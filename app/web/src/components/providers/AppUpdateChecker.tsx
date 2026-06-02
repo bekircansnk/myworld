@@ -54,29 +54,53 @@ export function AppUpdateChecker() {
   const checkVersion = useCallback(async () => {
     if (!Capacitor.isNativePlatform()) return;
 
-    // KULLANICIYI BÖLMEMEK İÇİN: Görev detay paneli açıksa güncellemeyi GÖSTERME (sessiz bekle)
-    const isBusy = useTaskStore.getState().isDetailPanelOpen;
-    if (isBusy) return;
-
     try {
       setState("checking");
 
       // Cihazın mevcut sürümünü al
-      const appInfo = await App.getInfo();
-      setCurrentVersion(appInfo.version);
+      let appInfo;
+      try {
+        appInfo = await App.getInfo();
+        setCurrentVersion(appInfo.version);
+      } catch (infoError) {
+        console.error("App.getInfo() alınamadı, varsayılan değerler kullanılacak:", infoError);
+        appInfo = { version: "1.0.0", build: "0" };
+        setCurrentVersion("1.0.0");
+      }
 
       // Backend'den son sürüm bilgisini çek
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://myworld-twqx.onrender.com";
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      let res = null;
+      let retries = 3;
+      let delay = 2000;
 
-      const res = await fetch(`${apiUrl}/api/app-version`, {
-        signal: controller.signal,
-        cache: "no-store", // Her zaman güncel veri çek
-      });
-      clearTimeout(timeoutId);
+      while (retries > 0) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 saniye timeout (Render.com cold start için)
 
-      if (!res.ok) {
+          res = await fetch(`${apiUrl}/api/app-version`, {
+            signal: controller.signal,
+            cache: "no-store", // Her zaman güncel veri çek
+          });
+          clearTimeout(timeoutId);
+
+          if (res.ok) {
+            break; // Başarılı
+          }
+        } catch (fetchErr) {
+          console.warn(`Sürüm kontrolü denemesi başarısız (${retries} deneme kaldı):`, fetchErr);
+        }
+
+        retries--;
+        if (retries > 0) {
+          await new Promise(resolve => setTimeout(resolve, delay));
+          delay *= 1.5; // Exponential backoff
+        }
+      }
+
+      if (!res || !res.ok) {
+        console.error("Sürüm kontrolü API'sine erişilemedi.");
         setState("idle");
         return;
       }
@@ -94,8 +118,8 @@ export function AppUpdateChecker() {
       } else {
         setState("idle");
       }
-    } catch {
-      // Ağ hatası — sessizce geç
+    } catch (e) {
+      console.error("Sürüm kontrolü sırasında beklenmedik hata:", e);
       setState("idle");
     }
   }, [isNewerVersion]);
@@ -103,8 +127,7 @@ export function AppUpdateChecker() {
   // İlk açılışta kontrol et
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
-    const timer = setTimeout(checkVersion, 1500);
-    return () => clearTimeout(timer);
+    checkVersion();
   }, [checkVersion]);
 
   // Uygulama ön plana geldiğinde tekrar kontrol et
