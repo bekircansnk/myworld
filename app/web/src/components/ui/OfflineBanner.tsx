@@ -35,12 +35,12 @@ export function OfflineBanner() {
     }
   }, [isOnline]);
 
-  // İnternet geldiğinde otomatik senkronize et
+  // İnternet geldiğinde veya internet varken bekleyen işlem olduğunda otomatik senkronize et
   useEffect(() => {
-    if (isOnline && wasOffline) {
+    if (isOnline && (wasOffline || pendingCount > 0) && !isSyncing) {
       syncData();
     }
-  }, [isOnline, wasOffline]);
+  }, [isOnline, wasOffline, pendingCount, isSyncing]);
 
   const syncData = async () => {
     setIsSyncing(true);
