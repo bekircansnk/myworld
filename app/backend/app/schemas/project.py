@@ -10,6 +10,7 @@ class ProjectBase(BaseModel):
     sort_order: Optional[int] = 0
     discord_webhook_url: Optional[str] = None
     slack_webhook_url: Optional[str] = None
+    columns_config: Optional[List[dict]] = None
 
 class ProjectCreate(ProjectBase):
     pass
@@ -23,6 +24,7 @@ class ProjectUpdate(BaseModel):
     sort_order: Optional[int] = None
     discord_webhook_url: Optional[str] = None
     slack_webhook_url: Optional[str] = None
+    columns_config: Optional[List[dict]] = None
 
 class ProjectResponse(ProjectBase):
     id: int

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 from app.models.base import Base
 
@@ -15,6 +15,7 @@ class Project(Base):
     sort_order = Column(Integer, default=0)
     discord_webhook_url = Column(String, nullable=True)
     slack_webhook_url = Column(String, nullable=True)
+    columns_config = Column(JSON, nullable=True) # Kanban sütun yapılandırması [ { id, label, statusKey, dotColor } ]
 
     user = relationship("User", back_populates="projects")
     tasks = relationship("Task", back_populates="project")

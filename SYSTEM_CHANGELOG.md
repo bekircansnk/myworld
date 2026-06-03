@@ -2,6 +2,15 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-06-03] - Sürüm 6.1 - Kanban Sütun Bulut Senkronizasyonu & APK/Web Senkronizasyon Çözümü
+
+### Eklendi / Çözüldü
+- **Kanban Sütun Bulut Senkronizasyonu:** Kanban tahtası sütun yapılandırmaları (`columns_config`) artık yerel tarayıcı hafızası (`localStorage`) yerine doğrudan veritabanında (`projects` tablosunda) tutuluyor. Bu sayede, web tarayıcısında eklenen "E-TİCARET 5" gibi yeni sütunlar ve içindeki kartlar anında Android APK ve diğer tüm platformlarda görünür ve senkronize çalışır hale getirildi.
+- **Otomatik Geriye Dönük Uyumluluk (Migration):** Kullanıcıların tarayıcılarında bulunan mevcut lokal sütun yapılandırmaları, tahta ilk açıldığında otomatik olarak veritabanına yüklenerek (migrated) hiçbir veri kaybı yaşanmadan senkronize edilmesi sağlandı.
+- **Veritabanı Şeması & Alembic Güncellemesi:** `projects` tablosuna `columns_config` JSONB kolonu eklendi. Alembic üzerinde safe-migration `259bddeb7bb0_add_columns_config_to_project.py` sürümü oluşturuldu ve Neon PostgreSQL veritabanına uygulandı.
+
+---
+
 ## [2026-06-03] - Sürüm 6.0 - Android OTA Güncelleme Tetikleme ve Responsive Arayüz Düzeltmeleri (v5.3)
 
 ### Eklendi

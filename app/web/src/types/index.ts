@@ -10,6 +10,7 @@ export interface Project {
   created_at: string;
   discord_webhook_url?: string;
   slack_webhook_url?: string;
+  columns_config?: any[];
 }
 
 export interface DrivePhoto {

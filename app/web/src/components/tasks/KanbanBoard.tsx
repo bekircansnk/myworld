@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useTaskStore } from "@/stores/taskStore"
+import { useProjectStore } from "@/stores/projectStore"
 import { Task } from "@/types"
 import { TaskCard } from "./TaskCard"
 import { TaskForm } from "./TaskForm"
@@ -63,9 +64,10 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
   const toast = useToast()
   const isProjectView = projectId !== null && projectId !== undefined
   const { tasks, addTask, updateTaskStatus } = useTaskStore()
+  const { projects, updateProject } = useProjectStore()
 
   // Sütun yapılandırması
-  const [columns, setColumns] = React.useState<ColumnConfig[]>(() => loadColumns(projectId))
+  const [columns, setColumns] = React.useState<ColumnConfig[]>(DEFAULT_COLUMNS)
   const [addingToColumn, setAddingToColumn] = React.useState<string | null>(null)
   const [newCardTitle, setNewCardTitle] = React.useState("")
   const inputRef = React.useRef<HTMLInputElement>(null)
@@ -89,10 +91,41 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
   const [isDragging, setIsDragging] = React.useState(false)
   const pointerXRef = React.useRef<number>(0) // Global pointer position tracking
 
-  // Sütun değişikliklerini localStorage'a kaydet
+  // Sütunları database ve localStorage ile senkronize et
   React.useEffect(() => {
-    saveColumns(columns, projectId)
-  }, [columns, projectId])
+    if (typeof window === 'undefined') return;
+
+    if (projectId) {
+      const currentProject = projects.find(p => p.id === projectId);
+      if (currentProject) {
+        if (currentProject.columns_config && currentProject.columns_config.length > 0) {
+          setColumns(currentProject.columns_config as ColumnConfig[]);
+          saveColumns(currentProject.columns_config as ColumnConfig[], projectId);
+        } else {
+          const localCols = loadColumns(projectId);
+          setColumns(localCols);
+          // DB'ye senkronize et (migration)
+          updateProject(projectId, { columns_config: localCols }).catch(err => {
+            console.error("Sütunlar DB'ye senkronize edilemedi:", err);
+          });
+        }
+      }
+    } else {
+      setColumns(loadColumns(null));
+    }
+  }, [projectId, projects, updateProject]);
+
+  const saveAndSyncColumns = React.useCallback(async (newCols: ColumnConfig[]) => {
+    setColumns(newCols);
+    saveColumns(newCols, projectId);
+    if (projectId) {
+      try {
+        await updateProject(projectId, { columns_config: newCols });
+      } catch (err: any) {
+        toast.error("Sütunlar senkronize edilemedi: " + err.message);
+      }
+    }
+  }, [projectId, updateProject, toast]);
 
   // Ana görevleri filtrele
   const mainTasks = React.useMemo(() => {
@@ -177,7 +210,8 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
       setEditingColumnId(null)
       return
     }
-    setColumns(prev => prev.map(c => c.id === colId ? { ...c, label: editingColumnLabel.trim() } : c))
+    const newCols = columns.map(c => c.id === colId ? { ...c, label: editingColumnLabel.trim() } : c)
+    saveAndSyncColumns(newCols)
     setEditingColumnId(null)
     toast.success("Sütun ismi güncellendi")
   }
@@ -195,7 +229,8 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
       statusKey: newId, // Tamamen bağımsız olması için yeni sütunun id'sini status olarak atıyoruz
       dotColor: DOT_COLORS[columns.length % DOT_COLORS.length],
     }
-    setColumns(prev => [...prev, newCol])
+    const newCols = [...columns, newCol]
+    saveAndSyncColumns(newCols)
     setNewColumnLabel("")
     setIsAddingColumn(false)
     toast.success("Yeni sütun eklendi")
@@ -216,7 +251,8 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
       toast.error("Varsayılan sütunlar silinemez")
       return
     }
-    setColumns(prev => prev.filter(c => c.id !== colId))
+    const newCols = columns.filter(c => c.id !== colId)
+    saveAndSyncColumns(newCols)
     toast.success("Sütun kaldırıldı")
   }
 
