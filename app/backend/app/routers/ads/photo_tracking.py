@@ -25,6 +25,16 @@ from app.schemas.ads.photo_tracking import (
     PhotoRevisionCreate, PhotoRevisionResponse, PhotoOverviewStats,
     PhotoExcelImportResponse
 )
+import logging
+
+logger = logging.getLogger(__name__)
+
+async def broadcast_update(project_id: Optional[int]):
+    try:
+        from app.routers.websocket import manager
+        await manager.broadcast({"type": "photo_tracking_update", "project_id": project_id})
+    except Exception as e:
+        logger.error(f"Failed to broadcast photo tracking update: {e}")
 
 router = APIRouter(prefix="/photo-tracking", tags=["Ads Photo Tracking"])
 
@@ -69,6 +79,8 @@ async def create_model(
     db.add(new_model)
     await db.commit()
     await db.refresh(new_model)
+    
+    await broadcast_update(new_model.project_id)
     
     # Load relationships for response
     query = select(PhotoModel).where(PhotoModel.id == new_model.id).options(selectinload(PhotoModel.colors), selectinload(PhotoModel.revisions))
@@ -120,6 +132,8 @@ async def update_model(
     await db.commit()
     
     await db.refresh(target)
+    await broadcast_update(target.project_id)
+    
     query = select(PhotoModel).where(PhotoModel.id == model_id).options(
         selectinload(PhotoModel.colors),
         selectinload(PhotoModel.revisions)
@@ -151,6 +165,9 @@ async def delete_model(
         
     await db.delete(target)
     await db.commit()
+    
+    await broadcast_update(target.project_id)
+    
     return {"message": "Model deleted successfully"}
 
 @router.post("/models/{model_id}/colors", response_model=PhotoModelColorResponse)
@@ -171,13 +188,17 @@ async def add_color(
         query = select(PhotoModel).where(PhotoModel.id == model_id, PhotoModel.user_id == current_user.id)
         
     result = await db.execute(query)
-    if not result.scalar_one_or_none():
+    model = result.scalar_one_or_none()
+    if not model:
         raise HTTPException(status_code=404, detail="Model not found")
         
     new_color = PhotoModelColor(**data.model_dump(), model_id=model_id)
     db.add(new_color)
     await db.commit()
     await db.refresh(new_color)
+    
+    await broadcast_update(model.project_id)
+    
     return new_color
 
 @router.put("/colors/{color_id}", response_model=PhotoModelColorResponse)
@@ -229,6 +250,7 @@ async def update_color(
     await db.commit()
     
     await db.refresh(color)
+    await broadcast_update(model.project_id)
     return color
 
 @router.delete("/colors/{color_id}")
@@ -263,6 +285,8 @@ async def delete_color(
     model.total_photos = sum((c.ig_photo_count or 0) + (c.banner_photo_count or 0) + (c.revision_photo_count or 0) for c in model.colors)
     await db.commit()
     
+    await broadcast_update(model.project_id)
+    
     return {"message": "Color deleted successfully"}
 
 @router.post("/models/{model_id}/revisions", response_model=PhotoRevisionResponse)
@@ -283,13 +307,17 @@ async def add_revision(
         query = select(PhotoModel).where(PhotoModel.id == model_id, PhotoModel.user_id == current_user.id)
         
     result = await db.execute(query)
-    if not result.scalar_one_or_none():
+    model = result.scalar_one_or_none()
+    if not model:
         raise HTTPException(status_code=404, detail="Model not found")
         
     new_rev = PhotoRevision(**data.model_dump(), model_id=model_id)
     db.add(new_rev)
     await db.commit()
     await db.refresh(new_rev)
+    
+    await broadcast_update(model.project_id)
+    
     return new_rev
 
 @router.get("/overview", response_model=PhotoOverviewStats)
@@ -477,6 +505,9 @@ async def import_excel(
         db.add(log)
         await db.commit()
         await db.refresh(log)
+        
+        await broadcast_update(effective_project_id)
+        
         return log
         
     except Exception as e:

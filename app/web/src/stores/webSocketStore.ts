@@ -77,6 +77,45 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
              }
           }
 
+          if (data.type === 'project_update') {
+             const { useProjectStore } = await import('@/stores/projectStore');
+             await useProjectStore.getState().fetchProjects();
+          }
+
+          if (data.type === 'calendar_update') {
+             const { useCalendarStore } = await import('@/stores/calendarStore');
+             const { useProjectStore } = await import('@/stores/projectStore');
+             const currentProjId = useProjectStore.getState().selectedProjectId;
+             
+             if (!data.project_id || data.project_id === currentProjId) {
+                await useCalendarStore.getState().fetchEvents(currentProjId);
+             }
+          }
+
+          if (data.type === 'note_update') {
+             const { useNoteStore } = await import('@/stores/noteStore');
+             const { useProjectStore } = await import('@/stores/projectStore');
+             const currentProjId = useProjectStore.getState().selectedProjectId;
+             
+             if (!data.project_id || data.project_id === currentProjId) {
+                await useNoteStore.getState().fetchNotes(currentProjId);
+             }
+          }
+
+          if (data.type === 'photo_tracking_update') {
+             const { usePhotoTrackingStore } = await import('@/stores/photoTrackingStore');
+             const { useProjectStore } = await import('@/stores/projectStore');
+             const currentProjId = useProjectStore.getState().selectedProjectId;
+             
+             if (!data.project_id || data.project_id === currentProjId) {
+                const store = usePhotoTrackingStore.getState();
+                if (currentProjId) {
+                   await store.fetchModels(currentProjId);
+                   await store.fetchOverview(currentProjId);
+                }
+             }
+          }
+
           if (data.type === 'NEW_COMMENT') {
              const { useTaskStore } = await import('@/stores/taskStore');
              const selectedTask = useTaskStore.getState().selectedTask;

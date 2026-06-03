@@ -3,6 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import or_
 from typing import List
+import logging
+
+logger = logging.getLogger(__name__)
 
 from app.database import get_db
 from app.models.project import Project
@@ -62,6 +65,12 @@ async def create_project(
     db.add(access)
     await db.commit()
     
+    try:
+        from app.routers.websocket import manager
+        await manager.broadcast({"type": "project_update", "project_id": db_project.id})
+    except Exception as e:
+        logger.error(f"Failed to broadcast project creation: {e}")
+        
     return db_project
 
 @router.put("/{project_id}", response_model=ProjectResponse)
@@ -102,6 +111,13 @@ async def update_project(
         
     await db.commit()
     await db.refresh(db_project)
+    
+    try:
+        from app.routers.websocket import manager
+        await manager.broadcast({"type": "project_update", "project_id": db_project.id})
+    except Exception as e:
+        logger.error(f"Failed to broadcast project update: {e}")
+        
     return db_project
 
 @router.delete("/{project_id}")
@@ -152,4 +168,11 @@ async def delete_project(
         
     await db.delete(db_project)
     await db.commit()
+    
+    try:
+        from app.routers.websocket import manager
+        await manager.broadcast({"type": "project_update", "project_id": project_id})
+    except Exception as e:
+        logger.error(f"Failed to broadcast project deletion: {e}")
+        
     return {"status": "ok", "message": "Project and all related data deleted successfully"}

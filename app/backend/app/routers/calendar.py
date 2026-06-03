@@ -3,6 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from typing import List, Optional
 from datetime import datetime, timezone
+import logging
+
+logger = logging.getLogger(__name__)
 
 from app.database import get_db
 from app.models.calendar_event import CalendarEvent
@@ -78,6 +81,13 @@ async def create_event(
     db.add(db_event)
     await db.commit()
     await db.refresh(db_event)
+    
+    try:
+        from app.routers.websocket import manager
+        await manager.broadcast({"type": "calendar_update", "project_id": db_event.project_id})
+    except Exception as e:
+        logger.error(f"Failed to broadcast calendar event creation: {e}")
+        
     return convert_to_response(db_event)
 
 @router.get("", response_model=List[CalendarEventResponse])
@@ -139,6 +149,13 @@ async def update_event(
         
     await db.commit()
     await db.refresh(db_event)
+    
+    try:
+        from app.routers.websocket import manager
+        await manager.broadcast({"type": "calendar_update", "project_id": db_event.project_id})
+    except Exception as e:
+        logger.error(f"Failed to broadcast calendar event update: {e}")
+        
     return convert_to_response(db_event)
 
 @router.delete("/{event_id}")
@@ -164,4 +181,11 @@ async def delete_event(
         
     await db.delete(db_event)
     await db.commit()
+    
+    try:
+        from app.routers.websocket import manager
+        await manager.broadcast({"type": "calendar_update", "project_id": db_event.project_id})
+    except Exception as e:
+        logger.error(f"Failed to broadcast calendar event deletion: {e}")
+        
     return {"message": "Event deleted successfully"}

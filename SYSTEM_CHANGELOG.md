@@ -2,12 +2,14 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
-## [2026-06-03] - Sürüm 6.1 - Kanban Sütun Bulut Senkronizasyonu & APK/Web Senkronizasyon Çözümü
+## [2026-06-03] - Sürüm 6.1 - Tüm Sistemde Real-Time WebSocket Eşleşmesi (Işıklama) & APK/Web Eşleme Çözümü
 
 ### Eklendi / Çözüldü
-- **Kanban Sütun Bulut Senkronizasyonu:** Kanban tahtası sütun yapılandırmaları (`columns_config`) artık yerel tarayıcı hafızası (`localStorage`) yerine doğrudan veritabanında (`projects` tablosunda) tutuluyor. Bu sayede, web tarayıcısında eklenen "E-TİCARET 5" gibi yeni sütunlar ve içindeki kartlar anında Android APK ve diğer tüm platformlarda görünür ve senkronize çalışır hale getirildi.
-- **Otomatik Geriye Dönük Uyumluluk (Migration):** Kullanıcıların tarayıcılarında bulunan mevcut lokal sütun yapılandırmaları, tahta ilk açıldığında otomatik olarak veritabanına yüklenerek (migrated) hiçbir veri kaybı yaşanmadan senkronize edilmesi sağlandı.
-- **Veritabanı Şeması & Alembic Güncellemesi:** `projects` tablosuna `columns_config` JSONB kolonu eklendi. Alembic üzerinde safe-migration `259bddeb7bb0_add_columns_config_to_project.py` sürümü oluşturuldu ve Neon PostgreSQL veritabanına uygulandı.
+- **Sütun ve Proje Tanımlarında Canlı Eşleşme:** Sütun tanım alanı (`columns_config`) bulut veritabanına taşınmasının ardından, `projects.py` router'ına WebSocket broadcast (`project_update`) entegre edildi. Bir sütun eklendiğinde, silindiğinde veya adı güncellendiğinde tüm aktif telefon/web istemcileri anında tetiklenip veriyi güncelliyor.
+- **Canlı Takvim Eşleşmesi (Calendar Sync):** Takvim etkinlik oluşturma, güncelleme ve silme endpoint'lerine (`calendar.py` router'ı) WebSocket yayını (`calendar_update`) entegre edildi. `webSocketStore.ts` üzerinden anlık yakalanan bu sinyal ile takvim verileri tüm cihazlarda sıfır saniye gecikmeyle yenilenmektedir.
+- **Canlı Not Eşleşmesi (Notes Sync):** Not oluşturma, güncelleme, silme, AI analizi ve ses yükleme endpoint'lerine (`notes.py` router'ı) WebSocket yayını (`note_update`) eklendi. Tüm istemcilerde not arayüzü anlık güncellenecek şekilde uyarlandı.
+- **Canlı Fotoğraf Takip Eşleşmesi (Photo Tracking Sync):** Model, renk ve revizyon işlemlerinin yapıldığı tüm endpoint'lere (`photo_tracking.py` router'ı) WebSocket yayını (`photo_tracking_update`) eklendi.
+- **Geriye Dönük Uyumluluk:** Eski tarayıcı `localStorage` sütun ayarları, sistemin ilk açılışında veritabanı boşsa otomatik DB'ye göç ettirilerek veri kaybı olmadan senkronize edildi.
 
 ---
 

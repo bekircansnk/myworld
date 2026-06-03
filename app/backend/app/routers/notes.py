@@ -4,6 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Q
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List, Optional
+import logging
+
+logger = logging.getLogger(__name__)
 from pydantic import BaseModel
 
 from datetime import datetime, timezone
@@ -82,6 +85,13 @@ SADECE JSON döndür:
     db.add(db_note)
     await db.commit()
     await db.refresh(db_note)
+    
+    try:
+        from app.routers.websocket import manager
+        await manager.broadcast({"type": "note_update", "project_id": db_note.project_id})
+    except Exception as e:
+        logger.error(f"Failed to broadcast note creation: {e}")
+        
     return db_note
 
 @router.put("/{note_id}", response_model=NoteResponse)
@@ -113,6 +123,13 @@ async def update_note(
         
     await db.commit()
     await db.refresh(db_note)
+    
+    try:
+        from app.routers.websocket import manager
+        await manager.broadcast({"type": "note_update", "project_id": db_note.project_id})
+    except Exception as e:
+        logger.error(f"Failed to broadcast note update: {e}")
+        
     return db_note
 
 @router.delete("/{note_id}")
@@ -144,6 +161,13 @@ async def delete_note(
     
     await db.delete(db_note)
     await db.commit()
+    
+    try:
+        from app.routers.websocket import manager
+        await manager.broadcast({"type": "note_update", "project_id": db_note.project_id})
+    except Exception as e:
+        logger.error(f"Failed to broadcast note deletion: {e}")
+        
     return {"status": "ok"}
 
 @router.post("/{note_id}/ai-analysis", response_model=NoteResponse)
@@ -211,6 +235,12 @@ Kategori: {db_note.ai_category or 'Belirsiz'}
         await db.commit()
         await db.refresh(db_note)
         
+        try:
+            from app.routers.websocket import manager
+            await manager.broadcast({"type": "note_update", "project_id": db_note.project_id})
+        except Exception as e:
+            logger.error(f"Failed to broadcast note AI analysis update: {e}")
+            
         return db_note
     except Exception as e:
         print(f"Note Analysis error: {e}")
@@ -311,4 +341,11 @@ async def upload_note_audio(
     
     await db.commit()
     await db.refresh(db_note)
+    
+    try:
+        from app.routers.websocket import manager
+        await manager.broadcast({"type": "note_update", "project_id": db_note.project_id})
+    except Exception as e:
+        logger.error(f"Failed to broadcast note audio upload update: {e}")
+        
     return db_note
