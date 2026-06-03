@@ -236,6 +236,10 @@ async def create_task(
             }
         }
         background_tasks.add_task(manager.broadcast, activity_ws_payload)
+        background_tasks.add_task(
+            manager.broadcast, 
+            {"type": "new_task", "project_id": db_task.project_id, "task_id": db_task.id}
+        )
 
         # 2. AI Kategorizasyon ve Süre/Proje Tahminini Arka Plana At
         try:
@@ -389,6 +393,12 @@ async def update_task(
     # Refresh via select
     result_loaded = await db.execute(select(Task).options(selectinload(Task.project)).where(Task.id == task_id))
     db_task_refreshed = result_loaded.scalars().first()
+    
+    if db_task_refreshed:
+        background_tasks.add_task(
+            manager.broadcast, 
+            {"type": "task_update", "project_id": db_task_refreshed.project_id, "task_id": db_task_refreshed.id}
+        )
     return db_task_refreshed
 
 @router.patch("/{task_id}/status", response_model=TaskResponse)
@@ -424,6 +434,11 @@ async def update_task_status(
         
     await db.commit()
     await db.refresh(db_task)
+
+    background_tasks.add_task(
+        manager.broadcast, 
+        {"type": "task_update", "project_id": db_task.project_id, "task_id": db_task.id}
+    )
 
     # Webhook tetikle
     if old_status != status and db_task.project_id:

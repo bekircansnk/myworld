@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { api } from '@/lib/api';
 import { idbStorage } from '@/lib/idb-storage';
 import { Project } from '@/types';
+import { enqueue } from '@/lib/syncQueue';
 
 export type ViewMode = 'dashboard' | 'all_tasks' | 'project' | 'calendar' | 'notes' | 'ai_chat' | 'ads' | 'photo_tracking' | 'admin';
 
@@ -79,10 +80,14 @@ export const useProjectStore = create<ProjectState>()(
             await useAuthStore.getState().checkAuth();
           } catch {}
         } catch (error: any) {
-          set((state) => ({
-            projects: state.projects.filter(p => p.id !== tempId),
-            error: error.message
-          }));
+          if (error.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+            enqueue('POST', '/api/projects', data);
+          } else {
+            set((state) => ({
+              projects: state.projects.filter(p => p.id !== tempId),
+              error: error.message
+            }));
+          }
         }
       },
 
@@ -97,7 +102,11 @@ export const useProjectStore = create<ProjectState>()(
             projects: state.projects.map((p) => (p.id === id ? response.data : p)),
           }));
         } catch (error: any) {
-          set({ projects: previousProjects, error: error.message });
+          if (error.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+            enqueue('PUT', `/api/projects/${id}`, data);
+          } else {
+            set({ projects: previousProjects, error: error.message });
+          }
         }
       },
 
@@ -121,8 +130,12 @@ export const useProjectStore = create<ProjectState>()(
             await useAuthStore.getState().checkAuth();
           } catch {}
         } catch (error: any) {
-          set({ error: error.message });
-          get().fetchProjects();
+          if (error.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+            enqueue('DELETE', `/api/projects/${id}`);
+          } else {
+            set({ error: error.message });
+            get().fetchProjects();
+          }
         }
       },
       reset: () => set({ projects: [], selectedProjectId: null, viewMode: 'dashboard', error: null })
