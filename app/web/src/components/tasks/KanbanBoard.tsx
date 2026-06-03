@@ -104,10 +104,18 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
         } else {
           const localCols = loadColumns(projectId);
           setColumns(localCols);
-          // DB'ye senkronize et (migration)
-          updateProject(projectId, { columns_config: localCols }).catch(err => {
-            console.error("Sütunlar DB'ye senkronize edilemedi:", err);
-          });
+          
+          // SADECE projeler yüklenmesi bitmişse ve sunucudan gelen veri gerçekten taze ve boş ise,
+          // ve localCols default sütunlardan farklıysa DB'ye senkronize et.
+          // Aksi halde taze veri gelene kadar DB'yi ezme!
+          const isDefault = JSON.stringify(localCols) === JSON.stringify(DEFAULT_COLUMNS);
+          const isProjectStoreLoading = useProjectStore.getState().isLoading;
+          
+          if (!isProjectStoreLoading && !isDefault) {
+            updateProject(projectId, { columns_config: localCols }).catch(err => {
+              console.error("Sütunlar DB'ye senkronize edilemedi:", err);
+            });
+          }
         }
       }
     } else {

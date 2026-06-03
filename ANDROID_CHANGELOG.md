@@ -9,6 +9,16 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 
 ---
 
+### v5.4
+**Tarih:** 3 Haziran 2026
+**Değişiklikler:**
+- **[Kritik Arayüz & Bulut Eşleşmesi]** Kanban tahtası sütun yapılandırmaları (`columns_config`) artık veritabanı (bulut) üzerinden çekilecek şekilde istemci güncellendi. Telefonun local sütunlarının sunucudaki güncel sütunları ezmesini engelleyen taze veri koruma mantığı entegre edildi.
+- **[Real-Time Senkronizasyon]** Takvim, notlar, fotoğraf takip ve sütunlardaki tüm değişikliklerin anlık (WebSocket) eşlenmesi mobil istemciye entegre edildi.
+- **[Offline & API Senkronizasyonu]** Mobil ve PWA Capacitor platformunda çevrimdışı senkronizasyon kuyruğu (`syncQueue`) ve WebSocket API adreslerinin varsayılan olarak doğru production sunucusuna (`planla.pikselai.com` / `myworld-twqx.onrender.com`) bağlanması sağlanarak telefonlardaki verilerin sunucuyla çift yönlü, kayıpsız senkronizasyonu garanti altına alındı.
+- **[Sürüm Yükseltme]** `versionCode 44` ve `versionName "5.4"` debug APK derlemesi yapıldı.
+
+---
+
 ### v5.3
 **Tarih:** 3 Haziran 2026
 **Değişiklikler:**

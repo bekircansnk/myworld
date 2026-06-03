@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { Capacitor } from '@capacitor/core'
 
 interface WebSocketState {
   socket: WebSocket | null;
@@ -33,11 +34,11 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
         return;
     }
 
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.hostname === 'localhost' ? 'localhost:8000' : window.location.host;
-    
     // API URL'den WebSocket URL türet
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || `${window.location.protocol}//${host}`;
+    let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://myworld-twqx.onrender.com';
+    if (window.location.hostname === 'localhost' && !process.env.NEXT_PUBLIC_API_URL && !Capacitor.isNativePlatform()) {
+      apiUrl = 'http://localhost:8000';
+    }
     const defaultWsBase = apiUrl.replace(/^http/, 'ws') + '/ws/';
     
     // URL'e token ekle (Backend /{token} bekliyor)

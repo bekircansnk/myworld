@@ -2,6 +2,16 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-06-03] - Sürüm 6.2 - Mobil Sürüm URL Fallback Düzeltmeleri ve Çevrimdışı/WebSocket Bağlantı Kararlılığı (v5.4)
+
+### Eklendi / Çözüldü
+- **Mobil API ve WebSocket URL Çakışması Giderildi:** Mobil (Capacitor) platformda `window.location.hostname` değeri `localhost` olduğu için çevrimdışı işlem senkronizasyon kuyruğu (`syncQueue`) ve WebSocket API bağlantılarının yerel `http://localhost:8000` sunucusuna bağlanmaya çalışması ve dolayısıyla mobil cihazın sunucuya hiçbir veriyi yansıtamaması sorunu giderildi. Mobil native tespiti ile varsayılan olarak `https://myworld-twqx.onrender.com` ve `https://planla.pikselai.com` üretim sunucularına bağlanması garanti altına alındı.
+- **Kanban Sütun Veri Koruma Mantığı:** Mobil cihazın ilk açılışta yerel `localStorage`'da kalan varsayılan veya eski sütun şemasını veritabanına geri yazıp sunucudaki güncel sütun konfigürasyonlarını (örneğin bilgisayarda oluşturulmuş olan `• E-TİCARET 5` sütununu) ezmesi engellendi. Veritabanındaki veri öncelikli hale getirildi ve taze veri yüklenene kadar veritabanının ezilmesi önlendi.
+- **APK Fallback İndirme Linkleri Güncellemesi:** `TopNavbar.tsx` ve `InstallAppBanner.tsx` içerisindeki eski `Pikselis_v5.3.apk` indirme linkleri `Pikselis_v5.4.apk` olarak güncellendi.
+- **APK Boyut Kontrolü:** Yeni sürüm (v5.4, Code 44) APK boyutu 17 MB ile 30 MB sınırının altında başarıyla paketlendi.
+
+---
+
 ## [2026-06-03] - Sürüm 6.1 - Tüm Sistemde Real-Time WebSocket Eşleşmesi (Işıklama) & APK/Web Eşleme Çözümü
 
 ### Eklendi / Çözüldü

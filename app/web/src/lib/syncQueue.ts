@@ -1,6 +1,7 @@
 // Çevrimdışı işlem senkronizasyon kuyruğu
 // İnternet yokken yapılan API isteklerini kaydeder, internet gelince sırayla gönderir
 import { get, set } from 'idb-keyval';
+import { Capacitor } from '@capacitor/core';
 
 const QUEUE_KEY = 'pikselis-sync-queue';
 const MAX_RETRIES = 5;
@@ -77,7 +78,10 @@ export async function processQueue(): Promise<{ success: number; failed: number 
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
   };
 
-  const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  let baseURL = process.env.NEXT_PUBLIC_API_URL || 'https://myworld-twqx.onrender.com';
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost' && !process.env.NEXT_PUBLIC_API_URL && !Capacitor.isNativePlatform()) {
+    baseURL = 'http://localhost:8000';
+  }
 
   for (const action of pending) {
     try {
