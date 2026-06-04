@@ -2,6 +2,18 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-06-04] - Sürüm 6.3 - Kanban Sütun Senkronizasyonu ve Server-First Mimarisi
+
+### Eklendi / Çözüldü
+- **Server-First Kanban Sütun Yapılandırması:** Sütunların kısmen localStorage kısmen projects.columns_config üzerinden yönetilmesinden doğan cihazlar arası senkronizasyon hataları giderildi. Sunucu (`projects.columns_config`) tek kalıcı kaynak haline getirildi. Sunucudan boş gelen şemanın yerel verilerle DB'ye zorla yazılması engellendi.
+- **Sütun Yetki Kontrolü ve Bağımsız API:** Sütun güncellemeleri owner-only `PUT /projects/{id}` bağımlılığından ayrılarak `PUT /projects/{id}/columns` endpoint'ine taşındı. Görev düzenleme yetkisi olan kullanıcıların da sütun ekleyebilmesi sağlandı, yetkisizler için net 403 engeli getirildi.
+- **Sütun Config Validasyonu:** Sütun güncellemelerinde varsayılan sütunların (`todo`, `in_progress`, `done`) korunması, duplicate `statusKey` engellenmesi ve gerekli alanların (`id`, `statusKey`, `label`, `dotColor`) boş olamayacağı gibi sıkı sunucu doğrulamaları eklendi.
+- **Optimistic UI Rollback Mekanizması:** KanbanBoard üzerindeki sütun işlemleri (ekleme, silme, isim güncelleme) API sonucunu bekleyecek şekilde asenkronlaştırıldı. Başarısızlık durumunda state ve localStorage otomatik olarak eski haline (rollback) geri döndürülmekte ve başarı toast'ı tetiklenmemektedir.
+- **Güvenli Fallback Sütunu (Eksik Durum Koruyucu):** Veritabanında silinmiş veya config dışı kalmış bir durum değerine (`status`) sahip görevlerin Kanban'dan kaybolması engellendi. Bu görevler için otomatik olarak listenin sonuna geçici bir "Sütunsuz/Bilinmeyen" fallback sütun eklenerek veriler korundu.
+- **Dinamik Durum ve Dashboard Entegrasyonu:** Görev detay panelindeki durum listesi ve etiketleri projenin sütun yapılandırmasına göre dinamikleştirildi. DashboardWidgets'ta `done` dışındaki tüm custom status durumlarına sahip görevler aktif görev (`inProgressTasks`) olarak kabul edildi.
+
+---
+
 ## [2026-06-03] - Sürüm 6.2 - Mobil Sürüm URL Fallback Düzeltmeleri ve Çevrimdışı/WebSocket Bağlantı Kararlılığı (v5.4)
 
 ### Eklendi / Çözüldü
