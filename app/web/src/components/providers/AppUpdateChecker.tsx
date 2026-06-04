@@ -145,6 +145,7 @@ export function AppUpdateChecker() {
   const handleUpdate = useCallback(async () => {
     if (!versionInfo) return;
 
+    let progressListener: any = null;
     try {
       setState("downloading");
       setProgress(0);
@@ -152,74 +153,31 @@ export function AppUpdateChecker() {
 
       const fileName = `Pikselis_v${versionInfo.version}.apk`;
 
-      // XMLHttpRequest ile progress takibi
-      const downloadPromise = new Promise<string>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open("GET", versionInfo.download_url, true);
-        xhr.responseType = "blob";
-
-        xhr.onprogress = (event) => {
-          if (event.lengthComputable) {
-            const pct = Math.round((event.loaded / event.total) * 100);
-            setProgress(pct);
-          }
-        };
-
-        xhr.onload = async () => {
-          if (xhr.status !== 200) {
-            reject(new Error(`HTTP ${xhr.status}`));
-            return;
-          }
-
-          try {
-            // Blob'u base64'e çevir
-            const blob = xhr.response as Blob;
-            if (!blob) {
-              reject(new Error("Boş veri alındı"));
-              return;
-            }
-            
-            const reader = new FileReader();
-            reader.onloadend = async () => {
-              try {
-                const resultStr = reader.result as string;
-                if (!resultStr || !resultStr.includes(",")) {
-                  reject(new Error("Veri okuma hatası"));
-                  return;
-                }
-                const base64Data = resultStr.split(",")[1];
-
-                // Dosyayı Filesystem ile kaydet
-                const result = await Filesystem.writeFile({
-                  path: fileName,
-                  data: base64Data,
-                  directory: Directory.Cache,
-                  recursive: true,
-                });
-
-                resolve(result.uri);
-              } catch (e) {
-                reject(e);
-              }
-            };
-            reader.onerror = () => reject(new Error("Dosya okunamadı"));
-            reader.readAsDataURL(blob);
-          } catch (e) {
-            reject(e);
-          }
-        };
-
-        xhr.onerror = () => reject(new Error("İndirme başarısız"));
-        xhr.ontimeout = () => reject(new Error("İndirme zaman aşımına uğradı"));
-        xhr.timeout = 300000; // 5 dakika timeout
-
-        abortRef.current = new AbortController();
-        abortRef.current.signal.addEventListener("abort", () => xhr.abort());
-
-        xhr.send();
+      // Native progress listener
+      progressListener = await Filesystem.addListener("progress", (progressInfo) => {
+        if (progressInfo.contentLength > 0) {
+          const pct = Math.round((progressInfo.bytes / progressInfo.contentLength) * 100);
+          setProgress(pct);
+        }
       });
 
-      const fileUri = await downloadPromise;
+      // Native downloadFile call
+      const downloadResult = await Filesystem.downloadFile({
+        url: versionInfo.download_url,
+        path: fileName,
+        directory: Directory.Cache,
+        progress: true,
+      });
+
+      if (progressListener) {
+        await progressListener.remove();
+        progressListener = null;
+      }
+
+      const fileUri = downloadResult.path;
+      if (!fileUri) {
+        throw new Error("İndirilen dosya yolu alınamadı");
+      }
 
       // URI'den dosya yolunu çıkar
       let filePath = fileUri;
@@ -237,6 +195,9 @@ export function AppUpdateChecker() {
       // Yükleme ekranı açıldıktan sonra state'i sıfırla
       setTimeout(() => setState("idle"), 3000);
     } catch (err: any) {
+      if (progressListener) {
+        await progressListener.remove();
+      }
       console.error("Güncelleme hatası:", err);
       const isPermError = err?.message === "INSTALL_PERMISSION_REQUIRED" || 
                          (err && typeof err === "object" && err.toString().includes("INSTALL_PERMISSION_REQUIRED"));
