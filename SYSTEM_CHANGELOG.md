@@ -2,6 +2,16 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-06-04] - Sürüm 6.4 - Detay Panel Hook Crash Çözümü, UX Çift Tıklama Korumaları ve Test Sütunları Temizliği
+
+### Eklendi / Çözüldü
+- **Detay Panel Hook Crash Düzeltmesi (P0):** Görev detay panelindeki early return'den kaynaklanan React Hook Order ihlalleri, bileşen bir Wrapper (`TaskDetailPanel`) ve İçerik (`TaskDetailPanelContent`) olarak ikiye bölünerek tamamen giderildi. Custom/fallback statüler için güvenli fallback guard'ları yerleştirildi.
+- **Çoklu Tıklama ve Duplicate Submit Korumaları (P1):** KanbanBoard sütun işlemleri (ekleme, silme, isim güncelleme, hızlı kart ekleme), TaskForm submit butonu ve TaskCard kart detay paneli tetikleyicileri için loading state'leri ve tıklama kilitleri (`isOpening`, `savingColumn`, vb.) eklenerek duplicate kayıt üretimi engellendi. Butonlara spinner ve işlemde durumları entegre edildi.
+- **Unique Temp ID Üretimi:** Çok hızlı peş peşe görev eklenmesi durumlarında milisaniyelik çakışmaları engellemek amacıyla geçici ID üretimi `Date.now() + Math.random() * 1000` şeklinde güçlendirildi.
+- **Kanban Test Verisi Temizliği (P2):** Veritabanındaki test/custom sütun statülerini (`^col_[0-9]+$`) tespit eden ve soft-delete (`is_deleted = True`) yapan `cleanup_kanban_test_statuses.py` scripti geliştirildi ve kullanıcı onayı alınarak 8 adet eski test görevi veritabanından başarıyla temizlendi.
+
+---
+
 ## [2026-06-04] - Sürüm 6.3 - Kanban Sütun Senkronizasyonu ve Server-First Mimarisi
 
 ### Eklendi / Çözüldü
