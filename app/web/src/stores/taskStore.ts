@@ -109,6 +109,7 @@ export const useTaskStore = create<TaskState>()(
           const response = await api.post(url, data);
           set((state) => ({
             tasks: state.tasks.map((t) => (t.id === tempId ? response.data : t)),
+            selectedTask: state.selectedTask?.id === tempId ? response.data : state.selectedTask,
           }));
         } catch (error: any) {
           if (error.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
