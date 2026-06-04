@@ -12,7 +12,6 @@ from app.models.project import Project
 from app.models.user_company_access import UserCompanyAccess
 from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectResponse
 from app.models.role_templates import FULL_PERMISSIONS
-from app.dependencies.permissions import require_company_permission
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -178,13 +177,55 @@ async def delete_project(
         
     return {"status": "ok", "message": "Project and all related data deleted successfully"}
 
+async def can_edit_project_columns(db: AsyncSession, current_user: User, project_id: int) -> Project:
+    # Projeyi bul
+    query = select(Project).where(Project.id == project_id)
+    result = await db.execute(query)
+    db_project = result.scalars().first()
+
+    if db_project is None:
+        raise HTTPException(status_code=404, detail="Proje bulunamadı")
+
+    # Yetki Kontrolü
+    # super_admin ve admin her şeyi yapabilir
+    if current_user.role in ("super_admin", "admin"):
+        return db_project
+
+    # Proje sahibi her şeyi yapabilir
+    if db_project.user_id == current_user.id:
+        return db_project
+
+    # UserCompanyAccess kaydı var mı?
+    access_query = select(UserCompanyAccess).where(
+        UserCompanyAccess.user_id == current_user.id,
+        UserCompanyAccess.project_id == project_id
+    )
+    access_result = await db.execute(access_query)
+    access = access_result.scalars().first()
+
+    if not access:
+        raise HTTPException(status_code=403, detail="Bu projeye erişim yetkiniz yok.")
+
+    # Firma sahibi veya görev düzenleme yetkisi var mı?
+    if access.is_owner:
+        return db_project
+
+    perm = (access.permissions or {}).get("tasks", {})
+    if perm.get("edit", False):
+        return db_project
+
+    raise HTTPException(status_code=403, detail="Bu projenin sütunlarını düzenleme yetkiniz yok.")
+
 @router.put("/{project_id}/columns", response_model=ProjectResponse)
 async def update_project_columns(
     project_id: int,
     columns: List[dict],
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_company_permission("tasks", "edit"))
+    current_user: User = Depends(get_current_user)
 ):
+    # DB write öncesi yetki ve proje varlık kontrolü
+    db_project = await can_edit_project_columns(db, current_user, project_id)
+
     # 1. Liste doğrulaması
     if not isinstance(columns, list):
         raise HTTPException(status_code=400, detail="Sütun yapılandırması bir liste olmalıdır.")
@@ -215,14 +256,6 @@ async def update_project_columns(
     for def_key in default_status_keys:
         if def_key not in seen_status_keys:
             raise HTTPException(status_code=400, detail=f"Varsayılan '{def_key}' sütunu silinemez.")
-
-    # Projeyi bul
-    query = select(Project).where(Project.id == project_id)
-    result = await db.execute(query)
-    db_project = result.scalars().first()
-    
-    if db_project is None:
-        raise HTTPException(status_code=404, detail="Proje bulunamadı")
         
     db_project.columns_config = columns
     

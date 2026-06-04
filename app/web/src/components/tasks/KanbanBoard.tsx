@@ -102,9 +102,8 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
           setColumns(currentProject.columns_config as ColumnConfig[]);
           saveColumns(currentProject.columns_config as ColumnConfig[], projectId);
         } else {
-          // Sunucudan sütun yapılandırması gelmediyse (null/boş) -> cache'ten yükle, yoksa varsayılan sütunları göster
-          const cachedCols = loadColumns(projectId);
-          setColumns(cachedCols);
+          // Sunucudan sütun yapılandırması gelmediyse -> daima varsayılan sütunları göster, localStorage'daki eski veriyi sunucuya taşımamak için
+          setColumns(DEFAULT_COLUMNS);
         }
       }
     } else {
@@ -118,7 +117,8 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
     saveColumns(newCols, projectId);
     if (projectId) {
       try {
-        await updateProjectColumns(projectId, newCols);
+        const res = await updateProjectColumns(projectId, newCols);
+        return res;
       } catch (err: any) {
         // Rollback state & cache
         setColumns(previousCols);
@@ -127,6 +127,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
         throw err;
       }
     }
+    return { queued: false };
   }, [projectId, columns, updateProjectColumns, toast]);
 
   // Ana görevleri filtrele
@@ -240,9 +241,13 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
     }
     const newCols = columns.map(c => c.id === colId ? { ...c, label: editingColumnLabel.trim() } : c)
     try {
-      await saveAndSyncColumns(newCols)
+      const res = await saveAndSyncColumns(newCols)
       setEditingColumnId(null)
-      toast.success("Sütun ismi güncellendi")
+      if (res?.queued) {
+        toast.show("Değişiklikler çevrimdışı kaydedildi, senkron bekliyor", "info")
+      } else {
+        toast.success("Sütun ismi güncellendi")
+      }
     } catch (err) {
       setEditingColumnId(null)
     }
@@ -263,10 +268,14 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
     }
     const newCols = [...columns, newCol]
     try {
-      await saveAndSyncColumns(newCols)
+      const res = await saveAndSyncColumns(newCols)
       setNewColumnLabel("")
       setIsAddingColumn(false)
-      toast.success("Yeni sütun eklendi")
+      if (res?.queued) {
+        toast.show("Sütun çevrimdışı kaydedildi, senkron bekliyor", "info")
+      } else {
+        toast.success("Yeni sütun eklendi")
+      }
 
       // Yeni sütuna scroll et
       setTimeout(() => {
@@ -289,8 +298,12 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
     }
     const newCols = columns.filter(c => c.id !== colId)
     try {
-      await saveAndSyncColumns(newCols)
-      toast.success("Sütun kaldırıldı")
+      const res = await saveAndSyncColumns(newCols)
+      if (res?.queued) {
+        toast.show("Sütun çevrimdışı silindi, senkron bekliyor", "info")
+      } else {
+        toast.success("Sütun kaldırıldı")
+      }
     } catch (err) {}
   }
 
@@ -491,12 +504,12 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                       </button>
                     )}
 
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-white/10 rounded transition-colors text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 border-0 focus:outline-none focus:ring-0 appearance-none">
-                        <MoreVertical className="w-3.5 h-3.5" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48 text-sm">
-                        {!column.id.startsWith('fallback_') && (
+                    {!column.id.startsWith('fallback_') && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-white/10 rounded transition-colors text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 border-0 focus:outline-none focus:ring-0 appearance-none">
+                          <MoreVertical className="w-3.5 h-3.5" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 text-sm">
                           <DropdownMenuItem onClick={() => {
                             setEditingColumnId(column.id)
                             setEditingColumnLabel(column.label)
@@ -504,26 +517,26 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                             <Pencil className="w-3.5 h-3.5 mr-2" />
                             İsmini Değiştir
                           </DropdownMenuItem>
-                        )}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-red-500 hover:text-red-600 focus:text-red-600"
-                          onClick={() => setDeleteAllColumn(column.id)}
-                        >
-                          <Trash2 className="w-3.5 h-3.5 mr-2" />
-                          Tümünü Sil
-                        </DropdownMenuItem>
-                        {!isDefaultCol && (
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem
                             className="text-red-500 hover:text-red-600 focus:text-red-600"
-                            onClick={() => handleDeleteColumn(column.id)}
+                            onClick={() => setDeleteAllColumn(column.id)}
                           >
                             <Trash2 className="w-3.5 h-3.5 mr-2" />
-                            Sütunu Kaldır
+                            Tümünü Sil
                           </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          {!isDefaultCol && (
+                            <DropdownMenuItem
+                              className="text-red-500 hover:text-red-600 focus:text-red-600"
+                              onClick={() => handleDeleteColumn(column.id)}
+                            >
+                              <Trash2 className="w-3.5 h-3.5 mr-2" />
+                              Sütunu Kaldır
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </div>
                 </div>
 

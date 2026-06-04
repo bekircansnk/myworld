@@ -238,12 +238,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "5.4",
-        "version_code": 44,
-        "download_url": "https://planla.pikselai.com/Pikselis_v5.4.apk",
+        "version": "5.5",
+        "version_code": 45,
+        "download_url": "https://planla.pikselai.com/Pikselis_v5.5.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
-        "changelog": "- Kanban sütun yapılandırmaları bulut veritabanına taşındı ve platformlar arası senkronizasyon sağlandı.\n- Takvim, notlar, fotoğraf takip ve sütunlardaki tüm değişikliklerin anlık (WebSocket) eşlenmesi mobil istemciye entegre edildi.\n- Sürüm v5.4 (Code 44) olarak güncellendi."
+        "changelog": "- Kanban yetki kontrolleri sıkılaştırıldı ve backend koruma katmanı eklendi.\n- Fallback sütunlardaki düzenleme aksiyonları gizlenerek veri güvenliği artırıldı.\n- Sürüm v5.5 (Code 45) olarak güncellendi."
     }
 
 @app.get("/api/link-preview")

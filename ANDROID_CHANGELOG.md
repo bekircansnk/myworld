@@ -7,6 +7,15 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 - Alt sürüm 9'a ulaştığında (Örn: 1.9), bir sonraki sürüm tam sayı artar (Örn: 2.0).
 - `versionCode` her yeni sürümde +1 olarak artırılır.
 
+### v5.5
+**Tarih:** 4 Haziran 2026
+**Değişiklikler:**
+- **[Kritik Yetki & Güvenlik Düzeltmesi]** Kanban `/projects/{project_id}/columns` endpoint'inde write işlemleri öncesi detaylı kullanıcı yetki doğrulaması (`super_admin`/`admin` rolü, proje sahipliği veya `UserCompanyAccess` tasks.edit kontrolü) backend'e entegre edildi.
+- **[Sütunsuz Fallback Kısıtı]** Kanban fallback (Sütunsuz) sütunlarındaki Dropdown (üç nokta) menüsü komple gizlenerek ad değiştirme, silme ve sütun kaldırma eylemleri güvenliğe alındı.
+- **[Server-First localStorage Bypass]** Sunucudan columns_config boş döndüğünde local'deki eski verilerin otomatik olarak sunucuya yazılması veya ezilmesi engellendi.
+- **[Çevrimdışı Durum Bildirimi]** Çevrimdışı olunduğunda sütun eklenmesi/düzenlenmesi halinde kullanıcıya *"Sütun çevrimdışı kaydedildi, senkron bekliyor"* toast uyarısı verilmesi sağlandı.
+- **[Sürüm Yükseltme]** `versionCode 45` ve `versionName "5.5"` debug APK derlemesi yapıldı.
+
 ---
 
 ### v5.4

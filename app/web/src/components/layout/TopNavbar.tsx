@@ -667,10 +667,10 @@ export function TopNavbar() {
                           a.click();
                           document.body.removeChild(a);
                         } else {
-                          window.open("https://planla.pikselai.com/Pikselis_v5.4.apk", "_blank"); // Fallback
+                          window.open("https://planla.pikselai.com/Pikselis_v5.5.apk", "_blank"); // Fallback
                         }
                       } catch (err) {
-                        window.open("https://planla.pikselai.com/Pikselis_v5.4.apk", "_blank"); // Fallback
+                        window.open("https://planla.pikselai.com/Pikselis_v5.5.apk", "_blank"); // Fallback
                       }
                     }}
                     className="w-full text-left px-4 py-3.5 text-xs text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 hover:from-indigo-600 hover:to-purple-600 transition-all font-black flex items-center gap-3 shadow-md rounded-2xl"

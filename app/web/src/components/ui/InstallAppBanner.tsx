@@ -91,10 +91,10 @@ export function InstallAppBanner() {
                   a.click();
                   document.body.removeChild(a);
                 } else {
-                  window.open("https://planla.pikselai.com/Pikselis_v5.4.apk", "_blank");
+                  window.open("https://planla.pikselai.com/Pikselis_v5.5.apk", "_blank");
                 }
               } catch (err) {
-                window.open("https://planla.pikselai.com/Pikselis_v5.4.apk", "_blank");
+                window.open("https://planla.pikselai.com/Pikselis_v5.5.apk", "_blank");
               }
               setTimeout(handleDismiss, 1000);
             }}

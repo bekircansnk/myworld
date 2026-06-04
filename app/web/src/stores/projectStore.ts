@@ -20,7 +20,7 @@ interface ProjectState {
   fetchProjects: () => Promise<void>;
   addProject: (data: Partial<Project>) => Promise<void>;
   updateProject: (id: number, data: Partial<Project>) => Promise<void>;
-  updateProjectColumns: (id: number, columns: any[]) => Promise<void>;
+  updateProjectColumns: (id: number, columns: any[]) => Promise<{ queued: boolean }>;
   deleteProject: (id: number) => Promise<void>;
   reset: () => void;
 }
@@ -121,9 +121,11 @@ export const useProjectStore = create<ProjectState>()(
           set((state) => ({
             projects: state.projects.map((p) => (p.id === id ? response.data : p)),
           }));
+          return { queued: false };
         } catch (error: any) {
           if (error.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
             enqueue('PUT', `/api/projects/${id}/columns`, columns);
+            return { queued: true };
           } else {
             set({ projects: previousProjects, error: error.message });
             throw error;
