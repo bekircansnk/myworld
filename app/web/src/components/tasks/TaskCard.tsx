@@ -80,6 +80,14 @@ function ProgressBar({ percent, accentColor }: { percent: number; accentColor: s
 
 export function TaskCard({ task, subtaskCount = 0, doneSubtaskCount = 0, isProjectView = false }: TaskCardProps) {
   const { openTaskDetail, deleteTask } = useTaskStore()
+  const [isOpening, setIsOpening] = React.useState(false)
+
+  const handleOpen = React.useCallback(() => {
+    if (isOpening) return
+    setIsOpening(true)
+    openTaskDetail(task)
+    requestAnimationFrame(() => setIsOpening(false))
+  }, [isOpening, openTaskDetail, task])
 
   const hasDescription = !!task.description && task.description.trim().length > 0
   const hasSubtasks = subtaskCount > 0
@@ -107,7 +115,7 @@ export function TaskCard({ task, subtaskCount = 0, doneSubtaskCount = 0, isProje
       {
         label: 'Düzenle',
         icon: <Edit2 className="w-full h-full" />,
-        onClick: () => openTaskDetail(task),
+        onClick: handleOpen,
       },
       {
         label: 'Görevi Sil',
@@ -135,7 +143,7 @@ export function TaskCard({ task, subtaskCount = 0, doneSubtaskCount = 0, isProje
       <div
         className="rounded-lg p-3 cursor-pointer group transition-all duration-150 hover:shadow-md border"
         style={cardStyle}
-        onClick={() => openTaskDetail(task)}
+        onClick={handleOpen}
         onContextMenu={handleContextMenu}
       >
         {/* Etiketler — Proje adı ve öncelik */}
@@ -165,7 +173,7 @@ export function TaskCard({ task, subtaskCount = 0, doneSubtaskCount = 0, isProje
               <MoreHorizontal className="w-3.5 h-3.5" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40 text-sm" onClick={(e) => e.stopPropagation()}>
-              <DropdownMenuItem onClick={() => openTaskDetail(task)}>Düzenle</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleOpen}>Düzenle</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-red-500 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/50"

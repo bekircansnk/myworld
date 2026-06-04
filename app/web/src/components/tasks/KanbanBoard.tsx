@@ -85,6 +85,12 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
   const [isAddingColumn, setIsAddingColumn] = React.useState(false)
   const [newColumnLabel, setNewColumnLabel] = React.useState("")
   const newColInputRef = React.useRef<HTMLInputElement>(null)
+
+  // Çoklu tıklama / duplicate koruması için loading durumları
+  const [savingColumn, setSavingColumn] = React.useState(false)
+  const [savingQuickTaskColumnId, setSavingQuickTaskColumnId] = React.useState<string | null>(null)
+  const [deletingColumnId, setDeletingColumnId] = React.useState<string | null>(null)
+  const [renamingColumnId, setRenamingColumnId] = React.useState<string | null>(null)
   
   // Auto-scroll logic for drag
   const scrollIntervalRef = React.useRef<NodeJS.Timeout | null>(null)
@@ -195,12 +201,14 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
 
   // Hızlı görev ekleme
   const handleQuickAdd = (column: ColumnConfig) => {
+    if (savingQuickTaskColumnId === column.id) return
     if (!newCardTitle.trim()) {
       setAddingToColumn(null)
       return
     }
     const titleToSave = newCardTitle.trim();
     setNewCardTitle(""); // Anında temizle ki arka planda kaydederken kullanıcı yazmaya devam edebilsin
+    setSavingQuickTaskColumnId(column.id)
     
     // API isteğini arkaya atıyoruz
     addTask({
@@ -209,8 +217,11 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
       project_id: projectId || undefined,
     }).then(() => {
       toast.success("Görev eklendi")
+      setAddingToColumn(null)
     }).catch((err: any) => {
       toast.error(err.response?.data?.detail || "Görev eklenirken hata oluştu")
+    }).finally(() => {
+      setSavingQuickTaskColumnId(null)
     });
   }
 
@@ -235,10 +246,12 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
 
   // Sütun ismi düzenleme
   const handleRenameColumn = async (colId: string) => {
+    if (renamingColumnId === colId) return
     if (!editingColumnLabel.trim()) {
       setEditingColumnId(null)
       return
     }
+    setRenamingColumnId(colId)
     const newCols = columns.map(c => c.id === colId ? { ...c, label: editingColumnLabel.trim() } : c)
     try {
       const res = await saveAndSyncColumns(newCols)
@@ -250,15 +263,19 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
       }
     } catch (err) {
       setEditingColumnId(null)
+    } finally {
+      setRenamingColumnId(null)
     }
   }
 
   // Yeni sütun ekleme
   const handleAddColumn = async () => {
+    if (savingColumn) return
     if (!newColumnLabel.trim()) {
       setIsAddingColumn(false)
       return
     }
+    setSavingColumn(true)
     const newId = `col_${Date.now()}`
     const newCol: ColumnConfig = {
       id: newId,
@@ -285,17 +302,21 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
       }, 100)
     } catch (err) {
       // Hata zaten saveAndSyncColumns'ta yönetiliyor, burada bir şey yapmıyoruz
+    } finally {
+      setSavingColumn(false)
     }
   }
 
   // Sütun silme
   const handleDeleteColumn = async (colId: string) => {
+    if (deletingColumnId === colId) return
     // Varsayılan 3 sütun silinemesin
     const isDefault = DEFAULT_COLUMNS.some(d => d.id === colId)
     if (isDefault) {
       toast.error("Varsayılan sütunlar silinemez")
       return
     }
+    setDeletingColumnId(colId)
     const newCols = columns.filter(c => c.id !== colId)
     try {
       const res = await saveAndSyncColumns(newCols)
@@ -305,21 +326,31 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
         toast.success("Sütun kaldırıldı")
       }
     } catch (err) {}
+    finally {
+      setDeletingColumnId(null)
+    }
   }
 
   // Tüm görevleri sil
   const handleDeleteAllTasks = async () => {
-    if (!deleteAllColumn) return
+    if (!deleteAllColumn || deletingColumnId === deleteAllColumn) return
     const column = columns.find(c => c.id === deleteAllColumn)
     if (!column) return
+    setDeletingColumnId(deleteAllColumn)
     const tasksToDelete = getColumnTasks(column)
     const { deleteTask } = useTaskStore.getState()
 
-    for (const task of tasksToDelete) {
-      await deleteTask(task.id)
+    try {
+      for (const task of tasksToDelete) {
+        await deleteTask(task.id)
+      }
+      setDeleteAllColumn(null)
+      toast.success("Tüm görevler silindi")
+    } catch (err) {
+      toast.error("Görevler silinirken hata oluştu")
+    } finally {
+      setDeletingColumnId(null)
     }
-    setDeleteAllColumn(null)
-    toast.success("Tüm görevler silindi")
   }
 
   // Auto-scroll handler (DragUpdate'ten görünür koordinat oku)
@@ -581,6 +612,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                             ref={inputRef}
                             value={newCardTitle}
                             onChange={e => setNewCardTitle(e.target.value)}
+                            disabled={savingQuickTaskColumnId === column.id}
                             placeholder="Görev adı girin..."
                             className="text-[13px] border-0 shadow-none bg-gray-50 dark:bg-white/5 focus-visible:ring-1 focus-visible:ring-gray-300 rounded h-8"
                             onKeyDown={e => {
@@ -591,16 +623,25 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                           <div className="flex items-center gap-2">
                             <Button
                               size="sm"
-                              className="h-7 text-[11px] font-semibold px-3 rounded bg-gray-800 hover:bg-black dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900"
+                              className="h-7 text-[11px] font-semibold px-3 rounded bg-gray-800 hover:bg-black dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 flex items-center gap-1.5"
                               onClick={() => handleQuickAdd(column)}
+                              disabled={savingQuickTaskColumnId === column.id}
                             >
-                              Kaydet
+                              {savingQuickTaskColumnId === column.id ? (
+                                <>
+                                  <span className="w-3 h-3 border-2 border-white dark:border-gray-900 border-t-transparent rounded-full animate-spin" />
+                                  Kaydediliyor...
+                                </>
+                              ) : (
+                                "Kaydet"
+                              )}
                             </Button>
                             <Button
                               size="sm"
                               variant="ghost"
                               className="h-7 text-[11px] font-semibold px-2 rounded hover:bg-gray-100 dark:hover:bg-slate-700"
                               onClick={() => { setAddingToColumn(null); setNewCardTitle("") }}
+                              disabled={savingQuickTaskColumnId === column.id}
                             >
                               İptal
                             </Button>
@@ -633,6 +674,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                   <input
                     ref={newColInputRef}
                     value={newColumnLabel}
+                    disabled={savingColumn}
                     onChange={e => setNewColumnLabel(e.target.value)}
                     placeholder="Sütun adı..."
                     className="w-full text-[13px] font-semibold bg-transparent border-b-2 border-blue-400 outline-none text-gray-700 dark:text-gray-200 py-1"
@@ -645,10 +687,18 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                   <div className="flex items-center gap-2">
                     <Button
                       size="sm"
-                      className="h-7 text-[11px] font-semibold px-3 rounded bg-blue-600 hover:bg-blue-700 text-white"
+                      className="h-7 text-[11px] font-semibold px-3 rounded bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-1.5"
                       onClick={handleAddColumn}
+                      disabled={savingColumn}
                     >
-                      Ekle
+                      {savingColumn ? (
+                        <>
+                          <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Ekleniyor...
+                        </>
+                      ) : (
+                        "Ekle"
+                      )}
                     </Button>
                     <Button
                       size="sm"

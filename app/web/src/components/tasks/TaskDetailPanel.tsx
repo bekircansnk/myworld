@@ -88,15 +88,28 @@ interface ActivityEvent {
 
 // =================== MAIN COMPONENT ===================
 export function TaskDetailPanel() {
+  const { selectedTask, isDetailPanelOpen } = useTaskStore()
+
+  if (!selectedTask || !isDetailPanelOpen) return null
+
+  return <TaskDetailPanelContent selectedTask={selectedTask} isDetailPanelOpen={isDetailPanelOpen} />
+}
+
+interface TaskDetailPanelContentProps {
+  selectedTask: Task
+  isDetailPanelOpen: boolean
+}
+
+function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailPanelContentProps) {
   const {
-    selectedTask, isDetailPanelOpen, closeTaskDetail,
+    closeTaskDetail,
     updateTaskStatus, updateTask, tasks, fetchTasks,
     addSubtask, deleteTask,
     comments, fetchComments, addComment, deleteComment
   } = useTaskStore()
   const { projects } = useProjectStore()
 
-  // Local States
+  // Yerel Durumlar (Local States)
   const [isEditingDesc, setIsEditingDesc] = React.useState(false)
   const [descriptionDraft, setDescriptionDraft] = React.useState("")
   const [isEditingTitle, setIsEditingTitle] = React.useState(false)
@@ -138,11 +151,11 @@ export function TaskDetailPanel() {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false)
   const toast = useToast()
 
-  // Share Menu States
+  // Paylaşım Menüsü Durumları (Share Menu States)
   const [isShareMenuOpen, setIsShareMenuOpen] = React.useState(false)
   const shareMenuRef = React.useRef<HTMLDivElement>(null)
 
-  // Derived data
+  // Türetilmiş Veriler (Derived data)
   const subtasks = React.useMemo(() => {
     if (!selectedTask) return []
     return tasks
@@ -206,7 +219,7 @@ export function TaskDetailPanel() {
     })
   }, [selectedTask?.description])
 
-  // Effects
+  // Etkiler (Effects)
   const prevIsEditingDesc = React.useRef(false)
   React.useEffect(() => {
     if (isEditingDesc && !prevIsEditingDesc.current && selectedTask) {
@@ -231,7 +244,7 @@ export function TaskDetailPanel() {
       setDueDateDraft(selectedTask.due_date ? selectedTask.due_date.split('T')[0] : "")
       setTitleDraft(selectedTask.title || "")
       
-      // Initialize activity log with creation event
+      // Oluşturulma etkinliği ile geçmiş günlüğünü başlat
       const initLogs: ActivityEvent[] = [{
         id: 'created',
         type: 'created',
@@ -308,8 +321,8 @@ export function TaskDetailPanel() {
       }
 
       if (imagePreview) {
-        setImagePreview(null);
-        return;
+         setImagePreview(null);
+         return;
       }
       closeTaskDetail();
     };
@@ -362,8 +375,6 @@ export function TaskDetailPanel() {
     if (showPriorityMenu || isShareMenuOpen) document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [showPriorityMenu, isShareMenuOpen])
-
-  if (!selectedTask || !isDetailPanelOpen) return null
 
   // ---- AI ----
   async function fetchAIAnalysis() {
@@ -711,8 +722,12 @@ export function TaskDetailPanel() {
     return base
   }, [project, selectedTask?.status])
 
-  const pConfig = priorityConfig[selectedTask.priority] || priorityConfig['medium']
-  const sConfig = statusConfig[selectedTask.status] || statusConfig['todo']
+  const pConfig = priorityConfig[selectedTask.priority] || priorityConfig['medium'] || { label: 'Normal', gradient: 'from-amber-300 to-yellow-400', flagColor: 'text-amber-500' }
+  const sConfig = statusConfig[selectedTask.status] || {
+    label: selectedTask.status || 'Bekliyor',
+    color: 'text-slate-500 dark:text-slate-400',
+    bg: 'bg-slate-400'
+  }
 
   // Activity icon resolver
   const getActivityIcon = (event: ActivityEvent) => {

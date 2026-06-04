@@ -95,7 +95,7 @@ export const useTaskStore = create<TaskState>()(
       },
 
       addTask: async (data) => {
-        const tempId = Date.now();
+        const tempId = Number(`${Date.now()}${Math.floor(Math.random() * 1000)}`);
         const tempTask = { ...data, id: tempId, status: data.status || 'todo', created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as Task;
         set((state) => ({
           tasks: [...state.tasks, tempTask],
@@ -255,7 +255,7 @@ export const useTaskStore = create<TaskState>()(
         const resolvedProjectId = taskData.project_id || parentTask?.project_id || undefined;
         const finalTaskData = { ...taskData, project_id: resolvedProjectId };
 
-        const tempId = Date.now();
+        const tempId = Number(`${Date.now()}${Math.floor(Math.random() * 1000)}`);
         const tempSubtask = { ...finalTaskData, id: tempId, parent_task_id: parentId, status: finalTaskData.status || 'todo', created_at: new Date().toISOString() } as Task;
         set((state) => ({
           tasks: [...state.tasks, tempSubtask],

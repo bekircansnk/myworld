@@ -71,24 +71,25 @@ export function TaskForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (loading) return
     if (!formData.title.trim()) return
 
     setLoading(true)
 
     try {
-      // Optimistic UI — arka planda çalıştır
-      addTask({
+      // Optimistic UI — arka planda çalıştır ama çakışmayı önlemek için await et
+      await addTask({
         title: formData.title,
         description: formData.description,
         priority: formData.priority as "urgent" | "normal" | "low",
         project_id: formData.project_id === "none" ? undefined : parseInt(formData.project_id)
-      }).catch((err: any) => {
-        toast.error(err.response?.data?.detail || "Görev oluşturulamadı.")
       })
 
       toast.success("Görev eklendi")
       setOpen(false)
       setFormData({ title: "", description: "", priority: "normal", project_id: "none" })
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || "Görev oluşturulamadı.")
     } finally {
       setLoading(false)
     }
