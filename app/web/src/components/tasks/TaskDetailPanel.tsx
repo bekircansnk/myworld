@@ -481,7 +481,7 @@ export function TaskDetailPanel() {
     await deleteTask(id)
   }
 
-  const handleStatusChange = async (status: 'todo' | 'in_progress' | 'done') => {
+  const handleStatusChange = async (status: string) => {
     updateTaskStatus(selectedTask.id, status)
     const label = statusConfig[status]?.label || status
     addActivityEvent('status_change', `Durum "${label}" olarak değiştirildi`, 'indigo')
@@ -691,11 +691,25 @@ export function TaskDetailPanel() {
     low: { label: 'Düşük', gradient: 'from-emerald-300 to-teal-400', flagColor: 'text-emerald-500' },
   }
 
-  const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
-    todo: { label: 'Bekliyor', color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-400' },
-    in_progress: { label: 'Devam Ediyor', color: 'text-blue-500 dark:text-blue-400', bg: 'bg-blue-500' },
-    done: { label: 'Tamamlandı', color: 'text-emerald-500 dark:text-emerald-400', bg: 'bg-emerald-500' }
-  }
+  const statusConfig = React.useMemo<Record<string, { label: string; color: string; bg: string }>>(() => {
+    const base: Record<string, { label: string; color: string; bg: string }> = {
+      todo: { label: 'Bekliyor', color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-400' },
+      in_progress: { label: 'Devam Ediyor', color: 'text-blue-500 dark:text-blue-400', bg: 'bg-blue-500' },
+      done: { label: 'Tamamlandı', color: 'text-emerald-500 dark:text-emerald-400', bg: 'bg-emerald-500' }
+    }
+    if (project?.columns_config && Array.isArray(project.columns_config)) {
+      project.columns_config.forEach((col: any) => {
+        if (col.statusKey && col.label) {
+          base[col.statusKey] = {
+            label: col.label,
+            color: 'text-slate-700 dark:text-slate-200',
+            bg: col.dotColor || 'bg-slate-400'
+          }
+        }
+      })
+    }
+    return base
+  }, [project, selectedTask?.status])
 
   const pConfig = priorityConfig[selectedTask.priority] || priorityConfig['medium']
   const sConfig = statusConfig[selectedTask.status] || statusConfig['todo']

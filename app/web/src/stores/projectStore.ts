@@ -20,6 +20,7 @@ interface ProjectState {
   fetchProjects: () => Promise<void>;
   addProject: (data: Partial<Project>) => Promise<void>;
   updateProject: (id: number, data: Partial<Project>) => Promise<void>;
+  updateProjectColumns: (id: number, columns: any[]) => Promise<void>;
   deleteProject: (id: number) => Promise<void>;
   reset: () => void;
 }
@@ -109,6 +110,27 @@ export const useProjectStore = create<ProjectState>()(
           }
         }
       },
+
+      updateProjectColumns: async (id, columns) => {
+        const previousProjects = get().projects;
+        set((state) => ({
+          projects: state.projects.map((p) => (p.id === id ? { ...p, columns_config: columns } : p)),
+        }));
+        try {
+          const response = await api.put(`/api/projects/${id}/columns`, columns);
+          set((state) => ({
+            projects: state.projects.map((p) => (p.id === id ? response.data : p)),
+          }));
+        } catch (error: any) {
+          if (error.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+            enqueue('PUT', `/api/projects/${id}/columns`, columns);
+          } else {
+            set({ projects: previousProjects, error: error.message });
+            throw error;
+          }
+        }
+      },
+
 
       deleteProject: async (id) => {
         const { projects, selectedProjectId } = get();

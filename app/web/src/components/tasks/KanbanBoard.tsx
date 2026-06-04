@@ -64,7 +64,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
   const toast = useToast()
   const isProjectView = projectId !== null && projectId !== undefined
   const { tasks, addTask, updateTaskStatus } = useTaskStore()
-  const { projects, updateProject } = useProjectStore()
+  const { projects, updateProjectColumns } = useProjectStore()
 
   // Sütun yapılandırması
   const [columns, setColumns] = React.useState<ColumnConfig[]>(DEFAULT_COLUMNS)
@@ -102,38 +102,32 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
           setColumns(currentProject.columns_config as ColumnConfig[]);
           saveColumns(currentProject.columns_config as ColumnConfig[], projectId);
         } else {
-          const localCols = loadColumns(projectId);
-          setColumns(localCols);
-          
-          // SADECE projeler yüklenmesi bitmişse ve sunucudan gelen veri gerçekten taze ve boş ise,
-          // ve localCols default sütunlardan farklıysa DB'ye senkronize et.
-          // Aksi halde taze veri gelene kadar DB'yi ezme!
-          const isDefault = JSON.stringify(localCols) === JSON.stringify(DEFAULT_COLUMNS);
-          const isProjectStoreLoading = useProjectStore.getState().isLoading;
-          
-          if (!isProjectStoreLoading && !isDefault) {
-            updateProject(projectId, { columns_config: localCols }).catch(err => {
-              console.error("Sütunlar DB'ye senkronize edilemedi:", err);
-            });
-          }
+          // Sunucudan sütun yapılandırması gelmediyse (null/boş) -> cache'ten yükle, yoksa varsayılan sütunları göster
+          const cachedCols = loadColumns(projectId);
+          setColumns(cachedCols);
         }
       }
     } else {
       setColumns(loadColumns(null));
     }
-  }, [projectId, projects, updateProject]);
+  }, [projectId, projects]);
 
   const saveAndSyncColumns = React.useCallback(async (newCols: ColumnConfig[]) => {
+    const previousCols = [...columns];
     setColumns(newCols);
     saveColumns(newCols, projectId);
     if (projectId) {
       try {
-        await updateProject(projectId, { columns_config: newCols });
+        await updateProjectColumns(projectId, newCols);
       } catch (err: any) {
-        toast.error("Sütunlar senkronize edilemedi: " + err.message);
+        // Rollback state & cache
+        setColumns(previousCols);
+        saveColumns(previousCols, projectId);
+        toast.error("Sütunlar senkronize edilemedi: " + (err.response?.data?.detail || err.message));
+        throw err;
       }
     }
-  }, [projectId, updateProject, toast]);
+  }, [projectId, columns, updateProjectColumns, toast]);
 
   // Ana görevleri filtrele
   const mainTasks = React.useMemo(() => {
@@ -143,6 +137,32 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
       return isMainTask && matchesProject
     })
   }, [tasks, projectId])
+
+  // Config dışındaki durumları kapsayan hesaplanmış sütunlar
+  const computedColumns = React.useMemo(() => {
+    let list = [...columns];
+    if (list.length === 0) {
+      list = [...DEFAULT_COLUMNS];
+    }
+    
+    // Görevler içindeki benzersiz statusKey'leri bulalım
+    const taskStatuses = Array.from(new Set(mainTasks.map(t => t.status).filter(Boolean)));
+    
+    // columns içinde olmayan statusKey'leri tespit edelim
+    const missingStatuses = taskStatuses.filter(status => !list.some(col => col.statusKey === status));
+    
+    // Her eksik status için geçici fallback sütunu ekleyelim
+    missingStatuses.forEach(status => {
+      list.push({
+        id: `fallback_${status}`,
+        label: `${status.charAt(0).toUpperCase() + status.slice(1)} (Sütunsuz)`,
+        statusKey: status,
+        dotColor: '#6b7280', // gri renk
+      });
+    });
+    
+    return list;
+  }, [columns, mainTasks]);
 
   // Belirli bir sütundaki görevleri getir
   const getColumnTasks = React.useCallback((column: ColumnConfig): Task[] => {
@@ -213,19 +233,23 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
   }, [isAddingColumn])
 
   // Sütun ismi düzenleme
-  const handleRenameColumn = (colId: string) => {
+  const handleRenameColumn = async (colId: string) => {
     if (!editingColumnLabel.trim()) {
       setEditingColumnId(null)
       return
     }
     const newCols = columns.map(c => c.id === colId ? { ...c, label: editingColumnLabel.trim() } : c)
-    saveAndSyncColumns(newCols)
-    setEditingColumnId(null)
-    toast.success("Sütun ismi güncellendi")
+    try {
+      await saveAndSyncColumns(newCols)
+      setEditingColumnId(null)
+      toast.success("Sütun ismi güncellendi")
+    } catch (err) {
+      setEditingColumnId(null)
+    }
   }
 
   // Yeni sütun ekleme
-  const handleAddColumn = () => {
+  const handleAddColumn = async () => {
     if (!newColumnLabel.trim()) {
       setIsAddingColumn(false)
       return
@@ -238,21 +262,25 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
       dotColor: DOT_COLORS[columns.length % DOT_COLORS.length],
     }
     const newCols = [...columns, newCol]
-    saveAndSyncColumns(newCols)
-    setNewColumnLabel("")
-    setIsAddingColumn(false)
-    toast.success("Yeni sütun eklendi")
+    try {
+      await saveAndSyncColumns(newCols)
+      setNewColumnLabel("")
+      setIsAddingColumn(false)
+      toast.success("Yeni sütun eklendi")
 
-    // Yeni sütuna scroll et
-    setTimeout(() => {
-      if (boardRef.current) {
-        boardRef.current.scrollTo({ left: boardRef.current.scrollWidth, behavior: 'smooth' })
-      }
-    }, 100)
+      // Yeni sütuna scroll et
+      setTimeout(() => {
+        if (boardRef.current) {
+          boardRef.current.scrollTo({ left: boardRef.current.scrollWidth, behavior: 'smooth' })
+        }
+      }, 100)
+    } catch (err) {
+      // Hata zaten saveAndSyncColumns'ta yönetiliyor, burada bir şey yapmıyoruz
+    }
   }
 
   // Sütun silme
-  const handleDeleteColumn = (colId: string) => {
+  const handleDeleteColumn = async (colId: string) => {
     // Varsayılan 3 sütun silinemesin
     const isDefault = DEFAULT_COLUMNS.some(d => d.id === colId)
     if (isDefault) {
@@ -260,8 +288,10 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
       return
     }
     const newCols = columns.filter(c => c.id !== colId)
-    saveAndSyncColumns(newCols)
-    toast.success("Sütun kaldırıldı")
+    try {
+      await saveAndSyncColumns(newCols)
+      toast.success("Sütun kaldırıldı")
+    } catch (err) {}
   }
 
   // Tüm görevleri sil
@@ -341,7 +371,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
     if (source.droppableId === destination.droppableId && source.index === destination.index) return
 
     const taskId = parseInt(draggableId)
-    const destColumn = columns.find(c => c.id === destination.droppableId)
+    const destColumn = computedColumns.find(c => c.id === destination.droppableId)
     if (!destColumn) return
 
     const newStatus = destColumn.statusKey
@@ -349,7 +379,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
 
     if (source.droppableId === destination.droppableId) {
       // Aynı sütun içinde sıralama
-      const column = columns.find(c => c.id === source.droppableId)
+      const column = computedColumns.find(c => c.id === source.droppableId)
       if (!column) return
       const currentTasks = getColumnTasks(column)
       const items = Array.from(currentTasks)
@@ -414,9 +444,9 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
             msOverflowStyle: 'none'
           }}
         >
-          {columns.map(column => {
+          {computedColumns.map(column => {
             const columnTasks = getColumnTasks(column)
-            const isDefaultCol = DEFAULT_COLUMNS.some(d => d.id === column.id)
+            const isDefaultCol = DEFAULT_COLUMNS.some(d => d.id === column.id) || column.id.startsWith('fallback_')
 
             return (
               <div
@@ -451,7 +481,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                   )}
 
                   <div className="flex items-center gap-0.5 shrink-0">
-                    {canEdit && (
+                    {canEdit && !column.id.startsWith('fallback_') && (
                       <button
                         onClick={() => { setAddingToColumn(column.id); setNewCardTitle("") }}
                         className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-white/10 rounded transition-colors text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
@@ -466,13 +496,15 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                         <MoreVertical className="w-3.5 h-3.5" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48 text-sm">
-                        <DropdownMenuItem onClick={() => {
-                          setEditingColumnId(column.id)
-                          setEditingColumnLabel(column.label)
-                        }}>
-                          <Pencil className="w-3.5 h-3.5 mr-2" />
-                          İsmini Değiştir
-                        </DropdownMenuItem>
+                        {!column.id.startsWith('fallback_') && (
+                          <DropdownMenuItem onClick={() => {
+                            setEditingColumnId(column.id)
+                            setEditingColumnLabel(column.label)
+                          }}>
+                            <Pencil className="w-3.5 h-3.5 mr-2" />
+                            İsmini Değiştir
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-red-500 hover:text-red-600 focus:text-red-600"
@@ -564,7 +596,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                       )}
 
                       {/* Kart Ekle linki (Trello tarzı) */}
-                      {canEdit && addingToColumn !== column.id && (
+                      {canEdit && !column.id.startsWith('fallback_') && addingToColumn !== column.id && (
                         <button
                           onClick={() => { setAddingToColumn(column.id); setNewCardTitle("") }}
                           className="flex items-center gap-1.5 text-[12px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 py-1.5 px-2 rounded-md hover:bg-gray-100/60 dark:hover:bg-white/5 transition-colors w-full mt-0.5"

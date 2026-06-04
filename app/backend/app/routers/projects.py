@@ -12,6 +12,7 @@ from app.models.project import Project
 from app.models.user_company_access import UserCompanyAccess
 from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectResponse
 from app.models.role_templates import FULL_PERMISSIONS
+from app.dependencies.permissions import require_company_permission
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -176,3 +177,68 @@ async def delete_project(
         logger.error(f"Failed to broadcast project deletion: {e}")
         
     return {"status": "ok", "message": "Project and all related data deleted successfully"}
+
+@router.put("/{project_id}/columns", response_model=ProjectResponse)
+async def update_project_columns(
+    project_id: int,
+    columns: List[dict],
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_company_permission("tasks", "edit"))
+):
+    # 1. Liste doğrulaması
+    if not isinstance(columns, list):
+        raise HTTPException(status_code=400, detail="Sütun yapılandırması bir liste olmalıdır.")
+    
+    # 2. Her sütun için alan kontrolü
+    required_keys = {"id", "statusKey", "label", "dotColor"}
+    seen_status_keys = set()
+    
+    for col in columns:
+        if not isinstance(col, dict):
+            raise HTTPException(status_code=400, detail="Her sütun bir JSON objesi olmalıdır.")
+        if not required_keys.issubset(col.keys()):
+            raise HTTPException(status_code=400, detail=f"Sütunlarda eksik alan var. Gerekli alanlar: {required_keys}")
+        
+        # Alanların boş olmaması kontrolü
+        for k in required_keys:
+            val = col[k]
+            if val is None or (isinstance(val, str) and not str(val).strip()):
+                raise HTTPException(status_code=400, detail=f"'{k}' alanı boş olamaz.")
+        
+        status_key = str(col["statusKey"]).strip()
+        if status_key in seen_status_keys:
+            raise HTTPException(status_code=400, detail=f"Mükerrer statusKey tespit edildi: {status_key}")
+        seen_status_keys.add(status_key)
+
+    # 3. Varsayılan statusKey'lerin varlık kontrolü
+    default_status_keys = {"todo", "in_progress", "done"}
+    for def_key in default_status_keys:
+        if def_key not in seen_status_keys:
+            raise HTTPException(status_code=400, detail=f"Varsayılan '{def_key}' sütunu silinemez.")
+
+    # Projeyi bul
+    query = select(Project).where(Project.id == project_id)
+    result = await db.execute(query)
+    db_project = result.scalars().first()
+    
+    if db_project is None:
+        raise HTTPException(status_code=404, detail="Proje bulunamadı")
+        
+    db_project.columns_config = columns
+    
+    # flag_modified ile JSON alanının değiştiğini SQLAlchemy'ye bildir
+    from sqlalchemy.orm.attributes import flag_modified
+    flag_modified(db_project, "columns_config")
+    
+    await db.commit()
+    await db.refresh(db_project)
+    
+    # WebSocket broadcast
+    try:
+        from app.routers.websocket import manager
+        await manager.broadcast({"type": "project_update", "project_id": db_project.id})
+    except Exception as e:
+        logger.error(f"Failed to broadcast project columns update: {e}")
+        
+    return db_project
+

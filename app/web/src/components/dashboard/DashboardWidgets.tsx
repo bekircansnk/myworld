@@ -201,8 +201,8 @@ export function DashboardWidgets() {
   // === TASK STATS (LIVE) ===
   const mainTasks = tasks.filter(t => !t.parent_task_id)
   const todoTasks = mainTasks.filter(t => t.status === 'todo')
-  const inProgressTasks = mainTasks.filter(t => t.status === 'in_progress')
   const doneTasks = mainTasks.filter(t => t.status === 'done')
+  const inProgressTasks = mainTasks.filter(t => t.status !== 'done' && t.status !== 'todo')
   const totalTasks = mainTasks.length
   const completionRate = totalTasks > 0 ? Math.round((doneTasks.length / totalTasks) * 100) : 0
 
