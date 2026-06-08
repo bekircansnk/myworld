@@ -7,6 +7,15 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 - Alt sürüm 9'a ulaştığında (Örn: 1.9), bir sonraki sürüm tam sayı artar (Örn: 2.0).
 - `versionCode` her yeni sürümde +1 olarak artırılır.
 
+### v5.8
+**Tarih:** 8 Haziran 2026
+**Değişiklikler:**
+- **[Kritik Dokunmatik Scroll Düzeltmesi]** Kanban board üzerindeki `touch-pan-x` kısıtı kaldırıldı. Görev ekranında yatay kaydırma korunurken dikey dokunmatik pan hareketinin engellenmesi önlendi.
+- **[Mobil Shell Scroll Kararlılığı]** Android/PWA ana kabuğu `100svh/100dvh` kesin yüksekliğe alındı; dashboard ve ana içerik scroll alanlarında momentum scroll ve dikey overscroll davranışı sabitlendi.
+- **[Sürüm Yükseltme]** `versionCode 48` ve `versionName "5.8"` olarak yeni debug APK derlemesi yapıldı.
+
+---
+
 ### v5.7
 **Tarih:** 8 Haziran 2026
 **Değişiklikler:**

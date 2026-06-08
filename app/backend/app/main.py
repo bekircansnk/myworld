@@ -238,12 +238,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "5.7",
-        "version_code": 47,
-        "download_url": "https://myworld-twqx.onrender.com/static/Planla_v5.7.apk",
+        "version": "5.8",
+        "version_code": 48,
+        "download_url": "https://myworld-twqx.onrender.com/static/Planla_v5.8.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
-        "changelog": "- Mobil PWA reflow, zoom kilidinin kaldırılması ve küçük ekranlarda CTA butonlarının kilitlenmesi/kaybolması hatası giderildi.\n- Sürüm v5.7 (Code 47) olarak güncellendi."
+        "changelog": "- Mobil dokunmatik dikey kaydırma sorunu giderildi; görev board'u yatay kaydırmayı korurken dikey pan hareketini artık engellemiyor.\n- Dashboard ve ana mobil kabuk scroll alanları Android/PWA için kesin yükseklik ve momentum scroll ile sabitlendi.\n- Sürüm v5.8 (Code 48) olarak güncellendi."
     }
 
 @app.get("/api/link-preview")

@@ -47,7 +47,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased min-h-[100svh] md:h-[100dvh] w-full bg-transparent text-foreground flex overflow-x-hidden transition-colors duration-500`} suppressHydrationWarning>
+      <body className={`${inter.className} antialiased h-[100dvh] min-h-[100svh] w-full bg-transparent text-foreground flex overflow-x-hidden transition-colors duration-500`} suppressHydrationWarning>
         {/* Arka Plan — Statik gradient (animate-pulse + blur kaldırıldı, CPU/GPU tasarrufu) */}
         <div className="fixed inset-0 -z-50 pointer-events-none" suppressHydrationWarning>
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 via-white to-sky-50/50 dark:from-[#080B14] dark:via-[#0F1423] dark:to-[#0A0D18] transition-colors duration-700" suppressHydrationWarning />

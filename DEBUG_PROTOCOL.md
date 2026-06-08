@@ -2,6 +2,17 @@
 
 Bu dosya, sistemde karşılaşılan karmaşık sorunları ve bunların kesin çözümlerini dökümante eder. Bir sorunla karşılaşıldığında önce buraya bakılmalıdır.
 
+## 📱 Mobil Dokunmatik Scroll Sorunları
+
+### 1. Dashboard ve Görev Ekranında Dikey Kaydırmanın Çalışmaması
+**Sorun:** Android/PWA dokunmatik kullanımda ana dashboard ve görev ekranında aşağı-yukarı kaydırma çalışmıyor; görev board'unda yatay kaydırma çalışırken dikey hareket kilitleniyordu.
+**Neden:** Kanban board container'ında kullanılan `touch-pan-x`, tarayıcıya sadece yatay pan davranışına izin verip dikey pan hareketini engelliyordu. Buna ek olarak mobil app shell `min-height + overflow-hidden` yapısında kaldığı için bazı WebView kombinasyonlarında nested scroll alanlarının yüksekliği kesinleşmiyor ve dashboard scroll'u dokunmatikte kaybolabiliyordu.
+**Çözüm:**
+- Board container'ından `touch-pan-x` kaldırıldı ve inline `touchAction: 'pan-x pan-y'` ile iki eksenli doğal pan davranışı açıldı.
+- Sütun içi scroll alanlarına `touch-pan-y overscroll-y-contain` eklendi.
+- `.app-shell` mobilde de kesin `100svh/100dvh` yüksekliğe ve `overflow: hidden` davranışına alındı; `.mobile-content-area` için momentum scroll ve dikey overscroll davranışı sabitlendi.
+- Benzer sorunlarda önce `touch-action`, nested `overflow-hidden` parent'lar ve flex child `min-height: 0` zinciri kontrol edilmelidir.
+
 ## 📱 Android & Capacitor Sorunları
 
 ### 1. Matruşka APK Sorunu (Build Bloat)

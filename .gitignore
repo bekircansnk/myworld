@@ -23,6 +23,7 @@ coverage/
 
 # Custom
 .silinecekler_cop_kutusu/
+silinecekler_cop_kutusu/
 app/backend/uploads/*
 !app/backend/uploads/.gitkeep
 *.db
@@ -44,4 +45,3 @@ data/backups/
 /app/ANDROID_CHANGELOG.md
 /app/web/android_project_export.zip
 /app/web/public/venus_ads_rehber.md
-

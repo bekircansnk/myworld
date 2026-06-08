@@ -345,6 +345,9 @@ html, body {
 .app-shell {
   min-height: 100svh;
   min-height: 100dvh;
+  height: 100svh;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .mobile-scroll-shell {
@@ -372,6 +375,9 @@ html, body {
 @media (max-width: 767px) {
   .mobile-content-area {
     padding-bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px)) !important; /* Bottom nav + büyütülmüş metin güvenli alanı */
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
   }
 
   .mobile-scroll-shell {
