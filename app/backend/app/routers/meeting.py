@@ -36,7 +36,7 @@ async def start_meeting(
 
     daily_api_key = os.getenv("DAILY_API_KEY")
     room_url = None
-    room_name = f"pikselis_room_{project_id}_{uuid.uuid4().hex[:8]}"
+    room_name = f"planla_room_{project_id}_{uuid.uuid4().hex[:8]}"
 
     # Daily.co API ile oda oluştur
     if daily_api_key:
@@ -67,7 +67,7 @@ async def start_meeting(
     # Fallback: API Key yoksa veya API hata verdiyse 100% çalışan ücretsiz Jitsi Meet odası oluştur
     if not room_url:
         # Jitsi Meet API key veya kurulum istemez, doğrudan iframe içinde çalışır ve odayı anında yaratır.
-        room_url = f"https://meet.ffmuc.net/Pikselis_Meeting_{project_id}_{uuid.uuid4().hex[:8]}#config.prejoinPageEnabled=false&config.lobby.enabled=false&config.startWithAudioMuted=true&config.startWithVideoMuted=true"
+        room_url = f"https://meet.ffmuc.net/Planla_Meeting_{project_id}_{uuid.uuid4().hex[:8]}#config.prejoinPageEnabled=false&config.lobby.enabled=false&config.startWithAudioMuted=true&config.startWithVideoMuted=true"
 
     meeting_data = {
         "project_id": project_id,

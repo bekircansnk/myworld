@@ -27,12 +27,42 @@ export function CapacitorNativeProvider() {
     syncLocalNotifications(tasks, events, true, 120).catch(console.warn);
   }, [tasks, events]);
 
+  function showExitToast() {
+    const existing = document.getElementById('exit-toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.id = 'exit-toast';
+    toast.textContent = 'Çıkmak için tekrar basın';
+    toast.style.position = 'fixed';
+    toast.style.bottom = '100px';
+    toast.style.left = '50%';
+    toast.style.transform = 'translateX(-50%)';
+    toast.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    toast.style.color = '#fff';
+    toast.style.padding = '12px 24px';
+    toast.style.borderRadius = '99px';
+    toast.style.zIndex = '9999';
+    toast.style.fontSize = '14px';
+    toast.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+    toast.style.transition = 'opacity 0.3s ease';
+    toast.style.pointerEvents = 'none';
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => toast.remove(), 300);
+    }, 2000);
+  }
+
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
     // 1. Status Bar Ayarları
     const initNative = async () => {
+      const root = document.documentElement;
+      root.classList.add('capacitor-native', `capacitor-${Capacitor.getPlatform()}`);
+
       try {
+        await StatusBar.setOverlaysWebView({ overlay: false });
         await StatusBar.setStyle({ style: Style.Dark });
         await StatusBar.setBackgroundColor({ color: '#0F1423' }); 
       } catch (e) { console.warn('StatusBar error:', e); }
@@ -113,32 +143,6 @@ export function CapacitorNativeProvider() {
       window.removeEventListener('focus', handleFocus, true);
     };
   }, []);
-
-  const showExitToast = () => {
-    const existing = document.getElementById('exit-toast');
-    if (existing) existing.remove();
-    const toast = document.createElement('div');
-    toast.id = 'exit-toast';
-    toast.textContent = 'Çıkmak için tekrar basın';
-    toast.style.position = 'fixed';
-    toast.style.bottom = '100px';
-    toast.style.left = '50%';
-    toast.style.transform = 'translateX(-50%)';
-    toast.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-    toast.style.color = '#fff';
-    toast.style.padding = '12px 24px';
-    toast.style.borderRadius = '99px';
-    toast.style.zIndex = '9999';
-    toast.style.fontSize = '14px';
-    toast.style.fontFamily = 'system-ui, -apple-system, sans-serif';
-    toast.style.transition = 'opacity 0.3s ease';
-    toast.style.pointerEvents = 'none';
-    document.body.appendChild(toast);
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      setTimeout(() => toast.remove(), 300);
-    }, 2000);
-  };
 
   return null;
 }

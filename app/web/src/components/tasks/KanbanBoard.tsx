@@ -32,7 +32,7 @@ const DEFAULT_COLUMNS: ColumnConfig[] = [
 const DOT_COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ef4444', '#ec4899', '#06b6d4', '#84cc16']
 
 // localStorage key'i
-const COLUMNS_STORAGE_KEY = 'pikselis_kanban_columns'
+const COLUMNS_STORAGE_KEY = 'planla_kanban_columns'
 
 // localStorage'dan sütun yapılandırmasını yükle
 function loadColumns(projectId?: number | null): ColumnConfig[] {

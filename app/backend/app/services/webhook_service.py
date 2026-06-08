@@ -56,7 +56,7 @@ class WebhookService:
                             {"name": "👤 Oluşturan", "value": creator_name, "inline": True}
                         ],
                         "footer": {
-                            "text": "Pikseliş • Dijital Kurucu Ortak"
+                            "text": "Planla • Dijital Kurucu Ortak"
                         },
                         "timestamp": datetime.utcnow().isoformat()
                     }
@@ -96,7 +96,7 @@ class WebhookService:
                         "elements": [
                             {
                                 "type": "plain_text",
-                                "text": "Pikseliş • Dijital Kurucu Ortak",
+                                "text": "Planla • Dijital Kurucu Ortak",
                                 "emoji": True
                             }
                         ]
@@ -136,7 +136,7 @@ class WebhookService:
                             {"name": "🔄 Durum Değişikliği", "value": f"`{old_status_tr}` ➡️ `{new_status_tr}`", "inline": False}
                         ],
                         "footer": {
-                            "text": "Pikseliş • Dijital Kurucu Ortak"
+                            "text": "Planla • Dijital Kurucu Ortak"
                         },
                         "timestamp": datetime.utcnow().isoformat()
                     }
@@ -168,7 +168,7 @@ class WebhookService:
                         "elements": [
                             {
                                 "type": "plain_text",
-                                "text": "Pikseliş • Dijital Kurucu Ortak",
+                                "text": "Planla • Dijital Kurucu Ortak",
                                 "emoji": True
                             }
                         ]
@@ -198,7 +198,7 @@ class WebhookService:
                             {"name": "👤 Yorum Yapan", "value": user_name, "inline": True}
                         ],
                         "footer": {
-                            "text": "Pikseliş • Dijital Kurucu Ortak"
+                            "text": "Planla • Dijital Kurucu Ortak"
                         },
                         "timestamp": datetime.utcnow().isoformat()
                     }
@@ -236,7 +236,7 @@ class WebhookService:
                         "elements": [
                             {
                                 "type": "plain_text",
-                                "text": "Pikseliş • Dijital Kurucu Ortak",
+                                "text": "Planla • Dijital Kurucu Ortak",
                                 "emoji": True
                             }
                         ]

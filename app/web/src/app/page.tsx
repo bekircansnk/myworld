@@ -39,7 +39,7 @@ export default function DashboardPage() {
     checkAuth()
     
     // Her yeni sekme açılışında veya yenilemede karşılama ekranını göster (Session Storage)
-    const sessionGreet = sessionStorage.getItem("pikselis_session_greet")
+    const sessionGreet = sessionStorage.getItem("planla_session_greet")
     if (sessionGreet !== "true") {
       setShowMorning(true)
     }
@@ -53,7 +53,7 @@ export default function DashboardPage() {
       idleTimer = setTimeout(() => {
         // Kullanıcı 10 dakika boyunca aktif değilse tasarruf moduna (Karşılama Ekranı) al
         setShowMorning(true)
-        sessionStorage.removeItem("pikselis_session_greet") // Tekrar oturum selamlamasını sıfırla
+        sessionStorage.removeItem("planla_session_greet") // Tekrar oturum selamlamasını sıfırla
       }, idleTimeoutVal)
     }
 
@@ -122,7 +122,7 @@ export default function DashboardPage() {
   }, [isAuthenticated, selectedProjectId, viewMode, projectHydrated, showMorning])
 
   const handleMorningDismiss = () => {
-    sessionStorage.setItem("pikselis_session_greet", "true")
+    sessionStorage.setItem("planla_session_greet", "true")
     setShowMorning(false)
   }
 

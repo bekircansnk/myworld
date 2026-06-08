@@ -383,7 +383,7 @@ export const useTaskStore = create<TaskState>()(
       reset: () => set({ tasks: [], comments: [], selectedTask: null, isDetailPanelOpen: false, error: null })
     }),
     {
-      name: 'pikselis-tasks',
+      name: 'planla-tasks',
       storage: createJSONStorage(() => idbStorage),
       // Sadece veri alanlarını kalıcı yap (fonksiyonlar ve UI state hariç)
       partialize: (state) => ({

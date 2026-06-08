@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
 
 class Settings(BaseSettings):
-    project_name: str = "Pikseliş API"
+    project_name: str = "Planla API"
     environment: str = "development"
     frontend_url: str = "http://localhost:3000"
     
@@ -34,7 +34,7 @@ class Settings(BaseSettings):
 
     # E-Posta (API)
     resend_api_key: str = ""
-    smtp_from_name: str = "Pikseliş"
+    smtp_from_name: str = "Planla"
     smtp_from_email: str = ""
 
     model_config = SettingsConfigDict(

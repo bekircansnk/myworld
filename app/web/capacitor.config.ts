@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.pikselai.pikselis',
+  appId: 'com.planla.app',
   appName: 'Planla',
   webDir: 'out',
   server: {

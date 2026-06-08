@@ -71,7 +71,7 @@ async def send_daily_reminders():
                     Planlamanızı yapmak için sisteme giriş yapabilirsiniz. İyi çalışmalar!
                 </p>
                 """
-                await send_email(email, f"Pikseliş — Yarınki Görevler ({len(task_list)})", _base_template(content))
+                await send_email(email, f"Planla — Yarınki Görevler ({len(task_list)})", _base_template(content))
                 logger.info(f"✅ Günlük hatırlatıcı gönderildi: {email} ({len(task_list)} görev)")
                 
     except Exception as e:
@@ -146,7 +146,7 @@ async def send_hourly_reminders():
                         </a>
                     </div>
                     """
-                    await send_email(user.email, f"Pikseliş — Hatırlatma: {task.title}", _base_template(content))
+                    await send_email(user.email, f"Planla — Hatırlatma: {task.title}", _base_template(content))
                     logger.info(f"✅ Saatlik hatırlatıcı gönderildi: {user.email} (Görev: {task.id}, Offset: {offset_str})")
 
     except Exception as e:
@@ -297,7 +297,7 @@ async def send_tomorrow_plan_emails():
                 </div>
                 """
                 
-                await send_email(user.email, f"Pikseliş — Yarının Gün Planı Özeti ({tomorrow_date_str})", _base_template(content))
+                await send_email(user.email, f"Planla — Yarının Gün Planı Özeti ({tomorrow_date_str})", _base_template(content))
                 logger.info(f"✅ Günlük plan özeti e-postası gönderildi: {user.email}")
                 
     except Exception as e:

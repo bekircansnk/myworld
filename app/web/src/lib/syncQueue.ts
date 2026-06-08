@@ -3,7 +3,7 @@
 import { get, set } from 'idb-keyval';
 import { Capacitor } from '@capacitor/core';
 
-const QUEUE_KEY = 'pikselis-sync-queue';
+const QUEUE_KEY = 'planla-sync-queue';
 const MAX_RETRIES = 5;
 
 export interface QueuedAction {

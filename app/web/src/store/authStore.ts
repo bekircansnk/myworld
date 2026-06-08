@@ -216,7 +216,7 @@ export const useAuthStore = create<AuthState>()(
       }
     }),
     {
-      name: 'pikselis-auth',
+      name: 'planla-auth',
       storage: createJSONStorage(() => idbStorage),
       partialize: (state) => ({
         token: state.token,

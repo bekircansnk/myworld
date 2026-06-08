@@ -33,8 +33,8 @@ export function LoginOverlay() {
 
   // Kaydedilmiş giriş bilgilerini yükle
   useEffect(() => {
-    const savedUser = localStorage.getItem('pikselis_saved_user');
-    const savedPass = localStorage.getItem('pikselis_saved_pass');
+    const savedUser = localStorage.getItem('planla_saved_user');
+    const savedPass = localStorage.getItem('planla_saved_pass');
     if (savedUser) setIdentifier(savedUser);
     if (savedPass) setPassword(savedPass);
   }, []);
@@ -81,7 +81,7 @@ export function LoginOverlay() {
            email: identifier,
            code: otpCode
         });
-        localStorage.setItem('pikselis_saved_user', identifier);
+        localStorage.setItem('planla_saved_user', identifier);
         login(response.data.access_token, response.data.user);
       }
       else if (activeTab === 'login') {
@@ -93,8 +93,8 @@ export function LoginOverlay() {
         const response = await api.post('/api/auth/login', formData, {
            headers: { 'Content-Type': 'multipart/form-data' }
         });
-        localStorage.setItem('pikselis_saved_user', identifier);
-        localStorage.setItem('pikselis_saved_pass', password);
+        localStorage.setItem('planla_saved_user', identifier);
+        localStorage.setItem('planla_saved_pass', password);
         login(response.data.access_token, response.data.user);
       } else {
         // Kayıt
@@ -120,8 +120,8 @@ export function LoginOverlay() {
         const loginResponse = await api.post('/api/auth/login', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
-        localStorage.setItem('pikselis_saved_user', username);
-        localStorage.setItem('pikselis_saved_pass', password);
+        localStorage.setItem('planla_saved_user', username);
+        localStorage.setItem('planla_saved_pass', password);
         login(loginResponse.data.access_token, loginResponse.data.user);
         
         if (email) {

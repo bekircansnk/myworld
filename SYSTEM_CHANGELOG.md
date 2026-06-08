@@ -2,6 +2,27 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-06-08] - Sürüm 7.0 - Pikseliş → Planla Tam Marka Geçişi (v6.1 / Code 51)
+
+### Yenilik
+- **Tam Rebranding:** Tüm uygulama katmanlarında (Android, Frontend, Backend, PWA) "Pikseliş / PikselAI" markası "Planla" olarak değiştirildi.
+- **Android applicationId:** `com.pikselai.pikselis` → `com.planla.app` (eski APK kaldırılıp yeni sürüm yüklenmeli)
+- **Java Paket Taşıma:** `com/pikselai/pikselis/` → `com/planla/app/`
+- **Frontend:** 15 dosyada 27 localStorage/zustand key, custom event adı ve gamification metni güncellendi.
+- **Backend:** 11 dosyada 28 AI prompt, e-posta şablonu, webhook footer ve logger namespace güncellendi.
+- **Korunan Referanslar:** `info@pikselai.com` (Resend doğrulaması), `planla.pikselai.com` (aktif domain), "Piksel Durumu" (Facebook Ads metrik adı) değiştirilmedi.
+
+---
+
+## [2026-06-08] - Sürüm 6.9 - Android APK Native Status Bar Düzeltmesi (v6.1)
+
+### Çözüldü
+- **İmzalı APK Üst Alan Taşması:** Mobil tarayıcı doğru görünürken imzalı Android APK'da üst navbar fiziksel status bar arkasına kayıyor ve butonlar dokunulamaz hale geliyordu. Capacitor native ortamında WebView'in system bar arkasına çizmesi engellendi.
+- **Native Sistem Bar Uyum Güvencesi:** `StatusBar.setOverlaysWebView({ overlay: false })`, `WindowCompat.setDecorFitsSystemWindows(true)` ve Android tema status/navigation bar renkleri birlikte ayarlandı.
+- **OTA Sürüm Senkronizasyonu:** Mobil sürüm bilgileri `v6.1 / Code 51` olarak güncellendi ve indirme linkleri Render.com static APK adresine eşlendi.
+
+---
+
 ## [2026-06-08] - Sürüm 6.8 - Dashboard Responsive Üst Alan ve Android v6.0
 
 ### Çözüldü

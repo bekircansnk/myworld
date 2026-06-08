@@ -165,7 +165,7 @@ export const useProjectStore = create<ProjectState>()(
       reset: () => set({ projects: [], selectedProjectId: null, viewMode: 'dashboard', error: null })
     }),
     {
-      name: 'pikselis-projects',
+      name: 'planla-projects',
       storage: createJSONStorage(() => idbStorage),
       partialize: (state) => ({
         projects: state.projects,

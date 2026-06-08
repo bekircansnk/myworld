@@ -62,9 +62,9 @@ export function ActivityFeedWidget() {
       }
     }
 
-    window.addEventListener("pikselis-new-activity", handleNewActivity)
+    window.addEventListener("planla-new-activity", handleNewActivity)
     return () => {
-      window.removeEventListener("pikselis-new-activity", handleNewActivity)
+      window.removeEventListener("planla-new-activity", handleNewActivity)
     }
   }, [selectedProjectId])
 

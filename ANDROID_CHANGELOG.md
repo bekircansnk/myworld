@@ -1,11 +1,22 @@
-# Pikseliş Android Uygulaması Sürüm Geçmişi
+# Planla Android Uygulaması Sürüm Geçmişi
 
-Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde yapılan değişiklikleri takip etmek içindir.
+Bu dosya, Planla mobil uygulamasının (APK) sürümlerini ve her sürümde yapılan değişiklikleri takip etmek içindir.
 
 ## Sürüm Kuralları
 - Sürüm numaraları her zaman **2 haneli** olacaktır (Örn: 1.0, 1.1).
 - Alt sürüm 9'a ulaştığında (Örn: 1.9), bir sonraki sürüm tam sayı artar (Örn: 2.0).
 - `versionCode` her yeni sürümde +1 olarak artırılır.
+
+### v6.1
+**Tarih:** 8 Haziran 2026
+**Değişiklikler:**
+- **[TAM REBRANDING]** Tüm uygulama katmanlarında (Android, Frontend, Backend, PWA) "Pikseliş / PikselAI" markası "Planla" olarak değiştirildi.
+- **[Yeni applicationId]** `com.pikselai.pikselis` → `com.planla.app` (eski APK kaldırılıp yeni sürüm yüklenmeli).
+- **[Java Paket Taşıma]** `com/pikselai/pikselis/` → `com/planla/app/`
+- **[Frontend]** 15 dosyada 27 localStorage/zustand key, custom event adı ve gamification metni güncellendi.
+- **[Backend]** 11 dosyada 28 AI prompt, e-posta şablonu, webhook footer ve logger namespace güncellendi.
+
+---
 
 ### v6.0
 **Tarih:** 8 Haziran 2026

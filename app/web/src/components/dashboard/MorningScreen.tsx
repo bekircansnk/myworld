@@ -292,9 +292,9 @@ const MOTIVATIONAL_QUOTES = [
                 <p className="text-xs font-bold text-foreground mt-1">{stats.completedTotal} Görev Bitti</p>
                 <p className="text-[9px] font-medium text-slate-400 dark:text-slate-500 mt-0.5 uppercase tracking-wider">
                   {
-                    stats.completedTotal === 0 ? "Piksel Çırağı 🚀" :
+                    stats.completedTotal === 0 ? "Planla Çırağı 🚀" :
                     stats.completedTotal < 5 ? "Geliştirici 💻" :
-                    stats.completedTotal < 10 ? "Piksel Ustası 🛠️" : "Piksel Şampiyonu 🏆"
+                    stats.completedTotal < 10 ? "Planla Ustası 🛠️" : "Planla Şampiyonu 🏆"
                   }
                 </p>
               </div>

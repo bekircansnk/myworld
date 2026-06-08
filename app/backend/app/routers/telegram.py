@@ -27,7 +27,7 @@ async def telegram_webhook(request: Request, db: AsyncSession = Depends(get_db))
              
         # Basit komutlar
         if text.startswith("/start"):
-             await send_telegram_message("👋 Merhaba! Ben Pikseliş AI asistanın. Sisteme bağlanmak için hazırım.", chat_id)
+             await send_telegram_message("👋 Merhaba! Ben Planla AI asistanın. Sisteme bağlanmak için hazırım.", chat_id)
              return {"status": "ok"}
              
         if text.startswith("/gorevler"):
@@ -74,7 +74,7 @@ async def telegram_webhook(request: Request, db: AsyncSession = Depends(get_db))
         else:
              # Eğer komut değilse klasik Chat Response
              # Sistem promptuna sadece kısa bot formatını geçiyoruz şimdilik. (Veya phase 4 te yazılan kullanılabilir)
-             reply = generate_chat_response([{"role": "user", "parts": text}], "Sen telegram üzerinden konuşan Pikseliş Botusun. Kısa, samimi chat tarzı cevaplar ver.")
+             reply = generate_chat_response([{"role": "user", "parts": text}], "Sen telegram üzerinden konuşan Planla Botusun. Kısa, samimi chat tarzı cevaplar ver.")
              await send_telegram_message(reply, chat_id)
              
     except Exception as e:

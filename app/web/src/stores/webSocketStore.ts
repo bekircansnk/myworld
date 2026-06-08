@@ -145,7 +145,7 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
 
           if (data.type === 'NEW_ACTIVITY') {
              if (typeof window !== 'undefined') {
-               const event = new CustomEvent('pikselis-new-activity', { detail: data.data });
+               const event = new CustomEvent('planla-new-activity', { detail: data.data });
                window.dispatchEvent(event);
              }
           }

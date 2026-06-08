@@ -17,7 +17,7 @@ export const useSettingsStore = create<SettingsState>()(
       setReminderOffset: (minutes) => set({ reminderOffsetMinutes: minutes }),
     }),
     {
-      name: 'pikselis-settings',
+      name: 'planla-settings',
     }
   )
 );

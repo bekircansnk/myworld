@@ -1,7 +1,7 @@
 /**
  * Drive Photo Service — Görev fotoğrafları için Google Drive yükleme/silme servisi
  * 
- * PikselAI'deki GAS altyapısını kullanarak görev fotoğraflarını yönetir.
+ * Planla'daki GAS altyapısını kullanarak görev fotoğraflarını yönetir.
  * - Otomatik sıkıştırma (1MB altına)
  * - Base64 üzerinden GAS proxy'ye gönderim
  * - Thumbnail/full URL üretimi

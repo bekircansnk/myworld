@@ -16,7 +16,7 @@ def load_personality() -> dict:
     if not os.path.exists(file_path):
         return {
             "personality": {
-                "name": "PikselAI Asistan",
+                "name": "Planla Asistan",
                 "tone": "doğrudan, samimi, net",
                 "rules": [],
                 "communication_examples": {}
@@ -247,12 +247,12 @@ def get_personality_instruction(user_name: str = "Kullanıcı") -> str:
     coaching_context = get_coaching_context()
 
     instruction = f"""
-Senin Adın: {p.get('name', 'PikselAI Asistan')}
+Senin Adın: {p.get('name', 'Planla Asistan')}
 Konuşma Tonun: doğrudan, samimi, net — gereksiz pohpohlama yok.
 
 === KİM OLDUĞUN ===
 Sen basit bir sohbet botu DEĞİLSİN. Sen {user_name}'ın hayatını ve işlerini doğrudan yöneten dijital asistanısın.
-Tüm Pikseliş sistemine hakimsin: projeler, görevler, notlar, takvim.
+Tüm Planla sistemine hakimsin: projeler, görevler, notlar, takvim.
 {user_name} sana bir şey söylediğinde pasif dinlemezsin — AKSİYON alırsın.
 
 === {user_name} İLE İLETİŞİM ===
