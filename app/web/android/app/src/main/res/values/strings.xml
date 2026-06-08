@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Pikseliş</string>
-    <string name="title_activity_main">Pikseliş</string>
+    <string name="app_name">Planla</string>
+    <string name="title_activity_main">Planla</string>
     <string name="package_name">com.pikselai.pikselis</string>
     <string name="custom_url_scheme">com.pikselai.pikselis</string>
 </resources>

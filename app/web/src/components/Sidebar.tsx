@@ -43,13 +43,13 @@ export function Sidebar() {
             {/* Yeni Premium Logo Entegrasyonu */}
             <img 
               src="/icons/icon-512x512.png" 
-              alt="Pikseliş Logo" 
+              alt="Planla Logo" 
               className="w-full h-full object-contain rounded-2xl shadow-lg border border-slate-200/50 dark:border-white/10 bg-white/5"
             />
           </div>
           {isExpanded && (
             <span className="font-extrabold text-2xl tracking-tight text-gradient drop-shadow-sm whitespace-nowrap">
-              Pikseliş
+              Planla
             </span>
           )}
         </div>

@@ -377,7 +377,7 @@ export function TopNavbar() {
       <div className="flex items-center justify-between gap-2 md:gap-4">
         {/* Sol: Mobilde logoyu kaldırdık, sadece küçük başlık */}
         <div className="flex items-center gap-1.5 md:hidden shrink-0">
-          <span className="text-sm font-extrabold text-brand-dark dark:text-white">Pikseliş</span>
+          <span className="text-sm font-extrabold text-brand-dark dark:text-white">Planla</span>
         </div>
         <nav className="hidden md:flex items-center gap-1 overflow-visible">
           {navItems.map(item => {
@@ -662,15 +662,15 @@ export function TopNavbar() {
                           const data = await res.json();
                           const a = document.createElement("a");
                           a.href = data.download_url;
-                          a.download = `Pikselis_v${data.version}.apk`;
+                          a.download = `Planla_v${data.version}.apk`;
                           document.body.appendChild(a);
                           a.click();
                           document.body.removeChild(a);
                         } else {
-                          window.open("https://planla.pikselai.com/Pikselis_v5.5.apk", "_blank"); // Fallback
+                          window.open("https://planla.pikselai.com/Planla_v5.6.apk", "_blank"); // Fallback
                         }
                       } catch (err) {
-                        window.open("https://planla.pikselai.com/Pikselis_v5.5.apk", "_blank"); // Fallback
+                        window.open("https://planla.pikselai.com/Planla_v5.6.apk", "_blank"); // Fallback
                       }
                     }}
                     className="w-full text-left px-4 py-3.5 text-xs text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 hover:from-indigo-600 hover:to-purple-600 transition-all font-black flex items-center gap-3 shadow-md rounded-2xl"

@@ -160,11 +160,11 @@ export function LoginOverlay() {
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg overflow-hidden border border-slate-200/50 dark:border-white/10 bg-white/5 shrink-0 transform transition-all duration-500 hover:scale-105">
                   <img 
                     src="/icons/icon-512x512.png" 
-                    alt="Pikseliş Logo" 
+                    alt="Planla Logo" 
                     className="w-full h-full object-contain"
                   />
                 </div>
-                <h1 className="text-3xl font-extrabold bg-gradient-to-br from-indigo-500 to-violet-500 dark:from-indigo-400 dark:to-fuchsia-400 bg-clip-text text-transparent tracking-tight">Pikseliş</h1>
+                <h1 className="text-3xl font-extrabold bg-gradient-to-br from-indigo-500 to-violet-500 dark:from-indigo-400 dark:to-fuchsia-400 bg-clip-text text-transparent tracking-tight">Planla</h1>
               </div>
               <p className="text-sm text-slate-500 dark:text-slate-400">
                 {viewState === 'forgot' ? 'Şifrenizi sıfırlamak için e-postanızı girin.' 

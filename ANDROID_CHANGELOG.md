@@ -7,6 +7,16 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 - Alt sürüm 9'a ulaştığında (Örn: 1.9), bir sonraki sürüm tam sayı artar (Örn: 2.0).
 - `versionCode` her yeni sürümde +1 olarak artırılır.
 
+### v5.6
+**Tarih:** 8 Haziran 2026
+**Değişiklikler:**
+- **[Uygulama İsim Değişikliği]** Mobil uygulama ismi strings kaynakları ve capacitor yapılandırması üzerinde "Planla" olarak güncellendi.
+- **[APK Dosya Formatı]** İndirme ve güncelleme APK dosya isimleri `Planla_v[SÜRÜM].apk` şeklinde revize edildi.
+- **[Sistem Temizliği]** Tüm web frontend bileşenlerindeki (Login, Sidebar, Navbar, Update vb.) Pikseliş ibareleri "Planla" ismiyle değiştirildi.
+- **[Sürüm Yükseltme]** `versionCode 46` ve `versionName "5.6"` olarak yeni debug APK derlemesi yapıldı.
+
+---
+
 ### v5.5
 **Tarih:** 4 Haziran 2026
 **Değişiklikler:**

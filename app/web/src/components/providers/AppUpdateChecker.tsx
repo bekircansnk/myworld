@@ -151,7 +151,7 @@ export function AppUpdateChecker() {
       setProgress(0);
       setErrorMsg("");
 
-      const fileName = `Pikselis_v${versionInfo.version}.apk`;
+      const fileName = `Planla_v${versionInfo.version}.apk`;
 
       // Native progress listener
       progressListener = await Filesystem.addListener("progress", (progressInfo) => {
@@ -302,7 +302,7 @@ export function AppUpdateChecker() {
                   İndiriliyor...
                 </h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Pikseliş v{versionInfo?.version}
+                  Planla v{versionInfo?.version}
                 </p>
               </>
             ) : (

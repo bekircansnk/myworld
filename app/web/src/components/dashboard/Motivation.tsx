@@ -5,7 +5,7 @@ import { Lightbulb, Loader2, Quote } from "lucide-react"
 import { api } from "@/lib/api"
 
 export function Motivation() {
-  const [quote, setQuote] = React.useState({ text: "Sistem yükleniyor...", author: "Pikseliş AI" })
+  const [quote, setQuote] = React.useState({ text: "Sistem yükleniyor...", author: "Planla AI" })
   const [isLoading, setIsLoading] = React.useState(true)
 
   React.useEffect(() => {
@@ -14,10 +14,10 @@ export function Motivation() {
         setIsLoading(true)
         const res = await api.get('/api/motivation')
         if (res.data && res.data.message) {
-          setQuote({ text: res.data.message, author: "Pikseliş AI" })
+          setQuote({ text: res.data.message, author: "Planla AI" })
         }
       } catch (err) {
-        setQuote({ text: "Bugün kendi dünyanı yaratabileceğin harika bir gün. 🌍", author: "Pikseliş AI" })
+        setQuote({ text: "Bugün kendi dünyanı yaratabileceğin harika bir gün. 🌍", author: "Planla AI" })
       } finally {
         setIsLoading(false)
       }

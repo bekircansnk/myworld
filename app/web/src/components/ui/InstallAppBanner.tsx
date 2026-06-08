@@ -86,15 +86,15 @@ export function InstallAppBanner() {
                   const data = await res.json();
                   const a = document.createElement("a");
                   a.href = data.download_url;
-                  a.download = `Pikselis_v${data.version}.apk`;
+                  a.download = `Planla_v${data.version}.apk`;
                   document.body.appendChild(a);
                   a.click();
                   document.body.removeChild(a);
                 } else {
-                  window.open("https://planla.pikselai.com/Pikselis_v5.5.apk", "_blank");
+                  window.open("https://planla.pikselai.com/Planla_v5.6.apk", "_blank");
                 }
               } catch (err) {
-                window.open("https://planla.pikselai.com/Pikselis_v5.5.apk", "_blank");
+                window.open("https://planla.pikselai.com/Planla_v5.6.apk", "_blank");
               }
               setTimeout(handleDismiss, 1000);
             }}
