@@ -240,7 +240,7 @@ async def get_app_version():
     return {
         "version": "5.7",
         "version_code": 47,
-        "download_url": "https://planla.pikselai.com/Planla_v5.7.apk",
+        "download_url": "https://myworld-twqx.onrender.com/static/Planla_v5.7.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
         "changelog": "- Mobil PWA reflow, zoom kilidinin kaldırılması ve küçük ekranlarda CTA butonlarının kilitlenmesi/kaybolması hatası giderildi.\n- Sürüm v5.7 (Code 47) olarak güncellendi."
