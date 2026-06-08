@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "next lint",
-    "generate-icons": "node ../../scripts/archive/generate_web_icons.js"
+    "generate-icons": "node generate_web_icons.js"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
