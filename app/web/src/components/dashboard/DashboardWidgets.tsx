@@ -186,8 +186,15 @@ export function DashboardWidgets() {
 
   React.useEffect(() => {
     if (inputHint) {
-      setAiInput(prev => prev ? `${prev} ${inputHint}` : inputHint)
-      setInputHint("")
+      let cancelled = false
+      queueMicrotask(() => {
+        if (cancelled) return
+        setAiInput(prev => prev ? `${prev} ${inputHint}` : inputHint)
+        setInputHint("")
+      })
+      return () => {
+        cancelled = true
+      }
     }
   }, [inputHint, setInputHint])
 
@@ -295,7 +302,7 @@ export function DashboardWidgets() {
   greeting = hour < 12 ? "Günaydın" : hour < 18 ? "İyi öğlenler" : "İyi akşamlar"
 
   return (
-    <div className="flex flex-col w-full gap-4 lg:h-full lg:overflow-hidden">
+    <div className="flex flex-col w-full gap-3 md:gap-4 lg:h-full lg:overflow-hidden">
       <ConfirmDialog
         isOpen={isClearHistoryConfirmOpen}
         onOpenChange={setIsClearHistoryConfirmOpen}
@@ -308,52 +315,54 @@ export function DashboardWidgets() {
 
 
       {/* === HEADER STATS === */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-3 md:gap-6 shrink-0 mb-2 md:mb-4">
+      <div className="dashboard-overview flex flex-col xl:flex-row justify-between items-stretch xl:items-center w-full gap-3 md:gap-4 xl:gap-6 shrink-0 mb-1 md:mb-3">
 
         {/* SOL */}
-        <div className="shrink-0 flex items-center mt-1 xl:mt-0">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold text-brand-dark dark:text-white">{greeting}{user?.username ? `, ${user.username}` : ''}</h1>
+        <div className="min-w-0 shrink-0 flex items-center mt-0">
+          <h1 className="text-[1.55rem] sm:text-2xl md:text-3xl xl:text-[2.15rem] font-semibold leading-[1.08] text-brand-dark dark:text-white break-words">
+            {greeting}{user?.username ? `, ${user.username}` : ''}
+          </h1>
         </div>
 
         {/* ORTA */}
-        <div className="flex flex-wrap gap-3 md:gap-4 items-end flex-1 sm:justify-center">
-          <div>
-            <p className="text-xs md:text-sm text-brand-gray dark:text-gray-400 mb-1 text-center">Açık Görevler</p>
-            <div className="bg-brand-dark dark:bg-white text-white dark:text-brand-dark px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold text-center">{todoTasks.length + inProgressTasks.length}</div>
+        <div className="grid w-full grid-cols-2 items-end gap-2 sm:grid-cols-[auto_auto_minmax(170px,1fr)] md:gap-3 xl:max-w-[560px] xl:flex-1">
+          <div className="min-w-0">
+            <p className="text-[11px] md:text-xs text-brand-gray dark:text-gray-400 mb-1 text-center leading-tight">Açık Görevler</p>
+            <div className="bg-brand-dark dark:bg-white text-white dark:text-brand-dark px-3 py-1.5 rounded-full text-[11px] md:text-xs font-bold text-center leading-none min-w-16">{todoTasks.length + inProgressTasks.length}</div>
           </div>
-          <div>
-            <p className="text-xs md:text-sm text-brand-gray dark:text-gray-400 mb-1 text-center">Tamamlanan</p>
-            <div className="bg-brand-yellow text-brand-dark px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold text-center">{doneTasks.length}</div>
+          <div className="min-w-0">
+            <p className="text-[11px] md:text-xs text-brand-gray dark:text-gray-400 mb-1 text-center leading-tight">Tamamlanan</p>
+            <div className="bg-brand-yellow text-brand-dark px-3 py-1.5 rounded-full text-[11px] md:text-xs font-bold text-center leading-none min-w-16">{doneTasks.length}</div>
           </div>
-          <div className="flex-grow min-w-[140px] md:min-w-[200px] max-w-[300px]">
-            <div className="flex justify-between text-xs md:text-sm text-brand-gray dark:text-gray-400 mb-1">
+          <div className="col-span-2 min-w-0 sm:col-span-1">
+            <div className="flex justify-between text-[11px] md:text-xs text-brand-gray dark:text-gray-400 mb-1 leading-tight">
               <span>İlerleme</span>
               <span>Verimlilik</span>
             </div>
-            <div className="h-5 md:h-6 w-full bg-white/50 dark:bg-white/5 rounded-full flex overflow-hidden border border-white dark:border-white/8">
-              <div className="bg-brand-yellow h-full flex items-center px-2 md:px-3 text-[10px] md:text-xs font-bold text-brand-dark transition-all" style={{ width: `${completionRate}%` }}>{completionRate}%</div>
+            <div className="h-5 w-full bg-white/50 dark:bg-white/5 rounded-full flex overflow-hidden border border-white dark:border-white/8">
+              <div className="bg-brand-yellow h-full flex items-center px-2 text-[11px] font-bold text-brand-dark transition-all leading-none" style={{ width: `${completionRate}%` }}>{completionRate}%</div>
               <div className="h-full flex-grow opacity-20" style={{ backgroundImage: "repeating-linear-gradient(-45deg, transparent, transparent 5px, rgba(0,0,0,0.5) 5px, rgba(0,0,0,0.5) 10px)" }}></div>
             </div>
           </div>
         </div>
 
         {/* SAĞ */}
-        <div className="flex gap-4 sm:gap-6 lg:gap-8 shrink-0">
-          <div>
-            <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light leading-none text-brand-dark dark:text-white">{todoTasks.length}</div>
-            <div className="text-xs md:text-sm text-brand-gray dark:text-gray-300 mt-1">Bekleyen</div>
+        <div className="grid w-full grid-cols-4 gap-2 shrink-0 xl:w-auto xl:min-w-[420px] xl:gap-5">
+          <div className="min-w-0 text-center xl:text-left">
+            <div className="text-[1.7rem] sm:text-3xl lg:text-4xl font-light leading-none text-brand-dark dark:text-white tabular-nums">{todoTasks.length}</div>
+            <div className="text-[11px] md:text-xs text-brand-gray dark:text-gray-300 mt-1 leading-tight whitespace-nowrap">Bekleyen</div>
           </div>
-          <div>
-            <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light leading-none text-brand-dark dark:text-white">{inProgressTasks.length}</div>
-            <div className="text-xs md:text-sm text-brand-gray dark:text-gray-300 mt-1">Devam Eden</div>
+          <div className="min-w-0 text-center xl:text-left">
+            <div className="text-[1.7rem] sm:text-3xl lg:text-4xl font-light leading-none text-brand-dark dark:text-white tabular-nums">{inProgressTasks.length}</div>
+            <div className="text-[11px] md:text-xs text-brand-gray dark:text-gray-300 mt-1 leading-tight whitespace-nowrap">Devam Eden</div>
           </div>
-          <div>
-            <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light leading-none text-brand-dark dark:text-white">{doneTasks.length}</div>
-            <div className="text-xs md:text-sm text-brand-gray dark:text-gray-300 mt-1">Tamamlanan</div>
+          <div className="min-w-0 text-center xl:text-left">
+            <div className="text-[1.7rem] sm:text-3xl lg:text-4xl font-light leading-none text-brand-dark dark:text-white tabular-nums">{doneTasks.length}</div>
+            <div className="text-[11px] md:text-xs text-brand-gray dark:text-gray-300 mt-1 leading-tight whitespace-nowrap">Tamamlanan</div>
           </div>
-          <div>
-            <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light leading-none text-brand-dark dark:text-white">{projects.length}</div>
-            <div className="text-xs md:text-sm text-brand-gray dark:text-gray-400 mt-1">Proje</div>
+          <div className="min-w-0 text-center xl:text-left">
+            <div className="text-[1.7rem] sm:text-3xl lg:text-4xl font-light leading-none text-brand-dark dark:text-white tabular-nums">{projects.length}</div>
+            <div className="text-[11px] md:text-xs text-brand-gray dark:text-gray-400 mt-1 leading-tight whitespace-nowrap">Proje</div>
           </div>
         </div>
       </div>
@@ -365,9 +374,9 @@ export function DashboardWidgets() {
         <div className="col-span-1 lg:col-span-3 flex flex-col gap-4 lg:min-h-0">
 
           {/* Dijital & Analog Saat */}
-          <div className="floating-card rounded-2xl md:rounded-3xl p-4 md:p-6 flex flex-row items-center justify-between shrink-0 relative overflow-hidden group min-h-[140px]">
+          <div className="floating-card rounded-2xl md:rounded-3xl p-4 md:p-6 flex flex-row items-center justify-between shrink-0 relative overflow-hidden group min-h-[124px] md:min-h-[140px]">
             <div className="relative z-10 flex flex-col items-start justify-center pl-1 md:pl-2 flex-1 gap-2 md:gap-4">
-              <div className="text-3xl md:text-5xl font-light tracking-tighter text-brand-dark dark:text-white tabular-nums drop-shadow-sm leading-none">
+              <div className="text-[2.45rem] md:text-5xl font-light tracking-tighter text-brand-dark dark:text-white tabular-nums drop-shadow-sm leading-none">
                 {format(currentTime, 'HH:mm')}
               </div>
               <div className="text-[10px] text-brand-gray dark:text-gray-400 uppercase tracking-[0.3em] font-bold leading-relaxed">

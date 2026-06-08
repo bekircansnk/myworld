@@ -2,6 +2,15 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-06-08] - Sürüm 6.8 - Dashboard Responsive Üst Alan ve Android v6.0
+
+### Çözüldü
+- **Dashboard Üst Alan Reflow:** Mobilde karşılama başlığı ve görev özetleri tek satıra sıkışarak çok büyük/dar görünüyordu; desktop'ta ise aynı alan gereğinden büyük hero etkisi veriyordu. Üst özet alanı küçük telefonda çok satırlı, tablet/desktop'ta dengeli akacak şekilde yeniden oranlandı.
+- **Mobil Topbar Safe-Area Dengesi:** Android tarayıcı ve APK'da üst navbar'a eklenen sabit ekstra boşluk kaldırıldı. Logo, firma seçici ve aksiyon ikonları daha düşük, ortalı ve sabit dokunma hedefleriyle hizalandı.
+- **OTA Sürüm Senkronizasyonu:** Mobil sürüm bilgileri `v6.0 / Code 50` olarak güncellendi ve indirme linkleri Render.com static APK adresine eşlendi.
+
+---
+
 ## [2026-06-08] - Sürüm 6.7 - Kanban İki Eksenli Dokunmatik Pan Düzeltmesi (v5.9)
 
 ### Çözüldü

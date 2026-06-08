@@ -9,12 +9,18 @@ export function InstallAppBanner() {
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof navigator === "undefined") return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
 
     // Kapatıldıysa bu oturumda gösterme
     const dismissed = sessionStorage.getItem("apkBannerDismissed");
     if (dismissed === "true") {
-      setIsDismissed(true);
-      return;
+      queueMicrotask(() => {
+        if (!cancelled) setIsDismissed(true);
+      });
+      return () => {
+        cancelled = true;
+      };
     }
 
     const ua = navigator.userAgent.toLowerCase();
@@ -28,7 +34,9 @@ export function InstallAppBanner() {
 
     // Eğer Android ise, ve PWA değilse, ve Capacitor Native değilse göster
     if (isAndroid && !isStandalone && !isNativeCapacitor) {
-      setIsVisible(true);
+      queueMicrotask(() => {
+        if (!cancelled) setIsVisible(true);
+      });
       
       // 5 Dakika limiti
       const sessionStart = sessionStorage.getItem("apkBannerStartTime");
@@ -43,16 +51,25 @@ export function InstallAppBanner() {
       const timeRemaining = (5 * 60 * 1000) - timeElapsed;
       
       if (timeRemaining <= 0) {
-         setIsDismissed(true);
-         sessionStorage.setItem("apkBannerDismissed", "true");
+         queueMicrotask(() => {
+           if (cancelled) return;
+           setIsDismissed(true);
+           sessionStorage.setItem("apkBannerDismissed", "true");
+         });
       } else {
-         const timer = setTimeout(() => {
-            setIsDismissed(true);
-            sessionStorage.setItem("apkBannerDismissed", "true");
+         timer = setTimeout(() => {
+            if (!cancelled) {
+              setIsDismissed(true);
+              sessionStorage.setItem("apkBannerDismissed", "true");
+            }
          }, timeRemaining);
-         return () => clearTimeout(timer);
       }
     }
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
   if (!isVisible || isDismissed) return null;
@@ -91,10 +108,10 @@ export function InstallAppBanner() {
                   a.click();
                   document.body.removeChild(a);
                 } else {
-                  window.open("https://myworld-twqx.onrender.com/static/Planla_v5.9.apk", "_blank");
+                  window.open("https://myworld-twqx.onrender.com/static/Planla_v6.0.apk", "_blank");
                 }
               } catch (err) {
-                window.open("https://myworld-twqx.onrender.com/static/Planla_v5.9.apk", "_blank");
+                window.open("https://myworld-twqx.onrender.com/static/Planla_v6.0.apk", "_blank");
               }
               setTimeout(handleDismiss, 1000);
             }}

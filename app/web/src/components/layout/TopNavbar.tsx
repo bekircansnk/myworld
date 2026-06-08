@@ -62,11 +62,14 @@ export function TopNavbar() {
   const [isAndroid, setIsAndroid] = React.useState(false)
 
   React.useEffect(() => {
+    let cancelled = false
     // Android tespiti
     if (typeof window !== 'undefined') {
       const isCapacitorAndroid = typeof window !== 'undefined' && (window as any).Capacitor?.getPlatform() === 'android';
       const isAgentAndroid = /android/i.test(navigator.userAgent);
-      setIsAndroid(isCapacitorAndroid || isAgentAndroid);
+      queueMicrotask(() => {
+        if (!cancelled) setIsAndroid(isCapacitorAndroid || isAgentAndroid)
+      })
     }
 
     const handler = (e: any) => {
@@ -79,6 +82,7 @@ export function TopNavbar() {
     const hideTimer = setTimeout(() => setShowInstallBtn(false), 5 * 60 * 1000)
     
     return () => { 
+      cancelled = true
       window.removeEventListener('beforeinstallprompt', handler)
       clearTimeout(hideTimer)
     }
@@ -131,8 +135,14 @@ export function TopNavbar() {
   }, [showUserPanel])
 
   React.useEffect(() => {
-    setMounted(true)
+    let cancelled = false
+    queueMicrotask(() => {
+      if (!cancelled) setMounted(true)
+    })
     fetchProjects()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const [activities, setActivities] = React.useState<any[]>([])
@@ -320,12 +330,19 @@ export function TopNavbar() {
       }
     })
 
-    setNotifications(prev => {
-      // Keep persistent (AI/system) notifications + add upcoming task notifications
-      const persistent = prev.filter(n => n.type === 'ai')
-      const taskIds = new Set(upcoming.map(n => n.id))
-      return [...persistent, ...upcoming].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+    let cancelled = false
+    queueMicrotask(() => {
+      if (cancelled) return
+      setNotifications(prev => {
+        // Keep persistent (AI/system) notifications + add upcoming task notifications
+        const persistent = prev.filter(n => n.type === 'ai')
+        const taskIds = new Set(upcoming.map(n => n.id))
+        return [...persistent, ...upcoming].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+      })
     })
+    return () => {
+      cancelled = true
+    }
   }, [tasks])
 
   const unreadCount = notifications.filter(n => !n.read).length
@@ -371,13 +388,11 @@ export function TopNavbar() {
   }
 
   return (
-    <header className={`w-full bg-[#f5f2e8]/80 dark:bg-[#0f1117]/80 backdrop-blur-xl border-b border-[#e8e4d8]/40 dark:border-white/5 px-3 md:px-4 lg:px-8 pb-2 md:py-3 shrink-0 z-30 print:hidden ${
-      isAndroid ? 'pt-[calc(env(safe-area-inset-top,0px)+34px)]' : 'pt-[calc(env(safe-area-inset-top,0px)+8px)]'
-    }`}>
-      <div className="flex items-center justify-between gap-2 md:gap-4">
+    <header className="w-full bg-[#f5f2e8]/80 dark:bg-[#0f1117]/80 backdrop-blur-xl border-b border-[#e8e4d8]/40 dark:border-white/5 px-3 md:px-4 lg:px-8 py-2 md:py-3 pt-[calc(env(safe-area-inset-top,0px)+0.5rem)] shrink-0 z-30 print:hidden">
+      <div className="flex min-h-11 items-center justify-between gap-2 md:gap-4">
         {/* Sol: Mobilde logoyu kaldırdık, sadece küçük başlık */}
         <div className="flex items-center gap-1.5 md:hidden shrink-0">
-          <span className="text-sm font-extrabold text-brand-dark dark:text-white">Planla</span>
+          <span className="text-[15px] font-extrabold leading-none text-brand-dark dark:text-white">Planla</span>
         </div>
         <nav className="hidden md:flex items-center gap-1 overflow-visible">
           {navItems.map(item => {
@@ -420,7 +435,7 @@ export function TopNavbar() {
           >
             <button
               onClick={() => setShowProjectMenu(prev => !prev)}
-              className="flex items-center gap-1 md:gap-2 px-1.5 sm:px-2.5 md:px-4 py-1.5 md:py-2.5 rounded-xl md:rounded-full text-[10px] sm:text-[11px] md:text-sm font-bold whitespace-nowrap transition-all border md:border-none border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 shadow-sm"
+              className="flex h-9 md:h-10 items-center gap-1 md:gap-2 px-2 sm:px-2.5 md:px-4 rounded-xl md:rounded-full text-[10px] sm:text-[11px] md:text-sm font-bold whitespace-nowrap transition-all border md:border-none border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 shadow-sm"
             >
               {currentProject && (
                 <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full shrink-0" style={{ backgroundColor: currentProject.color || '#6366f1' }} />
@@ -472,9 +487,9 @@ export function TopNavbar() {
           <div className="relative" ref={notifRef}>
             <button
               onClick={() => { setShowNotifPanel(!showNotifPanel); setShowUserPanel(false); }}
-              className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative"
+              className="w-9 h-9 md:w-10 md:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative"
             >
-              <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-gray dark:text-gray-400" />
+              <Bell className="w-4 h-4 text-brand-gray dark:text-gray-400" />
               {unreadCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm">
                   {unreadCount}
@@ -573,13 +588,12 @@ export function TopNavbar() {
                           // Zaman
                           let timeStr = ""
                           try {
-                            const diff = Date.now() - new Date(act.created_at).getTime()
-                            const mins = Math.floor(diff / 60000)
-                            timeStr = mins < 1 ? "Şimdi" : `${mins} dk önce`
-                            if (mins >= 60) {
-                              const hrs = Math.floor(mins / 60)
-                              timeStr = hrs < 24 ? `${hrs} sa önce` : new Date(act.created_at).toLocaleDateString("tr-TR")
-                            }
+                            timeStr = new Date(act.created_at).toLocaleString("tr-TR", {
+                              day: "2-digit",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
                           } catch {}
 
                           return (
@@ -613,9 +627,9 @@ export function TopNavbar() {
           {mounted && (
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              className="w-9 h-9 md:w-10 md:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
             >
-              {theme === "dark" ? <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-yellow" /> : <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-dark" />}
+              {theme === "dark" ? <Sun className="w-4 h-4 text-brand-yellow" /> : <Moon className="w-4 h-4 text-brand-dark" />}
             </button>
           )}
 
@@ -623,12 +637,12 @@ export function TopNavbar() {
           <div className="relative" ref={userRef}>
             <button
               onClick={() => { setShowUserPanel(!showUserPanel); setShowNotifPanel(false); }}
-              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors overflow-hidden border-2 ${showUserPanel ? 'border-brand-yellow' : 'border-transparent bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+              className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors overflow-hidden border-2 ${showUserPanel ? 'border-brand-yellow' : 'border-transparent bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
             >
               {user?.avatar_url ? (
                 <img src={user.avatar_url.startsWith('http') ? user.avatar_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${user.avatar_url}`} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-gray dark:text-gray-400" />
+                <User className="w-4 h-4 text-brand-gray dark:text-gray-400" />
               )}
             </button>
 
@@ -667,10 +681,10 @@ export function TopNavbar() {
                           a.click();
                           document.body.removeChild(a);
                         } else {
-                          window.open("https://myworld-twqx.onrender.com/static/Planla_v5.9.apk", "_blank"); // Fallback
+                          window.open("https://myworld-twqx.onrender.com/static/Planla_v6.0.apk", "_blank"); // Fallback
                         }
                       } catch (err) {
-                        window.open("https://myworld-twqx.onrender.com/static/Planla_v5.9.apk", "_blank"); // Fallback
+                        window.open("https://myworld-twqx.onrender.com/static/Planla_v6.0.apk", "_blank"); // Fallback
                       }
                     }}
                     className="w-full text-left px-4 py-3.5 text-xs text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 hover:from-indigo-600 hover:to-purple-600 transition-all font-black flex items-center gap-3 shadow-md rounded-2xl"

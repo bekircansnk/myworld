@@ -238,12 +238,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "5.9",
-        "version_code": 49,
-        "download_url": "https://myworld-twqx.onrender.com/static/Planla_v5.9.apk",
+        "version": "6.0",
+        "version_code": 50,
+        "download_url": "https://myworld-twqx.onrender.com/static/Planla_v6.0.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
-        "changelog": "- Görev board'unda kart veya sütun üzerinden başlayan dokunuşlarda yatay ve dikey pan hareketleri birlikte çalışacak şekilde düzeltildi.\n- Mobil/PWA Kanban scroll snap davranışı daha esnek hale getirildi; yatay kaydırma, dikey sütun scroll'u ve kart dokunma akışı birlikte korunuyor.\n- Sürüm v5.9 (Code 49) olarak güncellendi."
+        "changelog": "- Dashboard üst alanı Android APK, mobil tarayıcı, tablet ve desktop için dengeli responsive oranlara alındı.\n- Mobil topbar safe-area boşluğu sadeleştirildi; logo, firma seçici ve aksiyon ikonları tavana yapışmadan ortalı görünür.\n- Sürüm v6.0 (Code 50) olarak güncellendi."
     }
 
 @app.get("/api/link-preview")

@@ -7,6 +7,15 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 - Alt sürüm 9'a ulaştığında (Örn: 1.9), bir sonraki sürüm tam sayı artar (Örn: 2.0).
 - `versionCode` her yeni sürümde +1 olarak artırılır.
 
+### v6.0
+**Tarih:** 8 Haziran 2026
+**Değişiklikler:**
+- **[Responsive Dashboard Üst Alanı]** Karşılama başlığı, görev özetleri, ilerleme barı ve metrik sayıları küçük telefon, mobil tarayıcı, Android APK, tablet ve desktop için kontrollü ölçeklere alındı.
+- **[Mobil Topbar Oran Düzeltmesi]** Android/PWA üst çubuğundaki sabit ekstra safe-area boşluğu kaldırıldı; Planla logosu, firma seçici ve aksiyon ikonları ortalı ve daha dengeli yüksekliğe taşındı.
+- **[Sürüm Yükseltme]** `versionCode 50` ve `versionName "6.0"` olarak yeni debug APK derlemesi yapıldı.
+
+---
+
 ### v5.9
 **Tarih:** 8 Haziran 2026
 **Değişiklikler:**
