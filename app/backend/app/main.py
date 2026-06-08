@@ -238,12 +238,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "6.1",
-        "version_code": 51,
-        "download_url": "https://myworld-twqx.onrender.com/static/Planla_v6.1.apk",
+        "version": "6.2",
+        "version_code": 52,
+        "download_url": "https://myworld-twqx.onrender.com/static/Planla_v6.2.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
-        "changelog": "- Tam marka geçişi: Tüm uygulama katmanlarında Pikseliş → Planla rebrandingi yapıldı.\n- Yeni applicationId: com.planla.app\n- Sürüm v6.1 (Code 51)"
+        "changelog": "- Android default ActionBar kaldırıldı (Sol üstteki Pl... simgesi/başlığı düzeltildi).\n- Sürüm v6.2 (Code 52)"
     }
 
 @app.get("/api/link-preview")

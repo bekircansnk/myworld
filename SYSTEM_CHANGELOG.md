@@ -2,6 +2,13 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-06-08] - Sürüm 7.1 - Android APK Default ActionBar Temizliği (v6.2 / Code 52)
+
+### Çözüldü
+- **Android Default ActionBar Görünmesi:** Rebranding güncellemesi sonrası Android APK'da splash screen kapandıktan sonra sol üstte "Pl..." şeklinde gereksiz bir uygulama simgesi/başlığı çıkıyordu. Android `styles.xml` içindeki `AppTheme` base parent'ı `Theme.AppCompat.Light.DarkActionBar` yerine `Theme.AppCompat.Light.NoActionBar` yapılarak bu görsel bozukluk giderildi.
+
+---
+
 ## [2026-06-08] - Sürüm 7.0 - Pikseliş → Planla Tam Marka Geçişi (v6.1 / Code 51)
 
 ### Yenilik
