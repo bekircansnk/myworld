@@ -2,6 +2,16 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-06-08] - Sürüm 7.2 - Güncelleme Yönetimi & Splash Sızma Düzeltmesi (v6.3 / Code 53)
+
+### Yenilik
+- **Manuel Güncelleme Butonu:** Profil menüsü içerisine "Güncellemeleri Denetle" butonu eklendi (yalnızca Capacitor platformda çalışır).
+- **Güncelleme Uyarısı İyileştirmesi:** Kullanıcı modal dışına tıklayıp kapattığında uyarının tamamen kaybolması önlendi; sağ altta floating bir güncelleme baloncuğu olarak kalması sağlandı. Ayrıca yeni sürüm olduğunda profil butonu üzerinde yanıp sönen kırmızı nokta göstergesi yerleştirildi.
+- **Splash Screen & Tema Düzeltmesi:** `styles.xml` üzerinde `postSplashScreenTheme` tanımlandı ve pencere arka plan rengi (`#0F1423`) verilerek splash görselinin arka planda asılı kalıp sızması veya üst barda ActionBar şeklinde görünmesi engellendi.
+- **Anayasa Kuralı Eklendi:** `GEMINI.md` dosyasına 13. madde eklenerek yükleme ekranı simgesi, ad eşleme ve splash sızması mimari bir standart haline getirildi.
+
+---
+
 ## [2026-06-08] - Sürüm 7.1 - Android APK Default ActionBar Temizliği (v6.2 / Code 52)
 
 ### Çözüldü

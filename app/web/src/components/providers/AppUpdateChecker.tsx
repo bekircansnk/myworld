@@ -29,12 +29,23 @@ type UpdateState = "idle" | "checking" | "available" | "downloading" | "installi
  * Uygulama açıldığında sürüm kontrolü yapıp güncelleme modalı gösteren bileşen.
  * Sadece Capacitor native platformda çalışır.
  */
+import { useUpdateStore } from "@/stores/updateStore";
+
 export function AppUpdateChecker() {
-  const [state, setState] = useState<UpdateState>("idle");
-  const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
-  const [progress, setProgress] = useState(0);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [currentVersion, setCurrentVersion] = useState("");
+  const {
+    state,
+    versionInfo,
+    progress,
+    errorMsg,
+    currentVersion,
+    triggerCheck,
+    setState,
+    setVersionInfo,
+    setProgress,
+    setErrorMsg,
+    setCurrentVersion
+  } = useUpdateStore();
+
   const abortRef = useRef<AbortController | null>(null);
 
   // Sürüm karşılaştırma: "1.4" vs "1.5" → true (yeni sürüm var)
@@ -122,13 +133,13 @@ export function AppUpdateChecker() {
       console.error("Sürüm kontrolü sırasında beklenmedik hata:", e);
       setState("idle");
     }
-  }, [isNewerVersion]);
+  }, [isNewerVersion, setState, setCurrentVersion, setVersionInfo]);
 
-  // İlk açılışta kontrol et
+  // İlk açılışta ve triggerCheck değiştiğinde kontrol et
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
     checkVersion();
-  }, [checkVersion]);
+  }, [checkVersion, triggerCheck]);
 
   // Uygulama ön plana geldiğinde tekrar kontrol et
   useEffect(() => {
@@ -208,33 +219,46 @@ export function AppUpdateChecker() {
       }
       setState("error");
     }
-  }, [versionInfo]);
+  }, [versionInfo, setState, setProgress, setErrorMsg]);
 
-  // Modalı kapatmaya izin ver (Kullanıcı istediği zaman es geçebilir)
+  // Modalı kapatınca tamamen kaybolmasın, dismissed durumuna geçsin
   const handleDismiss = useCallback(() => {
-    setState("idle");
-  }, []);
+    setState("dismissed");
+  }, [setState]);
 
   const handleCloseError = useCallback(() => {
     setState("idle");
-  }, []);
+  }, [setState]);
 
   // Tekrar dene
   const handleRetry = useCallback(() => {
     handleUpdate();
   }, [handleUpdate]);
 
+  // Eğer dismissed ise, ekranın sağ altında küçük bir baloncuk göster
+  if (state === "dismissed" && versionInfo) {
+    const bubbleContent = (
+      <div className="fixed bottom-24 right-4 z-[9999] animate-bounce">
+        <button
+          onClick={() => setState("available")}
+          className="flex items-center gap-2 px-4 py-3 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-extrabold text-xs shadow-xl shadow-indigo-500/20 hover:scale-105 active:scale-95 transition-all border border-white/20"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-amber-200 animate-spin" style={{ animationDuration: '4s' }} />
+          <span>Güncelleme Hazır (v{versionInfo.version})</span>
+        </button>
+      </div>
+    );
+    return typeof document !== "undefined" ? createPortal(bubbleContent, document.body) : null;
+  }
+
   // Modal gösterilecek durumlar
   if (state !== "available" && state !== "downloading" && state !== "installing" && state !== "error") {
     return null;
   }
 
-  // Güncelleme artık "es geçilebilir" (dismissible) olacak ama her girişte tekrar çıkacak.
-  const isForceUpdate = false;
-
   const content = (
     <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
-      {/* Backdrop — Tıklayınca kapanır */}
+      {/* Backdrop — Tıklayınca kapanır ve baloncuğa döner */}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={handleDismiss}

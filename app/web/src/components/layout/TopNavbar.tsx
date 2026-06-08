@@ -4,7 +4,7 @@ import * as React from "react"
 import { useProjectStore } from "@/stores/projectStore"
 import { useTaskStore } from "@/stores/taskStore"
 import { useTheme } from "next-themes"
-import { LayoutDashboard, ListTodo, CalendarDays, NotebookPen, Bot, Megaphone, Camera, Menu, Bell, Search, Plus, Loader2, PlayCircle, Clock, CheckCircle2, MoreVertical, X, Shield, Sun, Moon, User, ChevronDown, AlertTriangle, Check, Smartphone, Briefcase, ClipboardList, MessageSquare } from "lucide-react"
+import { LayoutDashboard, ListTodo, CalendarDays, NotebookPen, Bot, Megaphone, Camera, Menu, Bell, Search, Plus, Loader2, PlayCircle, Clock, CheckCircle2, MoreVertical, X, Shield, Sun, Moon, User, ChevronDown, AlertTriangle, Check, Smartphone, Briefcase, ClipboardList, MessageSquare, Sparkles, RefreshCw } from "lucide-react"
 import { format, isToday, isTomorrow, isBefore, addDays } from "date-fns"
 import { tr } from "date-fns/locale"
 import { api } from "@/lib/api"
@@ -14,6 +14,8 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { useAuthStore, canViewCompany, isAdmin, isSuperAdmin, canAccessAdminPanel } from "@/store/authStore"
 import { ProfileSettings } from "@/components/auth/ProfileSettings"
 import { ProjectSettingsModal } from "@/components/projects/ProjectSettingsModal"
+import { useUpdateStore } from "@/stores/updateStore"
+import { Capacitor } from "@capacitor/core"
 
 export interface ApiCostData {
   input_tokens: number
@@ -33,6 +35,7 @@ export interface AppNotification {
 
 export function TopNavbar() {
   const { projects, fetchProjects, selectedProjectId, setSelectedProjectId, viewMode, setViewMode, switchCompany } = useProjectStore()
+  const { state: updateState, versionInfo, checkUpdate, setState: setUpdateState } = useUpdateStore()
   const { tasks } = useTaskStore()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
@@ -637,12 +640,15 @@ export function TopNavbar() {
           <div className="relative" ref={userRef}>
             <button
               onClick={() => { setShowUserPanel(!showUserPanel); setShowNotifPanel(false); }}
-              className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors overflow-hidden border-2 ${showUserPanel ? 'border-brand-yellow' : 'border-transparent bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+              className={`relative w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors overflow-hidden border-2 ${showUserPanel ? 'border-brand-yellow' : 'border-transparent bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
             >
               {user?.avatar_url ? (
                 <img src={user.avatar_url.startsWith('http') ? user.avatar_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${user.avatar_url}`} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
                 <User className="w-4 h-4 text-brand-gray dark:text-gray-400" />
+              )}
+              {(updateState === "available" || updateState === "dismissed") && (
+                <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border border-white dark:border-slate-950 animate-pulse animate-duration-1000" />
               )}
             </button>
 
@@ -681,10 +687,10 @@ export function TopNavbar() {
                           a.click();
                           document.body.removeChild(a);
                         } else {
-                          window.open("https://myworld-twqx.onrender.com/static/Planla_v6.2.apk", "_blank"); // Fallback
+                          window.open("https://myworld-twqx.onrender.com/static/Planla_v6.3.apk", "_blank"); // Fallback
                         }
                       } catch (err) {
-                        window.open("https://myworld-twqx.onrender.com/static/Planla_v6.2.apk", "_blank"); // Fallback
+                        window.open("https://myworld-twqx.onrender.com/static/Planla_v6.3.apk", "_blank"); // Fallback
                       }
                     }}
                     className="w-full text-left px-4 py-3.5 text-xs text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 hover:from-indigo-600 hover:to-purple-600 transition-all font-black flex items-center gap-3 shadow-md rounded-2xl"
@@ -692,6 +698,20 @@ export function TopNavbar() {
                     <Smartphone className="w-5 h-5 shrink-0" />
                     <span className="text-[12px] tracking-wide font-extrabold">Android Uygulamasını Yükle</span>
                   </button>
+
+                  {/* Android Güncelleme Uyarısı */}
+                  {(updateState === "available" || updateState === "dismissed") && (
+                    <button
+                      onClick={() => {
+                        setUpdateState("available");
+                        setShowUserPanel(false);
+                      }}
+                      className="w-full text-left px-4 py-3.5 text-xs text-white bg-gradient-to-r from-orange-500 via-pink-500 to-red-500 hover:from-orange-600 hover:to-red-600 transition-all font-black flex items-center gap-3 shadow-md rounded-2xl animate-pulse"
+                    >
+                      <Sparkles className="w-5 h-5 shrink-0 text-amber-200" />
+                      <span className="text-[12px] tracking-wide font-extrabold">Yeni Sürümü Yükle (v{versionInfo?.version})</span>
+                    </button>
+                  )}
 
                   {/* PWA / Tarayıcı Uygulaması Yükle Butonu */}
                   {deferredPrompt && (
@@ -701,6 +721,20 @@ export function TopNavbar() {
                     >
                       <Plus className="w-4 h-4 shrink-0" />
                       <span className="text-[11px] font-extrabold">Bilgisayara / Telefona Yükle (Tarayıcı Uygulaması)</span>
+                    </button>
+                  )}
+
+                  {/* Güncellemeleri Denetle Butonu (Yalnızca Native) */}
+                  {Capacitor.isNativePlatform() && (
+                    <button
+                      onClick={() => {
+                        checkUpdate();
+                        setShowUserPanel(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors font-bold flex items-center gap-2.5"
+                    >
+                      <RefreshCw className="w-4 h-4 shrink-0 text-slate-400" />
+                      Güncellemeleri Denetle
                     </button>
                   )}
 
