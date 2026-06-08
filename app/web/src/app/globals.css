@@ -125,8 +125,11 @@
 }
 
 html, body {
+  min-height: 100%;
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 @layer base {
@@ -142,7 +145,7 @@ html, body {
     width: 100%;
     user-select: none;
     -webkit-user-select: none;
-    overflow: hidden; /* Main body should never scroll, only internal containers */
+    overflow-x: hidden;
   }
   input, textarea, [contenteditable="true"] {
     -webkit-touch-callout: default;
@@ -339,6 +342,22 @@ html, body {
 
 /* ===== MOBİL RESPONSIVE ALTYAPI ===== */
 
+.app-shell {
+  min-height: 100svh;
+  min-height: 100dvh;
+}
+
+.mobile-scroll-shell {
+  min-height: 0;
+}
+
+@media (min-width: 768px) {
+  .app-shell {
+    height: 100dvh;
+    overflow: hidden;
+  }
+}
+
 /* iOS safe area padding'leri */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .safe-bottom {
@@ -352,7 +371,36 @@ html, body {
 /* Mobil bottom-nav boşluğu — ana içerik alanına eklenir */
 @media (max-width: 767px) {
   .mobile-content-area {
-    padding-bottom: 5rem !important; /* Bottom nav yüksekliği */
+    padding-bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px)) !important; /* Bottom nav + büyütülmüş metin güvenli alanı */
+  }
+
+  .mobile-scroll-shell {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-zoom-flow {
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: max(0.75rem, env(safe-area-inset-top, 0px)) 0.75rem calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .mobile-zoom-panel {
+    max-height: none !important;
+    min-height: min-content;
+    overflow: visible !important;
+  }
+}
+
+@media (max-height: 700px) {
+  .zoom-compact-flow {
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    overflow-y: auto;
   }
 }
 

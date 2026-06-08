@@ -92,7 +92,7 @@ export function MobileBottomNav() {
 
       {/* Ana bottom navigation bar */}
       <nav className="mobile-bottom-nav md:hidden bg-white/90 dark:bg-[#0f1117]/90 backdrop-blur-xl border-t border-slate-200/60 dark:border-white/10">
-        <div className="flex items-center justify-around px-1 h-16">
+        <div className="flex items-stretch justify-around gap-0.5 px-1 py-2 min-h-16">
           {mainTabs.map(tab => {
             const isActive = viewMode === tab.id
             return (
@@ -102,7 +102,7 @@ export function MobileBottomNav() {
                   setViewMode(tab.id as any)
                   setShowMore(false)
                 }}
-                className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all ${
+                className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 px-0.5 py-1 transition-all ${
                   isActive
                     ? 'text-indigo-600 dark:text-indigo-400'
                     : 'text-slate-400 dark:text-gray-500'
@@ -111,7 +111,7 @@ export function MobileBottomNav() {
                 <div className={`p-1 rounded-xl transition-all ${isActive ? 'bg-indigo-100/80 dark:bg-indigo-500/15' : ''}`}>
                   <tab.icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5px]' : 'stroke-[1.5px]'}`} />
                 </div>
-                <span className={`text-[10px] leading-tight ${isActive ? 'font-bold' : 'font-medium'}`}>
+                <span className={`text-[10px] leading-tight max-w-full truncate ${isActive ? 'font-bold' : 'font-medium'}`}>
                   {tab.label}
                 </span>
               </button>
@@ -121,7 +121,7 @@ export function MobileBottomNav() {
           {/* "Daha Fazla" butonu */}
           <button
             onClick={() => setShowMore(prev => !prev)}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all ${
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 px-0.5 py-1 transition-all ${
               isMoreActive || showMore
                 ? 'text-indigo-600 dark:text-indigo-400'
                 : 'text-slate-400 dark:text-gray-500'
@@ -134,7 +134,7 @@ export function MobileBottomNav() {
                 <MoreHorizontal className={`w-5 h-5 ${showMore ? 'stroke-[2.5px]' : 'stroke-[1.5px]'}`} />
               )}
             </div>
-            <span className={`text-[10px] leading-tight ${isMoreActive ? 'font-bold' : 'font-medium'}`}>
+            <span className={`text-[10px] leading-tight max-w-full truncate ${isMoreActive ? 'font-bold' : 'font-medium'}`}>
               {activeMore ? activeMore.label : 'Daha'}
             </span>
           </button>

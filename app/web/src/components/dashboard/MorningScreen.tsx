@@ -256,12 +256,12 @@ const MOTIVATIONAL_QUOTES = [
   }
 
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-md transition-all duration-500 ease-out ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+    <div className={`fixed inset-0 z-50 flex mobile-zoom-flow zoom-compact-flow sm:items-center sm:justify-center bg-background/95 backdrop-blur-md transition-all duration-500 ease-out ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
       
       {/* Arka Plandaki Estetik Gradyan Halka */}
       <div className={`absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-gradient-to-tr ${greetingInfo.gradient} blur-[120px] opacity-75 pointer-events-none transition-all duration-700`} />
       
-      <div className={`relative max-w-5xl w-full mx-4 p-5 md:p-10 max-h-[92dvh] md:max-h-[85dvh] bg-card/40 border border-border/60 backdrop-blur-xl rounded-[24px] md:rounded-[32px] shadow-2xl flex flex-col transform transition-all duration-700 ease-out overflow-hidden ${isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-12 opacity-0 scale-95'}`}>
+      <div className={`mobile-zoom-panel relative max-w-5xl w-full sm:mx-4 p-4 sm:p-5 md:p-10 sm:max-h-[92dvh] md:max-h-[85dvh] bg-card/40 border border-border/60 backdrop-blur-xl rounded-[24px] md:rounded-[32px] shadow-2xl flex flex-col transform transition-all duration-700 ease-out sm:overflow-hidden ${isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-12 opacity-0 scale-95'}`}>
         
         {/* Üst Karşılama Bölümü */}
         <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-4 pb-4 md:pb-6 border-b border-border/50 shrink-0">
@@ -272,7 +272,7 @@ const MOTIVATIONAL_QUOTES = [
               </div>
               <span className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">{greetingInfo.text}</span>
             </div>
-            <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight text-foreground">
+            <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight text-foreground leading-tight">
               Tekrar Hoş Geldin, <span className="bg-gradient-to-r from-primary to-indigo-500 bg-clip-text text-transparent">{user?.username}</span>!
             </h1>
             <p className="text-xs md:text-sm text-muted-foreground mt-1 md:mt-2 max-w-xl hidden sm:block">
@@ -281,7 +281,7 @@ const MOTIVATIONAL_QUOTES = [
           </div>
  
           {/* Dün Neler Yaptık & Genel İlerleme Kartları */}
-          <div className="flex flex-col sm:flex-row items-center gap-2 md:gap-3 w-full md:w-auto shrink-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-3 w-full md:w-auto shrink-0">
             {/* Tamamlanan Görev Sayısı & Unvan (Sade Motivasyon) */}
             <div className="bg-slate-500/5 dark:bg-white/[0.02] border border-border/60 rounded-xl md:rounded-2xl p-3 md:p-4 flex items-center gap-3 w-full sm:w-auto min-w-[200px]">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-base">
@@ -315,11 +315,11 @@ const MOTIVATIONAL_QUOTES = [
         </div>
  
         {/* Orta Bölüm: AI Analiz & Görev Özet Gridi */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8 my-4 lg:my-8 overflow-y-auto flex-1 min-h-0 pr-1.5 custom-scrollbar">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8 my-4 lg:my-8 overflow-visible sm:overflow-y-auto sm:flex-1 sm:min-h-0 sm:pr-1.5 custom-scrollbar">
           
           {/* Sol Kolon (6/12): AI Motivasyon & Bekleyen İşler */}
-          <div className="lg:col-span-6 flex flex-col gap-6">
-            <div className="bg-gradient-to-br from-indigo-500/10 via-primary/5 to-transparent border border-primary/20 rounded-[24px] p-6 relative overflow-hidden group">
+          <div className="lg:col-span-6 flex flex-col gap-4 sm:gap-6">
+            <div className="bg-gradient-to-br from-indigo-500/10 via-primary/5 to-transparent border border-primary/20 rounded-[24px] p-4 sm:p-6 relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                 <BrainCircuit className="w-24 h-24 text-primary" />
               </div>
@@ -347,7 +347,7 @@ const MOTIVATIONAL_QUOTES = [
                   <div className="h-4 bg-muted animate-pulse rounded w-2/3"></div>
                 </div>
               ) : (
-                <p className="text-foreground/90 leading-relaxed font-medium text-[15px] italic">
+                <p className="text-foreground/90 leading-relaxed font-medium text-sm sm:text-[15px] italic">
                   "{motivation || "Bugün odaklanman gereken tüm hedefler hazır. Harika işler çıkaracağına eminim!"}"
                 </p>
               )}
@@ -371,7 +371,7 @@ const MOTIVATIONAL_QUOTES = [
             </div>
 
             {/* Bekleyen İşler (Yatay Kaydırılabilir) */}
-            <div className="bg-card/60 border border-border/50 rounded-[24px] p-6 hover:border-indigo-500/20 transition-colors">
+            <div className="bg-card/60 border border-border/50 rounded-[24px] p-4 sm:p-6 hover:border-indigo-500/20 transition-colors">
               <div className="flex items-center justify-between mb-3.5">
                 <div className="flex items-center gap-2 font-bold text-sm tracking-wide text-foreground uppercase">
                   <Sparkles className="w-4 h-4 text-indigo-500 animate-pulse" />
@@ -411,10 +411,10 @@ const MOTIVATIONAL_QUOTES = [
           </div>
 
           {/* Sağ Kolon (6/12): Bugünün Görevleri, Takvimi ve Günden Kalanlar */}
-          <div className="lg:col-span-6 grid grid-cols-1 gap-6">
+          <div className="lg:col-span-6 grid grid-cols-1 gap-4 sm:gap-6">
             
             {/* Bugün Yapılacaklar (Due Today) */}
-            <div className="bg-card/60 border border-border/50 rounded-2xl p-5 hover:border-primary/20 transition-colors">
+            <div className="bg-card/60 border border-border/50 rounded-2xl p-4 sm:p-5 hover:border-primary/20 transition-colors">
               <div className="flex items-center justify-between mb-3.5">
                 <div className="flex items-center gap-2 font-bold text-sm tracking-wide text-foreground uppercase">
                   <Clock className="w-4 h-4 text-primary" />
@@ -442,7 +442,7 @@ const MOTIVATIONAL_QUOTES = [
             </div>
 
             {/* Bugünün Takvimi */}
-            <div className="bg-card/60 border border-border/50 rounded-2xl p-5 hover:border-indigo-500/20 transition-colors">
+            <div className="bg-card/60 border border-border/50 rounded-2xl p-4 sm:p-5 hover:border-indigo-500/20 transition-colors">
               <div className="flex items-center justify-between mb-3.5">
                 <div className="flex items-center gap-2 font-bold text-sm tracking-wide text-foreground uppercase">
                   <Calendar className="w-4 h-4 text-indigo-500" />
@@ -471,7 +471,7 @@ const MOTIVATIONAL_QUOTES = [
 
             {/* Günden Sarkanlar (Geçmiş İşler) */}
             {stats.pendingTasks.length > 0 && (
-              <div className="bg-card/60 border border-border/50 rounded-2xl p-5 hover:border-rose-500/20 transition-colors">
+              <div className="bg-card/60 border border-border/50 rounded-2xl p-4 sm:p-5 hover:border-rose-500/20 transition-colors">
                 <div className="flex items-center justify-between mb-3.5">
                   <div className="flex items-center gap-2 font-bold text-sm tracking-wide text-foreground uppercase">
                     <AlertCircle className="w-4 h-4 text-rose-500 animate-pulse" />
@@ -498,7 +498,7 @@ const MOTIVATIONAL_QUOTES = [
         </div>
 
         {/* Alt Aksiyon Buton Paneli */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-border/50 mt-auto">
+        <div className="sticky bottom-0 sm:static z-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-4 sm:pt-6 pb-[calc(env(safe-area-inset-bottom,0px)+0.25rem)] sm:pb-0 border-t border-border/50 sm:mt-auto bg-card/95 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none">
           <div className="text-xs text-muted-foreground font-medium text-center sm:text-left">
             💡 <span className="font-semibold text-foreground">İpucu:</span> Yapay zeka ile gününü anında planlamak için ana sayfadaki AI Sohbet asistanını kullanabilirsin.
           </div>
@@ -506,7 +506,7 @@ const MOTIVATIONAL_QUOTES = [
           <Button 
             onClick={handleStart}
             size="lg" 
-            className="w-full sm:w-auto text-sm h-12 px-8 rounded-full shadow-lg hover:shadow-xl transition-all font-bold gap-2 bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 text-white"
+            className="w-full sm:w-auto text-sm min-h-12 h-auto px-6 sm:px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all font-bold gap-2 bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 text-white whitespace-normal leading-snug"
           >
             <Sparkles className="w-4 h-4" />
             Hazırım, Günü Başlat

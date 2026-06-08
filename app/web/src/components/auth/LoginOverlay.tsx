@@ -142,8 +142,8 @@ export function LoginOverlay() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-md transition-all duration-500 overflow-y-auto">
-      <div className="relative w-full max-w-[420px] mx-auto p-4 sm:p-0 my-8">
+    <div className="fixed inset-0 z-[100] flex mobile-zoom-flow sm:items-center sm:justify-center bg-black/50 backdrop-blur-md transition-all duration-500">
+      <div className="relative w-full max-w-[420px] mx-auto sm:p-0 sm:my-8">
         
         {/* Ambient Glow Effects */}
         <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-indigo-500/20 blur-[80px] rounded-full pointer-events-none" />
@@ -152,7 +152,7 @@ export function LoginOverlay() {
         {/* Glass Card */}
         <div className="bg-white/95 dark:bg-[#111421]/95 border border-slate-200/50 dark:border-white/10 rounded-3xl shadow-2xl backdrop-blur-xl relative overflow-hidden transition-all duration-300">
           
-          <div className="p-8">
+          <div className="p-5 sm:p-8">
             
             {/* Header Section */}
             <div className="text-center mb-8 flex flex-col items-center justify-center">
@@ -398,7 +398,7 @@ export function LoginOverlay() {
               <button 
                 type="submit" 
                 disabled={loading}
-                className="w-full py-3.5 mt-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-semibold rounded-xl transition-all shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 text-base"
+                className="w-full min-h-12 py-3.5 mt-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-semibold rounded-xl transition-all shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 text-base whitespace-normal leading-snug"
               >
                 {loading ? (
                   <>

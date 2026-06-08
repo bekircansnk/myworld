@@ -45,8 +45,8 @@ function VerifyEmailContent() {
   }, [token]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0a0f1d] p-4">
-      <div className="w-full max-w-md bg-[#1e293b] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+    <div className="min-h-[100svh] flex items-start sm:items-center justify-center bg-[#0a0f1d] p-3 sm:p-4 overflow-y-auto">
+      <div className="w-full max-w-md my-4 sm:my-8 bg-[#1e293b] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
         {/* Başlık */}
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-center">
           <h1 className="text-2xl font-bold text-white">🌍 Planla</h1>
@@ -54,7 +54,7 @@ function VerifyEmailContent() {
         </div>
 
         {/* İçerik */}
-        <div className="p-8 text-center">
+        <div className="p-5 sm:p-8 text-center">
           {status === "loading" && (
             <div className="space-y-4">
               <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto" />
@@ -74,7 +74,7 @@ function VerifyEmailContent() {
               {email && <p className="text-indigo-400 text-sm font-medium">{email}</p>}
               <Link
                 href="/"
-                className="inline-block mt-4 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-indigo-500/25"
+                className="inline-flex min-h-12 items-center justify-center mt-4 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-indigo-500/25 whitespace-normal leading-snug"
               >
                 Sisteme Giriş Yap
               </Link>
@@ -92,7 +92,7 @@ function VerifyEmailContent() {
               <p className="text-slate-400 text-sm">{message}</p>
               <Link
                 href="/"
-                className="inline-block mt-4 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-medium transition-all"
+                className="inline-flex min-h-12 items-center justify-center mt-4 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-medium transition-all whitespace-normal leading-snug"
               >
                 Ana Sayfaya Dön
               </Link>
@@ -108,7 +108,7 @@ function VerifyEmailContent() {
 export default function VerifyEmailPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0f1d]">
+      <div className="min-h-[100svh] flex items-center justify-center bg-[#0a0f1d]">
         <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
       </div>
     }>

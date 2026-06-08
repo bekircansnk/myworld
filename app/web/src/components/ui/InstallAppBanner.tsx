@@ -91,10 +91,10 @@ export function InstallAppBanner() {
                   a.click();
                   document.body.removeChild(a);
                 } else {
-                  window.open("https://planla.pikselai.com/Planla_v5.6.apk", "_blank");
+                  window.open("https://planla.pikselai.com/Planla_v5.7.apk", "_blank");
                 }
               } catch (err) {
-                window.open("https://planla.pikselai.com/Planla_v5.6.apk", "_blank");
+                window.open("https://planla.pikselai.com/Planla_v5.7.apk", "_blank");
               }
               setTimeout(handleDismiss, 1000);
             }}

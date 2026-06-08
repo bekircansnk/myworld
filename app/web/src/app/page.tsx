@@ -135,7 +135,7 @@ export default function DashboardPage() {
   // Giriş yapılmamışsa direkt login — project hydration bekleme
   if (!isAuthenticated) {
     return (
-      <div className="flex flex-col h-screen w-full relative">
+      <div className="flex flex-col min-h-[100svh] w-full relative">
          <LoginOverlay />
       </div>
     )
@@ -194,9 +194,9 @@ export default function DashboardPage() {
 
   
   const renderErrorState = (message: string) => (
-    <div className="flex flex-col h-full w-full overflow-hidden" id="app-root">
+    <div className="app-shell flex flex-col w-full overflow-hidden" id="app-root">
       <TopNavbar />
-      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-50 dark:bg-slate-900">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-50 dark:bg-slate-900 mobile-scroll-shell">
         <div className="w-16 h-16 bg-red-100 dark:bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mb-4">
           <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -225,7 +225,7 @@ export default function DashboardPage() {
   if (isAdminPanel && !canAccessAdminPanel(user)) return renderErrorState("Yönetim paneline erişim yetkiniz yok.");
 
   return (
-    <div className="flex flex-col h-full w-full overflow-hidden" id="app-root">
+    <div className="app-shell flex flex-col w-full overflow-hidden" id="app-root">
       {/* ÜST NAVBAR — Yatay, tüm ekranlarda */}
       <TopNavbar />
 
@@ -235,7 +235,7 @@ export default function DashboardPage() {
       {showMorning && <MorningScreen onDismiss={handleMorningDismiss} />}
 
       {/* ANA İÇERİK */}
-      <div key={viewMode} className="flex-1 overflow-hidden flex flex-col animate-in fade-in duration-300 ease-out">
+      <div key={viewMode} className="flex-1 min-h-0 overflow-hidden flex flex-col animate-in fade-in duration-300 ease-out">
         {isAdminPanel ? (
           <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-slate-50/50 dark:bg-slate-900/50">
              <AdminPanel />
@@ -243,7 +243,7 @@ export default function DashboardPage() {
         ) : isCalendar ? (
           <CalendarPage />
         ) : isAIChat ? (
-          <div className="flex-1 overflow-hidden p-3 md:p-5 lg:p-8 mobile-content-area">
+          <div className="flex-1 min-h-0 overflow-hidden p-3 md:p-5 lg:p-8 mobile-content-area">
             <AIChatDashboard />
           </div>
         ) : isReklamAds ? (
@@ -251,7 +251,7 @@ export default function DashboardPage() {
         ) : isPhotoTracking ? (
           <PhotoTrackingLayout projectId={selectedProjectId} />
         ) : (
-          <div className={`flex-1 flex flex-col mobile-content-area ${isDashboard ? 'overflow-y-auto lg:overflow-hidden p-3 md:p-5 lg:p-8' : (viewMode === 'notes' ? 'overflow-y-auto overflow-x-hidden p-3 md:p-5 lg:p-8' : 'overflow-hidden')}`}>
+          <div className={`flex-1 min-h-0 flex flex-col mobile-content-area ${isDashboard ? 'overflow-y-auto lg:overflow-hidden p-3 md:p-5 lg:p-8' : (viewMode === 'notes' ? 'overflow-y-auto overflow-x-hidden p-3 md:p-5 lg:p-8' : 'overflow-hidden')}`}>
 
             {/* Dashboard */}
             {isDashboard && canViewModule('dashboard') ? (

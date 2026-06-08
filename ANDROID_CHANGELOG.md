@@ -7,6 +7,15 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 - Alt sürüm 9'a ulaştığında (Örn: 1.9), bir sonraki sürüm tam sayı artar (Örn: 2.0).
 - `versionCode` her yeni sürümde +1 olarak artırılır.
 
+### v5.7
+**Tarih:** 8 Haziran 2026
+**Değişiklikler:**
+- **[Erişilebilirlik & Reflow Düzeltmeleri]** Zoom kilidi (`maximumScale: 1` ve `userScalable: false`) kaldırılarak mobil cihazlarda yakınlaştırma aktif edildi.
+- **[Dinamik Viewport & CTA Korumaları]** Mobil cihazlar için zoom-friendly scroll yapısı, yatay taşma engeli ve küçük ekranlarda (320px vb.) kilitlenen "Hazırım, Günü Başlat" (CTA) gibi aksiyon butonlarının kaydırılabilir güvenli alana alınması sağlandı.
+- **[Sürüm Yükseltme]** `versionCode 47` ve `versionName "5.7"` olarak yeni debug APK derlemesi yapıldı.
+
+---
+
 ### v5.6
 **Tarih:** 8 Haziran 2026
 **Değişiklikler:**

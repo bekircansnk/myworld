@@ -16,7 +16,7 @@ export function ClientOnly({ children }: { children: React.ReactNode }) {
 
   if (!hasMounted) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-transparent" suppressHydrationWarning>
+      <div className="flex min-h-[100svh] w-full items-center justify-center bg-transparent" suppressHydrationWarning>
         <Loader2 className="h-8 w-8 animate-spin text-slate-400" suppressHydrationWarning />
       </div>
     )

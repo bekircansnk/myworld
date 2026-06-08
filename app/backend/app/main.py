@@ -238,12 +238,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "5.6",
-        "version_code": 46,
-        "download_url": "https://planla.pikselai.com/Planla_v5.6.apk",
+        "version": "5.7",
+        "version_code": 47,
+        "download_url": "https://planla.pikselai.com/Planla_v5.7.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
-        "changelog": "- Uygulama adı 'Planla' olarak güncellendi ve tüm sistem genelindeki Pikseliş ibareleri temizlendi.\n- Sürüm v5.6 (Code 46) olarak güncellendi."
+        "changelog": "- Mobil PWA reflow, zoom kilidinin kaldırılması ve küçük ekranlarda CTA butonlarının kilitlenmesi/kaybolması hatası giderildi.\n- Sürüm v5.7 (Code 47) olarak güncellendi."
     }
 
 @app.get("/api/link-preview")
