@@ -419,7 +419,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
     if (!destColumn) return
 
     const newStatus = destColumn.statusKey
-    const { updateTaskStatus, reorderTasks } = useTaskStore.getState()
+    const { reorderTasks, moveTaskToColumnAndReorder } = useTaskStore.getState()
 
     if (source.droppableId === destination.droppableId) {
       // Aynı sütun içinde sıralama
@@ -434,24 +434,32 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
       reorderTasks(reorderData)
     } else {
       // Farklı sütuna taşıma
-      updateTaskStatus(taskId, newStatus)
 
       // Eğer tamamlandı sütununa atıldıysa Konfeti tetikle
       if (newStatus === 'done') {
         import("@/lib/confetti").then(({ triggerConfetti }) => triggerConfetti()).catch(console.error)
       }
 
-      setTimeout(() => {
-        const destTasks = getColumnTasks(destColumn)
-        const items = Array.from(destTasks)
-        const taskIndex = items.findIndex(t => t.id === taskId)
-        if (taskIndex !== -1) {
-          const [movedItem] = items.splice(taskIndex, 1)
-          items.splice(destination.index, 0, movedItem)
-          const reorderData = items.map((t, index) => ({ id: t.id, sort_order: index }))
-          reorderTasks(reorderData)
-        }
-      }, 10)
+      // Hedef sütundaki mevcut görevleri al
+      const destTasks = getColumnTasks(destColumn)
+      const items = Array.from(destTasks)
+
+      // Sürüklenen görevi ana görevler listesinden bul
+      const movedItem = mainTasks.find(t => t.id === taskId)
+      if (!movedItem) return
+
+      // Tamamlandı sütununda daima en üste (0), diğerlerinde nerede bırakıldıysa oraya yerleştirilsin
+      const targetIndex = newStatus === 'done' ? 0 : destination.index
+
+      // Taşınan görevin status'ünü güncelleyip hedef index'e yerleştiriyoruz
+      const updatedMovedItem = { ...movedItem, status: newStatus }
+      items.splice(targetIndex, 0, updatedMovedItem)
+
+      // Yeni sort_order dizisini çıkarıyoruz
+      const reorderData = items.map((t, index) => ({ id: t.id, sort_order: index }))
+
+      // Tek bir atomik operasyonla hem durum güncellemesi hem sıralama API'sini sequential çağırıyoruz
+      moveTaskToColumnAndReorder(taskId, newStatus, reorderData)
     }
   }
 
@@ -481,9 +489,10 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
       >
         <div
           ref={boardRef}
-          className={`flex-1 flex flex-row gap-3 md:gap-4 overflow-x-auto px-3 md:px-5 pb-3 kanban-board-scroll touch-pan-x overscroll-x-contain ${isDragging ? 'cursor-grabbing is-dragging' : ''}`}
+          className={`flex-1 flex flex-row gap-3 md:gap-4 overflow-x-auto px-3 md:px-5 pb-3 kanban-board-scroll overscroll-x-contain ${isDragging ? 'cursor-grabbing is-dragging' : ''}`}
           style={{ 
             WebkitOverflowScrolling: 'touch',
+            touchAction: 'pan-x pan-y',
             scrollbarWidth: 'none',
             msOverflowStyle: 'none'
           }}
@@ -577,7 +586,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`flex-1 overflow-y-auto kanban-column-scroll flex flex-col gap-2 rounded-xl p-2 min-h-[200px] border-2 border-transparent ${
+                      className={`flex-1 overflow-y-auto kanban-column-scroll touch-pan-y overscroll-y-contain flex flex-col gap-2 rounded-xl p-2 min-h-[200px] border-2 border-transparent ${
                         snapshot.isDraggingOver 
                           ? 'bg-indigo-50/50 dark:bg-indigo-500/10 border-indigo-200/50 dark:border-indigo-500/20 shadow-inner' 
                           : 'bg-gray-50/50 dark:bg-white/[0.02]'

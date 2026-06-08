@@ -16,6 +16,7 @@ interface TaskState {
   updateTask: (id: number, data: Partial<Task>) => Promise<void>;
   updateTaskStatus: (id: number, status: string) => Promise<void>;
   reorderTasks: (items: { id: number; sort_order: number }[]) => Promise<void>;
+  moveTaskToColumnAndReorder: (taskId: number, newStatus: string, items: { id: number; sort_order: number }[]) => Promise<void>;
   deleteTask: (id: number) => Promise<void>;
   selectedTask: Task | null;
   isDetailPanelOpen: boolean;
@@ -219,6 +220,70 @@ export const useTaskStore = create<TaskState>()(
             enqueue('POST', url, { items });
           } else {
             // Hata durumunda geri al
+            set({ tasks: previousTasks, error: error.message });
+            throw error;
+          }
+        }
+      },
+
+      moveTaskToColumnAndReorder: async (taskId, newStatus, items) => {
+        const previousTasks = get().tasks;
+        
+        // Optimistic update: Hem status'ü hem de sort_order'ları aynı anda güncelle
+        const updatedTasks = previousTasks.map((t) => {
+          if (t.id === taskId) {
+            return { 
+              ...t, 
+              status: newStatus, 
+              sort_order: items.find(i => i.id === t.id)?.sort_order ?? t.sort_order 
+            };
+          }
+          const reorderItem = items.find((i) => i.id === t.id);
+          if (reorderItem) {
+            return { ...t, sort_order: reorderItem.sort_order };
+          }
+          return t;
+        });
+
+        set({ tasks: updatedTasks });
+
+        try {
+          const task = previousTasks.find(t => t.id === taskId);
+          
+          // 1. Status güncelle
+          let statusUrl = `/api/tasks/${taskId}/status?status=${newStatus}`;
+          if (task?.project_id) {
+            statusUrl += `&project_id=${task.project_id}`;
+          }
+          const statusResponse = await api.patch(statusUrl);
+
+          // 2. Sıralama güncelle
+          let reorderUrl = '/api/tasks/reorder';
+          if (task && task.project_id) {
+            reorderUrl += `?project_id=${task.project_id}`;
+          }
+          await api.post(reorderUrl, { items });
+
+          // API'den dönen güncel görevi al ama son sort_order'ı ezme
+          const updatedTaskFromApi = {
+            ...statusResponse.data,
+            sort_order: items.find(i => i.id === taskId)?.sort_order ?? statusResponse.data.sort_order
+          };
+
+          set((state) => ({
+            tasks: state.tasks.map((t) => (t.id === taskId ? updatedTaskFromApi : t)),
+            selectedTask: state.selectedTask?.id === taskId ? updatedTaskFromApi : state.selectedTask,
+          }));
+        } catch (error: any) {
+          if (error.isOfflineError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+            const task = previousTasks.find(t => t.id === taskId);
+            let reorderUrl = '/api/tasks/reorder';
+            if (task && task.project_id) {
+              reorderUrl += `?project_id=${task.project_id}`;
+            }
+            enqueue('PATCH', `/api/tasks/${taskId}/status?status=${newStatus}`);
+            enqueue('POST', reorderUrl, { items });
+          } else {
             set({ tasks: previousTasks, error: error.message });
             throw error;
           }

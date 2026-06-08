@@ -2,6 +2,23 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-06-08] - Sürüm 6.6 - Kanban Sürükle-Bırak Sıralama Hatası ve Tamamlandı Sütunu UX Revizyonu
+
+### Çözüldü
+- **Kanban Yarış Durumu (Race Condition) Çözümü:** Farklı sütuna sürüklenen görevlerde `updateTaskStatus` ve `reorderTasks` API çağrılarının ardı ardına asenkron olarak tetiklenmesi ve durum güncellemesinin sıralama verisini ezmesi sorunu giderildi. Store tarafına `moveTaskToColumnAndReorder` adında yeni bir atomik işlem eklenerek hem store state'i optimistic olarak tek seferde güncellendi hem de API çağrıları sırayla (`await` ile) çalıştırıldı.
+- **Tamamlandı Sütunu Otomatik En Üst UX Kuralı:** Kullanıcının talebi doğrultusunda, bir görev "Tamamlandı" sütununa sürüklenip bırakıldığında, bırakıldığı konumdan bağımsız olarak her zaman listenin en üstüne (`sort_order = 0`) yerleşmesi sağlandı. Diğer sütunlarda ise kullanıcının sürükleyip bıraktığı tam konuma yerleşme dürüstlüğü korundu.
+
+---
+
+## [2026-06-08] - Sürüm 6.5 - Android/PWA Dokunmatik Dikey Scroll Düzeltmesi (v5.8)
+
+### Çözüldü
+- **Kanban Dokunmatik Pan Kilidi:** Görev board'undaki `touch-pan-x` kısıtı, Android WebView/PWA üzerinde dikey pan hareketini engellediği için kaldırıldı. Board yatay kaydırmayı sürdürürken sütun içi dikey kaydırma `touch-pan-y` ile güvence altına alındı.
+- **Mobil App Shell Yükseklik Sabitleme:** Ana uygulama kabuğu mobilde de kesin `100svh/100dvh` yüksekliğe alındı. Böylece `overflow-hidden` parent altında dashboard ve ana içerik scroll container'larının dokunmatik kaydırmayı kaybetmesi engellendi.
+- **OTA Sürüm Senkronizasyonu:** Mobil sürüm bilgileri `v5.8 / Code 48` olarak güncellendi ve indirme linkleri Render.com static APK adresine eşlendi.
+
+---
+
 ## [2026-06-04] - Sürüm 6.4 - Detay Panel Hook Crash Çözümü, UX Çift Tıklama Korumaları ve Test Sütunları Temizliği
 
 ### Eklendi / Çözüldü
