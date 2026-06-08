@@ -32,7 +32,7 @@ export function Motivation() {
       <div className="absolute top-0 left-0 w-32 h-32 bg-amber-400/20 rounded-full blur-[40px] mix-blend-multiply dark:mix-blend-screen" />
       
       {isLoading && (
-         <div className="absolute inset-0 bg-white/20 dark:bg-black/20 backdrop-blur-sm flex items-center justify-center z-20">
+         <div className="absolute inset-0 bg-muted/20 backdrop-blur-sm flex items-center justify-center z-20">
             <Loader2 className="w-6 h-6 animate-spin text-amber-500 drop-shadow-md" />
          </div>
       )}
@@ -40,7 +40,7 @@ export function Motivation() {
       <div className={`p-4 flex-1 flex flex-col justify-center items-center text-center transition-all duration-700 relative z-10 ${isLoading ? 'blur-sm opacity-50' : 'opacity-100'}`}>
         <div className="relative mb-2 group-hover:-translate-y-0.5 transition-transform">
           <div className="absolute inset-0 bg-amber-400 blur-xl opacity-30 rounded-full animate-pulse" />
-          <div className="bg-white/50 dark:bg-black/30 w-8 h-8 rounded-full flex items-center justify-center border border-amber-200/50 dark:border-amber-700/50 backdrop-blur-md relative z-10">
+          <div className="bg-muted/40 w-8 h-8 rounded-full flex items-center justify-center border border-amber-200/50 dark:border-amber-700/50 backdrop-blur-md relative z-10">
             <Lightbulb className="w-4 h-4 text-amber-500 drop-shadow-sm" />
           </div>
         </div>

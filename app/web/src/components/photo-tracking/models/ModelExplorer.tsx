@@ -69,7 +69,7 @@ export function ModelExplorer({ projectId }: ModelExplorerProps) {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-white/5 overflow-hidden flex-1 shrink-0 flex flex-col">
+      <div className="crm-table-wrap flex-1 shrink-0 flex flex-col">
         {isLoadingModels ? (
           <div className="flex-1 flex items-center justify-center">
              <div className="w-8 h-8 border-4 border-slate-200 border-t-brand-dark rounded-full animate-spin dark:border-slate-700 dark:border-t-white" />
@@ -80,9 +80,9 @@ export function ModelExplorer({ projectId }: ModelExplorerProps) {
              <p className="font-medium text-lg">Model Bulunamadı</p>
           </div>
         ) : (
-          <div className="overflow-x-auto flex-1">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 dark:bg-slate-900/50 text-brand-gray dark:text-gray-400 uppercase text-[10px] font-bold sticky top-0 z-10">
+          <div className="flex-1">
+            <table className="crm-table text-sm">
+              <thead className="sticky top-0 z-10">
                 <tr>
                   <th className="px-6 py-4">Sezon Kodu</th>
                   <th className="px-6 py-4">Model Adı</th>
@@ -92,12 +92,12 @@ export function ModelExplorer({ projectId }: ModelExplorerProps) {
                   <th className="px-6 py-4 text-right">İşlemler</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+              <tbody>
                 {filteredModels.map(m => (
-                  <tr key={m.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/80 transition-colors group">
-                    <td className="px-6 py-4 font-medium text-slate-500">{m.sezon_kodu || '-'}</td>
+                  <tr key={m.id} className="group">
+                    <td className="px-6 py-4 font-medium text-slate-500 dark:text-slate-400">{m.sezon_kodu || '-'}</td>
                     <td className="px-6 py-4 font-bold text-brand-dark dark:text-white">{m.model_name}</td>
-                    <td className="px-6 py-4"><span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold">{m.week_number}. Hafta</span></td>
+                    <td className="px-6 py-4"><span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-bold">{m.week_number}. Hafta</span></td>
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{m.colors.length} Renk / {m.total_photos} Foto</td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold inline-block border ${

@@ -42,7 +42,7 @@ export function DailyAgendaModal({ date, isOpen, onClose }: DailyAgendaModalProp
       <DialogContent className="glass-panel border border-white/20 dark:border-white/10 sm:max-w-[600px] md:max-w-[700px] shadow-2xl p-0 overflow-hidden !rounded-3xl">
         <div className="p-6 border-b border-border/10 bg-gradient-to-r from-sky-500/10 to-transparent">
           <DialogTitle className="text-xl font-extrabold flex items-center gap-3 text-slate-800 dark:text-slate-100">
-            <div className="p-2 rounded-xl bg-white shadow-sm dark:bg-slate-800">
+            <div className="p-2 rounded-xl bg-card border border-border shadow-sm">
               <CalendarDays className="w-5 h-5 text-sky-500" />
             </div>
             {format(date, "d MMMM yyyy, EEEE", { locale: tr })}
@@ -73,7 +73,7 @@ export function DailyAgendaModal({ date, isOpen, onClose }: DailyAgendaModalProp
                     <button 
                       key={t.id} 
                       onClick={() => handleTaskClick(t)}
-                      className="flex items-start gap-3 py-3 px-4 w-full text-left rounded-xl bg-white/60 dark:bg-slate-800/60 shadow-sm border border-slate-100 dark:border-white/5 hover:translate-x-1 transition-transform group"
+                      className="flex items-start gap-3 py-3 px-4 w-full text-left rounded-xl bg-muted/50 shadow-sm border border-border hover:translate-x-1 transition-transform group"
                     >
                       <Target className={`w-4 h-4 mt-0.5 flex-shrink-0 ${t.status === 'done' ? 'text-green-500' : 'text-orange-400'} group-hover:scale-110 transition-transform`} />
                       <div className="flex-1 min-w-0 pr-2">

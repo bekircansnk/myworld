@@ -31,7 +31,7 @@ export function Sidebar() {
       {/* İçe/Dışa Kapatma Butonu */}
       <button 
         onClick={() => setIsExpanded(!isExpanded)}
-        className="absolute -right-3 top-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 shadow-sm rounded-full p-1 z-50 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+        className="absolute -right-3 top-8 bg-card border border-border shadow-sm rounded-full p-1 z-50 hover:bg-muted transition-colors"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${isExpanded ? '' : 'rotate-180'}`}><path d="m15 18-6-6 6-6"/></svg>
       </button>
@@ -44,7 +44,7 @@ export function Sidebar() {
             <img 
               src="/icons/icon-512x512.png" 
               alt="Planla Logo" 
-              className="w-full h-full object-contain rounded-2xl shadow-lg border border-slate-200/50 dark:border-white/10 bg-white/5"
+              className="w-full h-full object-contain rounded-2xl shadow-lg border border-border bg-white/5"
             />
           </div>
           {isExpanded && (
@@ -69,7 +69,7 @@ export function Sidebar() {
             <Button 
                 variant="ghost" 
                 title="Dashboard"
-                className={`flex items-center transition-all duration-300 btn-3d rounded-xl ${isExpanded ? 'w-full justify-start h-12 gap-3 px-4 text-sm' : 'w-12 h-12 justify-center mx-auto'} ${viewMode === 'dashboard' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm inner-shadow-box' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-slate-800/50'}`}
+                className={`flex items-center transition-all duration-300 btn-3d rounded-xl ${isExpanded ? 'w-full justify-start h-12 gap-3 px-4 text-sm' : 'w-12 h-12 justify-center mx-auto'} ${viewMode === 'dashboard' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm inner-shadow-box' : 'text-slate-600 dark:text-slate-400 hover:bg-muted/50'}`}
                 onClick={() => setViewMode('dashboard')}
             >
                 <LayoutDashboard className={`w-5 h-5 shrink-0 ${viewMode === 'dashboard' ? 'scale-110' : ''} transition-transform`} />
@@ -78,7 +78,7 @@ export function Sidebar() {
             <Button 
                 variant="ghost" 
                 title="Tüm İşlerim"
-                className={`flex items-center transition-all duration-300 btn-3d rounded-xl ${isExpanded ? 'w-full justify-start h-12 gap-3 px-4 text-sm' : 'w-12 h-12 justify-center mx-auto'} ${viewMode === 'all_tasks' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm inner-shadow-box' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-slate-800/50'}`}
+                className={`flex items-center transition-all duration-300 btn-3d rounded-xl ${isExpanded ? 'w-full justify-start h-12 gap-3 px-4 text-sm' : 'w-12 h-12 justify-center mx-auto'} ${viewMode === 'all_tasks' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm inner-shadow-box' : 'text-slate-600 dark:text-slate-400 hover:bg-muted/50'}`}
                 onClick={() => setViewMode('all_tasks')}
             >
                 <ListTodo className={`w-5 h-5 shrink-0 ${viewMode === 'all_tasks' ? 'scale-110' : ''} transition-transform`} />
@@ -87,7 +87,7 @@ export function Sidebar() {
             <Button 
                 variant="ghost" 
                 title="Takvim"
-                className={`flex items-center transition-all duration-300 btn-3d rounded-xl ${isExpanded ? 'w-full justify-start h-12 gap-3 px-4 text-sm' : 'w-12 h-12 justify-center mx-auto'} ${viewMode === 'calendar' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm inner-shadow-box' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-slate-800/50'}`}
+                className={`flex items-center transition-all duration-300 btn-3d rounded-xl ${isExpanded ? 'w-full justify-start h-12 gap-3 px-4 text-sm' : 'w-12 h-12 justify-center mx-auto'} ${viewMode === 'calendar' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm inner-shadow-box' : 'text-slate-600 dark:text-slate-400 hover:bg-muted/50'}`}
                 onClick={() => setViewMode('calendar')}
             >
                 <CalendarDays className={`w-5 h-5 shrink-0 ${viewMode === 'calendar' ? 'scale-110' : ''} transition-transform`} />
@@ -96,7 +96,7 @@ export function Sidebar() {
             <Button 
                 variant="ghost" 
                 title="Akıllı Notlarım"
-                className={`flex items-center transition-all duration-300 btn-3d rounded-xl ${isExpanded ? 'w-full justify-start h-12 gap-3 px-4 text-sm' : 'w-12 h-12 justify-center mx-auto'} ${viewMode === 'notes' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm inner-shadow-box' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-slate-800/50'}`}
+                className={`flex items-center transition-all duration-300 btn-3d rounded-xl ${isExpanded ? 'w-full justify-start h-12 gap-3 px-4 text-sm' : 'w-12 h-12 justify-center mx-auto'} ${viewMode === 'notes' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm inner-shadow-box' : 'text-slate-600 dark:text-slate-400 hover:bg-muted/50'}`}
                 onClick={() => setViewMode('notes')}
             >
                 <NotebookPen className={`w-5 h-5 shrink-0 ${viewMode === 'notes' ? 'rotate-12 transform scale-110' : ''} transition-transform`} />
@@ -118,7 +118,7 @@ export function Sidebar() {
            
            <div className="grid gap-2 mb-4" suppressHydrationWarning>
              {mounted && projects.map(proj => (
-                <div key={proj.id} title={proj.name} className={`w-full flex items-center justify-between rounded-xl transition-all duration-300 group btn-3d ${isExpanded ? 'px-2 py-1 text-left text-sm' : 'justify-center p-2'} ${selectedProjectId === proj.id ? 'bg-white/80 dark:bg-slate-800/80 shadow-md inner-shadow-box ring-1 ring-slate-200 dark:ring-white/10' : 'hover:bg-white/50 dark:hover:bg-slate-800/40 border-transparent'}`}>
+                 <div key={proj.id} title={proj.name} className={`w-full flex items-center justify-between rounded-xl transition-all duration-300 group btn-3d ${isExpanded ? 'px-2 py-1 text-left text-sm' : 'justify-center p-2'} ${selectedProjectId === proj.id ? 'bg-card shadow-md inner-shadow-box ring-1 ring-border' : 'hover:bg-muted border-transparent'}`}>
                   <button 
                     onClick={() => {
                         setSelectedProjectId(proj.id)
@@ -129,25 +129,25 @@ export function Sidebar() {
                      <div className="relative w-3 h-3 flex items-center justify-center flex-shrink-0">
                        <div className="w-2.5 h-2.5 rounded-full shadow-sm z-10" style={{ backgroundColor: proj.color }}></div>
                      </div>
-                     {isExpanded && <span className={`truncate font-medium transition-colors ${selectedProjectId === proj.id ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400'}`}>{proj.name}</span>}
+                     {isExpanded && <span className={`truncate font-medium transition-colors ${selectedProjectId === proj.id ? 'text-foreground' : 'text-muted-foreground'}`}>{proj.name}</span>}
                   </button>
                   {isExpanded && (
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setProjectToEdit(proj)
-                        setIsSettingsOpen(true)
-                      }}
-                      className={`p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-all ${selectedProjectId === proj.id ? 'opacity-100 3d-button' : 'opacity-0 group-hover:opacity-100'}`}
-                    >
+                     <button 
+                       onClick={(e) => {
+                         e.stopPropagation()
+                         setProjectToEdit(proj)
+                         setIsSettingsOpen(true)
+                       }}
+                       className={`p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all ${selectedProjectId === proj.id ? 'opacity-100 3d-button' : 'opacity-0 group-hover:opacity-100'}`}
+                     >
                       <Settings2 className="w-4 h-4" />
                     </button>
                   )}
                 </div>
              ))}
              {mounted && projects.length === 0 && isExpanded && (
-               <div className="text-xs text-slate-400 px-4 py-3 bg-slate-100/50 dark:bg-slate-800/30 rounded-xl italic border border-dashed border-slate-300 dark:border-slate-700">
-                 Henüz firma yok.
+               <div className="text-xs text-muted-foreground px-4 py-3 bg-muted rounded-xl italic border border-dashed border-border">
+                  Henüz firma yok.
                </div>
              )}
            </div>
@@ -159,14 +159,14 @@ export function Sidebar() {
       </div>
 
       {/* Tema Değiştirme ve Alt Bölüm */}
-      <div className={`p-4 border-t border-slate-200/50 dark:border-white/5 bg-slate-50/30 dark:bg-black/20 ${!isExpanded ? 'flex justify-center' : ''}`}>
+      <div className={`p-4 border-t border-border bg-muted/20 ${!isExpanded ? 'flex justify-center' : ''}`}>
         {isExpanded ? (
-          <div className="flex items-center justify-between bg-white/70 dark:bg-slate-900/60 p-1.5 rounded-full border border-slate-200/50 dark:border-white/5 shadow-inner">
+          <div className="flex items-center justify-between bg-background p-1.5 rounded-full border border-border shadow-inner">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setTheme('light')}
-              className={`flex-1 rounded-full h-8 flex items-center justify-center gap-2 transition-all ${mounted && theme === 'light' ? 'bg-white shadow-md text-amber-500 font-bold scale-100' : 'text-slate-400 hover:text-slate-600 scale-95 opacity-70'}`}
+              className={`flex-1 rounded-full h-8 flex items-center justify-center gap-2 transition-all ${mounted && theme === 'light' ? 'bg-card shadow-md text-amber-500 font-bold scale-100' : 'text-slate-400 hover:text-slate-600 scale-95 opacity-70'}`}
             >
               <Sun className="w-4 h-4 shrink-0" />
               <span className="text-xs">Açık</span>
@@ -175,7 +175,7 @@ export function Sidebar() {
               variant="ghost"
               size="sm"
               onClick={() => setTheme('dark')}
-              className={`flex-1 rounded-full h-8 flex items-center justify-center gap-2 transition-all ${mounted && theme === 'dark' ? 'bg-slate-800 shadow-md text-indigo-400 font-bold scale-100 ring-1 ring-white/10' : 'text-slate-400 hover:text-slate-300 scale-95 opacity-70'}`}
+              className={`flex-1 rounded-full h-8 flex items-center justify-center gap-2 transition-all ${mounted && theme === 'dark' ? 'bg-card shadow-md text-indigo-400 font-bold scale-100 ring-1 ring-border' : 'text-slate-400 hover:text-slate-300 scale-95 opacity-70'}`}
             >
               <Moon className="w-4 h-4 shrink-0" />
               <span className="text-xs">Koyu</span>
@@ -186,7 +186,7 @@ export function Sidebar() {
             variant="ghost"
             size="icon"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="rounded-full w-10 h-10 hover:bg-slate-200 dark:hover:bg-slate-800"
+            className="rounded-full w-10 h-10 hover:bg-muted"
           >
             {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-indigo-400" />}
           </Button>

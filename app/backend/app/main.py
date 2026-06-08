@@ -238,12 +238,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "6.3",
-        "version_code": 53,
-        "download_url": "https://myworld-twqx.onrender.com/static/Planla_v6.3.apk",
+        "version": "6.4",
+        "version_code": 54,
+        "download_url": "https://myworld-twqx.onrender.com/static/Planla_v6.4.apk",
         "min_supported_version": "1.0",
-        "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
-        "changelog": "- Profil menüsüne manuel Güncellemeleri Denetle butonu eklendi.\n- Kapatılan güncelleme ekranları için floating güncelleme baloncuğu ve profil üstünde kırmızı nokta eklendi.\n- Splash geçişi ve sızma sorunu styles.xml temasından düzeltildi.\n- Sürüm v6.3 (Code 53)"
+        "force_update": False,
+        "changelog": "- Üst bardaki uygulama simgesi/başlığı kalıntısı kesin olarak giderildi (installSplashScreen entegrasyonu).\n- Sürüm v6.4 (Code 54)"
     }
 
 @app.get("/api/link-preview")

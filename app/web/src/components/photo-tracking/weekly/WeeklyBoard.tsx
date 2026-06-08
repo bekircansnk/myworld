@@ -104,7 +104,7 @@ function ColorRow({ color, onUpdateColor }: { color: PhotoModelColor, onUpdateCo
 
   return (
     <>
-    <div onContextMenu={handleContextMenu} className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700 shadow-sm transition-all hover:border-brand-dark/20 cursor-default">
+    <div onContextMenu={handleContextMenu} className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 p-3 bg-card rounded-lg border border-border shadow-sm transition-all hover:border-brand-dark/20 cursor-default">
       <div className="font-semibold text-sm text-brand-dark dark:text-white min-w-[120px]">
         {isEditingName ? (
            <input 
@@ -292,7 +292,7 @@ function ModelCard({ model, onUpdateColor, onModelStatusChange }: ModelCardProps
 
   return (
     <>
-    <div onContextMenu={handleContextMenu} className={`bg-white dark:bg-slate-800 rounded-xl shadow-sm border transition-colors hover:border-brand-dark/30 ${allColorsDone || model.status === 'completed' ? 'border-emerald-200 dark:border-emerald-900/50' : 'border-slate-200 dark:border-white/5'}`}>
+    <div onContextMenu={handleContextMenu} className={`bg-card rounded-xl shadow-sm border transition-colors hover:border-brand-dark/30 ${allColorsDone || model.status === 'completed' ? 'border-emerald-200 dark:border-emerald-900/50' : 'border-border'}`}>
       <div 
         className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
@@ -349,14 +349,14 @@ function ModelCard({ model, onUpdateColor, onModelStatusChange }: ModelCardProps
       </div>
       
       {isExpanded && (
-        <div className="border-t border-slate-100 dark:border-white/5 p-4 bg-slate-50/50 dark:bg-slate-900/20">
+        <div className="border-t border-border p-4 bg-muted/30">
            <div className="space-y-2">
              {model.colors.map(color => (
                <ColorRow key={color.id} color={color} onUpdateColor={onUpdateColor} />
              ))}
              
              {isAddingColor ? (
-               <div className="flex items-center gap-3 mt-3 p-2 bg-white dark:bg-slate-800 rounded-lg border border-brand-dark/20 shadow-sm">
+               <div className="flex items-center gap-3 mt-3 p-2 bg-card rounded-lg border border-border shadow-sm">
                  <input 
                    type="text" 
                    value={newColorName} 
@@ -592,7 +592,7 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
         
         {/* Month Picker and Export */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-white dark:bg-slate-800 px-4 py-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+          <div className="flex items-center gap-2 bg-card px-4 py-2 rounded-xl shadow-sm border border-border">
             <button onClick={handlePrevMonth} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors">
               <ChevronLeft className="w-5 h-5 text-slate-500" />
             </button>
@@ -642,14 +642,14 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
                        </span>
                        <button 
                          onClick={(e) => { e.stopPropagation(); importingWeekRef.current = weekNum; fileInputRef.current?.click(); }}
-                         className="text-xs flex items-center gap-1 font-bold text-brand-dark dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors bg-slate-100 dark:bg-slate-800 px-2 sm:px-3 py-1.5 rounded-lg"
+                         className="text-xs flex items-center gap-1 font-bold text-brand-dark dark:text-white hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors bg-muted px-2 sm:px-3 py-1.5 rounded-lg"
                          title="Bu Haftaya Excel İçeri Aktar"
                        >
                           <Upload className="w-3.5 h-3.5" /> <span className="hidden sm:inline-block">Excel Aktar</span>
                        </button>
                        <button 
                          onClick={(e) => { e.stopPropagation(); setSelectedWeek(weekNum); setIsModalOpen(true); }}
-                         className="text-xs flex items-center gap-1 font-bold text-brand-dark dark:text-white hover:text-brand-yellow dark:hover:text-brand-yellow transition-colors bg-slate-100 dark:bg-slate-800 px-2 sm:px-3 py-1.5 rounded-lg"
+                         className="text-xs flex items-center gap-1 font-bold text-brand-dark dark:text-white hover:text-brand-yellow dark:hover:text-brand-yellow transition-colors bg-muted px-2 sm:px-3 py-1.5 rounded-lg"
                        >
                           <Plus className="w-3.5 h-3.5" /> <span className="hidden sm:inline-block">Model Ekle</span>
                        </button>
@@ -685,11 +685,11 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
       {/* Model Ekleme Modalı */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 w-full max-w-md overflow-hidden">
-             <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-700">
+          <div className="bg-card rounded-2xl shadow-xl border border-border w-full max-w-md overflow-hidden">
+             <div className="flex items-center justify-between p-5 border-b border-border">
                 <h3 className="font-bold text-lg text-brand-dark dark:text-white">{selectedWeek}. Hafta İçin Model Ekle</h3>
                 <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
-                  <Minus className="w-5 h-5 rotate-45" /> {/* Close icon as Plus rotated */}
+                  <Minus className="w-5 h-5 rotate-45" />
                 </button>
              </div>
              
@@ -701,7 +701,7 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
                      required 
                      value={newModel.model_name}
                      onChange={e => setNewModel({ ...newModel, model_name: e.target.value })}
-                     className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-dark/20 text-sm"
+                     className="w-full px-3 py-2.5 rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-brand-dark/20 text-sm"
                      placeholder="Örn: 2010728Y AYAKKABI"
                    />
                 </div>
@@ -711,7 +711,7 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
                      type="text" 
                      value={newModel.sezon_kodu}
                      onChange={e => setNewModel({ ...newModel, sezon_kodu: e.target.value })}
-                     className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-dark/20 text-sm"
+                     className="w-full px-3 py-2.5 rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-brand-dark/20 text-sm"
                      placeholder="Örn: SS26"
                    />
                 </div>
@@ -721,19 +721,19 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
                      rows={3}
                      value={newModel.notes}
                      onChange={e => setNewModel({ ...newModel, notes: e.target.value })}
-                     className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-dark/20 text-sm resize-none"
+                     className="w-full px-3 py-2.5 rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-brand-dark/20 text-sm resize-none"
                      placeholder="Ek bilgiler..."
                    />
                 </div>
 
-                <div className="pt-4 mt-2 border-t border-slate-100 dark:border-slate-700">
+                <div className="pt-4 mt-2 border-t border-border">
                    <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Renk Bilgisi (Opsiyonel)</label>
                    <div className="flex flex-col gap-3">
                        <input 
                          type="text" 
                          value={newModel.color_name}
                          onChange={e => setNewModel({ ...newModel, color_name: e.target.value })}
-                         className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-dark/20 text-sm"
+                         className="w-full px-3 py-2.5 rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-brand-dark/20 text-sm"
                          placeholder="Örn: Siyah"
                        />
                        

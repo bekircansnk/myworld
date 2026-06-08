@@ -283,7 +283,7 @@ const MOTIVATIONAL_QUOTES = [
           {/* Dün Neler Yaptık & Genel İlerleme Kartları */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-3 w-full md:w-auto shrink-0">
             {/* Tamamlanan Görev Sayısı & Unvan (Sade Motivasyon) */}
-            <div className="bg-slate-500/5 dark:bg-white/[0.02] border border-border/60 rounded-xl md:rounded-2xl p-3 md:p-4 flex items-center gap-3 w-full sm:w-auto min-w-[200px]">
+            <div className="bg-muted/10 border border-border/60 rounded-xl md:rounded-2xl p-3 md:p-4 flex items-center gap-3 w-full sm:w-auto min-w-[200px]">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-base">
                 📊
               </div>

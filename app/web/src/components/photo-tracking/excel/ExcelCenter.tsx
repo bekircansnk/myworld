@@ -81,11 +81,11 @@ export function ExcelCenter({ projectId }: ExcelCenterProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Sol: İçe Aktarma Kutusu */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-white/5 p-6 flex flex-col h-[400px]">
+        <div className="bg-card rounded-2xl shadow-sm border border-border p-6 flex flex-col h-[400px]">
           <h3 className="font-bold text-brand-dark dark:text-white mb-4">Excel Yükle</h3>
           
           <div 
-            className={`flex-1 border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-8 transition-colors ${dragActive ? 'border-brand-dark bg-brand-dark/5 dark:border-brand-yellow dark:bg-brand-yellow/10' : 'border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50'}`}
+            className={`flex-1 border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-8 transition-colors ${dragActive ? 'border-brand-dark bg-brand-dark/5 dark:border-brand-yellow dark:bg-brand-yellow/10' : 'border-border bg-muted/40'}`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
@@ -101,7 +101,7 @@ export function ExcelCenter({ projectId }: ExcelCenterProps) {
                 <div className="flex items-center gap-3 justify-center">
                   <button 
                     onClick={() => setSelectedFile(null)}
-                    className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    className="px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-muted transition-colors"
                   >
                     İptal
                   </button>
@@ -116,7 +116,7 @@ export function ExcelCenter({ projectId }: ExcelCenterProps) {
               </div>
             ) : (
               <div className="text-center">
-                <div className="w-16 h-16 bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-card shadow-sm border border-border rounded-full flex items-center justify-center mx-auto mb-4">
                   <Upload className="w-8 h-8 text-brand-gray dark:text-gray-400" />
                 </div>
                 <p className="font-bold text-brand-dark dark:text-white mb-1">Dosyayı sürükleyip bırakın</p>
@@ -154,7 +154,7 @@ export function ExcelCenter({ projectId }: ExcelCenterProps) {
         </div>
 
         {/* Sağ: İçe Aktarma Geçmişi ve Dışa Aktarma */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-white/5 p-6 flex flex-col h-[400px]">
+        <div className="bg-card rounded-2xl shadow-sm border border-border p-6 flex flex-col h-[400px]">
           <div className="flex items-center justify-between mb-4">
              <h3 className="font-bold text-brand-dark dark:text-white">Son İçe Aktarmalar</h3>
              <button 
@@ -174,7 +174,7 @@ export function ExcelCenter({ projectId }: ExcelCenterProps) {
             ) : (
               <div className="space-y-3">
                  {importLogs.map(log => (
-                    <div key={log.id} className="p-3 rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                    <div key={log.id} className="p-3 rounded-xl border border-border bg-muted/30">
                        <div className="flex items-center justify-between mb-1">
                           <span className="font-semibold text-sm truncate pr-4">{log.file_name}</span>
                           <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${log.status === 'success' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>

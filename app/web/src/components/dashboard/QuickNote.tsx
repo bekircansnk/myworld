@@ -115,7 +115,7 @@ export function QuickNote() {
                  value={note}
                  onChange={(e) => setNote(e.target.value)}
                  placeholder="Aklına gelen fikri veya görevi yaz... AI senin için detaylandırsın ✨"
-                 className="absolute inset-0 resize-none border-0 shadow-inner rounded-xl text-sm bg-slate-50/50 dark:bg-black/20 focus-visible:ring-2 focus-visible:ring-amber-500/30 p-3 transition-all min-h-[50px] leading-tight"
+                 className="absolute inset-0 resize-none border-0 shadow-inner rounded-xl text-sm bg-muted/40 focus-visible:ring-2 focus-visible:ring-amber-500/30 p-3 transition-all min-h-[50px] leading-tight"
                  onKeyDown={(e) => {
                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
                      handleSendToAI()
@@ -164,7 +164,7 @@ export function QuickNote() {
                 </h4>
                 <div className="space-y-1.5">
                    {result.tasks_found.map((t, i) => (
-                     <div key={i} className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-start gap-2 py-1 px-2 rounded-lg bg-white/50 dark:bg-black/20">
+                     <div key={i} className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-start gap-2 py-1 px-2 rounded-lg bg-muted/40">
                        <CheckCircle2 className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" /> 
                        <span>{t}</span>
                      </div>
@@ -181,7 +181,7 @@ export function QuickNote() {
                 </h4>
                 <div className="space-y-1.5">
                    {result.ideas.map((idea, i) => (
-                     <div key={i} className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-start gap-2 py-1 px-2 rounded-lg bg-white/50 dark:bg-black/20">
+                     <div key={i} className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-start gap-2 py-1 px-2 rounded-lg bg-muted/40">
                         <span className="text-purple-500 shrink-0 mt-0.5">💡</span>
                         <span>{idea}</span>
                      </div>

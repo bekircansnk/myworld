@@ -105,16 +105,16 @@ export function PomodoroTimer() {
           {mode === 'focus' ? <BrainCircuit className="w-4 h-4 text-orange-500" /> : <Coffee className="w-4 h-4 text-emerald-500" />}
           {mode === 'focus' ? 'Odak' : 'Mola'}
         </h3>
-        <div className="flex bg-white/50 dark:bg-black/30 backdrop-blur-md rounded-lg p-0.5 border border-white/20 dark:border-white/5 shadow-inner">
+        <div className="flex bg-muted/40 backdrop-blur-md rounded-lg p-0.5 border border-border shadow-inner">
           <button 
             onClick={() => switchMode('focus')}
-            className={`text-[10px] font-bold px-2 py-1 rounded-md transition-all duration-300 ${mode === 'focus' ? 'bg-white dark:bg-slate-800 shadow-sm text-orange-500' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+            className={`text-[10px] font-bold px-2 py-1 rounded-md transition-all duration-300 ${mode === 'focus' ? 'bg-card shadow-sm text-orange-500' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
           >
             25m
           </button>
           <button 
              onClick={() => switchMode('break')}
-             className={`text-[10px] font-bold px-2 py-1 rounded-md transition-all duration-300 ${mode === 'break' ? 'bg-white dark:bg-slate-800 shadow-sm text-emerald-500' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+             className={`text-[10px] font-bold px-2 py-1 rounded-md transition-all duration-300 ${mode === 'break' ? 'bg-card shadow-sm text-emerald-500' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
           >
             5m
           </button>
@@ -159,7 +159,7 @@ export function PomodoroTimer() {
              {isLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 
              isActive ? <><Pause className="w-4 h-4 mr-1.5" /> Duraklat</> : <><Play className="w-4 h-4 mr-1.5" /> Başlat</>}
           </Button>
-          <Button onClick={resetTimer} variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-white/30 dark:bg-black/20 hover:bg-white/50 border border-white/20 text-slate-600 dark:text-slate-300 btn-3d" disabled={isLoading}>
+          <Button onClick={resetTimer} variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-muted/40 hover:bg-muted/60 border border-border text-slate-600 dark:text-slate-300 btn-3d" disabled={isLoading}>
             <RotateCcw className="w-4 h-4" />
           </Button>
         </div>

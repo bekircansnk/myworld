@@ -55,13 +55,13 @@ export function OngoingTasksWidget() {
                 className={`relative overflow-hidden p-4 rounded-2xl cursor-pointer transition-all duration-300 group
                   ${isFirst 
                     ? 'bg-gradient-to-r from-[#DFF5E8] to-[#EFFFF5] dark:from-[#132A1F] dark:to-[#193A2A] border border-[#cbeadd]/50 dark:border-[#132A1F]/50 shadow-sm'
-                    : 'bg-slate-50 border border-slate-100 dark:bg-white/5 dark:border-white/5 hover:border-indigo-100 dark:hover:border-indigo-900/50 hover:bg-white dark:hover:bg-[#1a1e2e]'
+                    : 'bg-muted/50 border border-border hover:border-indigo-100 dark:hover:border-indigo-900/50 hover:bg-card'
                   }
                 `}
               >
                 <div className="flex justify-between items-start mb-3 relative z-10">
                   <div className="flex items-center gap-3">
-                    <div className={`p-1.5 rounded-xl shrink-0 ${isFirst ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-white dark:bg-[#1a1e2e] shadow-sm text-slate-400'}`}>
+                    <div className={`p-1.5 rounded-xl shrink-0 ${isFirst ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-card border border-border shadow-sm text-slate-400'}`}>
                       <Circle className={`w-4 h-4 ${isFirst ? 'fill-emerald-500/20' : ''}`} />
                     </div>
                     <div>
@@ -80,7 +80,7 @@ export function OngoingTasksWidget() {
                   </span>
                 </div>
 
-                <div className="relative z-10 w-full bg-black/5 dark:bg-white/5 h-1.5 rounded-full overflow-hidden mt-1">
+                <div className="relative z-10 w-full bg-muted h-1.5 rounded-full overflow-hidden mt-1">
                   <div 
                     className={`h-full rounded-full transition-all duration-1000 ease-out ${isFirst ? 'bg-emerald-500' : 'bg-indigo-400'}`}
                     style={{ width: `${progress}%` }}

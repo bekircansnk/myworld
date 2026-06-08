@@ -42,15 +42,15 @@ export function PermissionMatrix({ users, onUpdateUser }: { users: any[], onUpda
   }
 
   return (
-    <div className="overflow-x-auto pb-4">
-       <table className="w-full text-left text-sm whitespace-nowrap">
+    <div className="crm-table-wrap">
+       <table className="crm-table text-sm whitespace-nowrap">
           <thead>
              <tr>
-                <th className="sticky left-0 z-10 bg-white dark:bg-slate-800 p-4 border-b border-r border-slate-200 dark:border-white/10 min-w-[200px]">
-                   <span className="font-bold text-slate-500">Kullanıcılar</span>
+                <th className="crm-table-sticky p-4 border-r min-w-[200px]">
+                   <span className="font-bold text-slate-500 dark:text-slate-400">Kullanıcılar</span>
                 </th>
                 {MODULES.map(mod => (
-                   <th key={mod.key} className="p-4 border-b border-slate-200 dark:border-white/10 text-center">
+                   <th key={mod.key} className="p-4 text-center">
                       <span className="font-bold text-brand-dark dark:text-white">{mod.label}</span>
                       <div className="flex justify-center gap-4 mt-2 text-[10px] text-slate-400 font-medium uppercase tracking-wider">
                          <span>Gör</span>
@@ -65,15 +65,15 @@ export function PermissionMatrix({ users, onUpdateUser }: { users: any[], onUpda
                 const isSuper = user.role === 'super_admin'
                 
                 return (
-                   <tr key={user.id} className="group hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                      <td className="sticky left-0 z-10 bg-white dark:bg-slate-800 group-hover:bg-slate-50 dark:group-hover:bg-slate-800/50 p-4 border-b border-r border-slate-200 dark:border-white/10">
+                   <tr key={user.id} className="group">
+                      <td className="crm-table-sticky p-4 border-r">
                          <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold shrink-0">
                                {user.avatar_url ? <img src={user.avatar_url.startsWith('http') ? user.avatar_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${user.avatar_url}`} className="w-full h-full rounded-full object-cover"/> : user.name.substring(0,2).toUpperCase()}
                             </div>
                             <div>
                                <p className="font-bold text-brand-dark dark:text-white">{user.name}</p>
-                               <p className="text-[10px] text-slate-500">{user.role}</p>
+                               <p className="text-[10px] text-slate-500 dark:text-slate-400">{user.role}</p>
                             </div>
                          </div>
                       </td>
@@ -83,7 +83,7 @@ export function PermissionMatrix({ users, onUpdateUser }: { users: any[], onUpda
                          const hasEdit = isSuper || (user.permissions?.[mod.key]?.edit ?? false)
                          
                          return (
-                            <td key={mod.key} className="p-4 border-b border-slate-100 dark:border-white/5 text-center">
+                            <td key={mod.key} className="p-4 text-center">
                                {isSuper ? (
                                   <div className="flex justify-center items-center h-full">
                                      <ShieldAlert className="w-4 h-4 text-purple-500/50" />
