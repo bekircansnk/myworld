@@ -267,8 +267,10 @@ html, body {
     scroll-snap-align: center;
   }
   .kanban-board-scroll {
-    scroll-snap-type: x mandatory;
+    scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+    overscroll-behavior-x: contain;
   }
   /* Sürükleme sırasında snap-scroll'u kapat ki board özgürce kayssın */
   .kanban-board-scroll.is-dragging {
@@ -323,6 +325,8 @@ html, body {
   scrollbar-width: none;
   -ms-overflow-style: none;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  overscroll-behavior-y: contain;
 }
 .kanban-column-scroll::-webkit-scrollbar {
   display: none;

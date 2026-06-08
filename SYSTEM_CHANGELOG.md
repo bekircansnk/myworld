@@ -2,6 +2,15 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-06-08] - Sürüm 6.7 - Kanban İki Eksenli Dokunmatik Pan Düzeltmesi (v5.9)
+
+### Çözüldü
+- **Yatay Pan Kilidi:** Önceki mobil scroll düzeltmesinde sütun içi alana eklenen `touch-pan-y`, Android WebView/PWA üzerinde kart veya sütun üzerinden başlayan yatay kaydırmayı engelleyebiliyordu. Board, sütun ve kart katmanlarında `touch-action: pan-x pan-y` tek standarda çekildi.
+- **Mobil Kanban Snap Esnekliği:** Mobilde `scroll-snap-type: x mandatory` yerine `x proximity` kullanılarak yatay kaydırmanın daha doğal başlaması sağlandı; dikey sütun scroll'u ve kart dokunma akışı korunuyor.
+- **OTA Sürüm Senkronizasyonu:** Mobil sürüm bilgileri `v5.9 / Code 49` olarak güncellendi ve indirme linkleri Render.com static APK adresine eşlendi.
+
+---
+
 ## [2026-06-08] - Sürüm 6.6 - Kanban Sürükle-Bırak Sıralama Hatası ve Tamamlandı Sütunu UX Revizyonu
 
 ### Çözüldü

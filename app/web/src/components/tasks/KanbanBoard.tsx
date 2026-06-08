@@ -101,20 +101,39 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    let nextColumns: ColumnConfig[] | null = null;
+    let shouldSaveProjectColumns = false;
+
     if (projectId) {
       const currentProject = projects.find(p => p.id === projectId);
       if (currentProject) {
         if (currentProject.columns_config && currentProject.columns_config.length > 0) {
-          setColumns(currentProject.columns_config as ColumnConfig[]);
-          saveColumns(currentProject.columns_config as ColumnConfig[], projectId);
+          nextColumns = currentProject.columns_config as ColumnConfig[];
+          shouldSaveProjectColumns = true;
         } else {
           // Sunucudan sütun yapılandırması gelmediyse -> daima varsayılan sütunları göster, localStorage'daki eski veriyi sunucuya taşımamak için
-          setColumns(DEFAULT_COLUMNS);
+          nextColumns = DEFAULT_COLUMNS;
         }
       }
     } else {
-      setColumns(loadColumns(null));
+      nextColumns = loadColumns(null);
     }
+
+    if (!nextColumns) return;
+
+    let cancelled = false;
+    const resolvedColumns = nextColumns;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setColumns(resolvedColumns);
+      if (shouldSaveProjectColumns && projectId) {
+        saveColumns(resolvedColumns, projectId);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [projectId, projects]);
 
   const saveAndSyncColumns = React.useCallback(async (newCols: ColumnConfig[]) => {
@@ -586,11 +605,15 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`flex-1 overflow-y-auto kanban-column-scroll touch-pan-y overscroll-y-contain flex flex-col gap-2 rounded-xl p-2 min-h-[200px] border-2 border-transparent ${
+                      className={`flex-1 overflow-y-auto kanban-column-scroll overscroll-y-contain flex flex-col gap-2 rounded-xl p-2 min-h-[200px] border-2 border-transparent ${
                         snapshot.isDraggingOver 
                           ? 'bg-indigo-50/50 dark:bg-indigo-500/10 border-indigo-200/50 dark:border-indigo-500/20 shadow-inner' 
                           : 'bg-gray-50/50 dark:bg-white/[0.02]'
                       }`}
+                      style={{
+                        WebkitOverflowScrolling: 'touch',
+                        touchAction: 'pan-x pan-y'
+                      }}
                     >
                       {columnTasks.map((task, index) => (
                         <Draggable key={task.id.toString()} draggableId={task.id.toString()} index={index}>
@@ -600,7 +623,10 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
                               className={`shrink-0 ${snapshot.isDragging ? 'shadow-2xl ring-2 ring-indigo-500/50 cursor-grabbing opacity-90' : 'cursor-grab hover:shadow-md'}`}
-                              style={provided.draggableProps.style}
+                              style={{
+                                ...provided.draggableProps.style,
+                                touchAction: 'pan-x pan-y'
+                              }}
                             >
                               <TaskCard
                                 task={task}

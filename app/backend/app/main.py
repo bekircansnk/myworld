@@ -238,12 +238,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "5.8",
-        "version_code": 48,
-        "download_url": "https://myworld-twqx.onrender.com/static/Planla_v5.8.apk",
+        "version": "5.9",
+        "version_code": 49,
+        "download_url": "https://myworld-twqx.onrender.com/static/Planla_v5.9.apk",
         "min_supported_version": "1.0",
         "force_update": False, # ARTIK ESNEK GÜNCELLEME (Kullanıcı es geçebilir)
-        "changelog": "- Mobil dokunmatik dikey kaydırma sorunu giderildi; görev board'u yatay kaydırmayı korurken dikey pan hareketini artık engellemiyor.\n- Dashboard ve ana mobil kabuk scroll alanları Android/PWA için kesin yükseklik ve momentum scroll ile sabitlendi.\n- Sürüm v5.8 (Code 48) olarak güncellendi."
+        "changelog": "- Görev board'unda kart veya sütun üzerinden başlayan dokunuşlarda yatay ve dikey pan hareketleri birlikte çalışacak şekilde düzeltildi.\n- Mobil/PWA Kanban scroll snap davranışı daha esnek hale getirildi; yatay kaydırma, dikey sütun scroll'u ve kart dokunma akışı birlikte korunuyor.\n- Sürüm v5.9 (Code 49) olarak güncellendi."
     }
 
 @app.get("/api/link-preview")

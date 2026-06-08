@@ -7,6 +7,15 @@ Bu dosya, Pikseliş mobil uygulamasının (APK) sürümlerini ve her sürümde y
 - Alt sürüm 9'a ulaştığında (Örn: 1.9), bir sonraki sürüm tam sayı artar (Örn: 2.0).
 - `versionCode` her yeni sürümde +1 olarak artırılır.
 
+### v5.9
+**Tarih:** 8 Haziran 2026
+**Değişiklikler:**
+- **[Kritik İki Eksenli Dokunmatik Düzeltme]** Kanban sütun içi `touch-pan-y` kısıtı kaldırıldı; board, sütun ve kart katmanlarında `touch-action: pan-x pan-y` tutarlı hale getirildi. Böylece kart üstünden başlayan dokunuşlarda yatay board kaydırma ve dikey sütun kaydırma birlikte çalışır.
+- **[Mobil Scroll Snap İyileştirmesi]** Mobil Kanban `scroll-snap-type` davranışı `mandatory` yerine `proximity` yapıldı; Android WebView/PWA üzerinde yatay kaydırmanın sert kilitlenmesi azaltıldı.
+- **[Sürüm Yükseltme]** `versionCode 49` ve `versionName "5.9"` olarak yeni debug APK derlemesi yapıldı.
+
+---
+
 ### v5.8
 **Tarih:** 8 Haziran 2026
 **Değişiklikler:**
