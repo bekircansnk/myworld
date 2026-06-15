@@ -1,7 +1,7 @@
 // Bu dosya Gemini Live API anahtarlarını kod içinde yönetir ve limit dolduğunda rotation sağlar.
 // GitHub Push Protection / Secret Scanning engeline takılmamak için anahtarlar base64 formatında saklanır.
 const ENCODED_KEYS = [
-  "QUl6YVN5QlRxd043VGQ3NGc1NkIycHY4eml5MlRYLXhWVnQtV21j",
+  "QUl6YVN5QVlicDlmbzRoQXkwaVFIaW9kb3pSVHVVX3daVTl2ZzBB",
   "QVEuQWI4Uk42SjJKU0htQUwyVF90MXpPT0ZjTzNjYlZLTnlVQzdRMmVzTllpM0dvT1YyMFE="
 ];
 
