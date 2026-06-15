@@ -21,7 +21,8 @@ export function useLiveTranslate() {
     addLog,
   } = useLiveTranslateStore();
 
-  const wsRef = useRef<WebSocket | null>(null);
+  const wsMeRef = useRef<WebSocket | null>(null);
+  const wsOtherRef = useRef<WebSocket | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const playAudioContextRef = useRef<AudioContext | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
@@ -45,7 +46,6 @@ export function useLiveTranslate() {
     try {
       if (typeof navigator === "undefined" || !navigator.mediaDevices) return;
       
-      // İlk başta izni tetiklemek için geçici mic isteği yapılabilir
       const deviceInfos = await navigator.mediaDevices.enumerateDevices();
       const inputs = deviceInfos.filter(d => d.kind === "audioinput");
       const outputs = deviceInfos.filter(d => d.kind === "audiooutput");
@@ -197,13 +197,19 @@ export function useLiveTranslate() {
       audioContextRef.current = null;
     }
 
-    if (wsRef.current) {
-      wsRef.current.onclose = null;
-      wsRef.current.onerror = null;
-      wsRef.current.onmessage = null;
-      wsRef.current.close();
-      wsRef.current = null;
-    }
+    const closeSocket = (ws: WebSocket | null) => {
+      if (ws) {
+        ws.onclose = null;
+        ws.onerror = null;
+        ws.onmessage = null;
+        ws.close();
+      }
+    };
+
+    closeSocket(wsMeRef.current);
+    wsMeRef.current = null;
+    closeSocket(wsOtherRef.current);
+    wsOtherRef.current = null;
 
     setStatus("idle");
   };
@@ -215,8 +221,7 @@ export function useLiveTranslate() {
     setErrorMessage(null);
 
     const apiKey = getGeminiApiKey();
-    addLog(`Oturum başlatılıyor. Mod: ${currentMode}, Auto: ${isAutomaticMode}`);
-    addLog(`Kullanılan Key Index: ${useLiveTranslateStore.getState().logs.length > 0 ? "Rotation" : "Start"}`);
+    addLog(`Oturum başlatılıyor. Model: gemini-3.5-live-translate-preview, Mod: ${currentMode}`);
     const url = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key=${apiKey}`;
 
     try {
@@ -235,212 +240,237 @@ export function useLiveTranslate() {
         await playAudioContextRef.current.resume();
       }
 
-      // 3. WebSocket bağlantısı kur
-      const ws = new WebSocket(url);
-      wsRef.current = ws;
-
-      let connectionTimeout = setTimeout(() => {
-        if (ws.readyState !== WebSocket.OPEN) {
-          console.warn("WebSocket connection timeout. Rotating key...");
-          addLog("WebSocket bağlantı zaman aşımı! Key değiştiriliyor...");
-          ws.close();
-          handleKeyFailure(currentMode);
-        }
-      }, 5000);
-
-      ws.onopen = () => {
-        clearTimeout(connectionTimeout);
-        console.log("WebSocket connection established! Mode:", currentMode);
-        addLog(`WebSocket bağlantısı başarıyla kuruldu! Model kuruluyor...`);
-        setStatus("connected");
-        retryCountRef.current = 0;
-
-        // A. Setup/Konfigürasyon mesajı gönder
-        let systemInstruction = "";
-        
-        if (isAutomaticMode || currentMode === "auto") {
-          // Otomatik mod talimatı: Çift yönlü otomatik algılama ve yönlendirme
-          systemInstruction = `You are a professional bidirectional instant translator.
-- You will receive audio chunks in either language code ${myLanguage} or language code ${targetLanguage}.
-- Your task is to detect the source language automatically.
-- If the speaker talks in ${myLanguage}, translate it immediately to ${targetLanguage} and prefix your text output with "[TO_ENG] ". Then output the translated audio and text.
-- If the speaker talks in ${targetLanguage}, translate it immediately to ${myLanguage} and prefix your text output with "[TO_TR] ". Then output the translated audio and text.
-- Output ONLY the translation. Do NOT add any conversational filler, greetings, comments or explanations.
-- Speak in the destination language.`;
+      let connectedSocketsCount = 0;
+      const onConnectSuccess = () => {
+        connectedSocketsCount += 1;
+        if (currentMode === "auto") {
+          if (connectedSocketsCount >= 2) {
+            setStatus("connected");
+            retryCountRef.current = 0;
+          }
         } else {
-          // Bas-Konuş/Manuel mod talimatı
-          const sourceLang = currentMode === "me" ? myLanguage : targetLanguage;
-          const destLang = currentMode === "me" ? targetLanguage : myLanguage;
-          const toPrefix = currentMode === "me" ? "[TO_ENG]" : "[TO_TR]";
-
-          systemInstruction = `You are a professional instant translator. 
-Your goal is to translate everything you hear immediately.
-Translate from language code ${sourceLang} to language code ${destLang}.
-- Prefix your text output with "${toPrefix} ".
-- Output ONLY the translated audio and translated text.
-- Do NOT add any conversational filler, explanations, greetings or remarks.
-- Translate accurately, keeping the natural tone of the speaker.
-- Speak in the destination language.`;
+          setStatus("connected");
+          retryCountRef.current = 0;
         }
+      };
 
-        const setupMessage = {
-          setup: {
-            model: "models/gemini-2.5-flash-native-audio-latest",
-            generationConfig: {
-              responseModalities: ["AUDIO"],
-              speechConfig: {
-                voiceConfig: {
-                  prebuiltVoiceConfig: {
-                    voiceName: "Aoede" // Aoede, Puck, Charon, Kore, Fenrir
+      const onFailure = (err: any) => {
+        console.error("Connection failure callback:", err);
+        handleKeyFailure(currentMode);
+      };
+
+      // WebSocket oluşturma yardımcı fonksiyonu
+      const createTranslationSocket = (
+        targetLangCode: string,
+        echo: boolean,
+        isMeConn: boolean
+      ): WebSocket => {
+        const ws = new WebSocket(url);
+        
+        let connectionTimeout = setTimeout(() => {
+          if (ws.readyState !== WebSocket.OPEN) {
+            console.warn("WebSocket connection timeout. Reconnecting...");
+            ws.close();
+            onFailure(new Error("Timeout"));
+          }
+        }, 6000);
+
+        ws.onopen = () => {
+          clearTimeout(connectionTimeout);
+          addLog(`${isMeConn ? "[BENİM SESİM]" : "[KARŞI TARAF]"} soket bağlantısı başarıyla kuruldu. Model ayarlanıyor...`);
+          onConnectSuccess();
+
+          const setupMessage = {
+            setup: {
+              model: "models/gemini-3.5-live-translate-preview",
+              generationConfig: {
+                responseModalities: ["AUDIO"],
+                speechConfig: {
+                  voiceConfig: {
+                    prebuiltVoiceConfig: {
+                      voiceName: "Aoede" // Aoede, Puck, Charon, Kore, Fenrir
+                    }
                   }
                 }
-              }
-            },
-            systemInstruction: {
-              parts: [
-                { text: systemInstruction }
-              ]
+              },
+              translationConfig: {
+                targetLanguageCode: targetLangCode,
+                echoTargetLanguage: echo
+              },
+              inputAudioTranscription: {},
+              outputAudioTranscription: {}
             }
+          };
+
+          addLog(`Kurulum Gönderildi -> Hedef Dil: ${targetLangCode}, Echo: ${echo}`);
+          ws.send(JSON.stringify(setupMessage));
+        };
+
+        ws.onmessage = async (event) => {
+          try {
+            let dataStr = "";
+            if (typeof event.data === "string") {
+              dataStr = event.data;
+            } else if (event.data instanceof Blob) {
+              dataStr = await event.data.text();
+            } else if (event.data instanceof ArrayBuffer) {
+              dataStr = new TextDecoder().decode(event.data);
+            } else {
+              dataStr = event.data.toString();
+            }
+            const response = JSON.parse(dataStr);
+
+            // A. Giriş Metin Deşifresi (Input Transcription)
+            if (response.serverContent?.inputTranscription?.text) {
+              const inputTxt = response.serverContent.inputTranscription.text;
+              const speaker = isMeConn ? "me" : "other";
+              
+              addLog(`[Giriş - ${speaker === "me" ? "Ben" : "Karşı"}] ${inputTxt}`);
+
+              if (!currentTurnIdRef.current) {
+                currentTurnIdRef.current = Math.random().toString(36).substring(7);
+                addTranscript({
+                  id: currentTurnIdRef.current,
+                  speaker,
+                  text: inputTxt,
+                  timestamp: new Date().toISOString(),
+                  isFinal: false
+                });
+              } else {
+                updateTranscript(currentTurnIdRef.current, {
+                  text: inputTxt,
+                  speaker
+                });
+              }
+            }
+
+            // B. Model Çıktısı (Çeviri metni & Ses parçaları)
+            if (response.serverContent?.modelTurn?.parts) {
+              const parts = response.serverContent.modelTurn.parts;
+
+              parts.forEach((part: any) => {
+                // Çeviri Metni
+                if (part.text) {
+                  const translationTxt = part.text;
+                  const speaker = isMeConn ? "me" : "other";
+                  
+                  addLog(`[Çeviri - ${speaker === "me" ? "Me->Other" : "Other->Me"}] ${translationTxt}`);
+
+                  if (!currentTurnIdRef.current) {
+                    currentTurnIdRef.current = Math.random().toString(36).substring(7);
+                    addTranscript({
+                      id: currentTurnIdRef.current,
+                      speaker,
+                      text: "",
+                      translatedText: translationTxt,
+                      timestamp: new Date().toISOString(),
+                      isFinal: false
+                    });
+                  } else {
+                    updateTranscript(currentTurnIdRef.current, {
+                      translatedText: translationTxt,
+                      speaker
+                    });
+                  }
+                }
+
+                // PCM Ses Parçası
+                if (part.inlineData && part.inlineData.mimeType?.startsWith("audio/pcm")) {
+                  let sampleRate = 24000;
+                  const match = part.inlineData.mimeType.match(/rate=(\d+)/);
+                  if (match && match[1]) {
+                    sampleRate = parseInt(match[1], 10);
+                  }
+
+                  // Benim çevirilmiş sesim (TR->ENG) karşı tarafa (Hoparlör, isToTr = false)
+                  // Karşı tarafın çevrilmiş sesi (ENG->TR) bana (Kulaklık, isToTr = true)
+                  const isToTr = !isMeConn;
+                  playPcmChunk(part.inlineData.data, sampleRate, isToTr);
+                }
+              });
+            }
+
+            if (response.serverContent?.turnComplete) {
+              if (currentTurnIdRef.current) {
+                updateTranscript(currentTurnIdRef.current, { isFinal: true });
+                currentTurnIdRef.current = null;
+              }
+            }
+          } catch (err) {
+            console.error("Error parsing WebSocket message:", err);
           }
         };
 
-        addLog(`Setup mesajı gönderildi. Model: models/gemini-2.5-flash-native-audio-latest`);
-        ws.send(JSON.stringify(setupMessage));
+        ws.onerror = (err) => {
+          console.error(`WebSocket error [isMe: ${isMeConn}]:`, err);
+          addLog(`HATA: ${isMeConn ? "Benim sesim" : "Karşı taraf"} soketinde hata oluştu.`);
+        };
 
-        // B. Ses Girişini Başlat (16kHz PCM Mono)
-        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-        audioContextRef.current = audioCtx;
-        
-        const source = audioCtx.createMediaStreamSource(stream);
-        sourceRef.current = source;
-
-        const processor = audioCtx.createScriptProcessor(2048, 1, 1);
-        processorRef.current = processor;
-
-        processor.onaudioprocess = (e) => {
-          if (ws.readyState === WebSocket.OPEN) {
-            const inputData = e.inputBuffer.getChannelData(0);
-            const pcmData = float32ToInt16(inputData);
-            const base64Data = arrayBufferToBase64(pcmData.buffer);
-            
-            ws.send(JSON.stringify({
-              realtimeInput: {
-                mediaChunks: [
-                  {
-                    mimeType: "audio/pcm;rate=16000",
-                    data: base64Data
-                  }
-                ]
-              }
-            }));
+        ws.onclose = (event) => {
+          console.log(`WebSocket closed [isMe: ${isMeConn}]: Code ${event.code}`);
+          addLog(`Kapatıldı: ${isMeConn ? "Benim sesim" : "Karşı taraf"} soketi (Kod: ${event.code}, Sebep: ${event.reason || "Belirtilmedi"})`);
+          if (status === "connecting" || (event.code !== 1000 && event.code !== 1005)) {
+            onFailure(new Error(`WebSocket closed unexpectedly with code ${event.code}`));
           }
         };
 
-        source.connect(processor);
-        processor.connect(audioCtx.destination);
+        return ws;
       };
 
-      ws.onmessage = async (event) => {
-        try {
-          let dataStr = "";
-          if (typeof event.data === "string") {
-            dataStr = event.data;
-          } else if (event.data instanceof Blob) {
-            dataStr = await event.data.text();
-          } else if (event.data instanceof ArrayBuffer) {
-            dataStr = new TextDecoder().decode(event.data);
-          } else {
-            dataStr = event.data.toString();
-          }
-          const response = JSON.parse(dataStr);
-          
-          if (response.serverContent?.modelTurn?.parts) {
-            const parts = response.serverContent.modelTurn.parts;
+      // Mod seçimine göre soketleri ayağa kaldır
+      const myLangCode = myLanguage.split("-")[0];
+      const targetLangCode = targetLanguage.split("-")[0];
 
-            parts.forEach((part: any) => {
-              // Metin Transkripti (Varsa)
-              let textChunk = "";
-              if (part.text) {
-                textChunk = part.text;
+      if (currentMode === "me") {
+        // Yalnızca benim sesimi karşı tarafa çeviren soketi aç (echo: true)
+        wsMeRef.current = createTranslationSocket(targetLangCode, true, true);
+      } else if (currentMode === "other") {
+        // Yalnızca karşı tarafın sesini bana çeviren soketi aç (echo: true)
+        wsOtherRef.current = createTranslationSocket(myLangCode, true, false);
+      } else if (currentMode === "auto") {
+        // Otomatik Mod: İki soketi birden aç (echo: false, yankı yapmasın)
+        // Soket 1: Benim sesimi dinler -> Diğer dile çevirip hoparlörden verir
+        wsMeRef.current = createTranslationSocket(targetLangCode, false, true);
+        // Soket 2: Karşı tarafın sesini dinler -> Benim dilime çevirip kulaklıktan verir
+        wsOtherRef.current = createTranslationSocket(myLangCode, false, false);
+      }
+
+      // 3. Ses Girişini Başlat (16kHz PCM Mono)
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+      audioContextRef.current = audioCtx;
+      
+      const source = audioCtx.createMediaStreamSource(stream);
+      sourceRef.current = source;
+
+      const processor = audioCtx.createScriptProcessor(2048, 1, 1);
+      processorRef.current = processor;
+
+      processor.onaudioprocess = (e) => {
+        const inputData = e.inputBuffer.getChannelData(0);
+        const pcmData = float32ToInt16(inputData);
+        const base64Data = arrayBufferToBase64(pcmData.buffer);
+        
+        const mediaMsg = JSON.stringify({
+          realtimeInput: {
+            mediaChunks: [
+              {
+                mimeType: "audio/pcm;rate=16000",
+                data: base64Data
               }
-
-              // Çeviri yönünü metinden algıla
-              const isToTr = textChunk.includes("[TO_TR]") || (!textChunk.includes("[TO_ENG]") && currentMode !== "me");
-              const cleanText = textChunk.replace("[TO_TR]", "").replace("[TO_ENG]", "").trim();
-
-              if (textChunk || part.inlineData) {
-                // Eğer yeni bir model sırası başladıysa transkript kaydı oluştur
-                if (!currentTurnIdRef.current) {
-                  currentTurnIdRef.current = Math.random().toString(36).substring(7);
-                  addTranscript({
-                    id: currentTurnIdRef.current,
-                    speaker: isToTr ? "me" : "other", // Bana gelen çeviri 'me' (kulaklık), karşı tarafa giden 'other' (hoparlör)
-                    text: cleanText,
-                    timestamp: new Date().toISOString(),
-                    isFinal: false
-                  });
-                } else if (cleanText) {
-                  updateTranscript(currentTurnIdRef.current, {
-                    text: cleanText,
-                    speaker: isToTr ? "me" : "other"
-                  });
-                }
-              }
-
-              // PCM Ses Chunk'ı
-              if (part.inlineData && part.inlineData.mimeType?.startsWith("audio/pcm")) {
-                // Dinamik sample rate parse etme
-                let sampleRate = 24000;
-                const match = part.inlineData.mimeType.match(/rate=(\d+)/);
-                if (match && match[1]) {
-                  sampleRate = parseInt(match[1], 10);
-                }
-
-                // Hangi kanala çalacağını algıla
-                const isToTr = currentTurnIdRef.current 
-                  ? useLiveTranslateStore.getState().transcripts.find(t => t.id === currentTurnIdRef.current)?.speaker === "me"
-                  : true;
-
-                playPcmChunk(part.inlineData.data, sampleRate, isToTr);
-              }
-            });
+            ]
           }
+        });
 
-          if (response.serverContent?.turnComplete) {
-            if (currentTurnIdRef.current) {
-              updateTranscript(currentTurnIdRef.current, { isFinal: true });
-              currentTurnIdRef.current = null;
-            }
-          }
-        } catch (err) {
-          console.error("Error parsing WebSocket message:", err);
+        if (wsMeRef.current && wsMeRef.current.readyState === WebSocket.OPEN) {
+          wsMeRef.current.send(mediaMsg);
+        }
+        if (wsOtherRef.current && wsOtherRef.current.readyState === WebSocket.OPEN) {
+          wsOtherRef.current.send(mediaMsg);
         }
       };
 
-      ws.onerror = (err) => {
-        console.error("WebSocket error observed:", err);
-        addLog(`WebSocket Hatası! Detay: ${JSON.stringify(err)}`);
-        setErrorMessage("Bağlantı hatası oluştu. Lütfen mikrofon izinlerini ve API anahtarını kontrol edin.");
-      };
-
-      ws.onclose = (event) => {
-        console.log(`WebSocket closed: Code ${event.code}, Reason: ${event.reason}`);
-        addLog(`WebSocket Kapatıldı. Kod: ${event.code}, Sebep: ${event.reason || "Belirtilmedi"}`);
-        let closeReason = `Bağlantı kapandı (Kod: ${event.code})`;
-        if (event.reason) {
-          closeReason += `: ${event.reason}`;
-        } else if (event.code === 1006) {
-          closeReason += ". Beklenmedik bağlantı kesilmesi (API key geçersiz veya limitli olabilir).";
-        }
-        setErrorMessage(closeReason);
-
-        if (status === "connecting" || (event.code !== 1000 && event.code !== 1005)) {
-          handleKeyFailure(currentMode);
-        } else {
-          setStatus("idle");
-        }
-      };
-
+      source.connect(processor);
+      processor.connect(audioCtx.destination);
     } catch (err: any) {
       console.error("Failed to connect live translate session:", err);
       addLog(`HATA: ${err.message || err}`);
