@@ -291,11 +291,11 @@ export function useLiveTranslate() {
                       voiceName: "Aoede" // Aoede, Puck, Charon, Kore, Fenrir
                     }
                   }
+                },
+                translationConfig: {
+                  targetLanguageCode: targetLangCode,
+                  echoTargetLanguage: echo
                 }
-              },
-              translationConfig: {
-                targetLanguageCode: targetLangCode,
-                echoTargetLanguage: echo
               },
               inputAudioTranscription: {},
               outputAudioTranscription: {}
