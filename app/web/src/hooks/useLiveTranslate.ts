@@ -325,59 +325,79 @@ export function useLiveTranslate() {
             const response = JSON.parse(dataStr);
 
             // A. Giriş Metin Deşifresi (Input Transcription)
-            if (response.serverContent?.inputTranscription?.text) {
-              const inputTxt = response.serverContent.inputTranscription.text;
+            if (response.serverContent?.inputTranscription) {
+              const trans = response.serverContent.inputTranscription;
+              const inputTxt = trans.text || "";
               const speaker = isMeConn ? "me" : "other";
               
-              addLog(`[Giriş - ${speaker === "me" ? "Ben" : "Karşı"}] ${inputTxt}`);
+              if (inputTxt) {
+                addLog(`[Giriş - ${speaker === "me" ? "Ben" : "Karşı"}] ${inputTxt}`);
 
-              if (!currentTurnIdRef.current) {
-                currentTurnIdRef.current = Math.random().toString(36).substring(7);
-                addTranscript({
-                  id: currentTurnIdRef.current,
-                  speaker,
-                  text: inputTxt,
-                  timestamp: new Date().toISOString(),
-                  isFinal: false
-                });
-              } else {
-                updateTranscript(currentTurnIdRef.current, {
-                  text: inputTxt,
-                  speaker
-                });
+                if (!currentTurnIdRef.current) {
+                  currentTurnIdRef.current = Math.random().toString(36).substring(7);
+                  addTranscript({
+                    id: currentTurnIdRef.current,
+                    speaker,
+                    text: inputTxt,
+                    timestamp: new Date().toISOString(),
+                    isFinal: false
+                  });
+                } else {
+                  updateTranscript(currentTurnIdRef.current, {
+                    text: inputTxt,
+                    speaker
+                  });
+                }
+              }
+
+              if (trans.isFinal) {
+                if (currentTurnIdRef.current) {
+                  updateTranscript(currentTurnIdRef.current, { isFinal: true });
+                  currentTurnIdRef.current = null;
+                }
               }
             }
 
-            // B. Model Çıktısı (Çeviri metni & Ses parçaları)
+            // B. Çeviri Metin Deşifresi (Output Transcription)
+            if (response.serverContent?.outputTranscription) {
+              const trans = response.serverContent.outputTranscription;
+              const outputTxt = trans.text || "";
+              const speaker = isMeConn ? "other" : "me";
+
+              if (outputTxt) {
+                addLog(`[Çeviri - ${isMeConn ? "Me->Other" : "Other->Me"}] ${outputTxt}`);
+
+                if (!currentTurnIdRef.current) {
+                  currentTurnIdRef.current = Math.random().toString(36).substring(7);
+                  addTranscript({
+                    id: currentTurnIdRef.current,
+                    speaker,
+                    text: "",
+                    translatedText: outputTxt,
+                    timestamp: new Date().toISOString(),
+                    isFinal: false
+                  });
+                } else {
+                  updateTranscript(currentTurnIdRef.current, {
+                    translatedText: outputTxt,
+                    speaker
+                  });
+                }
+              }
+
+              if (trans.isFinal) {
+                if (currentTurnIdRef.current) {
+                  updateTranscript(currentTurnIdRef.current, { isFinal: true });
+                  currentTurnIdRef.current = null;
+                }
+              }
+            }
+
+            // C. Model Çıktısı (Sadece Ses Parçaları)
             if (response.serverContent?.modelTurn?.parts) {
               const parts = response.serverContent.modelTurn.parts;
 
               parts.forEach((part: any) => {
-                // Çeviri Metni
-                if (part.text) {
-                  const translationTxt = part.text;
-                  const speaker = isMeConn ? "me" : "other";
-                  
-                  addLog(`[Çeviri - ${speaker === "me" ? "Me->Other" : "Other->Me"}] ${translationTxt}`);
-
-                  if (!currentTurnIdRef.current) {
-                    currentTurnIdRef.current = Math.random().toString(36).substring(7);
-                    addTranscript({
-                      id: currentTurnIdRef.current,
-                      speaker,
-                      text: "",
-                      translatedText: translationTxt,
-                      timestamp: new Date().toISOString(),
-                      isFinal: false
-                    });
-                  } else {
-                    updateTranscript(currentTurnIdRef.current, {
-                      translatedText: translationTxt,
-                      speaker
-                    });
-                  }
-                }
-
                 // PCM Ses Parçası
                 if (part.inlineData && part.inlineData.mimeType?.startsWith("audio/pcm")) {
                   let sampleRate = 24000;

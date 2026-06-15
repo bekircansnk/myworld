@@ -1,14 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLiveTranslateStore } from "@/stores/liveTranslateStore";
 import { useLiveTranslate } from "@/hooks/useLiveTranslate";
+import { useProjectStore } from "@/stores/projectStore";
 import { SUPPORTED_LANGUAGES } from "./constants";
 import { LanguageSelector } from "./LanguageSelector";
 import { TranslateButton } from "./TranslateButton";
 import { TranscriptPanel } from "./TranscriptPanel";
 import { ConnectionStatus } from "./ConnectionStatus";
-import { ArrowLeftRight, VolumeX, Settings, Volume2, Mic, ToggleLeft, ToggleRight, Info, MessageSquare, X, Headphones } from "lucide-react";
+import { ArrowLeftRight, VolumeX, Settings, Volume2, Mic, ToggleLeft, ToggleRight, Info, MessageSquare, X, Headphones, History, Plus, Trash } from "lucide-react";
 
 export function LiveTranslatePage() {
+  const { selectedProjectId } = useProjectStore();
   const {
     myLanguage,
     targetLanguage,
@@ -28,13 +30,29 @@ export function LiveTranslatePage() {
     isAudioPlaying,
     logs,
     clearLogs,
-    addLog
+    addLog,
+    
+    // Geçmiş seans fonksiyonları
+    currentSessionId,
+    historySessions,
+    startNewSession,
+    saveCurrentSession,
+    loadHistorySession,
+    deleteHistorySession
   } = useLiveTranslateStore();
 
   const { status, devices, stopAllAudioPlayback, refreshDevices } = useLiveTranslate();
   const [showSettings, setShowSettings] = useState(false);
-  const [showMobileTranscript, setShowMobileTranscript] = useState(false);
-  const [showLogConsole, setShowLogConsole] = useState(true); // Log konsolu varsayılan olarak açık olsun
+  const [showHistory, setShowHistory] = useState(false);
+  const [showLogConsole, setShowLogConsole] = useState(false); // Log konsolu varsayılan olarak kapalı olsun
+
+  // Sayfaya ilk girişte yeni temiz bir çeviri seansı başlat
+  useEffect(() => {
+    startNewSession(selectedProjectId);
+    return () => {
+      saveCurrentSession(selectedProjectId);
+    };
+  }, [selectedProjectId]);
 
   const myLangObj = SUPPORTED_LANGUAGES.find(l => l.code === myLanguage) || SUPPORTED_LANGUAGES[0];
   const targetLangObj = SUPPORTED_LANGUAGES.find(l => l.code === targetLanguage) || SUPPORTED_LANGUAGES[1];
@@ -95,6 +113,28 @@ export function LiveTranslatePage() {
             
             <div className="flex items-center gap-2">
               <button
+                onClick={() => startNewSession(selectedProjectId)}
+                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-md shadow-indigo-600/20 transition-all"
+                title="Yeni Temiz Sohbet Başlat"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Yeni Çeviri</span>
+              </button>
+
+              <button
+                onClick={() => setShowHistory(!showHistory)}
+                className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs border transition-all ${
+                  showHistory
+                    ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-500/20'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5'
+                }`}
+                title="Geçmiş Çeviri Sohbetleri"
+              >
+                <History className="w-3.5 h-3.5" />
+                <span>Geçmiş</span>
+              </button>
+
+              <button
                 onClick={() => {
                   setShowSettings(!showSettings);
                   refreshDevices();
@@ -143,6 +183,69 @@ export function LiveTranslatePage() {
                     <option key={d.deviceId} value={d.deviceId}>{d.label || `Mikrofon (${d.deviceId.substring(0, 5)})`}</option>
                   ))}
                 </select>
+              </div>
+            </div>
+          )}
+
+          {/* Geçmiş Çeviri Sohbetleri Paneli */}
+          {showHistory && (
+            <div className="bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-500/20 rounded-2xl p-4 shadow-lg animate-in fade-in slide-in-from-top-2 duration-200 shrink-0">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-2 mb-3">
+                <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                  <History className="w-3.5 h-3.5 text-amber-500" />
+                  Geçmiş Çeviri Sohbetleri
+                </h3>
+                <button
+                  onClick={() => setShowHistory(false)}
+                  className="p-1 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg text-slate-400"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Geçmiş Listesi */}
+              <div className="max-h-60 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
+                {historySessions.filter(s => s.projectId === selectedProjectId).length === 0 ? (
+                  <div className="text-center py-6 text-xs text-slate-400 italic font-medium">
+                    Geçmiş çeviri sohbeti bulunamadı.
+                  </div>
+                ) : (
+                  historySessions
+                    .filter(s => s.projectId === selectedProjectId)
+                    .map((sess) => (
+                      <div
+                        key={sess.id}
+                        onClick={() => {
+                          loadHistorySession(sess.id);
+                          setShowHistory(false);
+                          addLog(`Geçmiş seans yüklendi: ${sess.title}`);
+                        }}
+                        className={`flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer ${
+                          currentSessionId === sess.id
+                            ? "bg-indigo-50/50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-300"
+                            : "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300"
+                        }`}
+                      >
+                        <div className="flex flex-col min-w-0 pr-2">
+                          <span className="text-xs font-bold truncate">{sess.title}</span>
+                          <span className="text-[10px] opacity-75 mt-0.5">
+                            {sess.myLanguage.split("-")[0].toUpperCase()} ↔ {sess.targetLanguage.split("-")[0].toUpperCase()} • {sess.transcripts.length} mesaj
+                          </span>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteHistorySession(sess.id);
+                            addLog(`Geçmiş seans silindi.`);
+                          }}
+                          className="p-1.5 hover:bg-red-50 dark:hover:bg-red-500/10 text-red-500 rounded-lg transition-colors shrink-0"
+                          title="Sohbeti Geçmişten Sil"
+                        >
+                          <Trash className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))
+                )}
               </div>
             </div>
           )}
