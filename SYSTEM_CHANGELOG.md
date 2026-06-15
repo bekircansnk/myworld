@@ -2,6 +2,21 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-06-15] - Sürüm 7.3 - Canlı Sesli Çeviri Model Hatası & Hızlı Yönlendirme Kontrolleri (v6.8 / Code 58)
+
+### Çözüldü
+- **WebSocket Canlı Çeviri Kopma Hatası:** Gemini Live API WebSocket bağlantısının setup aşamasında kapanmasına sebep olan geçersiz model adı (`gemini-2.0-flash-exp` modelinin Google AI Studio tarafından kaldırılması) giderildi. Yeni sürüm `gemini-2.5-flash-native-audio-latest` modeline geçildi.
+- **API Key Doğrulamaları:** Sağlanan her iki API anahtarının da API ve WebSocket düzeyinde sorunsuz çalıştığı test edildi ve doğrulandı.
+- **Android WebView Layout Düzeltmeleri:** Android WebView ortamında ekranın sağa kayması ve butonların taşması sorunu CSS flex-box ve viewport düzenlemeleriyle düzeltildi.
+- **Yazı Geçmişi (Transkript) Okunabilirliği:** Mobil cihazlarda yazı geçmişi transkript popover'ı, ekranı daha iyi kullanabilmek adına tam ekran bottom-sheet baloncuğuna dönüştürüldü.
+
+### Yenilik
+- **Hızlı Ses Yönlendirme Paneli (Hoparlör / Kulaklık Geçişi):** Kulağım (kulaklık) ve karşı taraf (hoparlör) çıkış aygıtı seçicileri doğrudan ana ekrana çıkarılarak kullanıcıların ses çıkış modları arasında tek tıkla geçiş yapabilmesi sağlandı.
+- **Canlı Teşhis & Hata Ayıklama Konsolu:** Ekranın alt kısmına entegre edilen açılıp kapanabilir konsol ile anlık WebSocket durumları, key rotasyonları ve hata kodları canlı olarak hem web'de hem de telefonda görüntülenebilmektedir.
+- **Sürüm Yükseltme & OTA Senkronizasyonu:** Android APK versiyon kodu `58`'e ve adı `6.8`'e yükseltildi. Güncellenmiş APK Render.com backend statik dizinine `Planla_v6.8.apk` adıyla başarıyla deploy edildi.
+
+---
+
 ## [2026-06-08] - Sürüm 7.2 - Güncelleme Yönetimi & Splash Sızma Düzeltmesi (v6.3 / Code 53)
 
 ### Yenilik

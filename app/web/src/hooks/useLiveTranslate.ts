@@ -18,6 +18,7 @@ export function useLiveTranslate() {
     addTranscript,
     updateTranscript,
     setIsAudioPlaying,
+    addLog,
   } = useLiveTranslateStore();
 
   const wsRef = useRef<WebSocket | null>(null);
@@ -214,6 +215,8 @@ export function useLiveTranslate() {
     setErrorMessage(null);
 
     const apiKey = getGeminiApiKey();
+    addLog(`Oturum başlatılıyor. Mod: ${currentMode}, Auto: ${isAutomaticMode}`);
+    addLog(`Kullanılan Key Index: ${useLiveTranslateStore.getState().logs.length > 0 ? "Rotation" : "Start"}`);
     const url = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key=${apiKey}`;
 
     try {
@@ -239,6 +242,7 @@ export function useLiveTranslate() {
       let connectionTimeout = setTimeout(() => {
         if (ws.readyState !== WebSocket.OPEN) {
           console.warn("WebSocket connection timeout. Rotating key...");
+          addLog("WebSocket bağlantı zaman aşımı! Key değiştiriliyor...");
           ws.close();
           handleKeyFailure(currentMode);
         }
@@ -247,6 +251,7 @@ export function useLiveTranslate() {
       ws.onopen = () => {
         clearTimeout(connectionTimeout);
         console.log("WebSocket connection established! Mode:", currentMode);
+        addLog(`WebSocket bağlantısı başarıyla kuruldu! Model kuruluyor...`);
         setStatus("connected");
         retryCountRef.current = 0;
 
@@ -280,7 +285,7 @@ Translate from language code ${sourceLang} to language code ${destLang}.
 
         const setupMessage = {
           setup: {
-            model: "models/gemini-2.0-flash-exp",
+            model: "models/gemini-2.5-flash-native-audio-latest",
             generationConfig: {
               responseModalities: ["AUDIO"],
               speechConfig: {
@@ -299,6 +304,7 @@ Translate from language code ${sourceLang} to language code ${destLang}.
           }
         };
 
+        addLog(`Setup mesajı gönderildi. Model: models/gemini-2.5-flash-native-audio-latest`);
         ws.send(JSON.stringify(setupMessage));
 
         // B. Ses Girişini Başlat (16kHz PCM Mono)
@@ -403,11 +409,13 @@ Translate from language code ${sourceLang} to language code ${destLang}.
 
       ws.onerror = (err) => {
         console.error("WebSocket error observed:", err);
+        addLog(`WebSocket Hatası! Detay: ${JSON.stringify(err)}`);
         setErrorMessage("Bağlantı hatası oluştu. Lütfen mikrofon izinlerini ve API anahtarını kontrol edin.");
       };
 
       ws.onclose = (event) => {
         console.log(`WebSocket closed: Code ${event.code}, Reason: ${event.reason}`);
+        addLog(`WebSocket Kapatıldı. Kod: ${event.code}, Sebep: ${event.reason || "Belirtilmedi"}`);
         let closeReason = `Bağlantı kapandı (Kod: ${event.code})`;
         if (event.reason) {
           closeReason += `: ${event.reason}`;
@@ -425,6 +433,7 @@ Translate from language code ${sourceLang} to language code ${destLang}.
 
     } catch (err: any) {
       console.error("Failed to connect live translate session:", err);
+      addLog(`HATA: ${err.message || err}`);
       setErrorMessage(err.message || "Mikrofon izni alınamadı veya bağlantı kurulamadı.");
       setStatus("error");
     }
@@ -432,14 +441,16 @@ Translate from language code ${sourceLang} to language code ${destLang}.
 
   const handleKeyFailure = (currentMode: "me" | "other" | "auto") => {
     const totalKeys = getKeysCount();
+    addLog(`Key hatası algılandı. Retry sayısı: ${retryCountRef.current}/${totalKeys}`);
     if (retryCountRef.current < totalKeys) {
       retryCountRef.current += 1;
       const newKey = rotateGeminiApiKey();
-      console.log(`Retrying session connection (Attempt ${retryCountRef.current}/${totalKeys}) with next key...`);
+      addLog(`API anahtarı döndürülüyor. Yeni index denenecek...`);
       setTimeout(() => {
         connectSession(currentMode);
       }, 1000);
     } else {
+      addLog(`Kritik: Tüm kayıtlı API anahtarları tükendi!`);
       setErrorMessage(`Bağlantı başarısız. Toplam ${totalKeys} API anahtarı denendi fakat sonuç alınamadı. Key limitlerini veya interneti kontrol edin.`);
       setStatus("error");
       disconnect();

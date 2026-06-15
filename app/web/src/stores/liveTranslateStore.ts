@@ -13,6 +13,7 @@ export interface LiveTranslateState {
   transcripts: TranscriptEntry[];
   
   isAudioPlaying: boolean;
+  logs: string[];
 
   // Ses Aygıtları Ayarları
   audioInputDevice: string;
@@ -30,6 +31,8 @@ export interface LiveTranslateState {
   updateTranscript: (id: string, updates: Partial<TranscriptEntry>) => void;
   clearTranscripts: () => void;
   setIsAudioPlaying: (playing: boolean) => void;
+  addLog: (log: string) => void;
+  clearLogs: () => void;
 
   setAudioInputDevice: (id: string) => void;
   setAudioOutputDeviceMe: (id: string) => void;
@@ -47,6 +50,7 @@ export const useLiveTranslateStore = create<LiveTranslateState>()(
       activeMode: 'none',
       transcripts: [],
       isAudioPlaying: false,
+      logs: [],
 
       // Ses Aygıtları Varsayılanları
       audioInputDevice: 'default',
@@ -77,6 +81,13 @@ export const useLiveTranslateStore = create<LiveTranslateState>()(
       })),
       clearTranscripts: () => set({ transcripts: [] }),
       setIsAudioPlaying: (isAudioPlaying) => set({ isAudioPlaying }),
+      addLog: (log) => set((state) => {
+        const timestamp = new Date().toLocaleTimeString("tr-TR");
+        const newLog = `[${timestamp}] ${log}`;
+        console.log(`[LiveTranslateStore] ${newLog}`);
+        return { logs: [newLog, ...state.logs].slice(0, 100) }; // Son 100 logu tut
+      }),
+      clearLogs: () => set({ logs: [] }),
 
       setAudioInputDevice: (audioInputDevice) => set({ audioInputDevice }),
       setAudioOutputDeviceMe: (audioOutputDeviceMe) => set({ audioOutputDeviceMe }),

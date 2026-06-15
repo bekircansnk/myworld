@@ -238,12 +238,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "6.7",
-        "version_code": 57,
-        "download_url": "https://myworld-twqx.onrender.com/static/Planla_v6.7.apk",
+        "version": "6.8",
+        "version_code": 58,
+        "download_url": "https://myworld-twqx.onrender.com/static/Planla_v6.8.apk",
         "min_supported_version": "1.0",
         "force_update": False,
-        "changelog": "- Mobil kayma ve ekran büyüme sorunları giderildi.\n- Transkript paneli desktopta iki sütunlu yana alındı, mobilde yüzen baloncuk modal yapıldı.\n- 75 dil desteği entegre edildi.\n- API key rotasyonu ve bağlantı log mekanizması güçlendirildi.\n- Sürüm v6.7 (Code 57)"
+        "changelog": "- Gemini Live API websocket bağlantısındaki model adı hatası giderildi (gemini-2.5-flash-native-audio-latest modeline geçildi).\n- 80'den fazla dil desteği aktif edildi.\n- Ana panele hızlı hoparlör/kulaklık geçişi ve çıkış yönlendirme kontrolleri eklendi.\n- Ekrana anlık websocket ve bağlantı loglarını basan canlı teşhis konsolu entegre edildi.\n- Mobilde (Android WebView) ekran taşması/kayması CSS flex düzeniyle düzeltildi.\n- Mobil yazı transkript modalı tam ekran bottom-sheet baloncuğuna dönüştürüldü.\n- Sürüm v6.8 (Code 58)"
     }
 
 @app.get("/api/link-preview")
