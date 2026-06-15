@@ -297,6 +297,10 @@ export function useLiveTranslate() {
                   echoTargetLanguage: echo
                 }
               },
+              contextWindowCompression: {
+                triggerTokens: "0",
+                slidingWindow: { targetTokens: "0" }
+              },
               inputAudioTranscription: {},
               outputAudioTranscription: {}
             }
