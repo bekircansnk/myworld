@@ -238,18 +238,27 @@ export function useLiveTranslate() {
     const url = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key=${apiKey}`;
 
     try {
-      // 0. Backend'de yeni bir oturum oluştur
+      // 0. Backend'de yeni bir oturum oluştur veya mevcut olanı devam ettir
       try {
-        const res = await api.post("/api/live-translate/sessions", {
-          source_language: myLanguage,
-          target_language: targetLanguage
-        });
-        if (res.data && res.data.id) {
-          sessionIdRef.current = res.data.id;
+        const storeSessionId = useLiveTranslateStore.getState().currentSessionId;
+        const isNumericId = storeSessionId && !isNaN(Number(storeSessionId));
+
+        if (isNumericId) {
+          sessionIdRef.current = Number(storeSessionId);
+          addLog(`Mevcut canlı veritabanı seansı kullanılıyor. Session ID: ${sessionIdRef.current}`);
+        } else {
+          const res = await api.post("/api/live-translate/sessions", {
+            source_language: myLanguage,
+            target_language: targetLanguage
+          });
+          if (res.data && res.data.id) {
+            sessionIdRef.current = res.data.id;
+            useLiveTranslateStore.setState({ currentSessionId: res.data.id.toString() });
+            addLog(`Yeni canlı veritabanı seansı oluşturuldu. Session ID: ${res.data.id}`);
+          }
         }
       } catch (err) {
-        console.error("Failed to create translate session:", err);
-        // Continue even if session creation fails, to allow translation to work
+        console.error("Failed to create/resolve translate session:", err);
       }
 
       // 1. Cihaz izinlerini al ve mikrofonu aç

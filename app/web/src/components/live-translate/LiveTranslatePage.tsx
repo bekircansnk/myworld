@@ -103,9 +103,15 @@ export function LiveTranslatePage() {
     }
   };
 
-  // Sayfaya ilk girişte yeni temiz bir çeviri seansı başlat
+  // Sayfaya ilk girişte eğer aktif bir seans yoksa yeni seans başlat
   useEffect(() => {
-    startNewSession(selectedProjectId);
+    const hasTranscripts = useLiveTranslateStore.getState().transcripts.length > 0;
+    const hasSessionId = !!useLiveTranslateStore.getState().currentSessionId;
+    
+    if (!hasSessionId && !hasTranscripts) {
+      startNewSession(selectedProjectId);
+    }
+    
     return () => {
       saveCurrentSession(selectedProjectId);
     };
