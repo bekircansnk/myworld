@@ -69,13 +69,13 @@ export function LiveTranslatePage() {
   };
 
   return (
-    <div className="flex-1 w-full min-h-0 flex flex-col p-3 md:p-6 lg:p-8 bg-slate-50/50 dark:bg-slate-950/20 max-w-7xl mx-auto relative overflow-y-auto lg:overflow-visible pb-24 lg:pb-8">
+    <div className="flex-1 w-full flex flex-col p-3 md:p-6 lg:p-8 lg:h-full bg-slate-50/50 dark:bg-slate-950/20 max-w-7xl mx-auto relative overflow-y-auto lg:overflow-hidden pb-24 lg:pb-8">
       
       {/* İki Sütunlu Desktop Düzeni, Tek Sütunlu Mobil Düzeni */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8">
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8 lg:h-full">
         
         {/* Sol Kolon: Kontroller, Butonlar, Diller (Col: 7) */}
-        <div className="lg:col-span-7 flex flex-col space-y-4 min-h-0">
+        <div className="lg:col-span-7 flex flex-col space-y-4 min-h-0 overflow-y-auto lg:pr-2 pb-2 scrollbar-thin">
           
           {/* Üst Kısım: Başlık */}
           <div className="flex items-center justify-between gap-4 shrink-0">
@@ -309,92 +309,54 @@ export function LiveTranslatePage() {
           <div className="shrink-0 bg-white/40 dark:bg-slate-900/20 rounded-xl py-0.5 border border-slate-100 dark:border-white/5">
             <ConnectionStatus />
           </div>
+
+          {/* Canlı Log & Teşhis Paneli (Hata Ayıklama İçin) */}
+          <div className="mt-4 shrink-0 bg-slate-900 border border-white/10 rounded-2xl overflow-hidden shadow-lg">
+            <button
+              onClick={() => setShowLogConsole(!showLogConsole)}
+              className="w-full flex items-center justify-between px-4 py-3 bg-slate-950/80 text-white font-bold text-xs uppercase tracking-wider"
+            >
+              <span className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+                CANLI BAĞLANTI LOGLARI VE TEŞHİS PANELİ
+              </span>
+              <span className="text-[10px] text-slate-400 bg-white/5 px-2 py-0.5 rounded-md">
+                {showLogConsole ? "KAPAT" : "GÖSTER"}
+              </span>
+            </button>
+            
+            {showLogConsole && (
+              <div className="p-3 flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-slate-400 font-semibold">Websocket durumu ve API anahtarı takibi:</span>
+                  <button
+                    onClick={clearLogs}
+                    className="text-[9px] text-red-400 hover:text-red-300 font-bold bg-red-500/10 px-2.5 py-1 rounded"
+                  >
+                    Logları Temizle
+                  </button>
+                </div>
+                <div className="h-32 overflow-y-auto bg-black/50 border border-white/5 rounded-lg p-2 font-mono text-[10px] text-emerald-400 space-y-1 scrollbar-thin">
+                  {logs.length === 0 ? (
+                    <div className="text-slate-500 italic">Log bulunmuyor. Çeviri başlattığınızda loglar burada görünecektir.</div>
+                  ) : (
+                    logs.map((log, idx) => (
+                      <div key={idx} className="whitespace-pre-wrap leading-relaxed border-b border-white/5 pb-1">
+                        {log}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Sağ Kolon: Transkript Sütunu (Sadece Desktop'ta) (Col: 5) */}
-        <div className="hidden lg:col-span-5 lg:flex flex-col min-h-0 h-full border-l border-slate-200/50 dark:border-white/5 pl-4">
+        {/* Sağ Kolon: Transkript Sütunu (Tüm cihazlarda görünür) (Col: 5) */}
+        <div className="lg:col-span-5 flex flex-col min-h-[400px] h-full lg:border-l border-slate-200/50 dark:border-white/5 lg:pl-4 mt-6 lg:mt-0">
           <TranscriptPanel />
         </div>
       </div>
-
-      {/* Canlı Log & Teşhis Paneli (Hata Ayıklama İçin) */}
-      <div className="mt-4 shrink-0 bg-slate-900 border border-white/10 rounded-2xl overflow-hidden shadow-lg">
-        <button
-          onClick={() => setShowLogConsole(!showLogConsole)}
-          className="w-full flex items-center justify-between px-4 py-3 bg-slate-950/80 text-white font-bold text-xs uppercase tracking-wider"
-        >
-          <span className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
-            CANLI BAĞLANTI LOGLARI VE TEŞHİS PANELİ
-          </span>
-          <span className="text-[10px] text-slate-400 bg-white/5 px-2 py-0.5 rounded-md">
-            {showLogConsole ? "KAPAT" : "GÖSTER"}
-          </span>
-        </button>
-        
-        {showLogConsole && (
-          <div className="p-3 flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] text-slate-400 font-semibold">Websocket durumu ve API anahtarı takibi:</span>
-              <button
-                onClick={clearLogs}
-                className="text-[9px] text-red-400 hover:text-red-300 font-bold bg-red-500/10 px-2.5 py-1 rounded"
-              >
-                Logları Temizle
-              </button>
-            </div>
-            <div className="h-32 overflow-y-auto bg-black/50 border border-white/5 rounded-lg p-2 font-mono text-[10px] text-emerald-400 space-y-1 scrollbar-thin">
-              {logs.length === 0 ? (
-                <div className="text-slate-500 italic">Log bulunmuyor. Çeviri başlattığınızda loglar burada görünecektir.</div>
-              ) : (
-                logs.map((log, idx) => (
-                  <div key={idx} className="whitespace-pre-wrap leading-relaxed border-b border-white/5 pb-1">
-                    {log}
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Mobilde Yüzen Transkript Baloncuğu Butonu (Transkript Geçmişi için) */}
-      <button
-        onClick={() => {
-          setShowMobileTranscript(true);
-          addLog("Mobil transkript paneli açıldı.");
-        }}
-        className="lg:hidden fixed bottom-6 right-4 z-40 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border border-indigo-500 font-black text-xs uppercase tracking-wider"
-      >
-        <MessageSquare className="w-4.5 h-4.5" />
-        <span>Yazı Geçmişi</span>
-      </button>
-
-      {/* Mobil Transkript Popover Modal (Baloncuk Yapısı - Tam Ekran) */}
-      {showMobileTranscript && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col justify-end p-0 animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-slate-900 rounded-t-3xl flex flex-col overflow-hidden h-[92vh] w-full shadow-2xl border-t border-slate-200 dark:border-white/10 animate-in slide-in-from-bottom duration-300">
-            <div className="px-4 py-4 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/40 shrink-0">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-indigo-500" />
-                <span className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">Konuşma Geçmişi (Canlı Yazı)</span>
-              </div>
-              <button 
-                onClick={() => {
-                  setShowMobileTranscript(false);
-                  addLog("Mobil transkript paneli kapatıldı.");
-                }} 
-                className="p-1.5 bg-slate-100 dark:bg-white/5 rounded-xl hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
-              >
-                <X className="w-6 h-6 text-slate-500" />
-              </button>
-            </div>
-            <div className="flex-1 overflow-hidden flex flex-col">
-              <TranscriptPanel />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

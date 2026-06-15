@@ -340,9 +340,19 @@ Translate from language code ${sourceLang} to language code ${destLang}.
         processor.connect(audioCtx.destination);
       };
 
-      ws.onmessage = (event) => {
+      ws.onmessage = async (event) => {
         try {
-          const response = JSON.parse(event.data);
+          let dataStr = "";
+          if (typeof event.data === "string") {
+            dataStr = event.data;
+          } else if (event.data instanceof Blob) {
+            dataStr = await event.data.text();
+          } else if (event.data instanceof ArrayBuffer) {
+            dataStr = new TextDecoder().decode(event.data);
+          } else {
+            dataStr = event.data.toString();
+          }
+          const response = JSON.parse(dataStr);
           
           if (response.serverContent?.modelTurn?.parts) {
             const parts = response.serverContent.modelTurn.parts;
