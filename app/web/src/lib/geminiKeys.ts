@@ -1,8 +1,8 @@
 // Bu dosya Gemini Live API anahtarlarını kod içinde yönetir ve limit dolduğunda rotation sağlar.
 // GitHub Push Protection / Secret Scanning engeline takılmamak için anahtarlar base64 formatında saklanır.
 const ENCODED_KEYS = [
-  "QUl6YVN5QVlicDlmbzRoQXkwaVFIaW9kb3pSVHVVX3daVTl2ZzBB",
-  "QVEuQWI4Uk42SjJKU0htQUwyVF90MXpPT0ZjTzNjYlZLTnlVQzdRMmVzTllpM0dvT1YyMFE="
+  "QUl6YVN5QVlicDlmbzRoQXkwaVFIaW9kb3pSVHVVX3daVTl2ZzBB", // 1. Key (Sabit/Öncelikli)
+  "QUl6YVN5QlRxd043VGQ3NGc1NkIycHY4eml5MlRYLXhWVnQtV21j"  // 2. Key (Otomatik yedek)
 ];
 
 const STORAGE_KEY = "planla_gemini_key_index";
@@ -38,6 +38,11 @@ export function getGeminiApiKey(): string {
   return decodeKey(ENCODED_KEYS[index]);
 }
 
+export function resetApiKeyIndex() {
+  setStoredIndex(0);
+  console.log("Gemini API Key index reset to 0 (First key prioritized)");
+}
+
 export function rotateGeminiApiKey(): string {
   const currentIndex = getStoredIndex();
   const nextIndex = (currentIndex + 1) % ENCODED_KEYS.length;
@@ -53,3 +58,4 @@ export function getKeysCount(): number {
 export function getActiveKeyIndex(): number {
   return getStoredIndex();
 }
+

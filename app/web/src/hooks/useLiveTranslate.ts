@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useLiveTranslateStore } from "@/stores/liveTranslateStore";
-import { getGeminiApiKey, rotateGeminiApiKey, getKeysCount } from "@/lib/geminiKeys";
+import { getGeminiApiKey, rotateGeminiApiKey, getKeysCount, resetApiKeyIndex } from "@/lib/geminiKeys";
 import { TranscriptEntry } from "@/components/live-translate/types";
 import { api } from "@/lib/api";
 
@@ -33,7 +33,9 @@ export function useLiveTranslate() {
   const retryCountRef = useRef<number>(0);
   
   // Transkript birikimi için geçici referanslar
-  const currentTurnIdRef = useRef<string | null>(null);
+  const currentMeTurnIdRef = useRef<string | null>(null);
+  const currentOtherTurnIdRef = useRef<string | null>(null);
+  const lastSinkIdRef = useRef<string | null>(null);
   const sessionIdRef = useRef<number | null>(null);
   const activeSourcesRef = useRef<AudioBufferSourceNode[]>([]);
 
@@ -72,8 +74,10 @@ export function useLiveTranslate() {
     const anyCtx = ctx as any;
     if (typeof anyCtx.setSinkId === "function") {
       const targetSinkId = isToTr ? audioOutputDeviceMe : audioOutputDeviceOther;
+      if (lastSinkIdRef.current === targetSinkId) return;
       try {
         await anyCtx.setSinkId(targetSinkId === "default" ? "" : targetSinkId);
+        lastSinkIdRef.current = targetSinkId;
         console.log(`Audio output directed to sink ID: ${targetSinkId}`);
       } catch (err) {
         console.warn("Failed to direct audio output via setSinkId:", err);
@@ -213,6 +217,9 @@ export function useLiveTranslate() {
     closeSocket(wsOtherRef.current);
     wsOtherRef.current = null;
 
+    currentMeTurnIdRef.current = null;
+    currentOtherTurnIdRef.current = null;
+    lastSinkIdRef.current = null;
     setStatus("idle");
   };
 
@@ -221,6 +228,10 @@ export function useLiveTranslate() {
     disconnect();
     setStatus("connecting");
     setErrorMessage(null);
+
+    if (retryCountRef.current === 0) {
+      resetApiKeyIndex();
+    }
 
     const apiKey = getGeminiApiKey();
     addLog(`Oturum başlatılıyor. Model: gemini-3.5-live-translate-preview, Mod: ${currentMode}`);
@@ -276,6 +287,31 @@ export function useLiveTranslate() {
       };
 
       // WebSocket oluşturma yardımcı fonksiyonu
+      // Mesajı veritabanına kaydetme yardımcı fonksiyonu
+      const saveFinalMessage = async (turnId: string, speaker: "me" | "other") => {
+        const entry = useLiveTranslateStore.getState().transcripts.find(t => t.id === turnId);
+        if (!entry) return;
+        
+        if (entry.savedToBackend || (!entry.text && !entry.translatedText)) return;
+
+        // Hemen kaydedildi olarak işaretle
+        updateTranscript(turnId, { savedToBackend: true } as any);
+
+        if (sessionIdRef.current) {
+          try {
+            await api.post(`/api/live-translate/sessions/${sessionIdRef.current}/messages`, {
+              speaker: speaker,
+              original_text: entry.text || "",
+              translated_text: entry.translatedText || "",
+              is_final: true
+            });
+            console.log(`[useLiveTranslate] Saved to DB: speaker=${speaker}, text=${entry.text}, trans=${entry.translatedText}`);
+          } catch (err) {
+            console.error("Failed to save live-translate message to database:", err);
+          }
+        }
+      };
+
       const createTranslationSocket = (
         targetLangCode: string,
         echo: boolean,
@@ -340,46 +376,37 @@ export function useLiveTranslate() {
             }
             const response = JSON.parse(dataStr);
 
+            const turnIdRef = isMeConn ? currentMeTurnIdRef : currentOtherTurnIdRef;
+            const speaker = isMeConn ? "me" : "other";
+
             // A. Giriş Metin Deşifresi (Input Transcription)
             if (response.serverContent?.inputTranscription) {
               const trans = response.serverContent.inputTranscription;
               const inputTxt = trans.text || "";
-              const speaker = isMeConn ? "me" : "other";
               
               if (inputTxt) {
                 addLog(`[Giriş - ${speaker === "me" ? "Ben" : "Karşı"}] ${inputTxt}`);
 
-                if (!currentTurnIdRef.current) {
-                  currentTurnIdRef.current = Math.random().toString(36).substring(7);
+                if (!turnIdRef.current) {
+                  turnIdRef.current = Math.random().toString(36).substring(7);
                   addTranscript({
-                    id: currentTurnIdRef.current,
+                    id: turnIdRef.current,
                     speaker,
                     text: inputTxt,
+                    translatedText: "",
                     timestamp: new Date().toISOString(),
                     isFinal: false
                   });
                 } else {
-                  updateTranscript(currentTurnIdRef.current, {
-                    text: inputTxt,
-                    speaker
+                  updateTranscript(turnIdRef.current, {
+                    text: inputTxt
                   });
                 }
               }
 
               if (trans.isFinal) {
-                if (currentTurnIdRef.current) {
-                  updateTranscript(currentTurnIdRef.current, { isFinal: true });
-                  
-                  if (sessionIdRef.current) {
-                    api.post(`/api/live-translate/sessions/${sessionIdRef.current}/messages`, {
-                      speaker: speaker,
-                      original_text: inputTxt,
-                      translated_text: "",
-                      is_final: true
-                    }).catch(e => console.error(e));
-                  }
-
-                  currentTurnIdRef.current = null;
+                if (turnIdRef.current) {
+                  updateTranscript(turnIdRef.current, { isFinal: true });
                 }
               }
             }
@@ -388,15 +415,14 @@ export function useLiveTranslate() {
             if (response.serverContent?.outputTranscription) {
               const trans = response.serverContent.outputTranscription;
               const outputTxt = trans.text || "";
-              const speaker = isMeConn ? "other" : "me";
 
               if (outputTxt) {
                 addLog(`[Çeviri - ${isMeConn ? "Me->Other" : "Other->Me"}] ${outputTxt}`);
 
-                if (!currentTurnIdRef.current) {
-                  currentTurnIdRef.current = Math.random().toString(36).substring(7);
+                if (!turnIdRef.current) {
+                  turnIdRef.current = Math.random().toString(36).substring(7);
                   addTranscript({
-                    id: currentTurnIdRef.current,
+                    id: turnIdRef.current,
                     speaker,
                     text: "",
                     translatedText: outputTxt,
@@ -404,27 +430,15 @@ export function useLiveTranslate() {
                     isFinal: false
                   });
                 } else {
-                  updateTranscript(currentTurnIdRef.current, {
-                    translatedText: outputTxt,
-                    speaker
+                  updateTranscript(turnIdRef.current, {
+                    translatedText: outputTxt
                   });
                 }
               }
 
               if (trans.isFinal) {
-                if (currentTurnIdRef.current) {
-                  updateTranscript(currentTurnIdRef.current, { isFinal: true });
-                  
-                  if (sessionIdRef.current) {
-                    api.post(`/api/live-translate/sessions/${sessionIdRef.current}/messages`, {
-                      speaker: speaker,
-                      original_text: "",
-                      translated_text: outputTxt,
-                      is_final: true
-                    }).catch(e => console.error(e));
-                  }
-
-                  currentTurnIdRef.current = null;
+                if (turnIdRef.current) {
+                  updateTranscript(turnIdRef.current, { isFinal: true });
                 }
               }
             }
@@ -451,9 +465,10 @@ export function useLiveTranslate() {
             }
 
             if (response.serverContent?.turnComplete) {
-              if (currentTurnIdRef.current) {
-                updateTranscript(currentTurnIdRef.current, { isFinal: true });
-                currentTurnIdRef.current = null;
+              if (turnIdRef.current) {
+                updateTranscript(turnIdRef.current, { isFinal: true });
+                await saveFinalMessage(turnIdRef.current, speaker);
+                turnIdRef.current = null;
               }
             }
           } catch (err) {

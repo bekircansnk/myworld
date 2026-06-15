@@ -73,25 +73,15 @@ export function LiveTranslatePage() {
       const newTranscripts: any[] = [];
       
       messages.forEach((m: any) => {
-        if (m.original_text) {
-          newTranscripts.push({
-            id: `msg_in_${m.id}`,
-            speaker: m.speaker,
-            text: m.original_text,
-            timestamp: m.created_at,
-            isFinal: true
-          });
-        }
-        if (m.translated_text) {
-          newTranscripts.push({
-            id: `msg_out_${m.id}`,
-            speaker: m.speaker === 'me' ? 'other' : 'me',
-            text: "",
-            translatedText: m.translated_text,
-            timestamp: m.created_at,
-            isFinal: true
-          });
-        }
+        newTranscripts.push({
+          id: `msg_${m.id}`,
+          speaker: m.speaker,
+          text: m.original_text || "",
+          translatedText: m.translated_text || "",
+          timestamp: m.created_at,
+          isFinal: true,
+          savedToBackend: true
+        });
       });
       
       useLiveTranslateStore.setState({ transcripts: newTranscripts, currentSessionId: id.toString() });

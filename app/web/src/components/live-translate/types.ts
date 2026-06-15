@@ -11,4 +11,6 @@ export interface TranscriptEntry {
   translatedText?: string;
   timestamp: string; // ISO String veya Date formatı
   isFinal: boolean;
+  savedToBackend?: boolean;
 }
+
