@@ -477,24 +477,24 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
             isDragging
               ? 'border-indigo-400 bg-indigo-50/50 dark:bg-indigo-500/10 dark:border-indigo-500/50 scale-[1.01]'
               : hasPhotos
-                ? 'border-slate-200/50 dark:border-white/10 bg-transparent'
-                : 'border-slate-200 dark:border-white/10 bg-slate-50/30 dark:bg-white/5'
+                ? 'border-border bg-transparent'
+                : 'border-border bg-muted/30'
           }`}
         >
           {/* Boş durum */}
           {!hasPhotos && !isDragging && (
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="w-full p-4 flex items-center justify-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 rounded-2xl transition-colors"
+              className="w-full p-4 flex items-center justify-center gap-3 cursor-pointer hover:bg-muted rounded-2xl transition-colors"
             >
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-500/20 dark:to-purple-500/20 flex items-center justify-center shrink-0">
                 <ImagePlus className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
               </div>
               <div className="text-left flex-1">
-                <p className="text-xs font-bold text-slate-700 dark:text-white/80">
+                <p className="text-xs font-bold text-foreground/80">
                   Fotoğraf Ekle
                 </p>
-                <p className="text-[10px] font-medium text-slate-400 dark:text-white/40 leading-snug mt-0.5">
+                <p className="text-[10px] font-medium text-muted-foreground/60 leading-snug mt-0.5">
                   Tıklayın, yapıştırın veya sürükleyin (Cmd+V)
                 </p>
               </div>
@@ -509,7 +509,7 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
                 {photos.map((photo, index) => (
                   <div
                     key={photo.drive_id}
-                    className="group relative aspect-square rounded-xl md:rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-[0_4px_12px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.2)] hover:shadow-lg transition-all duration-300 cursor-pointer"
+                    className="group relative aspect-square rounded-xl md:rounded-2xl overflow-hidden bg-muted shadow-[0_4px_12px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.2)] hover:shadow-lg transition-all duration-300 cursor-pointer"
                     onClick={() => openLightbox(index)}
                   >
                     <img
@@ -555,7 +555,7 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
                 {uploading.map((up) => (
                   <div
                     key={up.id}
-                    className="relative aspect-square rounded-xl overflow-hidden bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 flex flex-col items-center justify-center gap-2 p-2"
+                    className="relative aspect-square rounded-xl overflow-hidden bg-card border border-border flex flex-col items-center justify-center gap-2 p-2"
                   >
                     {up.status === 'error' ? (
                       <>
@@ -567,11 +567,11 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
                     ) : (
                       <>
                         <Loader2 className="w-6 h-6 text-indigo-500 animate-spin" />
-                        <span className="text-[9px] font-semibold text-slate-500 dark:text-white/50 text-center truncate w-full">
+                        <span className="text-[9px] font-semibold text-muted-foreground/60 text-center truncate w-full">
                           {up.status === 'compressing' ? 'Sıkıştırılıyor...' : 'Yükleniyor...'}
                         </span>
                         {/* Progress bar */}
-                        <div className="w-full h-1 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
+                        <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
                           <div
                             className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500"
                             style={{ width: `${up.progress}%` }}
@@ -585,10 +585,10 @@ export function TaskPhotoUploader({ taskId, taskTitle, photos, onPhotosChange }:
                 {/* Yeni ekleme butonu (fotoğraf varsa küçük + kutusu) */}
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="aspect-square rounded-xl md:rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center gap-1.5 md:gap-2 hover:border-indigo-400 dark:hover:border-indigo-500/50 hover:bg-indigo-50/30 dark:hover:bg-indigo-500/10 transition-all cursor-pointer bg-slate-50/50 dark:bg-transparent"
+                  className="aspect-square rounded-xl md:rounded-2xl border border-dashed border-border flex flex-col items-center justify-center gap-1.5 md:gap-2 hover:border-indigo-400 dark:hover:border-indigo-500/50 hover:bg-indigo-50/30 dark:hover:bg-indigo-500/10 transition-all cursor-pointer bg-muted/50"
                 >
-                  <ImagePlus className="w-5 h-5 md:w-6 md:h-6 text-slate-400 dark:text-slate-500" />
-                  <span className="text-[9px] md:text-[11px] font-bold text-slate-400 dark:text-slate-500">Yeni</span>
+                  <ImagePlus className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground" />
+                  <span className="text-[9px] md:text-[11px] font-bold text-muted-foreground">Yeni</span>
                 </button>
               </div>
             </div>

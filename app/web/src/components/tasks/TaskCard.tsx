@@ -21,8 +21,8 @@ interface TaskCardProps {
 function getCardStyle(color?: string): React.CSSProperties {
   if (!color) {
     return {
-      backgroundColor: 'rgba(255, 255, 255, 0.92)',
-      borderColor: 'rgba(0, 0, 0, 0.05)',
+      backgroundColor: 'var(--card)',
+      borderColor: 'var(--border)',
     }
   }
   try {
@@ -36,8 +36,8 @@ function getCardStyle(color?: string): React.CSSProperties {
     }
   } catch {
     return {
-      backgroundColor: 'rgba(255, 255, 255, 0.92)',
-      borderColor: 'rgba(0, 0, 0, 0.05)',
+      backgroundColor: 'var(--card)',
+      borderColor: 'var(--border)',
     }
   }
 }
@@ -45,8 +45,8 @@ function getCardStyle(color?: string): React.CSSProperties {
 function getCardStyleDark(color?: string): React.CSSProperties {
   if (!color) {
     return {
-      backgroundColor: 'rgba(30, 34, 50, 0.90)',
-      borderColor: 'rgba(255, 255, 255, 0.06)',
+      backgroundColor: 'var(--card)',
+      borderColor: 'var(--border)',
     }
   }
   try {
@@ -60,8 +60,8 @@ function getCardStyleDark(color?: string): React.CSSProperties {
     }
   } catch {
     return {
-      backgroundColor: 'rgba(30, 34, 50, 0.90)',
-      borderColor: 'rgba(255, 255, 255, 0.06)',
+      backgroundColor: 'var(--card)',
+      borderColor: 'var(--border)',
     }
   }
 }
@@ -69,7 +69,7 @@ function getCardStyleDark(color?: string): React.CSSProperties {
 // İlerleme çubuğu — ince, minimal
 function ProgressBar({ percent, accentColor }: { percent: number; accentColor: string }) {
   return (
-    <div className="w-full h-1 bg-black/[0.06] dark:bg-white/[0.08] rounded-full overflow-hidden">
+    <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
       <div
         className="h-full rounded-full transition-all duration-500"
         style={{ width: `${percent}%`, backgroundColor: accentColor }}

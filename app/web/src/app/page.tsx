@@ -22,6 +22,7 @@ import { AdsLayout } from "@/components/ads-panel/AdsLayout"
 import { PhotoTrackingLayout } from "@/components/photo-tracking/PhotoTrackingLayout"
 import { OfflineBanner } from "@/components/ui/OfflineBanner"
 import { AdminPanel } from "@/components/admin/AdminPanel"
+import { LiveTranslatePage } from "@/components/live-translate"
 
 
 export default function DashboardPage() {
@@ -179,6 +180,9 @@ export default function DashboardPage() {
   } else if (viewMode === 'admin') {
     pageTitle = "Yönetim Paneli"
     pageDescription = "Kullanıcılar, yetkiler ve sistem yönetimi."
+  } else if (viewMode === 'live_translate') {
+    pageTitle = "Sesli Çeviri"
+    pageDescription = "Karşılıklı konuşmalarınızı anında sesli ve yazılı olarak çevirin."
   } else if (viewMode === 'dashboard') {
     pageTitle = currentProject ? `${currentProject.name} — Kontrol Paneli` : "Kontrol Paneli"
     pageDescription = "Firmanın genel durumunu görüntüleyin."
@@ -191,6 +195,7 @@ export default function DashboardPage() {
   const isReklamAds = viewMode === 'ads'
   const isPhotoTracking = viewMode === 'photo_tracking'
   const isAdminPanel = viewMode === 'admin'
+  const isLiveTranslate = viewMode === 'live_translate'
 
   
   const renderErrorState = (message: string) => (
@@ -250,6 +255,8 @@ export default function DashboardPage() {
           <AdsLayout projectId={selectedProjectId} />
         ) : isPhotoTracking ? (
           <PhotoTrackingLayout projectId={selectedProjectId} />
+        ) : isLiveTranslate ? (
+          <LiveTranslatePage />
         ) : (
           <div className={`flex-1 min-h-0 flex flex-col mobile-content-area ${isDashboard ? 'overflow-y-auto lg:overflow-hidden p-3 md:p-5 lg:p-8' : (viewMode === 'notes' ? 'overflow-y-auto overflow-x-hidden p-3 md:p-5 lg:p-8' : 'overflow-hidden')}`}>
 

@@ -973,10 +973,10 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
                   <div className="space-y-3">
                     <Textarea value={descriptionDraft} onChange={e => setDescriptionDraft(e.target.value)}
                       placeholder="Açıklama, linkler, notlar ekleyin..."
-                      className="min-h-[200px] text-base leading-relaxed p-4 bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white/95 resize-none focus:ring-2 focus:ring-indigo-500/50 rounded-xl shadow-inner font-medium"
+                      className="min-h-[200px] text-base leading-relaxed p-4 bg-muted dark:bg-black/20 border-border text-slate-900 dark:text-white/95 resize-none focus:ring-2 focus:ring-indigo-500/50 rounded-xl shadow-inner font-medium"
                       autoFocus />
                     <div className="flex items-center justify-end gap-2">
-                       <Button size="sm" variant="ghost" className="h-8 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:text-white/50 rounded-xl px-4" onClick={() => setIsEditingDesc(false)}>
+                       <Button size="sm" variant="ghost" className="h-8 text-xs font-bold text-muted-foreground hover:bg-muted dark:text-white/50 rounded-xl px-4" onClick={() => setIsEditingDesc(false)}>
                          İptal
                        </Button>
                        <Button size="sm" className="h-8 text-xs font-bold gap-1.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white px-5" onClick={saveDescription}>
@@ -1006,7 +1006,7 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
                         })}
                       </div>
                     ) : (
-                      <p className="text-base font-medium text-slate-400 dark:text-white/30 italic">Açıklama eklemek için tıklayın...</p>
+                      <p className="text-base font-medium text-muted-foreground/60 italic">Açıklama eklemek için tıklayın...</p>
                     )}
                   </div>
                 )}
@@ -1019,13 +1019,13 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
                 {/* Gömülü Resimler */}
                 {descImages.length > 0 && (
                   <div className="mt-4">
-                    <h4 className="text-xs font-bold text-slate-500 dark:text-white/50 flex items-center gap-1.5 mb-2">
+                    <h4 className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 mb-2">
                       <Paperclip className="w-3 h-3" /> Eklentiler ({descImages.length})
                     </h4>
                     <div className="flex flex-wrap gap-3">
                       {descImages.map((url, i) => (
                         <img key={i} src={url} alt={`Ek ${i + 1}`}
-                          className="w-24 h-24 object-cover rounded-xl border border-slate-200 dark:border-white/10 shadow-sm cursor-zoom-in hover:scale-105 transition-transform duration-300"
+                          className="w-24 h-24 object-cover rounded-xl border border-border shadow-sm cursor-zoom-in hover:scale-105 transition-transform duration-300"
                           onClick={() => setImagePreview(url)} />
                       ))}
                     </div>
@@ -1034,13 +1034,13 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
               </div>
 
               {/* ALT GÖREVLER (Kontrol Listesi) */}
-              <div className="px-5 md:px-8 pb-6 border-t border-slate-100 dark:border-white/5 pt-5">
+              <div className="px-5 md:px-8 pb-6 border-t border-border pt-5">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-[15px] font-bold text-slate-800 dark:text-white/90 flex items-center gap-2">
+                  <h3 className="text-[15px] font-bold text-foreground/90 flex items-center gap-2">
                     <ListChecks className="w-4 h-4 text-blue-500" />
                     Alt Görevler
                     {subtasks.length > 0 && (
-                      <span className="text-[10px] bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-white/60 px-2.5 py-0.5 rounded-full font-black ml-1">
+                      <span className="text-[10px] bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full font-black ml-1">
                         {doneSubtasks.length}/{subtasks.length}
                       </span>
                     )}
@@ -1062,7 +1062,7 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
                 {/* Alt görev ilerleme çubuğu */}
                 {subtasks.length > 0 && (
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="flex-1 h-1.5 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
+                    <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
                       <div className={`h-full transition-all duration-700 ease-out ${progress === 100 ? 'bg-gradient-to-r from-emerald-400 to-green-500' : 'bg-gradient-to-r from-indigo-500 to-purple-500'}`}
                         style={{ width: `${progress}%` }} />
                     </div>
@@ -1076,16 +1076,16 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
                 <div className="space-y-1 max-w-4xl">
                   {subtasks.map((st) => (
                     editingSubtaskId === st.id ? (
-                      <div key={st.id} className="flex flex-col gap-2 p-3 rounded-xl bg-slate-50 dark:bg-black/20 border border-indigo-200 dark:border-indigo-500/30 shadow-sm animate-in fade-in">
-                        <Textarea value={subtaskEditTitle} onChange={e => setSubtaskEditTitle(e.target.value)} placeholder="Alt görev adı" className="min-h-[40px] text-xs font-semibold bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 resize-none py-2" autoFocus />
-                        <Textarea value={subtaskEditDesc} onChange={e => setSubtaskEditDesc(e.target.value)} placeholder="Açıklama (opsiyonel)" className="min-h-[60px] text-[11px] resize-none bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700" />
+                      <div key={st.id} className="flex flex-col gap-2 p-3 rounded-xl bg-muted dark:bg-black/20 border border-indigo-200 dark:border-indigo-500/30 shadow-sm animate-in fade-in">
+                        <Textarea value={subtaskEditTitle} onChange={e => setSubtaskEditTitle(e.target.value)} placeholder="Alt görev adı" className="min-h-[40px] text-xs font-semibold bg-card border-border resize-none py-2" autoFocus />
+                        <Textarea value={subtaskEditDesc} onChange={e => setSubtaskEditDesc(e.target.value)} placeholder="Açıklama (opsiyonel)" className="min-h-[60px] text-[11px] resize-none bg-card border-border" />
                         <div className="flex justify-end gap-2 mt-1">
                            <Button size="sm" variant="ghost" onClick={cancelSubtaskEdit} className="h-7 text-[11px] px-3">İptal</Button>
                            <Button size="sm" onClick={saveSubtaskEdit} className="h-7 text-[11px] px-4 bg-indigo-500 hover:bg-indigo-600 text-white">Kaydet</Button>
                         </div>
                       </div>
                     ) : (
-                    <div key={st.id} className="group flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border border-transparent hover:border-slate-200/50 dark:hover:border-white/10 cursor-pointer" onClick={() => openSubtaskEdit(st)}>
+                    <div key={st.id} className="group flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-muted transition-colors border border-transparent hover:border-border cursor-pointer" onClick={() => openSubtaskEdit(st)}>
                       <button onClick={(e) => { e.stopPropagation(); handleSubtaskToggle(st); }} className="flex-shrink-0">
                         {st.status === 'done'
                           ? <CheckCircle2 className="w-5 h-5 text-emerald-500" />
@@ -1093,11 +1093,11 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
                         }
                       </button>
                       <div className="flex-1 min-w-0">
-                        <span className={`text-sm font-medium ${st.status === 'done' ? 'line-through text-slate-400 dark:text-white/40' : 'text-slate-700 dark:text-white/90'}`}>
+                        <span className={`text-sm font-medium ${st.status === 'done' ? 'line-through text-slate-400 dark:text-white/40' : 'text-foreground/90'}`}>
                           {st.title}
                         </span>
                         {st.description && (
-                          <p className="text-[11px] text-slate-500 dark:text-white/40 mt-0.5 leading-snug">{st.description}</p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{st.description}</p>
                         )}
                       </div>
                       <button onClick={(e) => handleDeleteSubtask(st.id, e)}
@@ -1114,20 +1114,20 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
                   <div className="mt-3 flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
                     <Input ref={subtaskInputRef} value={newSubtaskTitle} onChange={e => setNewSubtaskTitle(e.target.value)}
                       placeholder="Detaylı bir adım..."
-                      className="text-sm h-9 flex-1 bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/10 rounded-xl"
+                      className="text-sm h-9 flex-1 bg-muted/50 dark:bg-black/20 border-border rounded-xl"
                       onKeyDown={e => { if (e.key === 'Enter') handleAddSubtask(); if (e.key === 'Escape') { setIsAddingSubtask(false); setNewSubtaskTitle("") } }} />
                     <Button size="sm" className="h-9 text-xs font-bold px-4 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white" onClick={handleAddSubtask}>Ekle</Button>
                     <button onClick={() => { setIsAddingSubtask(false); setNewSubtaskTitle("") }} className="text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></button>
                   </div>
                 ) : (
                   <button onClick={() => setIsAddingSubtask(true)}
-                    className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-bold text-slate-500 hover:text-indigo-600 dark:text-white/40 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-all border border-dashed border-slate-300 dark:border-white/10 hover:border-indigo-500/50">
+                    className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-bold text-muted-foreground hover:text-indigo-600 hover:bg-muted rounded-xl transition-all border border-dashed border-border hover:border-indigo-500/50">
                     <Plus className="w-4 h-4" /> Yeni Alt Görev Ekle
                   </button>
                 )}
 
                 {subtasks.length === 0 && !isAddingSubtask && (
-                  <p className="text-xs font-medium text-slate-500 dark:text-white/30 text-center py-6">
+                  <p className="text-xs font-medium text-muted-foreground/80 text-center py-6">
                     Burayı küçük adımlara bölmek işi kolaylaştırır. <br/><span className="text-indigo-500 font-bold">AI ile Böl</span> butonunu deneyin.
                   </p>
                 )}
@@ -1136,7 +1136,7 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
             </div>
 
             {/* ===== SAĞ PANEL (Masaüstü) / ALT BAR (Mobil) ===== */}
-            <div className="w-full md:w-[360px] shrink-0 flex flex-col fixed md:relative bottom-0 left-0 right-0 z-40 md:z-auto bg-white/30 md:bg-slate-50/30 dark:bg-slate-900/40 md:dark:bg-black/10 backdrop-blur-xl md:backdrop-blur-none border-t md:border-0 border-white/20 dark:border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] md:shadow-none transition-all duration-300 rounded-t-2xl md:rounded-none">
+            <div className="w-full md:w-[360px] shrink-0 flex flex-col fixed md:relative bottom-0 left-0 right-0 z-40 md:z-auto bg-card/30 md:bg-muted/20 dark:bg-slate-900/40 md:dark:bg-black/10 backdrop-blur-xl md:backdrop-blur-none border-t md:border-0 border-border/30 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] md:shadow-none transition-all duration-300 rounded-t-2xl md:rounded-none">
               
               {/* HEDEF TARİH + ÖNCELİK — Her zaman açık (Masaüstü) */}
               <div className="hidden md:block">
@@ -1149,11 +1149,11 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
 
               {/* FOTOĞRAFLAR — Google Drive Entegrasyonu */}
               <div 
-                className={`border-b border-slate-100 dark:border-white/5 shrink-0 select-none ${activeMobileTab === 'photos' ? 'block' : 'hidden md:block'}`}
+                className={`border-b border-border shrink-0 select-none ${activeMobileTab === 'photos' ? 'block' : 'hidden md:block'}`}
               >
                 <div className="p-3 md:p-5">
                   <div className="hidden md:flex items-center justify-between mb-2 cursor-pointer" onClick={() => setIsPhotosOpen(!isPhotosOpen)}>
-                    <h3 className="text-[10px] md:text-xs font-bold uppercase tracking-widest md:tracking-normal md:normal-case text-slate-700 dark:text-white/80 flex items-center gap-2">
+                    <h3 className="text-[10px] md:text-xs font-bold uppercase tracking-widest md:tracking-normal md:normal-case text-foreground/80 flex items-center gap-2">
                       <ImagePlus className="w-4 h-4 text-indigo-500" />
                       Fotoğraflar
                       {selectedTask.task_photos && selectedTask.task_photos.length > 0 && (
@@ -1191,13 +1191,13 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
               
               {/* ÜST: İLERLEME ÖZETİ + SÜRE */}
               <div 
-                className={`border-b border-slate-100 dark:border-white/5 shrink-0 select-none ${activeMobileTab === 'progress' ? 'block' : 'hidden md:block'}`}
+                className={`border-b border-border shrink-0 select-none ${activeMobileTab === 'progress' ? 'block' : 'hidden md:block'}`}
               >
                 <div className="p-3 md:p-5">
                   <div className="hidden md:flex items-center justify-between cursor-pointer" onClick={() => setIsProgressOpen(!isProgressOpen)}>
                     <div className="flex items-center gap-2">
                       <TrendingUp className="w-4 h-4 text-emerald-500" />
-                      <span className="text-[10px] md:text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400/80">İlerleme Özeti</span>
+                      <span className="text-[10px] md:text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">İlerleme Özeti</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <ChevronDown className={`w-3.5 h-3.5 transition-transform text-slate-400 ${isProgressOpen ? 'rotate-180' : ''}`} />
@@ -1217,17 +1217,17 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
                         }
                       </p>
                       <div className="flex gap-2 mt-3 w-full md:w-2/3 mx-auto">
-                        <div className="flex-1 bg-white/80 dark:bg-slate-800/60 rounded-lg p-1.5 text-center flex flex-col justify-center">
-                          <p className="text-sm font-black text-slate-800 dark:text-white/90">
+                        <div className="flex-1 bg-card/80 dark:bg-slate-800/60 rounded-lg p-1.5 text-center flex flex-col justify-center">
+                          <p className="text-sm font-black text-foreground/90">
                             {totalActual}<span className="text-[10px] font-bold text-slate-400 ml-0.5">dk</span>
                           </p>
-                          <p className="text-[9px] font-bold uppercase text-slate-500 dark:text-white/50">Harcanan</p>
+                          <p className="text-[9px] font-bold uppercase text-muted-foreground/85">Harcanan</p>
                         </div>
-                        <div className="flex-1 bg-white/80 dark:bg-slate-800/60 rounded-lg p-1.5 text-center flex flex-col justify-center">
-                          <p className="text-sm font-black text-slate-800 dark:text-white/90">
+                        <div className="flex-1 bg-card/80 dark:bg-slate-800/60 rounded-lg p-1.5 text-center flex flex-col justify-center">
+                          <p className="text-sm font-black text-foreground/90">
                             {totalEstimated || '—'}<span className="text-[10px] font-bold text-slate-400 ml-0.5">{totalEstimated ? 'dk' : ''}</span>
                           </p>
-                          <p className="text-[9px] font-bold uppercase text-slate-500 dark:text-white/50">Tahmini</p>
+                          <p className="text-[9px] font-bold uppercase text-muted-foreground/85">Tahmini</p>
                         </div>
                       </div>
                     </div>
@@ -1237,11 +1237,11 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
 
               {/* ORTA: YAPAY ZEKA — Tıklanabilir (Accordion) */}
               <div 
-                className={`border-b border-slate-100 dark:border-white/5 shrink-0 select-none ${activeMobileTab === 'ai' ? 'block' : 'hidden md:block'}`}
+                className={`border-b border-border shrink-0 select-none ${activeMobileTab === 'ai' ? 'block' : 'hidden md:block'}`}
               >
                 <div className="p-3 md:p-4">
                   <div className="hidden md:flex items-center justify-between cursor-pointer" onClick={() => setIsAIOpen(!isAIOpen)}>
-                    <h3 className="text-[10px] md:text-xs font-bold uppercase tracking-widest md:tracking-normal md:normal-case text-slate-700 dark:text-white/80 flex items-center gap-2">
+                    <h3 className="text-[10px] md:text-xs font-bold uppercase tracking-widest md:tracking-normal md:normal-case text-foreground/80 flex items-center gap-2">
                       <Bot className="w-4 h-4 text-purple-500" />
                       Yapay Zeka
                     </h3>
@@ -1264,9 +1264,9 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
                           Büyük zeka düşünüyor...
                         </div>
                       ) : selectedTask.ai_analysis ? (
-                        <p className="text-[11px] md:text-[12px] font-medium text-slate-700 dark:text-white/80 leading-relaxed whitespace-pre-wrap relative z-10">{selectedTask.ai_analysis}</p>
+                        <p className="text-[11px] md:text-[12px] font-medium text-foreground/80 leading-relaxed whitespace-pre-wrap relative z-10">{selectedTask.ai_analysis}</p>
                       ) : (
-                        <p className="text-[11px] md:text-[12px] font-medium text-slate-400 dark:text-white/30 italic relative z-10">AI analizi yok. Yenile'ye tıklayın.</p>
+                        <p className="text-[11px] md:text-[12px] font-medium text-muted-foreground/50 italic relative z-10">AI analizi yok. Yenile'ye tıklayın.</p>
                       )}
                     </div>
                   </div>
@@ -1274,13 +1274,13 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
                   {/* Geçmiş Analizler — isAIOpen'a bağlı görünür */}
                   {selectedTask.ai_analysis_history && selectedTask.ai_analysis_history.length > 0 && (
                     <div className={`mt-2 space-y-1.5 overflow-hidden transition-all duration-300 ${isAIOpen ? 'max-h-[200px]' : 'max-h-0'}`}>
-                      <h4 className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-white/40">Geçmiş Analizler</h4>
+                      <h4 className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/80">Geçmiş Analizler</h4>
                       {selectedTask.ai_analysis_history.slice(0, 3).map((hist: any, i: number) => (
-                        <div key={i} className="rounded-lg bg-white dark:bg-white/5 border border-slate-100 dark:border-white/10 p-2">
-                          <p className="text-[9px] text-slate-400 dark:text-white/40 font-mono mb-0.5">
+                        <div key={i} className="rounded-lg bg-card dark:bg-white/5 border border-border p-2">
+                          <p className="text-[9px] text-muted-foreground/50 font-mono mb-0.5">
                             {format(new Date(hist.created_at), "dd MMM yyyy, HH:mm", { locale: tr })}
                           </p>
-                          <p className="text-[11px] text-slate-600 dark:text-white/80 line-clamp-2">{hist.ai_analysis}</p>
+                          <p className="text-[11px] text-foreground/80 line-clamp-2">{hist.ai_analysis}</p>
                         </div>
                       ))}
                     </div>
@@ -1289,13 +1289,13 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
               </div>
 
               {/* BÜTÜNLEŞİK YORUMLAR & HAREKET AKIŞI (Unified Timeline) */}
-              <div className={`border-b border-slate-100 dark:border-white/5 select-none flex-1 flex flex-col min-h-0 ${activeMobileTab === 'comments' ? 'block' : 'hidden md:flex'}`}>
+              <div className={`border-b border-border select-none flex-1 flex flex-col min-h-0 ${activeMobileTab === 'comments' ? 'block' : 'hidden md:flex'}`}>
                 <div className="p-4 flex flex-col flex-1 min-h-0">
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-slate-700 dark:text-white/80 flex items-center gap-2 mb-3 shrink-0">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-foreground/80 flex items-center gap-2 mb-3 shrink-0">
                     <MessageCircle className="w-4 h-4 text-indigo-500" />
                     Etkinlik ve Yorumlar
                     {unifiedList.length > 0 && (
-                      <span className="text-[10px] bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-white/60 px-2 py-0.5 rounded-full font-black">
+                      <span className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-black">
                         {unifiedList.length}
                       </span>
                     )}
@@ -1307,7 +1307,7 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
                       if (item.type === 'comment') {
                         const c = item.data
                         return (
-                          <div key={item.id} className="group/item flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50/70 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:border-slate-200 dark:hover:border-white/10 transition-all shadow-sm">
+                          <div key={item.id} className="group/item flex items-start gap-2.5 p-2.5 rounded-xl bg-muted/70 dark:bg-white/5 border border-border hover:border-border transition-all shadow-sm">
                             <div className="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-bold flex items-center justify-center overflow-hidden flex-shrink-0">
                               {c.user?.avatar_url ? (
                                 <img src={c.user.avatar_url} alt={c.user.name} className="w-full h-full object-cover" />
@@ -1318,14 +1318,14 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
                             
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-1.5 mb-1">
-                                <span className="text-xs font-bold text-slate-800 dark:text-white/95 truncate">
+                                <span className="text-xs font-bold text-foreground/95 truncate">
                                   {c.user?.name}
                                 </span>
-                                <span className="text-[9px] font-medium text-slate-400 dark:text-white/40 shrink-0">
+                                <span className="text-[9px] font-medium text-muted-foreground/50 shrink-0">
                                   {c.created_at ? formatDistanceToNow(new Date(c.created_at), { addSuffix: true, locale: tr }) : ""}
                                 </span>
                               </div>
-                              <p className="text-xs font-medium text-slate-600 dark:text-white/80 whitespace-pre-wrap break-words leading-relaxed">
+                              <p className="text-xs font-medium text-foreground/80 whitespace-pre-wrap break-words leading-relaxed">
                                 {c.content}
                               </p>
                             </div>
@@ -1344,11 +1344,11 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
                         // Sistem Geçmiş Logu (Şık bir satır olarak)
                         const event = item.data
                         return (
-                          <div key={item.id} className="flex items-start gap-2.5 py-1.5 px-3 rounded-lg bg-zinc-50 dark:bg-zinc-950/20 border border-dashed border-slate-200/50 dark:border-white/5">
+                          <div key={item.id} className="flex items-start gap-2.5 py-1.5 px-3 rounded-lg bg-muted/50 dark:bg-zinc-950/20 border border-dashed border-border">
                             {getActivityIcon(event)}
                             <div className="flex-1 min-w-0 pt-0.5">
-                              <p className="text-[11px] font-medium text-slate-500 dark:text-white/60 leading-snug">{event.text}</p>
-                              <p className="text-[9px] text-slate-400 dark:text-white/40 mt-0.5">
+                              <p className="text-[11px] font-medium text-muted-foreground leading-snug">{event.text}</p>
+                              <p className="text-[9px] text-muted-foreground/50 mt-0.5">
                                 {format(event.timestamp, "dd MMM yyyy, HH:mm", { locale: tr })}
                               </p>
                             </div>
@@ -1358,19 +1358,19 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
                     })}
 
                     {unifiedList.length === 0 && (
-                      <p className="text-xs font-medium text-slate-400 dark:text-white/30 py-6 text-center italic">
+                      <p className="text-xs font-medium text-muted-foreground/50 py-6 text-center italic">
                         Henüz bir hareket veya yorum yok. 💬
                       </p>
                     )}
                   </div>
 
                   {/* Yorum Yazma Kutusu */}
-                  <div className="mt-3 flex items-center gap-2 border-t border-slate-100 dark:border-white/5 pt-3 shrink-0" onClick={e => e.stopPropagation()}>
+                  <div className="mt-3 flex items-center gap-2 border-t border-border pt-3 shrink-0" onClick={e => e.stopPropagation()}>
                     <Input
                       value={commentDraft}
                       onChange={(e) => setCommentDraft(e.target.value)}
                       placeholder="Yorum yazın..."
-                      className="text-xs font-semibold h-9 flex-1 bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/10 rounded-xl"
+                      className="text-xs font-semibold h-9 flex-1 bg-muted dark:bg-black/20 border-border rounded-xl"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -1401,20 +1401,20 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
               </div> {/* İçerik alanı bitiş */}
 
               {/* MOBİL TAB BAR */}
-              <div className="flex md:hidden items-center justify-around px-2 py-2 border-t border-slate-200/50 dark:border-white/10 bg-transparent pb-safe">
-                 <button onClick={() => toggleMobileTab('photos')} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${activeMobileTab === 'photos' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-500'}`}>
+              <div className="flex md:hidden items-center justify-around px-2 py-2 border-t border-border bg-transparent pb-safe">
+                 <button onClick={() => toggleMobileTab('photos')} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${activeMobileTab === 'photos' ? 'text-indigo-600 dark:text-indigo-400' : 'text-muted-foreground/60 hover:text-slate-500'}`}>
                    <ImagePlus className="w-5 h-5"/>
                    <span className="text-[9px] font-bold">Fotoğraflar</span>
                  </button>
-                 <button onClick={() => toggleMobileTab('comments')} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${activeMobileTab === 'comments' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-500'}`}>
+                 <button onClick={() => toggleMobileTab('comments')} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${activeMobileTab === 'comments' ? 'text-indigo-600 dark:text-indigo-400' : 'text-muted-foreground/60 hover:text-slate-500'}`}>
                    <MessageCircle className="w-5 h-5"/>
                    <span className="text-[9px] font-bold">Yorum & Geçmiş</span>
                  </button>
-                 <button onClick={() => toggleMobileTab('progress')} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${activeMobileTab === 'progress' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-500'}`}>
+                 <button onClick={() => toggleMobileTab('progress')} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${activeMobileTab === 'progress' ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground/60 hover:text-slate-500'}`}>
                    <TrendingUp className="w-5 h-5"/>
                    <span className="text-[9px] font-bold">İlerleme</span>
                  </button>
-                 <button onClick={() => toggleMobileTab('ai')} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${activeMobileTab === 'ai' ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400 dark:text-slate-500 hover:text-slate-500'}`}>
+                 <button onClick={() => toggleMobileTab('ai')} className={`flex flex-col items-center gap-1 transition-colors flex-1 ${activeMobileTab === 'ai' ? 'text-purple-600 dark:text-purple-400' : 'text-muted-foreground/60 hover:text-slate-500'}`}>
                    <Bot className="w-5 h-5"/>
                    <span className="text-[9px] font-bold">Yapay Zeka</span>
                  </button>

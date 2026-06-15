@@ -117,20 +117,20 @@ export function TaskForm() {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[440px] p-0 overflow-hidden border-0 shadow-2xl bg-white dark:bg-slate-900 rounded-3xl [&>button]:hidden">
+        <DialogContent className="sm:max-w-[440px] p-0 overflow-hidden border border-border shadow-2xl bg-card rounded-3xl [&>button]:hidden">
           <div className="absolute top-0 inset-x-0 h-28 bg-gradient-to-br from-indigo-500/15 via-purple-500/8 to-transparent pointer-events-none" />
 
           {/* Kapatma Butonu */}
           <button
             onClick={() => setOpen(false)}
-            className="absolute top-4 right-4 z-50 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors"
+            className="absolute top-4 right-4 z-50 w-8 h-8 flex items-center justify-center rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
 
           <div className="relative z-10 p-6 pt-7">
             <DialogHeader className="mb-5">
-              <DialogTitle className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-3">
+              <DialogTitle className="text-xl font-black text-foreground flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 shrink-0">
                   <Plus className="w-5 h-5" />
                 </div>
@@ -141,7 +141,7 @@ export function TaskForm() {
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               {/* Görev Adı */}
               <div className="grid gap-1.5">
-                <Label htmlFor="title" className="font-bold text-slate-700 dark:text-slate-300 text-sm">Görev Adı</Label>
+                <Label htmlFor="title" className="font-bold text-foreground/80 text-sm">Görev Adı</Label>
                 <Input
                   id="title"
                   value={formData.title}
@@ -149,14 +149,14 @@ export function TaskForm() {
                   placeholder="Bugün neyi başarmak istiyorsun?"
                   autoFocus
                   required
-                  className="h-11 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-black/20 focus-visible:ring-2 focus-visible:ring-indigo-500/50 rounded-xl font-medium text-base shadow-inner"
+                  className="h-11 border-border bg-muted dark:bg-black/20 focus-visible:ring-2 focus-visible:ring-indigo-500/50 rounded-xl font-medium text-base shadow-inner"
                 />
               </div>
 
               {/* Açıklama */}
               <div className="grid gap-1.5">
                 <div className="flex justify-between items-center">
-                  <Label htmlFor="desc" className="font-bold text-slate-700 dark:text-slate-300 text-sm">Açıklama</Label>
+                  <Label htmlFor="desc" className="font-bold text-foreground/80 text-sm">Açıklama</Label>
                   <Button
                     type="button"
                     variant="ghost"
@@ -174,13 +174,13 @@ export function TaskForm() {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Görev detayları... (boş bırakılırsa AI doldurur)"
-                  className="min-h-[80px] border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-black/20 focus-visible:ring-2 focus-visible:ring-indigo-500/50 rounded-xl resize-none shadow-inner text-sm"
+                  className="min-h-[80px] border-border bg-muted dark:bg-black/20 focus-visible:ring-2 focus-visible:ring-indigo-500/50 rounded-xl resize-none shadow-inner text-sm"
                 />
               </div>
 
               {/* Öncelik — İcon Butonlar */}
               <div className="grid gap-1.5">
-                <Label className="font-bold text-slate-700 dark:text-slate-300 text-sm">Öncelik</Label>
+                <Label className="font-bold text-foreground/80 text-sm">Öncelik</Label>
                 <div className="flex gap-2">
                   {PRIORITIES.map((p) => {
                     const Icon = p.icon
@@ -193,7 +193,7 @@ export function TaskForm() {
                         className={`flex-1 flex items-center justify-center gap-1.5 h-10 rounded-xl border-2 font-bold text-sm transition-all shadow-sm
                           ${isActive
                             ? `${p.activeClass} shadow-lg`
-                            : `border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-black/10 ${p.hoverClass}`
+                            : `border-border text-muted-foreground bg-muted dark:bg-black/10 ${p.hoverClass}`
                           }`}
                       >
                         <Icon className="w-4 h-4 shrink-0" />
@@ -205,7 +205,7 @@ export function TaskForm() {
               </div>
 
               {/* Butonlar */}
-              <div className="flex justify-end gap-3 pt-2 mt-1 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex justify-end gap-3 pt-2 mt-1 border-t border-border">
                 <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="rounded-xl font-bold px-5">
                   Vazgeç
                 </Button>

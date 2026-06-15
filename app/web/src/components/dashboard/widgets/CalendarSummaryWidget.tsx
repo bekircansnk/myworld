@@ -20,7 +20,7 @@ export function CalendarSummaryWidget() {
           Takvim
         </h3>
         <div className="flex items-center gap-2">
-          <button className="text-slate-500 hover:text-indigo-500 font-bold text-[11px] uppercase tracking-wider px-3 py-1.5 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/10">{currentMonthName || 'Ay'}</button>
+          <button className="text-slate-500 hover:text-indigo-500 font-bold text-[11px] uppercase tracking-wider px-3 py-1.5 bg-muted rounded-xl border border-border">{currentMonthName || 'Ay'}</button>
           <button className="text-slate-400 hover:text-indigo-500 p-1">
             <MoreHorizontal className="w-5 h-5" />
           </button>
@@ -45,7 +45,7 @@ export function CalendarSummaryWidget() {
                <span className={`w-8 h-8 flex items-center justify-center rounded-xl transition-colors cursor-pointer
                   ${isToday ? 'bg-indigo-500 shadow-md text-white shadow-indigo-500/40 font-black' 
                   : (hasEvent1 || hasEvent2) ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 font-bold' 
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'}`}>
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-muted'}`}>
                  {day}
                </span>
                {(hasEvent1 || hasEvent2) && !isToday && (
@@ -57,7 +57,7 @@ export function CalendarSummaryWidget() {
       </div>
       
       {/* Schedule Items */}
-      <div className="mt-auto pt-4 flex flex-col gap-3 border-t border-slate-100 dark:border-white/5">
+      <div className="mt-auto pt-4 flex flex-col gap-3 border-t border-border">
          <div className="flex items-start gap-4 p-3.5 rounded-2xl bg-gradient-to-r from-indigo-50/80 to-transparent dark:from-indigo-900/10 border border-indigo-100/50 dark:border-indigo-500/10 group cursor-pointer hover:border-indigo-200 dark:hover:border-indigo-500/30 transition-colors">
            <div className="w-1.5 h-10 rounded-full bg-indigo-500" />
            <div className="flex-1">

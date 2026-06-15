@@ -5,7 +5,7 @@ import { idbStorage } from '@/lib/idb-storage';
 import { Project } from '@/types';
 import { enqueue } from '@/lib/syncQueue';
 
-export type ViewMode = 'dashboard' | 'all_tasks' | 'project' | 'calendar' | 'notes' | 'ai_chat' | 'ads' | 'photo_tracking' | 'admin';
+export type ViewMode = 'dashboard' | 'all_tasks' | 'project' | 'calendar' | 'notes' | 'ai_chat' | 'ads' | 'photo_tracking' | 'admin' | 'live_translate';
 
 interface ProjectState {
   projects: Project[];

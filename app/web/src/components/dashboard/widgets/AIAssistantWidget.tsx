@@ -34,10 +34,10 @@ export function AIAssistantWidget() {
          </div>
       </div>
       
-      <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-white/40 dark:bg-white/5 rounded-full blur-[40px] group-hover:bg-white/60 transition-colors duration-700"></div>
+      <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-muted/10 rounded-full blur-[40px] group-hover:bg-white/60 transition-colors duration-700"></div>
 
       <div className="relative z-10 mb-8 mt-2">
-        <div className="w-12 h-12 rounded-[1.25rem] bg-white/80 dark:bg-black/20 flex items-center justify-center mb-4 shadow-sm backdrop-blur-sm">
+        <div className="w-12 h-12 rounded-[1.25rem] bg-muted/30 flex items-center justify-center mb-4 shadow-sm backdrop-blur-sm">
           <Sparkles className="w-6 h-6 text-indigo-500 dark:text-indigo-400" />
         </div>
         <h3 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight leading-ti mb-2">
@@ -49,7 +49,7 @@ export function AIAssistantWidget() {
       </div>
 
       <div className="relative z-10 mt-auto">
-        <div className="bg-white/70 dark:bg-black/30 backdrop-blur-xl rounded-2xl p-2 flex items-center gap-2 shadow-sm border border-white/60 dark:border-white/10">
+        <div className="bg-muted/40 backdrop-blur-xl rounded-2xl p-2 flex items-center gap-2 shadow-sm border border-border">
           <input 
             value={aiPrompt}
             onChange={e => setAiPrompt(e.target.value)}

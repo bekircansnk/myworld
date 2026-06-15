@@ -138,10 +138,10 @@ export function NoteDetailPanel() {
 
       <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4 lg:p-8 pointer-events-none">
         <div
-          className="pointer-events-auto w-full max-w-full md:max-w-[1100px] max-h-full md:max-h-[90vh] rounded-none md:rounded-[2rem] overflow-hidden animate-in zoom-in-95 fade-in duration-300 border-0 md:border border-slate-200/60 dark:border-white/10 shadow-2xl shadow-emerald-500/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl supports-[backdrop-filter]:bg-opacity-80 flex flex-col"
+          className="pointer-events-auto w-full max-w-full md:max-w-[1100px] max-h-full md:max-h-[90vh] rounded-none md:rounded-[2rem] overflow-hidden animate-in zoom-in-95 fade-in duration-300 border-0 md:border border-border/60 shadow-2xl shadow-emerald-500/10 bg-card/95 backdrop-blur-xl flex flex-col"
           onClick={e => e.stopPropagation()}
         >
-          <div className="relative px-4 md:px-8 pt-4 md:pt-6 pb-3 md:pb-5 border-b border-slate-200/50 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 shrink-0">
+          <div className="relative px-4 md:px-8 pt-4 md:pt-6 pb-3 md:pb-5 border-b border-border bg-muted/50 shrink-0">
              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-400 to-teal-500" />
              
              <div className="flex items-start justify-between gap-4">
@@ -161,15 +161,15 @@ export function NoteDetailPanel() {
                       value={titleDraft}
                       onChange={(e) => setTitleDraft(e.target.value)}
                       placeholder="Not Başlığı (İsteğe Bağlı)"
-                      className="text-2xl font-black bg-white dark:bg-black/20 border-slate-200 dark:border-white/10 h-12 mb-2 w-full max-w-md"
+                      className="text-2xl font-black bg-card border-border h-12 mb-2 w-full max-w-md"
                     />
                   ) : (
-                    <h2 className="text-2xl font-black text-slate-800 dark:text-white/95 leading-tight mb-2">
+                    <h2 className="text-2xl font-black text-foreground/95 leading-tight mb-2">
                       {selectedNote.title || "İsimsiz Not"}
                     </h2>
                   )}
 
-                  <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-500 dark:text-white/40">
+                  <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-muted-foreground/60">
                     <span className="flex items-center gap-1.5">
                       <Calendar className="w-4 h-4" />
                       Oluşturulma: {selectedNote.created_at ? format(new Date(selectedNote.created_at), "dd MMM yyyy HH:mm", { locale: tr }) : "—"}
@@ -208,19 +208,19 @@ export function NoteDetailPanel() {
                   )}
                </div>
 
-                <div className="flex items-start gap-2">
+                 <div className="flex items-start gap-2">
                   {!isEditingContent && (
                     <Button 
                       variant="ghost" 
                       onClick={() => setIsEditingContent(true)}
-                      className="mt-1 h-9 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/70 shadow-sm hover:bg-slate-50 dark:hover:bg-white/10"
+                      className="mt-1 h-9 rounded-xl bg-card border border-border text-foreground/75 shadow-sm hover:bg-muted"
                     >
                       <Pencil className="w-4 h-4 mr-2" /> Düzenle
                     </Button>
                   )}
                   <button
                     onClick={closeNoteDetail}
-                    className="mt-1 p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white/40 dark:hover:text-white transition-all shadow-sm"
+                    className="mt-1 p-2 rounded-xl bg-muted text-muted-foreground hover:text-foreground transition-all shadow-sm"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -230,9 +230,9 @@ export function NoteDetailPanel() {
 
           <div className="flex flex-col md:flex-row flex-1 overflow-hidden h-full max-h-[85vh]">
             
-            <div className="flex-1 border-r border-slate-200/50 dark:border-white/5 bg-white/50 dark:bg-transparent flex flex-col overflow-hidden max-h-[100%]">
-               <div className="p-4 px-6 border-b border-slate-200/50 dark:border-white/5 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-white/5">
-                 <h3 className="text-sm font-bold text-slate-700 dark:text-white/80 flex items-center gap-2">
+            <div className="flex-1 border-r border-border bg-card/50 flex flex-col overflow-hidden max-h-[100%]">
+               <div className="p-4 px-6 border-b border-border flex items-center justify-between shrink-0 bg-muted/50">
+                 <h3 className="text-sm font-bold text-foreground/80 flex items-center gap-2">
                     <AlignLeft className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
                     İçerik
                  </h3>
@@ -253,13 +253,13 @@ export function NoteDetailPanel() {
                     <Textarea
                       value={contentDraft}
                       onChange={(e) => setContentDraft(e.target.value)}
-                      className="flex-1 min-h-[300px] text-[14px] leading-relaxed bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-slate-800 dark:text-white/90 focus-visible:ring-emerald-500/50 rounded-2xl shadow-inner p-5 resize-none"
+                      className="flex-1 min-h-[300px] text-[14px] leading-relaxed bg-muted dark:bg-black/20 border-border text-foreground/90 focus-visible:ring-emerald-500/50 rounded-2xl shadow-inner p-5 resize-none"
                     />
                   </div>
                  ) : (
                   <div className="flex flex-col gap-6">
                     <div 
-                      className="prose prose-slate dark:prose-invert max-w-none text-[14px] leading-relaxed text-slate-700 dark:text-white/80 whitespace-pre-wrap rounded-2xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 p-6 shadow-sm min-h-[300px] hover:bg-slate-50 dark:hover:bg-white/10 transition-colors cursor-text"
+                      className="prose prose-slate dark:prose-invert max-w-none text-[14px] leading-relaxed text-foreground/80 whitespace-pre-wrap rounded-2xl bg-card border border-border p-6 shadow-sm min-h-[300px] hover:bg-muted transition-colors cursor-text"
                       onClick={() => setIsEditingContent(true)}
                     >
                       {selectedNote.content}
@@ -269,7 +269,7 @@ export function NoteDetailPanel() {
                </div>
                {/* Ses çalar — her zaman sabit (sticky) alt bölgede görünür */}
                {!isEditingContent && (
-                 <div className="shrink-0 border-t border-slate-200/50 dark:border-white/5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm px-6 py-3" onClick={(e) => e.stopPropagation()}>
+                 <div className="shrink-0 border-t border-border bg-card/85 backdrop-blur-sm px-6 py-3" onClick={(e) => e.stopPropagation()}>
                    <TTSPlayer 
                      text={selectedNote.content || ""} 
                      noteId={selectedNote.id}
@@ -280,7 +280,7 @@ export function NoteDetailPanel() {
                  </div>
                )}
                {isEditingContent && (
-                 <div className="p-4 px-6 border-t border-slate-200/50 dark:border-white/5 bg-slate-50/50 dark:bg-black/20 flex items-center justify-end gap-2 shrink-0 z-10">
+                 <div className="p-4 px-6 border-t border-border bg-muted/55 dark:bg-black/20 flex items-center justify-end gap-2 shrink-0 z-10">
                     <Button variant="ghost" onClick={() => { setIsEditingContent(false); setContentDraft(selectedNote.content || "") }} disabled={isSaving} className="rounded-xl">İptal</Button>
                     <Button onClick={handleSaveNote} disabled={isSaving} className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl gap-2 font-bold px-6 btn-3d">
                       {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
@@ -290,9 +290,9 @@ export function NoteDetailPanel() {
                )}
             </div>
 
-            <div className="w-full md:w-[400px] shrink-0 bg-slate-50/30 dark:bg-black/20 flex flex-col overflow-hidden max-h-[100%]">
-               <div className="p-4 px-6 border-b border-slate-200/50 dark:border-white/5 flex items-center justify-between shrink-0">
-                 <h3 className="text-sm font-bold text-slate-700 dark:text-white/80 flex items-center gap-2">
+             <div className="w-full md:w-[400px] shrink-0 bg-muted/10 flex flex-col overflow-hidden max-h-[100%]">
+               <div className="p-4 px-6 border-b border-border flex items-center justify-between shrink-0">
+                 <h3 className="text-sm font-bold text-foreground/80 flex items-center gap-2">
                     <Bot className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
                     Not Analizi
                  </h3>
@@ -316,18 +316,18 @@ export function NoteDetailPanel() {
                         Not inceleniyor...
                       </div>
                     ) : selectedNote.ai_analysis ? (
-                      <p className="text-[13px] font-medium text-slate-700 dark:text-white/80 leading-relaxed whitespace-pre-wrap relative z-10">{selectedNote.ai_analysis}</p>
+                      <p className="text-[13px] font-medium text-foreground/80 leading-relaxed whitespace-pre-wrap relative z-10">{selectedNote.ai_analysis}</p>
                     ) : (
-                      <p className="text-[13px] font-medium text-slate-400 dark:text-white/30 italic relative z-10">AI analizi bulunmuyor. Oluşturmak için Yenile'ye tıklayın.</p>
+                      <p className="text-[13px] font-medium text-muted-foreground italic relative z-10">AI analizi bulunmuyor. Oluşturmak için Yenile'ye tıklayın.</p>
                     )}
                  </div>
 
                  {selectedNote.ai_tags && selectedNote.ai_tags.length > 0 && (
                    <div className="mb-6">
-                     <h4 className="text-xs font-bold text-slate-500 dark:text-white/50 mb-3">Etiketler</h4>
+                     <h4 className="text-xs font-bold text-muted-foreground mb-3">Etiketler</h4>
                      <div className="flex flex-wrap gap-2">
                        {selectedNote.ai_tags.map(tag => (
-                         <span key={tag} className="px-2.5 py-1 rounded-full bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/60 text-[11px] font-bold shadow-sm">
+                         <span key={tag} className="px-2.5 py-1 rounded-full bg-card border border-border text-muted-foreground/85 text-[11px] font-bold shadow-sm">
                            #{tag}
                          </span>
                        ))}
@@ -337,13 +337,13 @@ export function NoteDetailPanel() {
 
                  {selectedNote.ai_analysis_history && selectedNote.ai_analysis_history.length > 0 && (
                   <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-slate-500 dark:text-white/50 border-b border-slate-200 dark:border-white/10 pb-2">Geçmiş İncelemeler</h4>
+                    <h4 className="text-xs font-bold text-muted-foreground border-b border-border pb-2">Geçmiş İncelemeler</h4>
                     {selectedNote.ai_analysis_history.map((hist: any, index: number) => (
-                      <div key={index} className="rounded-xl bg-white dark:bg-white/5 border border-slate-200/50 dark:border-white/10 p-3 shadow-sm">
-                        <p className="text-[10px] text-slate-400 dark:text-white/40 mb-1.5 font-bold uppercase tracking-wide">
+                      <div key={index} className="rounded-xl bg-card border border-border p-3 shadow-sm">
+                        <p className="text-[10px] text-muted-foreground/50 mb-1.5 font-bold uppercase tracking-wide">
                           {format(new Date(hist.created_at), "dd MMM yyyy HH:mm", { locale: tr })}
                         </p>
-                        <p className="text-xs font-medium text-slate-600 dark:text-white/60 line-clamp-3 hover:line-clamp-none transition-all">{hist.text}</p>
+                        <p className="text-xs font-medium text-foreground/80 line-clamp-3 hover:line-clamp-none transition-all">{hist.text}</p>
                       </div>
                     ))}
                   </div>

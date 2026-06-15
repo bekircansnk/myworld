@@ -178,7 +178,7 @@ export function NotesList() {
     }
     if (cat.includes("yaratıcı") || cat.includes("fikir")) {
       return { 
-        bg: 'bg-white dark:bg-slate-800 relative z-0 border-[#E0F2F1] dark:border-emerald-500/30 border-2',
+        bg: 'bg-card relative z-0 border-[#E0F2F1] dark:border-emerald-500/30 border-2',
         badge: 'bg-[#E0F2F1] text-emerald-900 border-none',
         glow: 'bg-[#E0F2F1]/50' // MINT
       }
@@ -385,11 +385,11 @@ export function NotesList() {
       {/* Right Click Context Menu */}
       {contextMenu && (
         <div 
-          className="fixed bg-white dark:bg-slate-800 shadow-2xl rounded-2xl border border-slate-200/50 dark:border-slate-700/50 py-3 w-56 z-[100] animate-in zoom-in-95 duration-150 backdrop-blur-xl supports-[backdrop-filter]:bg-white/95 supports-[backdrop-filter]:dark:bg-slate-800/95"
+          className="fixed bg-popover shadow-2xl rounded-2xl border border-border py-3 w-56 z-[100] animate-in zoom-in-95 duration-150 backdrop-blur-xl supports-[backdrop-filter]:bg-popover/95"
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="px-5 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2 mb-1">
+          <div className="px-5 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2 mb-1">
              <Tag className="w-3.5 h-3.5" /> Kategori Değiştir
           </div>
           
@@ -430,8 +430,8 @@ export function NotesList() {
 
       {/* Yeni Not Ekleme Modali */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="sm:max-w-xl p-0 overflow-hidden bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-          <DialogHeader className="p-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+        <DialogContent className="sm:max-w-xl p-0 overflow-hidden bg-card border border-border shadow-2xl rounded-3xl">
+          <DialogHeader className="p-6 pb-4 border-b border-border">
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               <Plus className="w-5 h-5 text-indigo-500" />
               Yeni Not Oluştur
@@ -439,20 +439,20 @@ export function NotesList() {
           </DialogHeader>
           <div className="p-6 space-y-5 overflow-y-auto custom-scrollbar max-h-[60vh]">
             <div className="space-y-2">
-              <Label htmlFor="title" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Başlık (Opsiyonel)</Label>
+              <Label htmlFor="title" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Başlık (Opsiyonel)</Label>
               <Input
                 id="title"
                 value={addTitle}
                 onChange={e => setAddTitle(e.target.value)}
                 placeholder="Örn: Yeni Mobil Uygulama Fikri..."
-                className="bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 h-11"
+                className="bg-muted border-border h-11"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Kategori</Label>
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Kategori</Label>
               <Select value={addCategory} onValueChange={(val) => val && setAddCategory(val)}>
-                <SelectTrigger className="bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 h-11">
+                <SelectTrigger className="bg-muted border-border h-11">
                   <SelectValue placeholder="Kategori seçin" />
                 </SelectTrigger>
                 <SelectContent>
@@ -464,18 +464,18 @@ export function NotesList() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="content" className="text-xs font-bold text-slate-500 uppercase tracking-wider">İçerik</Label>
+              <Label htmlFor="content" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">İçerik</Label>
               <Textarea
                 id="content"
                 value={addContent}
                 onChange={e => setAddContent(e.target.value)}
                 placeholder="Notunuzu buraya yazın..."
-                className="min-h-[160px] resize-none bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 rounded-xl leading-relaxed"
+                className="min-h-[160px] resize-none bg-muted border-border rounded-xl leading-relaxed"
               />
             </div>
           </div>
           
-          <div className="flex items-center justify-end gap-3 p-6 pt-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
+          <div className="flex items-center justify-end gap-3 p-6 pt-4 border-t border-border bg-card shrink-0">
             <Button variant="ghost" onClick={() => setIsAddModalOpen(false)} className="rounded-xl px-6">
               İptal
             </Button>
@@ -488,14 +488,14 @@ export function NotesList() {
       
       {/* Silme Onay Modali */}
       <Dialog open={noteToDelete !== null} onOpenChange={(open) => !open && setNoteToDelete(null)}>
-        <DialogContent className="sm:max-w-md p-6 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+        <DialogContent className="sm:max-w-md p-6 bg-card border border-border rounded-3xl shadow-2xl">
           <DialogHeader className="mb-4">
-            <DialogTitle className="text-xl font-bold flex items-center gap-2 text-red-600">
+            <DialogTitle className="text-xl font-bold flex items-center gap-2 text-red-650">
               <Trash2 className="w-5 h-5" />
               Notu Sil
             </DialogTitle>
           </DialogHeader>
-          <div className="text-sm text-slate-600 dark:text-slate-300">
+          <div className="text-sm text-muted-foreground">
             Bu notu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.
           </div>
           <div className="flex items-center justify-end gap-3 mt-6">

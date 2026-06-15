@@ -537,7 +537,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                         if (e.key === 'Escape') setEditingColumnId(null)
                       }}
                       onBlur={() => handleRenameColumn(column.id)}
-                      className="text-[13px] font-bold bg-transparent border-b-2 border-blue-400 outline-none text-gray-700 dark:text-gray-200 w-full mr-2 py-0.5"
+                      className="text-[13px] font-bold bg-transparent border-b-2 border-blue-400 outline-none text-foreground w-full mr-2 py-0.5"
                     />
                   ) : (
                     <h3 className="font-bold text-[13px] text-gray-600 dark:text-gray-300 flex items-center gap-2 select-none tracking-wide uppercase">
@@ -556,7 +556,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                     {canEdit && !column.id.startsWith('fallback_') && (
                       <button
                         onClick={() => { setAddingToColumn(column.id); setNewCardTitle("") }}
-                        className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-white/10 rounded transition-colors text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                        className="w-6 h-6 flex items-center justify-center hover:bg-muted rounded transition-colors text-muted-foreground hover:text-foreground"
                         title="Kart Ekle"
                       >
                         <Plus className="w-3.5 h-3.5" />
@@ -565,7 +565,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
 
                     {!column.id.startsWith('fallback_') && (
                       <DropdownMenu>
-                        <DropdownMenuTrigger className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-white/10 rounded transition-colors text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 border-0 focus:outline-none focus:ring-0 appearance-none">
+                        <DropdownMenuTrigger className="w-6 h-6 flex items-center justify-center hover:bg-muted rounded transition-colors text-muted-foreground hover:text-foreground border-0 focus:outline-none focus:ring-0 appearance-none">
                           <MoreVertical className="w-3.5 h-3.5" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48 text-sm">
@@ -607,8 +607,8 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                       {...provided.droppableProps}
                       className={`flex-1 overflow-y-auto kanban-column-scroll overscroll-y-contain flex flex-col gap-2 rounded-xl p-2 min-h-[200px] border-2 border-transparent ${
                         snapshot.isDraggingOver 
-                          ? 'bg-indigo-50/50 dark:bg-indigo-500/10 border-indigo-200/50 dark:border-indigo-500/20 shadow-inner' 
-                          : 'bg-gray-50/50 dark:bg-white/[0.02]'
+                          ? 'bg-primary/10 border-primary/20 shadow-inner' 
+                          : 'bg-muted/20'
                       }`}
                       style={{
                         WebkitOverflowScrolling: 'touch',
@@ -642,14 +642,14 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
 
                       {/* Hızlı Kart Ekleme Formu */}
                       {addingToColumn === column.id && (
-                        <div className="bg-white dark:bg-white/5 rounded-lg p-2.5 space-y-2 animate-in fade-in slide-in-from-top-2 border border-gray-100 dark:border-white/8">
+                        <div className="bg-card rounded-lg p-2.5 space-y-2 animate-in fade-in slide-in-from-top-2 border border-border">
                           <Input
                             ref={inputRef}
                             value={newCardTitle}
                             onChange={e => setNewCardTitle(e.target.value)}
                             disabled={savingQuickTaskColumnId === column.id}
                             placeholder="Görev adı girin..."
-                            className="text-[13px] border-0 shadow-none bg-gray-50 dark:bg-white/5 focus-visible:ring-1 focus-visible:ring-gray-300 rounded h-8"
+                            className="text-[13px] border-0 shadow-none bg-muted focus-visible:ring-1 focus-visible:ring-gray-300 rounded h-8"
                             onKeyDown={e => {
                               if (e.key === 'Enter') handleQuickAdd(column)
                               if (e.key === 'Escape') { setAddingToColumn(null); setNewCardTitle("") }
@@ -658,7 +658,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                           <div className="flex items-center gap-2">
                             <Button
                               size="sm"
-                              className="h-7 text-[11px] font-semibold px-3 rounded bg-gray-800 hover:bg-black dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 flex items-center gap-1.5"
+                              className="h-7 text-[11px] font-semibold px-3 rounded bg-primary hover:opacity-95 text-primary-foreground flex items-center gap-1.5"
                               onClick={() => handleQuickAdd(column)}
                               disabled={savingQuickTaskColumnId === column.id}
                             >
@@ -674,7 +674,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-7 text-[11px] font-semibold px-2 rounded hover:bg-gray-100 dark:hover:bg-slate-700"
+                              className="h-7 text-[11px] font-semibold px-2 rounded hover:bg-muted"
                               onClick={() => { setAddingToColumn(null); setNewCardTitle("") }}
                               disabled={savingQuickTaskColumnId === column.id}
                             >
@@ -688,7 +688,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                       {canEdit && !column.id.startsWith('fallback_') && addingToColumn !== column.id && (
                         <button
                           onClick={() => { setAddingToColumn(column.id); setNewCardTitle("") }}
-                          className="flex items-center gap-1.5 text-[12px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 py-1.5 px-2 rounded-md hover:bg-gray-100/60 dark:hover:bg-white/5 transition-colors w-full mt-0.5"
+                          className="flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground py-1.5 px-2 rounded-md hover:bg-muted transition-colors w-full mt-0.5"
                         >
                           <Plus className="w-3.5 h-3.5" />
                           Kart ekle
@@ -705,7 +705,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
           {canEdit && (
             <div className="shrink-0 kanban-column-add">
               {isAddingColumn ? (
-                <div className="bg-white/80 dark:bg-white/5 rounded-xl p-3 space-y-3 border border-gray-200 dark:border-white/10 w-full">
+                <div className="bg-card rounded-xl p-3 space-y-3 border border-border w-full">
                   <input
                     ref={newColInputRef}
                     value={newColumnLabel}
@@ -748,7 +748,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
               ) : (
                 <button
                   onClick={() => setIsAddingColumn(true)}
-                  className="flex items-center gap-2 text-[13px] font-semibold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 bg-gray-100/60 dark:bg-white/5 hover:bg-gray-200/60 dark:hover:bg-white/10 rounded-xl px-4 py-3 transition-colors w-full justify-center"
+                  className="flex items-center gap-2 text-[13px] font-semibold text-muted-foreground hover:text-foreground bg-muted hover:bg-muted/85 rounded-xl px-4 py-3 transition-colors w-full justify-center"
                 >
                   <Plus className="w-4 h-4" />
                   Sütun Ekle

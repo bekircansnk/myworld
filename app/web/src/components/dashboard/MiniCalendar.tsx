@@ -78,7 +78,7 @@ export function MiniCalendar() {
           mode="single"
           selected={date}
           onSelect={handleSelect}
-          className="rounded-2xl bg-white/50 dark:bg-slate-900/40 p-2 shadow-inner !w-full"
+          className="rounded-2xl bg-muted/30 p-2 shadow-inner !w-full"
           locale={tr}
           modifiers={modifiers}
           modifiersStyles={modifiersStyles}

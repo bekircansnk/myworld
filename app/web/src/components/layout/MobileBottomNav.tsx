@@ -12,7 +12,8 @@ import {
   Megaphone,
   Camera,
   X,
-  ShieldAlert
+  ShieldAlert,
+  Languages
 } from "lucide-react"
 
 import { useAuthStore, canViewCompany, isAdmin, canAccessAdminPanel } from "@/store/authStore"
@@ -37,6 +38,7 @@ export function MobileBottomNav() {
   // Kalanlar ve ekstra modüller "Daha Fazla" menüsünde
   const moreTabs = [
     ...allMainTabs.slice(5),
+    { id: 'live_translate', label: 'Çeviri', icon: Languages },
     ...(canViewCompany(user, 'ads', selectedProjectId) ? [{ id: 'ads', label: 'Reklam', icon: Megaphone }] : []),
     ...(canViewCompany(user, 'photo_tracking', selectedProjectId) ? [{ id: 'photo_tracking', label: 'Fotoğraf', icon: Camera }] : []),
     ...(canAccessAdminPanel(user) ? [{ id: 'admin', label: 'Yönetim', icon: ShieldAlert }] : [])

@@ -6,7 +6,7 @@ import { useWebSocketStore } from "@/stores/webSocketStore"
 import { ProjectForm } from "@/components/projects/ProjectForm"
 import { ProjectSettingsModal } from "@/components/projects/ProjectSettingsModal"
 import { Button } from "@/components/ui/button"
-import { Settings2, Sun, Moon, LayoutDashboard, ListTodo, NotebookPen, GripVertical, CalendarDays } from "lucide-react"
+import { Settings2, Sun, Moon, LayoutDashboard, ListTodo, NotebookPen, GripVertical, CalendarDays, Languages } from "lucide-react"
 import { useTheme } from "next-themes"
 
 export function Sidebar() {
@@ -101,6 +101,15 @@ export function Sidebar() {
             >
                 <NotebookPen className={`w-5 h-5 shrink-0 ${viewMode === 'notes' ? 'rotate-12 transform scale-110' : ''} transition-transform`} />
                 {isExpanded && <span>Akıllı Notlarım</span>}
+            </Button>
+            <Button 
+                variant="ghost" 
+                title="Sesli Çeviri"
+                className={`flex items-center transition-all duration-300 btn-3d rounded-xl ${isExpanded ? 'w-full justify-start h-12 gap-3 px-4 text-sm' : 'w-12 h-12 justify-center mx-auto'} ${viewMode === 'live_translate' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm inner-shadow-box' : 'text-slate-600 dark:text-slate-400 hover:bg-muted/50'}`}
+                onClick={() => setViewMode('live_translate')}
+            >
+                <Languages className={`w-5 h-5 shrink-0 ${viewMode === 'live_translate' ? 'scale-110' : ''} transition-transform`} />
+                {isExpanded && <span>Sesli Çeviri</span>}
             </Button>
           </nav>
         </div>

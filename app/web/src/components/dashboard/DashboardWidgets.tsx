@@ -328,7 +328,7 @@ export function DashboardWidgets() {
         <div className="grid w-full grid-cols-2 items-end gap-2 sm:grid-cols-[auto_auto_minmax(170px,1fr)] md:gap-3 xl:max-w-[560px] xl:flex-1">
           <div className="min-w-0">
             <p className="text-[11px] md:text-xs text-brand-gray dark:text-gray-400 mb-1 text-center leading-tight">Açık Görevler</p>
-            <div className="bg-brand-dark dark:bg-white text-white dark:text-brand-dark px-3 py-1.5 rounded-full text-[11px] md:text-xs font-bold text-center leading-none min-w-16">{todoTasks.length + inProgressTasks.length}</div>
+            <div className="bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-[11px] md:text-xs font-bold text-center leading-none min-w-16">{todoTasks.length + inProgressTasks.length}</div>
           </div>
           <div className="min-w-0">
             <p className="text-[11px] md:text-xs text-brand-gray dark:text-gray-400 mb-1 text-center leading-tight">Tamamlanan</p>
@@ -339,7 +339,7 @@ export function DashboardWidgets() {
               <span>İlerleme</span>
               <span>Verimlilik</span>
             </div>
-            <div className="h-5 w-full bg-white/50 dark:bg-white/5 rounded-full flex overflow-hidden border border-white dark:border-white/8">
+            <div className="h-5 w-full bg-muted rounded-full flex overflow-hidden border border-border">
               <div className="bg-brand-yellow h-full flex items-center px-2 text-[11px] font-bold text-brand-dark transition-all leading-none" style={{ width: `${completionRate}%` }}>{completionRate}%</div>
               <div className="h-full flex-grow opacity-20" style={{ backgroundImage: "repeating-linear-gradient(-45deg, transparent, transparent 5px, rgba(0,0,0,0.5) 5px, rgba(0,0,0,0.5) 10px)" }}></div>
             </div>
@@ -448,18 +448,18 @@ export function DashboardWidgets() {
                   className="w-full bg-brand-bg dark:bg-slate-900 border-none focus:ring-2 focus:ring-brand-yellow/50 rounded-2xl py-3 px-4 pr-12 text-sm placeholder:text-brand-gray/60 text-brand-dark dark:text-white"
                   placeholder="Hızlı Not / Komut..."
                 />
-                <button onClick={sendAiMessage} className="absolute right-2 top-1.5 w-8 h-8 bg-brand-dark dark:bg-white text-white dark:text-brand-dark rounded-xl flex items-center justify-center hover:opacity-80 transition">
+                <button onClick={sendAiMessage} className="absolute right-2 top-1.5 w-8 h-8 bg-primary text-primary-foreground rounded-xl flex items-center justify-center hover:opacity-80 transition">
                   <Send className="w-3.5 h-3.5" />
                 </button>
               </div>
               <div className="grid grid-cols-3 gap-2 mt-2.5 pb-1">
-                <button onClick={() => setAiInput('Not oluştur: ')} className="w-full justify-center whitespace-nowrap bg-white dark:bg-slate-700 border border-gray-100 dark:border-white/10 px-2 py-1.5 rounded-full text-[10px] font-semibold text-brand-gray dark:text-gray-300 hover:bg-brand-yellow/10 transition flex items-center gap-1.5">
+                <button onClick={() => setAiInput('Not oluştur: ')} className="w-full justify-center whitespace-nowrap bg-card border border-border px-2 py-1.5 rounded-full text-[10px] font-semibold text-brand-gray dark:text-gray-300 hover:bg-brand-yellow/10 transition flex items-center gap-1.5">
                   <StickyNote className="w-3 h-3" /> Not oluştur
                 </button>
-                <button onClick={() => setAiInput('Görev ekle: ')} className="w-full justify-center whitespace-nowrap bg-white dark:bg-slate-700 border border-gray-100 dark:border-white/10 px-2 py-1.5 rounded-full text-[10px] font-semibold text-brand-gray dark:text-gray-300 hover:bg-brand-yellow/10 transition flex items-center gap-1.5">
+                <button onClick={() => setAiInput('Görev ekle: ')} className="w-full justify-center whitespace-nowrap bg-card border border-border px-2 py-1.5 rounded-full text-[10px] font-semibold text-brand-gray dark:text-gray-300 hover:bg-brand-yellow/10 transition flex items-center gap-1.5">
                   <ListPlus className="w-3 h-3" /> Görev ekle
                 </button>
-                <button onClick={() => setAiInput('Günümü planla: ')} className="w-full justify-center whitespace-nowrap bg-white dark:bg-slate-700 border border-gray-100 dark:border-white/10 px-2 py-1.5 rounded-full text-[10px] font-semibold text-brand-gray dark:text-gray-300 hover:bg-brand-yellow/10 transition flex items-center gap-1.5">
+                <button onClick={() => setAiInput('Günümü planla: ')} className="w-full justify-center whitespace-nowrap bg-card border border-border px-2 py-1.5 rounded-full text-[10px] font-semibold text-brand-gray dark:text-gray-300 hover:bg-brand-yellow/10 transition flex items-center gap-1.5">
                   <Sparkles className="w-3 h-3" /> Günümü planla
                 </button>
               </div>
@@ -494,7 +494,7 @@ export function DashboardWidgets() {
                         </div>
                       )}
                       <div className="w-2 rounded-full bg-slate-200 dark:bg-slate-700 relative" style={{ height: `${totalH}px` }}>
-                        <div className={`absolute bottom-0 w-full rounded-full transition-all duration-500 ${isHighlighted ? 'bg-brand-yellow' : 'bg-brand-dark dark:bg-white'}`} style={{ height: `${doneH}px` }} />
+                        <div className={`absolute bottom-0 w-full rounded-full transition-all duration-500 ${isHighlighted ? 'bg-brand-yellow' : 'bg-primary'}`} style={{ height: `${doneH}px` }} />
                       </div>
                       <span className={`text-[8px] uppercase font-bold transition-colors ${ps.isToday ? 'bg-brand-yellow text-brand-dark px-1 py-0.5 rounded' : ps.total > 0 ? 'text-brand-dark dark:text-white' : 'text-brand-gray/40'}`}>
                         {ps.name}
@@ -531,7 +531,7 @@ export function DashboardWidgets() {
                       <Pause className="w-3.5 h-3.5 text-white" />
                     </button>
                   )}
-                  <button onClick={resetTimer} className="w-8 h-8 bg-white dark:bg-slate-700 shadow-sm border border-gray-100 dark:border-white/10 rounded-full flex items-center justify-center hover:bg-gray-50 dark:hover:bg-slate-600 transition shrink-0">
+                  <button onClick={resetTimer} className="w-8 h-8 bg-card shadow-sm border border-border rounded-full flex items-center justify-center hover:bg-muted transition shrink-0">
                     <RotateCcw className="w-3.5 h-3.5 text-brand-dark dark:text-white" />
                   </button>
                 </div>
@@ -653,7 +653,7 @@ export function DashboardWidgets() {
 
                     {/* Popover / Tooltip (Hover durumunda açılır) */}
                     {cd.isCurrentMonth && hasTasks && (
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-56 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3 shadow-xl hidden group-hover:flex flex-col gap-2 z-50 pointer-events-auto text-left animate-in fade-in slide-in-from-bottom-2 duration-200">
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-56 bg-popover/95 backdrop-blur-md border border-border rounded-2xl p-3 shadow-xl hidden group-hover:flex flex-col gap-2 z-50 pointer-events-auto text-left animate-in fade-in slide-in-from-bottom-2 duration-200">
                         <div className="text-[10px] font-bold text-slate-400 dark:text-gray-500 border-b border-slate-100 dark:border-slate-800/60 pb-1.5 mb-1 flex justify-between items-center">
                           <span>{cd.day} {format(currentTime, 'MMMM yyyy', { locale: tr })}</span>
                           <span className="bg-brand-yellow/10 text-brand-yellow px-1.5 py-0.5 rounded-full text-[8px] font-black">{cd.tasks.length} Görev</span>
@@ -701,11 +701,11 @@ export function DashboardWidgets() {
           <div className="floating-card rounded-3xl p-6 shrink-0 flex flex-col relative overflow-hidden min-h-[260px]">
             <div className="flex justify-between items-center shrink-0 mb-4">
               <h3 className="text-base font-semibold text-brand-dark dark:text-white">Durum Paneli</h3>
-              <div className="flex bg-brand-bg dark:bg-slate-900 p-1 rounded-full">
-                <button onClick={() => setOrientationMode('weekly')} className={`px-3 py-1 rounded-full text-[9px] font-bold transition ${orientationMode === 'weekly' ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-dark dark:text-white' : 'text-brand-gray'}`}>
+              <div className="flex bg-muted p-1 rounded-full">
+                <button onClick={() => setOrientationMode('weekly')} className={`px-3 py-1 rounded-full text-[9px] font-bold transition ${orientationMode === 'weekly' ? 'bg-card shadow-sm text-foreground' : 'text-brand-gray'}`}>
                   Haftalık
                 </button>
-                <button onClick={() => setOrientationMode('monthly')} className={`px-3 py-1 rounded-full text-[9px] font-bold transition ${orientationMode === 'monthly' ? 'bg-white dark:bg-slate-700 shadow-sm text-brand-dark dark:text-white' : 'text-brand-gray'}`}>
+                <button onClick={() => setOrientationMode('monthly')} className={`px-3 py-1 rounded-full text-[9px] font-bold transition ${orientationMode === 'monthly' ? 'bg-card shadow-sm text-foreground' : 'text-brand-gray'}`}>
                   Aylık
                 </button>
               </div>
@@ -721,20 +721,20 @@ export function DashboardWidgets() {
                 </div>
                 <div className="flex gap-1">
                   {Array(8).fill(0).map((_, i) => (
-                    <div key={i} className={`h-1 flex-grow rounded-full transition-colors ${i < Math.ceil(completionRate / 12.5) ? 'bg-brand-dark dark:bg-white' : 'bg-slate-200 dark:bg-slate-700'}`} />
+                    <div key={i} className={`h-1 flex-grow rounded-full transition-colors ${i < Math.ceil(completionRate / 12.5) ? 'bg-primary' : 'bg-muted'}`} />
                   ))}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-2 shrink-0">
-                <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-3 flex flex-col items-center justify-center">
+                <div className="bg-muted rounded-2xl p-3 flex flex-col items-center justify-center">
                   <div className="text-xl font-light text-brand-dark dark:text-white leading-none mb-1">{todoTasks.length}</div>
                   <div className="text-[8px] font-bold text-brand-gray dark:text-gray-500 uppercase tracking-wider">Bekleyen</div>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-3 flex flex-col items-center justify-center">
+                <div className="bg-muted rounded-2xl p-3 flex flex-col items-center justify-center">
                   <div className="text-xl font-light text-brand-dark dark:text-white leading-none mb-1">{inProgressTasks.length}</div>
                   <div className="text-[8px] font-bold text-brand-gray dark:text-gray-500 uppercase tracking-wider">Aktif</div>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-3 flex flex-col items-center justify-center">
+                <div className="bg-muted rounded-2xl p-3 flex flex-col items-center justify-center">
                   <div className="text-xl font-light text-brand-dark dark:text-white leading-none mb-1">{doneTasks.length}</div>
                   <div className="text-[8px] font-bold text-brand-gray dark:text-gray-500 uppercase tracking-wider">Biten</div>
                 </div>
