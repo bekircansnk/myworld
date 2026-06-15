@@ -9,6 +9,10 @@ export function useLiveTranslate() {
     targetLanguage,
     activeMode,
     status,
+    audioInputDevice,
+    audioOutputDeviceMe,
+    audioOutputDeviceOther,
+    isAutomaticMode,
     setStatus,
     setErrorMessage,
     addTranscript,
@@ -27,12 +31,55 @@ export function useLiveTranslate() {
   
   // Transkript birikimi için geçici referanslar
   const currentTurnIdRef = useRef<string | null>(null);
-
-  // Ses çalmayı durdurmak için aktif ses kaynaklarını tutan dizi
   const activeSourcesRef = useRef<AudioBufferSourceNode[]>([]);
 
+  // Kullanılabilir ses cihazları listesi
+  const [devices, setDevices] = useState<{
+    inputs: MediaDeviceInfo[];
+    outputs: MediaDeviceInfo[];
+  }>({ inputs: [], outputs: [] });
+
+  // Sistemdeki ses aygıtlarını listele
+  const refreshDevices = async () => {
+    try {
+      if (typeof navigator === "undefined" || !navigator.mediaDevices) return;
+      
+      // İlk başta izni tetiklemek için geçici mic isteği yapılabilir
+      const deviceInfos = await navigator.mediaDevices.enumerateDevices();
+      const inputs = deviceInfos.filter(d => d.kind === "audioinput");
+      const outputs = deviceInfos.filter(d => d.kind === "audiooutput");
+      setDevices({ inputs, outputs });
+    } catch (err) {
+      console.error("Failed to enumerate audio devices:", err);
+    }
+  };
+
+  useEffect(() => {
+    refreshDevices();
+    if (typeof navigator !== "undefined" && navigator.mediaDevices) {
+      navigator.mediaDevices.addEventListener("devicechange", refreshDevices);
+      return () => {
+        navigator.mediaDevices.removeEventListener("devicechange", refreshDevices);
+      };
+    }
+  }, []);
+
+  // Ses çalma hedefini (sinkId) ayarlama
+  const applySinkId = async (ctx: AudioContext, isToTr: boolean) => {
+    const anyCtx = ctx as any;
+    if (typeof anyCtx.setSinkId === "function") {
+      const targetSinkId = isToTr ? audioOutputDeviceMe : audioOutputDeviceOther;
+      try {
+        await anyCtx.setSinkId(targetSinkId === "default" ? "" : targetSinkId);
+        console.log(`Audio output directed to sink ID: ${targetSinkId}`);
+      } catch (err) {
+        console.warn("Failed to direct audio output via setSinkId:", err);
+      }
+    }
+  };
+
   // PCM Base64 verisini çalma kuyruğu
-  const playPcmChunk = (base64Data: string, sampleRate = 24000) => {
+  const playPcmChunk = async (base64Data: string, sampleRate = 24000, isToTr = true) => {
     try {
       const binaryString = window.atob(base64Data);
       const len = binaryString.length;
@@ -54,10 +101,12 @@ export function useLiveTranslate() {
 
       const ctx = playAudioContextRef.current;
       
-      // Eğer suspend durumundaysa (tarayıcı güvenlik kısıtlaması) resume et
       if (ctx.state === "suspended") {
-        ctx.resume();
+        await ctx.resume();
       }
+
+      // Ses yönlendirmesini uygula (kulaklık/hoparlör)
+      await applySinkId(ctx, isToTr);
 
       const buffer = ctx.createBuffer(1, float32Array.length, sampleRate);
       buffer.copyToChannel(float32Array, 0);
@@ -72,11 +121,8 @@ export function useLiveTranslate() {
       }
 
       source.start(nextPlayTimeRef.current);
-      
-      // Çalmaya başladığında state'i güncelle
       setIsAudioPlaying(true);
       
-      // Kaynak bittiğinde listeden kaldır
       source.onended = () => {
         activeSourcesRef.current = activeSourcesRef.current.filter(s => s !== source);
         if (activeSourcesRef.current.length === 0) {
@@ -91,7 +137,7 @@ export function useLiveTranslate() {
     }
   };
 
-  // Tüm ses çalma işlemlerini anında durdurma
+  // Tüm ses çalma işlemlerini durdurma
   const stopAllAudioPlayback = () => {
     activeSourcesRef.current.forEach(source => {
       try {
@@ -125,10 +171,9 @@ export function useLiveTranslate() {
     return window.btoa(binary);
   };
 
-  // WebSocket ve mikrofon bağlantısını sonlandır
+  // Bağlantıyı sonlandır
   const disconnect = () => {
     console.log("Disconnecting Live Translate session...");
-    
     stopAllAudioPlayback();
 
     if (processorRef.current) {
@@ -162,24 +207,32 @@ export function useLiveTranslate() {
     setStatus("idle");
   };
 
-  // WebSocket ve Mikrofon bağlantısını başlat
-  const connectSession = async (currentMode: "me" | "other") => {
+  // Oturumu Başlat
+  const connectSession = async (currentMode: "me" | "other" | "auto") => {
     disconnect();
     setStatus("connecting");
     setErrorMessage(null);
 
     const apiKey = getGeminiApiKey();
-    // Bidi (Bidirectional) Live API endpoint'i
     const url = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key=${apiKey}`;
 
-    console.log(`Connecting to Gemini Live API with key index... Mode: ${currentMode}`);
-
     try {
-      // 1. Mikrofon izni ve stream al
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // 1. Cihaz izinlerini al ve mikrofonu aç
+      const constraints = {
+        audio: audioInputDevice === "default" ? true : { deviceId: { exact: audioInputDevice } }
+      };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       mediaStreamRef.current = stream;
 
-      // 2. WebSocket kur
+      // 2. Play AudioContext'i hemen initialize et ve resume et (browser autoplay bypass)
+      if (!playAudioContextRef.current) {
+        playAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+      }
+      if (playAudioContextRef.current.state === "suspended") {
+        await playAudioContextRef.current.resume();
+      }
+
+      // 3. WebSocket bağlantısı kur
       const ws = new WebSocket(url);
       wsRef.current = ws;
 
@@ -193,21 +246,37 @@ export function useLiveTranslate() {
 
       ws.onopen = () => {
         clearTimeout(connectionTimeout);
-        console.log("WebSocket connection established!");
+        console.log("WebSocket connection established! Mode:", currentMode);
         setStatus("connected");
-        retryCountRef.current = 0; // Başarılı bağlantıda retry sayısını sıfırla
+        retryCountRef.current = 0;
 
         // A. Setup/Konfigürasyon mesajı gönder
-        const sourceLang = currentMode === "me" ? myLanguage : targetLanguage;
-        const destLang = currentMode === "me" ? targetLanguage : myLanguage;
+        let systemInstruction = "";
+        
+        if (isAutomaticMode || currentMode === "auto") {
+          // Otomatik mod talimatı: Çift yönlü otomatik algılama ve yönlendirme
+          systemInstruction = `You are a professional bidirectional instant translator.
+- You will receive audio chunks in either language code ${myLanguage} or language code ${targetLanguage}.
+- Your task is to detect the source language automatically.
+- If the speaker talks in ${myLanguage}, translate it immediately to ${targetLanguage} and prefix your text output with "[TO_ENG] ". Then output the translated audio and text.
+- If the speaker talks in ${targetLanguage}, translate it immediately to ${myLanguage} and prefix your text output with "[TO_TR] ". Then output the translated audio and text.
+- Output ONLY the translation. Do NOT add any conversational filler, greetings, comments or explanations.
+- Speak in the destination language.`;
+        } else {
+          // Bas-Konuş/Manuel mod talimatı
+          const sourceLang = currentMode === "me" ? myLanguage : targetLanguage;
+          const destLang = currentMode === "me" ? targetLanguage : myLanguage;
+          const toPrefix = currentMode === "me" ? "[TO_ENG]" : "[TO_TR]";
 
-        const systemInstruction = `You are a professional instant translator. 
+          systemInstruction = `You are a professional instant translator. 
 Your goal is to translate everything you hear immediately.
 Translate from language code ${sourceLang} to language code ${destLang}.
+- Prefix your text output with "${toPrefix} ".
 - Output ONLY the translated audio and translated text.
 - Do NOT add any conversational filler, explanations, greetings or remarks.
 - Translate accurately, keeping the natural tone of the speaker.
 - Speak in the destination language.`;
+        }
 
         const setupMessage = {
           setup: {
@@ -217,7 +286,7 @@ Translate from language code ${sourceLang} to language code ${destLang}.
               speechConfig: {
                 voiceConfig: {
                   prebuiltVoiceConfig: {
-                    voiceName: "Aoede" // Puck, Charon, Kore, Fenrir, Aoede
+                    voiceName: "Aoede" // Aoede, Puck, Charon, Kore, Fenrir
                   }
                 }
               }
@@ -239,7 +308,6 @@ Translate from language code ${sourceLang} to language code ${destLang}.
         const source = audioCtx.createMediaStreamSource(stream);
         sourceRef.current = source;
 
-        // ScriptProcessor kullanarak ses yakalama
         const processor = audioCtx.createScriptProcessor(2048, 1, 1);
         processorRef.current = processor;
 
@@ -270,41 +338,58 @@ Translate from language code ${sourceLang} to language code ${destLang}.
         try {
           const response = JSON.parse(event.data);
           
-          // Gelen ses verisini çal
           if (response.serverContent?.modelTurn?.parts) {
             const parts = response.serverContent.modelTurn.parts;
-            
-            // Eğer yeni bir model sırası başladıysa transkript kaydı oluştur
-            if (!currentTurnIdRef.current) {
-              currentTurnIdRef.current = Math.random().toString(36).substring(7);
-              addTranscript({
-                id: currentTurnIdRef.current,
-                speaker: currentMode === "me" ? "other" : "me", // Benim konuştuğum karşı tarafa (other) gider, karşı tarafınki bana (me)
-                text: "",
-                timestamp: new Date().toISOString(),
-                isFinal: false
-              });
-            }
 
             parts.forEach((part: any) => {
-              // PCM Ses Chunk'ı
-              if (part.inlineData && part.inlineData.mimeType?.startsWith("audio/pcm")) {
-                playPcmChunk(part.inlineData.data);
-              }
-              
               // Metin Transkripti (Varsa)
+              let textChunk = "";
               if (part.text) {
-                const text = part.text;
-                if (currentTurnIdRef.current) {
+                textChunk = part.text;
+              }
+
+              // Çeviri yönünü metinden algıla
+              const isToTr = textChunk.includes("[TO_TR]") || (!textChunk.includes("[TO_ENG]") && currentMode !== "me");
+              const cleanText = textChunk.replace("[TO_TR]", "").replace("[TO_ENG]", "").trim();
+
+              if (textChunk || part.inlineData) {
+                // Eğer yeni bir model sırası başladıysa transkript kaydı oluştur
+                if (!currentTurnIdRef.current) {
+                  currentTurnIdRef.current = Math.random().toString(36).substring(7);
+                  addTranscript({
+                    id: currentTurnIdRef.current,
+                    speaker: isToTr ? "me" : "other", // Bana gelen çeviri 'me' (kulaklık), karşı tarafa giden 'other' (hoparlör)
+                    text: cleanText,
+                    timestamp: new Date().toISOString(),
+                    isFinal: false
+                  });
+                } else if (cleanText) {
                   updateTranscript(currentTurnIdRef.current, {
-                    text: text // Not: Çift yönlü çeviride model doğrudan çeviriyi verir
+                    text: cleanText,
+                    speaker: isToTr ? "me" : "other"
                   });
                 }
+              }
+
+              // PCM Ses Chunk'ı
+              if (part.inlineData && part.inlineData.mimeType?.startsWith("audio/pcm")) {
+                // Dinamik sample rate parse etme
+                let sampleRate = 24000;
+                const match = part.inlineData.mimeType.match(/rate=(\d+)/);
+                if (match && match[1]) {
+                  sampleRate = parseInt(match[1], 10);
+                }
+
+                // Hangi kanala çalacağını algıla
+                const isToTr = currentTurnIdRef.current 
+                  ? useLiveTranslateStore.getState().transcripts.find(t => t.id === currentTurnIdRef.current)?.speaker === "me"
+                  : true;
+
+                playPcmChunk(part.inlineData.data, sampleRate, isToTr);
               }
             });
           }
 
-          // Model konuşması tamamlandıysa turn sıfırla
           if (response.serverContent?.turnComplete) {
             if (currentTurnIdRef.current) {
               updateTranscript(currentTurnIdRef.current, { isFinal: true });
@@ -321,8 +406,7 @@ Translate from language code ${sourceLang} to language code ${destLang}.
       };
 
       ws.onclose = (event) => {
-        console.log(`WebSocket closed: Code ${event.code}, Reason: ${event.reason}`);
-        // Eğer anormal bir kapanma olduysa ve henüz bağlanamadıysak key rotate et
+        console.log(`WebSocket closed: Code ${event.code}`);
         if (status === "connecting" || (event.code !== 1000 && event.code !== 1005)) {
           handleKeyFailure(currentMode);
         } else {
@@ -337,8 +421,7 @@ Translate from language code ${sourceLang} to language code ${destLang}.
     }
   };
 
-  // API Key hatası durumunda bir sonraki key'i deneme mekanizması
-  const handleKeyFailure = (currentMode: "me" | "other") => {
+  const handleKeyFailure = (currentMode: "me" | "other" | "auto") => {
     if (retryCountRef.current < 3) {
       retryCountRef.current += 1;
       const newKey = rotateGeminiApiKey();
@@ -347,38 +430,32 @@ Translate from language code ${sourceLang} to language code ${destLang}.
         connectSession(currentMode);
       }, 500);
     } else {
-      setErrorMessage("API Limitleri aşıldı veya tüm anahtarlar geçersiz. Lütfen daha sonra tekrar deneyin.");
+      setErrorMessage("API Limitleri aşıldı veya tüm anahtarlar geçersiz.");
       setStatus("error");
       disconnect();
     }
   };
 
-  // Mod değiştiğinde (Ben konuşuyorum / Karşı taraf konuşuyor / Durdurulduğunda)
+  // Mod değiştiğinde (Durdurulduğunda / Başlatıldığında)
   useEffect(() => {
     if (activeMode === "none") {
       disconnect();
     } else {
-      connectSession(activeMode === "me" ? "me" : "other");
+      connectSession(isAutomaticMode ? "auto" : activeMode);
     }
 
     return () => {
-      // Unmount'ta temizlik yap
       if (activeMode === "none") {
         disconnect();
       }
     };
   }, [activeMode]);
 
-  // Sayfa kapandığında bağlantıyı kapat
-  useEffect(() => {
-    return () => {
-      disconnect();
-    };
-  }, []);
-
   return {
     status,
     activeMode,
+    devices,
+    refreshDevices,
     connectSession,
     disconnect,
     stopAllAudioPlayback
