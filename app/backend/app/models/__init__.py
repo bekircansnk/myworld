@@ -10,6 +10,8 @@ from app.models.ai_memory import AIMemory
 from app.models.calendar_event import CalendarEvent
 from app.models.chat_message import ChatMessage
 from app.models.chat_session import ChatSession
+from app.models.live_translate_session import LiveTranslateSession
+from app.models.live_translate_message import LiveTranslateMessage
 from app.models.activity_log import ActivityLog
 from app.models.user_company_access import UserCompanyAccess
 from app.models.email_verification import EmailVerification

@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useLiveTranslateStore } from "@/stores/liveTranslateStore";
 import { getGeminiApiKey, rotateGeminiApiKey, getKeysCount } from "@/lib/geminiKeys";
 import { TranscriptEntry } from "@/components/live-translate/types";
+import { api } from "@/lib/api";
 
 export function useLiveTranslate() {
   const {
@@ -33,6 +34,7 @@ export function useLiveTranslate() {
   
   // Transkript birikimi için geçici referanslar
   const currentTurnIdRef = useRef<string | null>(null);
+  const sessionIdRef = useRef<number | null>(null);
   const activeSourcesRef = useRef<AudioBufferSourceNode[]>([]);
 
   // Kullanılabilir ses cihazları listesi
@@ -225,6 +227,20 @@ export function useLiveTranslate() {
     const url = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key=${apiKey}`;
 
     try {
+      // 0. Backend'de yeni bir oturum oluştur
+      try {
+        const res = await api.post("/api/live-translate/sessions", {
+          source_language: myLanguage,
+          target_language: targetLanguage
+        });
+        if (res.data && res.data.id) {
+          sessionIdRef.current = res.data.id;
+        }
+      } catch (err) {
+        console.error("Failed to create translate session:", err);
+        // Continue even if session creation fails, to allow translation to work
+      }
+
       // 1. Cihaz izinlerini al ve mikrofonu aç
       const constraints = {
         audio: audioInputDevice === "default" ? true : { deviceId: { exact: audioInputDevice } }
@@ -353,6 +369,16 @@ export function useLiveTranslate() {
               if (trans.isFinal) {
                 if (currentTurnIdRef.current) {
                   updateTranscript(currentTurnIdRef.current, { isFinal: true });
+                  
+                  if (sessionIdRef.current) {
+                    api.post(`/api/live-translate/sessions/${sessionIdRef.current}/messages`, {
+                      speaker: speaker,
+                      original_text: inputTxt,
+                      translated_text: "",
+                      is_final: true
+                    }).catch(e => console.error(e));
+                  }
+
                   currentTurnIdRef.current = null;
                 }
               }
@@ -388,6 +414,16 @@ export function useLiveTranslate() {
               if (trans.isFinal) {
                 if (currentTurnIdRef.current) {
                   updateTranscript(currentTurnIdRef.current, { isFinal: true });
+                  
+                  if (sessionIdRef.current) {
+                    api.post(`/api/live-translate/sessions/${sessionIdRef.current}/messages`, {
+                      speaker: speaker,
+                      original_text: "",
+                      translated_text: outputTxt,
+                      is_final: true
+                    }).catch(e => console.error(e));
+                  }
+
                   currentTurnIdRef.current = null;
                 }
               }
