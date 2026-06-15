@@ -238,12 +238,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "6.6",
-        "version_code": 56,
-        "download_url": "https://myworld-twqx.onrender.com/static/Planla_v6.6.apk",
+        "version": "6.7",
+        "version_code": 57,
+        "download_url": "https://myworld-twqx.onrender.com/static/Planla_v6.7.apk",
         "min_supported_version": "1.0",
         "force_update": False,
-        "changelog": "- Canlı Sesli Çeviri (Live Translate) için akıllı kulaklık/hoparlör ayrımı entegre edildi.\n- Otomatik dil algılama ve sürekli çeviri modu eklendi.\n- Masaüstü arayüzüne modül getirildi.\n- Sürüm v6.6 (Code 56)"
+        "changelog": "- Mobil kayma ve ekran büyüme sorunları giderildi.\n- Transkript paneli desktopta iki sütunlu yana alındı, mobilde yüzen baloncuk modal yapıldı.\n- 75 dil desteği entegre edildi.\n- API key rotasyonu ve bağlantı log mekanizması güçlendirildi.\n- Sürüm v6.7 (Code 57)"
     }
 
 @app.get("/api/link-preview")

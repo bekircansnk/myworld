@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLiveTranslateStore } from "@/stores/liveTranslateStore";
-import { getGeminiApiKey, rotateGeminiApiKey } from "@/lib/geminiKeys";
+import { getGeminiApiKey, rotateGeminiApiKey, getKeysCount } from "@/lib/geminiKeys";
 import { TranscriptEntry } from "@/components/live-translate/types";
 
 export function useLiveTranslate() {
@@ -403,10 +403,19 @@ Translate from language code ${sourceLang} to language code ${destLang}.
 
       ws.onerror = (err) => {
         console.error("WebSocket error observed:", err);
+        setErrorMessage("Bağlantı hatası oluştu. Lütfen mikrofon izinlerini ve API anahtarını kontrol edin.");
       };
 
       ws.onclose = (event) => {
-        console.log(`WebSocket closed: Code ${event.code}`);
+        console.log(`WebSocket closed: Code ${event.code}, Reason: ${event.reason}`);
+        let closeReason = `Bağlantı kapandı (Kod: ${event.code})`;
+        if (event.reason) {
+          closeReason += `: ${event.reason}`;
+        } else if (event.code === 1006) {
+          closeReason += ". Beklenmedik bağlantı kesilmesi (API key geçersiz veya limitli olabilir).";
+        }
+        setErrorMessage(closeReason);
+
         if (status === "connecting" || (event.code !== 1000 && event.code !== 1005)) {
           handleKeyFailure(currentMode);
         } else {
@@ -422,15 +431,16 @@ Translate from language code ${sourceLang} to language code ${destLang}.
   };
 
   const handleKeyFailure = (currentMode: "me" | "other" | "auto") => {
-    if (retryCountRef.current < 3) {
+    const totalKeys = getKeysCount();
+    if (retryCountRef.current < totalKeys) {
       retryCountRef.current += 1;
       const newKey = rotateGeminiApiKey();
-      console.log(`Retrying session connection (Attempt ${retryCountRef.current}) with next key...`);
+      console.log(`Retrying session connection (Attempt ${retryCountRef.current}/${totalKeys}) with next key...`);
       setTimeout(() => {
         connectSession(currentMode);
-      }, 500);
+      }, 1000);
     } else {
-      setErrorMessage("API Limitleri aşıldı veya tüm anahtarlar geçersiz.");
+      setErrorMessage(`Bağlantı başarısız. Toplam ${totalKeys} API anahtarı denendi fakat sonuç alınamadı. Key limitlerini veya interneti kontrol edin.`);
       setStatus("error");
       disconnect();
     }
