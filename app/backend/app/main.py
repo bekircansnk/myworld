@@ -238,12 +238,12 @@ async def get_app_version():
     Mobil uygulama için son sürüm bilgisini ve zorunlu OTA güncelleme flag'ini döner.
     """
     return {
-        "version": "6.4",
-        "version_code": 54,
-        "download_url": "https://myworld-twqx.onrender.com/static/Planla_v6.4.apk",
+        "version": "6.5",
+        "version_code": 55,
+        "download_url": "https://myworld-twqx.onrender.com/static/Planla_v6.5.apk",
         "min_supported_version": "1.0",
         "force_update": False,
-        "changelog": "- Üst bardaki uygulama simgesi/başlığı kalıntısı kesin olarak giderildi (installSplashScreen entegrasyonu).\n- Sürüm v6.4 (Code 54)"
+        "changelog": "- Canlı Sesli Çeviri (Live Translate) modülü eklendi.\n- Hata düzeltmeleri ve performans iyileştirmeleri.\n- Sürüm v6.5 (Code 55)"
     }
 
 @app.get("/api/link-preview")
