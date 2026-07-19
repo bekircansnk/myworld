@@ -13,6 +13,10 @@
 - GitHub Actions CI/CD pipeline eklendi
 - Güvenlik düzeltmesi: Hardcoded MSSQL şifresi `.env`'ye taşındı
 
+### 🔍 Backend API Sağlık Kontrolü
+- Canlı backend API (https://myworld-twqx.onrender.com) üzerindeki kritik uç noktalar (Health, Info, Auth, Tasks, Notes, Calendar) test edildi.
+- Tüm uç noktaların beklenen HTTP durum kodlarını (200, 401, 422) döndürdüğü doğrulandı, 500 veya zaman aşımı hatasına rastlanmadı.
+
 ---
 
 <!-- Yeni girişler bu satırın üzerine eklenecek -->

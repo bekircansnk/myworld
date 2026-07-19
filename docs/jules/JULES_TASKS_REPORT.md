@@ -22,7 +22,7 @@
 
 | # | Görev | Durum | Başlangıç | Son Güncelleme | Seans ID |
 |---|-------|-------|-----------|----------------|----------|
-| 1 | API Endpoint Health Check | 🔄 | 19.07.2026 | 19.07.2026 | 16701332457373117543 |
+| — | Henüz aktif görev yok | ⏳ | — | — | — |
 
 ---
 
@@ -30,7 +30,8 @@
 
 | # | Görev | Durum | Tamamlanma | Seans ID | Özet |
 |---|-------|-------|-----------|----------|------|
-| — | Henüz tamamlanan görev yok | — | — | — | — |
+| 1 | API Endpoint Health Check (2-My-World) | ✅ | 19.07.2026 | 16701332457373117543 | API endpoint'lerinin durum kodları test edildi. |
+| 2 | API Endpoint Health Check (myworld) | ✅ | 19.07.2026 | 14067821448496802528 | API endpoint'lerinin durum kodları test edildi ve doğrulanarak changelog güncellendi. |
 
 ---
 
