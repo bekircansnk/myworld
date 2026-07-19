@@ -1,6 +1,6 @@
-# 🤖 JULES PRO GUIDE — Planla (2-My-World)
+# 🤖 JULES PRO GUIDE — Planla (myworld)
 
-> Jules otonom ajan kurulum ve kullanım rehberi.
+> Jules otonom ajan kurulum, kullanım ve doğrulama rehberi.
 > Son Güncelleme: 19.07.2026
 
 ---
@@ -10,10 +10,11 @@
 1. [Jules Nedir?](#jules-nedir)
 2. [CLI Kurulumu](#cli-kurulumu)
 3. [Temel Komutlar](#temel-komutlar)
-4. [Zamanlayıcı Ekleme](#zamanlayıcı-ekleme)
-5. [Görev Yönetimi](#görev-yönetimi)
-6. [Prompt Yazım Kuralları](#prompt-yazım-kuralları)
-7. [Limitler ve Kısıtlamalar](#limitler-ve-kısıtlamalar)
+4. [Jules Değişikliklerini Kontrol Etme & Doğrulama](#jules-değişikliklerini-kontrol-etme--doğrulama)
+5. [Zamanlayıcı Ekleme](#zamanlayıcı-ekleme)
+6. [Görev Yönetimi](#görev-yönetimi)
+7. [Prompt Yazım Kuralları](#prompt-yazım-kuralları)
+8. [Limitler ve Kısıtlamalar](#limitler-ve-kısıtlamalar)
 
 ---
 
@@ -37,7 +38,7 @@ işlemlerini **insandan bağımsız** olarak gerçekleştirir.
 jules --version
 
 # Kimlik doğrulama kontrolü
-jules auth status
+jules login
 ```
 
 ---
@@ -46,17 +47,12 @@ jules auth status
 
 ### Görev Oluşturma
 ```bash
-jules remote create --repo bekircansnk/2-My-World --prompt "PROMPT_TEXT"
+jules remote new --repo bekircansnk/myworld --session "PROMPT_TEXT"
 ```
 
 ### Görev Listeleme
 ```bash
 jules remote list --session
-```
-
-### Görev Detayı
-```bash
-jules remote show --session <SESSION_ID>
 ```
 
 ### Tamamlanan Görevi Çekme
@@ -66,24 +62,44 @@ jules remote pull --session <SESSION_ID> --apply
 
 ---
 
+## Jules Değişikliklerini Kontrol Etme & Doğrulama
+
+Jules bir görevi tamamlayıp yerel koda uyguladıktan sonra yapılması gereken **kontrol ve test adımları**:
+
+### 🛡️ 1. Kod İncelemesi (Review)
+Değişiklikleri çekip uyguladıktan sonra, git aracılığıyla hangi dosyaların değiştiğini gözden geçirin:
+```bash
+git diff
+# ya da sadece değişen dosya adlarını görmek için
+git diff --stat
+```
+
+### 🏥 2. Son Tamamlanan Veritabanı ve Pool Optimizasyonu Doğrulaması
+Jules en son veritabanı havuz sağlığını (Seans ID: `11651531873073567975`) başarıyla optimize etti:
+*   [app/backend/app/database.py](file:///Users/bekir/Uygulamalarim/2-My-World/app/backend/app/database.py) dosyasında: `pool_size=10` ve `max_overflow=20` ayarlarının geldiğini doğrulayın. SSL bağlantı argümanlarının `development` dışı ortamlar için set edildiğinden emin olun.
+*   [app/backend/app/main.py](file:///Users/bekir/Uygulamalarim/2-My-World/app/backend/app/main.py) dosyasında: `/api/health` uç noktasının veritabanında `SELECT 1` sorgusunu çalıştıracak şekilde dependency (`Depends(get_db)`) aldığını ve hata durumunda 503 döndürdüğünü doğrulayın.
+
+### 🧪 3. Derleme ve Testlerin Çalıştırılması
+Jules'ün değişikliklerinin derlemeyi (build) bozmadığından emin olun:
+```bash
+# Frontend build testi
+cd app/web && pnpm build
+
+# Backend import/sözdizimi testi
+cd ../backend && python -m py_compile app/main.py
+```
+
+---
+
 ## Zamanlayıcı Ekleme
 
 > ⚠️ **Zamanlayıcılar sadece web arayüzünden eklenebilir!**
 
-1. [jules.google.com](https://jules.google.com) → Repo seç
+1. [jules.google.com](https://jules.google.com) → Repo seç (`bekircansnk/myworld`)
 2. **"Scheduled"** sekmesi → **"+ Add Schedule"**
 3. Prompt yapıştır (bkz: `JULES_PRO_PROMPTS_LIBRARY.md`)
 4. Cron expression ayarla
 5. Kaydet
-
-### Cron Expression Örnekleri
-
-| İfade | Anlamı |
-|-------|--------|
-| `0 6 * * *` | Her gün 06:00 UTC |
-| `0 2 * * 1` | Her Pazartesi 02:00 UTC |
-| `0 3 1 * *` | Her ayın 1'i 03:00 UTC |
-| `0 3 */14 * 3` | 2 haftada bir Çarşamba 03:00 UTC |
 
 ---
 
@@ -113,28 +129,6 @@ Her Jules prompt'u şu kurallara uymalıdır:
 4. **Changelog güncellemesi** içerir: `Update docs/jules/JULES_CHANGELOG.md in Turkish.`
 5. **Kapsam sınırı** belirtir (hangi dosyalar etkilenecek)
 6. **Yapma listesi** içerir (neyi DEĞİŞTİRMEMELİ)
-
-### Prompt Şablonu
-
-```
-[GÖREV AÇIKLAMASI]
-
-Steps:
-1. [Adım 1]
-2. [Adım 2]
-3. [Adım 3]
-
-Files to check:
-- path/to/file1
-- path/to/file2
-
-Do NOT:
-- [Kısıtlama 1]
-- [Kısıtlama 2]
-
-Run `cd app/web && pnpm build` after any changes.
-Update docs/jules/JULES_CHANGELOG.md in Turkish.
-```
 
 ---
 
