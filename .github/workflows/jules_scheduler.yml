@@ -1,0 +1,121 @@
+name: Jules Cloud Scheduler
+
+on:
+  schedule:
+    # 1. Günlük Görevler (API Health & Build)
+    - cron: '0 6 * * *'   # Her gün 06:00 UTC -> test-health
+    - cron: '0 7 * * *'   # Her gün 07:00 UTC -> test-build
+    
+    # 2. Haftalık Görevler (02:00 UTC)
+    - cron: '0 2 * * 1'   # Pzt 02:00 -> security-secret
+    - cron: '0 2 * * 2'   # Sal 02:00 -> security-vuln
+    - cron: '0 2 * * 3'   # Çar 02:00 -> db-migration
+    - cron: '0 2 * * 4'   # Per 02:00 -> perf-response
+    - cron: '0 2 * * 5'   # Cum 02:00 -> cleanup (dead code)
+    - cron: '0 2 * * 6'   # Cts 02:00 -> code-eslint
+    - cron: '0 2 * * 0'   # Paz 02:00 -> pwa (sw integrity)
+    - cron: '0 3 * * 0'   # Paz 03:00 -> test-e2e (auth e2e)
+    
+    # 3. İki Haftalık ve Aylık Görevler (Diğer günlerde 03:00)
+    - cron: '0 3 * * 1'   # Pzt 03:00 -> code-strict (2 haftada bir)
+    - cron: '0 3 * * 2'   # Sal 03:00 -> docs-sync (2 haftada bir)
+    - cron: '0 3 * * 3'   # Çar 03:00 -> perf-bundle (2 haftada bir)
+    - cron: '0 3 * * 4'   # Per 03:00 -> test-offline (2 haftada bir)
+    - cron: '0 3 * * 5'   # Cum 03:00 -> db-pool (2 haftada bir)
+    - cron: '0 3 * * 6'   # Cts 03:00 -> pwa-capacitor (2 haftada bir)
+    
+  workflow_dispatch:
+    inputs:
+      task:
+        description: 'Tetiklenecek Görev Anahtarı (örn: health, build, security, performance, cleanup, wcag)'
+        required: true
+        default: 'health'
+
+jobs:
+  run-jules:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Codebase Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Determine Task to Run
+        id: determine_task
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "task=${{ github.event.inputs.task }}" >> $GITHUB_OUTPUT
+          else
+            HOUR=$(date -u +%H)
+            DAY=$(date -u +%u) # 1 (Pzt) - 7 (Paz)
+            DOM=$(date -u +%d) # Ayın günü (01-31)
+            
+            echo "Current UTC Hour: $HOUR, Day of week: $DAY, Day of month: $DOM"
+            
+            # Günlük Kontroller
+            if [ "$HOUR" = "06" ]; then
+              echo "task=health" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" = "07" ]; then
+              echo "task=build" >> $GITHUB_OUTPUT
+            
+            # Haftalık Kontroller (02:00 UTC)
+            elif [ "$HOUR" = "02" ]; then
+              case "$DAY" in
+                1) echo "task=security-secret" >> $GITHUB_OUTPUT ;;
+                2) echo "task=security-vuln" >> $GITHUB_OUTPUT ;;
+                3) echo "task=db-migration" >> $GITHUB_OUTPUT ;;
+                4) echo "task=perf-response" >> $GITHUB_OUTPUT ;;
+                5) echo "task=cleanup" >> $GITHUB_OUTPUT ;;
+                6) echo "task=code-eslint" >> $GITHUB_OUTPUT ;;
+                7) echo "task=pwa" >> $GITHUB_OUTPUT ;;
+                *) echo "task=health" >> $GITHUB_OUTPUT ;;
+              esac
+            
+            # Haftalık / 2 Haftalık / Aylık Kontroller (03:00 UTC)
+            elif [ "$HOUR" = "03" ]; then
+              # Aylık Kontroller (Belirli günlerde)
+              if [ "$DOM" = "01" ]; then
+                echo "task=security-auth" >> $GITHUB_OUTPUT
+              elif [ "$DOM" = "05" ]; then
+                echo "task=code-component" >> $GITHUB_OUTPUT
+              elif [ "$DOM" = "10" ]; then
+                echo "task=a11y" >> $GITHUB_OUTPUT
+              elif [ "$DOM" = "12" ]; then
+                echo "task=pwa-mobile" >> $GITHUB_OUTPUT
+              elif [ "$DOM" = "15" ]; then
+                echo "task=perf-query" >> $GITHUB_OUTPUT
+              elif [ "$DOM" = "20" ]; then
+                echo "task=docs-readme" >> $GITHUB_OUTPUT
+              elif [ "$DOM" = "25" ]; then
+                echo "task=innovation-update" >> $GITHUB_OUTPUT
+              elif [ "$DOM" = "28" ]; then
+                echo "task=innovation-feature" >> $GITHUB_OUTPUT
+              else
+                # 2 Haftalık ve Haftalık Eşleşmeler
+                case "$DAY" in
+                  1) echo "task=code-strict" >> $GITHUB_OUTPUT ;;
+                  2) echo "task=docs-sync" >> $GITHUB_OUTPUT ;;
+                  3) echo "task=perf-bundle" >> $GITHUB_OUTPUT ;;
+                  4) echo "task=test-offline" >> $GITHUB_OUTPUT ;;
+                  5) echo "task=db-pool" >> $GITHUB_OUTPUT ;;
+                  6) echo "task=pwa-capacitor" >> $GITHUB_OUTPUT ;;
+                  7) echo "task=test-e2e" >> $GITHUB_OUTPUT ;;
+                  *) echo "task=health" >> $GITHUB_OUTPUT ;;
+                esac
+              fi
+            else
+              # Fallback
+              echo "task=health" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Trigger Jules Cloud Session
+        env:
+          JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
+        run: |
+          TASK_NAME="${{ steps.determine_task.outputs.task }}"
+          echo "Tetiklenen Görev: $TASK_NAME"
+          python3 scripts/trigger_jules.py "$TASK_NAME"

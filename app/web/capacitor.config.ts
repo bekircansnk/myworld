@@ -3,7 +3,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.planla.app',
   appName: 'Planla',
-  webDir: 'out',
+  webDir: 'out.nosync',
   server: {
     allowNavigation: [
       '*.googleusercontent.com',

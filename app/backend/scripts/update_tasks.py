@@ -4,7 +4,7 @@ import sys
 import os
 
 from dotenv import load_dotenv
-load_dotenv('/Users/bekir/Uygulamalarım/2-My-World/.env')
+load_dotenv('/Users/bekir/Uygulamalarim/2-My-World/.env')
 
 async def update_tasks():
     db_url = os.environ.get('DATABASE_URL')

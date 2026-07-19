@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     # MSSQL Settings (Venus)
     mssql_user: str = "venusreadonly"
-    mssql_password: str = "Venus3889*!"
+    mssql_password: str = ""
 
     # Redis
     redis_url: str = "redis://localhost:6379/0"

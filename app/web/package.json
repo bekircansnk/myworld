@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --webpack",
+    "build": "next build --webpack && ([ -d out ] && (mv out out.nosync || true) || true)",
     "start": "next start",
     "lint": "next lint",
     "generate-icons": "node generate_web_icons.js"

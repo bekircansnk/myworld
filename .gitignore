@@ -4,10 +4,13 @@
 # Node / Frontend
 node_modules
 .next
+.next.nosync
 out
+out.nosync
 build
 .env
 .env.local
+.env.production
 
 # Python / Backend
 __pycache__/
@@ -21,19 +24,24 @@ coverage/
 .vscode/
 .idea/
 
+# Database
+*.db
+*.sqlite3
+
 # Custom
 .silinecekler_cop_kutusu/
 silinecekler_cop_kutusu/
 app/backend/uploads/*
 !app/backend/uploads/.gitkeep
-*.db
-*.sqlite3
 *.command
-.env.production
 data/backups/
 
-# Gizli / Git'e yuklenmeyecek belgeler, raporlar ve resimler
-/docs/
+# Agent & Config (git'e gitmeyecek)
+.agents/
+.gemini/
+skills-lock.json
+
+# Gizli / Git'e yüklenmeyecek belgeler, raporlar ve resimler
 /image/ANDROID_CHANGELOG/
 /iyzads/
 /AGENTS.md
@@ -45,3 +53,4 @@ data/backups/
 /app/ANDROID_CHANGELOG.md
 /app/web/android_project_export.zip
 /app/web/public/venus_ads_rehber.md
+

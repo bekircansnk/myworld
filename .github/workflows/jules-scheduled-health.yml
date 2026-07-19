@@ -1,0 +1,76 @@
+name: Jules Scheduled Health Check
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Her 6 saatte bir
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    name: Backend API Health Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Health Endpoint
+        run: |
+          echo "🏥 Planla Backend Sağlık Kontrolü"
+          echo "=================================="
+          echo ""
+          
+          # Health endpoint
+          echo "1. /api/health"
+          HEALTH=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 https://myworld-twqx.onrender.com/api/health)
+          if [ "$HEALTH" = "200" ]; then
+            echo "   ✅ Sağlıklı ($HEALTH)"
+          else
+            echo "   ❌ Başarısız ($HEALTH)"
+            FAILED=true
+          fi
+          
+          # App version endpoint
+          echo "2. /api/app-version"
+          VERSION=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 https://myworld-twqx.onrender.com/api/app-version)
+          if [ "$VERSION" = "200" ]; then
+            echo "   ✅ Sağlıklı ($VERSION)"
+          else
+            echo "   ❌ Başarısız ($VERSION)"
+            FAILED=true
+          fi
+          
+          # Docs endpoint
+          echo "3. /docs (Swagger)"
+          DOCS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 https://myworld-twqx.onrender.com/docs)
+          if [ "$DOCS" = "200" ]; then
+            echo "   ✅ Sağlıklı ($DOCS)"
+          else
+            echo "   ❌ Başarısız ($DOCS)"
+            FAILED=true
+          fi
+          
+          # Auth endpoint (expect 401 = working)
+          echo "4. /api/auth/me (should return 401)"
+          AUTH=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 https://myworld-twqx.onrender.com/api/auth/me)
+          if [ "$AUTH" = "401" ] || [ "$AUTH" = "403" ]; then
+            echo "   ✅ Auth çalışıyor ($AUTH)"
+          else
+            echo "   ⚠️ Beklenmeyen yanıt ($AUTH)"
+          fi
+          
+          echo ""
+          echo "=================================="
+          
+          if [ "$FAILED" = "true" ]; then
+            echo "⚠️ Bazı endpoint'ler başarısız!"
+            exit 1
+          else
+            echo "✅ Tüm kontroller başarılı!"
+          fi
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "🚨 Backend sağlık kontrolü başarısız! Telegram bildirimi gönderilmeli."
+          # Telegram bildirimi (opsiyonel - secret gerektirir)
+          # curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+          #   -d "chat_id=${{ secrets.TELEGRAM_ADMIN_ID }}" \
+          #   -d "text=🚨 Planla Backend Health Check FAILED! Check GitHub Actions."

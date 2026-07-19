@@ -1,0 +1,87 @@
+name: Jules CI — Planla
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/web/**'
+      - 'app/backend/**'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  frontend-checks:
+    name: Frontend Lint + Type Check + Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/web
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+        continue-on-error: true
+
+      - name: Type Check
+        run: npx tsc --noEmit
+        continue-on-error: true
+
+      - name: Build
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_API_URL: https://myworld-twqx.onrender.com
+          NEXT_PUBLIC_GAS_UPLOAD_URL: ${{ secrets.GAS_UPLOAD_URL }}
+          NEXT_PUBLIC_TASK_PHOTOS_FOLDER_ID: ${{ secrets.TASK_PHOTOS_FOLDER_ID }}
+
+  backend-checks:
+    name: Backend Syntax Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Syntax Check
+        run: python -m py_compile app/main.py
+
+      - name: Import Check
+        run: python -c "from app.config import Settings; print('Config OK')"
+        env:
+          DB_USER: test
+          DB_PASSWORD: test
+          DB_NAME: test
+          DB_HOST: localhost
+          DB_PORT: "5432"
+          DATABASE_URL: postgresql+asyncpg://test:test@localhost/test
+          SECRET_KEY: test-secret-key-for-ci
+          GEMINI_API_KEY: test-key
+          TELEGRAM_BOT_TOKEN: test-token
+          TELEGRAM_ADMIN_ID: "123456"
