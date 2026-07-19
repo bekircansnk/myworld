@@ -36,16 +36,23 @@ export function DashboardHeader() {
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gray dark:text-gray-400" />
             <input 
               type="text" 
-              placeholder="Görev, proje veya not ara..." 
+              placeholder="Görev, proje veya not ara..."
+              aria-label="Arama"
               className="w-full h-10 pl-10 pr-4 rounded-full bg-card border border-border focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 shadow-ultra-soft text-sm transition-all"
             />
           </div>
-          <button className="w-10 h-10 bg-card border border-border rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors relative">
+          <button
+            aria-label="Bildirimler"
+            title="Bildirimler"
+            className="w-10 h-10 bg-card border border-border rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors relative"
+          >
             <Bell className="w-4 h-4 text-brand-gray dark:text-gray-400" />
             <span className="absolute top-2 right-2 w-2 h-2 bg-brand-yellow rounded-full"></span>
           </button>
           <button 
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            aria-label={mounted && theme === "dark" ? "Açık temaya geç" : "Koyu temaya geç"}
+            title={mounted && theme === "dark" ? "Açık temaya geç" : "Koyu temaya geç"}
             className="w-10 h-10 bg-card border border-border rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
           >
             {mounted && theme === "dark" ? <Sun className="w-4 h-4 text-brand-yellow" /> : <Moon className="w-4 h-4 text-brand-dark" />}
