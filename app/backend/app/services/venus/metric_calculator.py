@@ -14,19 +14,19 @@ async def calculate_kpi_summary(
     days: int = 7
 ) -> Dict[str, Any]:
     """Calculate overall KPI summary for the given date range."""
-    from app.models.venus.daily_metric import VenusDailyMetric
+    from app.models.ads.daily_metric import AdDailyMetric
 
     end_date = datetime.utcnow().date()
     start_date = end_date - timedelta(days=days)
     prev_start = start_date - timedelta(days=days)
 
-    query = select(VenusDailyMetric).where(
-        VenusDailyMetric.user_id == user_id,
-        VenusDailyMetric.date >= str(start_date),
-        VenusDailyMetric.date <= str(end_date),
+    query = select(AdDailyMetric).where(
+        AdDailyMetric.user_id == user_id,
+        AdDailyMetric.date >= str(start_date),
+        AdDailyMetric.date <= str(end_date),
     )
     if project_id:
-        from app.models.venus.campaign import VenusCampaign
+        from app.models.ads.campaign import VenusCampaign
         campaign_query = select(VenusCampaign.id).where(
             VenusCampaign.user_id == user_id,
             VenusCampaign.project_id == project_id
@@ -34,7 +34,7 @@ async def calculate_kpi_summary(
         campaign_result = await db.execute(campaign_query)
         campaign_ids = [c for c in campaign_result.scalars().all()]
         if campaign_ids:
-            query = query.where(VenusDailyMetric.campaign_id.in_(campaign_ids))
+            query = query.where(AdDailyMetric.campaign_id.in_(campaign_ids))
 
     result = await db.execute(query)
     metrics = result.scalars().all()
@@ -54,10 +54,10 @@ async def calculate_kpi_summary(
     cpa = (total_spend / total_conversions) if total_conversions > 0 else 0
 
     # Previous period for trend
-    prev_query = select(VenusDailyMetric).where(
-        VenusDailyMetric.user_id == user_id,
-        VenusDailyMetric.date >= str(prev_start),
-        VenusDailyMetric.date < str(start_date),
+    prev_query = select(AdDailyMetric).where(
+        AdDailyMetric.user_id == user_id,
+        AdDailyMetric.date >= str(prev_start),
+        AdDailyMetric.date < str(start_date),
     )
     prev_result = await db.execute(prev_query)
     prev_metrics = prev_result.scalars().all()
@@ -94,16 +94,16 @@ async def calculate_campaign_trend(
     days: int = 30
 ) -> List[Dict[str, Any]]:
     """Get daily trend data for a specific campaign."""
-    from app.models.venus.daily_metric import VenusDailyMetric
+    from app.models.ads.daily_metric import AdDailyMetric
 
     end_date = datetime.utcnow().date()
     start_date = end_date - timedelta(days=days)
 
-    query = select(VenusDailyMetric).where(
-        VenusDailyMetric.user_id == user_id,
-        VenusDailyMetric.campaign_id == campaign_id,
-        VenusDailyMetric.date >= str(start_date),
-    ).order_by(VenusDailyMetric.date.asc())
+    query = select(AdDailyMetric).where(
+        AdDailyMetric.user_id == user_id,
+        AdDailyMetric.campaign_id == campaign_id,
+        AdDailyMetric.date >= str(start_date),
+    ).order_by(AdDailyMetric.date.asc())
     
     result = await db.execute(query)
     metrics = result.scalars().all()
@@ -129,14 +129,14 @@ async def detect_anomalies(
     threshold: float = 2.0
 ) -> List[Dict[str, Any]]:
     """Detect anomalies in recent metric data using simple Z-score approach."""
-    from app.models.venus.daily_metric import VenusDailyMetric
+    from app.models.ads.daily_metric import AdDailyMetric
 
     end_date = datetime.utcnow().date()
     start_date = end_date - timedelta(days=30)
 
-    query = select(VenusDailyMetric).where(
-        VenusDailyMetric.user_id == user_id,
-        VenusDailyMetric.date >= str(start_date),
+    query = select(AdDailyMetric).where(
+        AdDailyMetric.user_id == user_id,
+        AdDailyMetric.date >= str(start_date),
     )
     result = await db.execute(query)
     metrics = result.scalars().all()

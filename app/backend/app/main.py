@@ -1,6 +1,9 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.database import get_db
 from starlette.middleware.base import BaseHTTPMiddleware
 from contextlib import asynccontextmanager
 from app.config import settings
@@ -279,10 +282,15 @@ async def link_preview(url: str):
         parsed = urlparse(url)
         return {"title": parsed.netloc or url, "url": url, "favicon": "", "domain": parsed.netloc or ""}
 
-@app.get("/api/health")
-async def health_check():
-    return {
-        "status": "ok",
-        "project": settings.project_name,
-        "environment": settings.environment
-    }
+@app.get("/api/health", tags=["Health"])
+async def health_check(db: AsyncSession = Depends(get_db)):
+    try:
+        await db.execute(text("SELECT 1"))
+        return {
+            "status": "ok",
+            "project": settings.project_name,
+            "environment": settings.environment,
+            "database": "connected"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Database connection failed: {str(e)}")

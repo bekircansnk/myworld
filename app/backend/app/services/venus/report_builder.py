@@ -28,8 +28,8 @@ async def generate_report(
     kpis = await calculate_kpi_summary(db, user_id, project_id, days=days)
 
     # Get top campaigns
-    from app.models.venus.daily_metric import VenusDailyMetric
-    from app.models.venus.campaign import VenusCampaign
+    from app.models.ads.daily_metric import AdDailyMetric
+    from app.models.ads.campaign import VenusCampaign
 
     end_date = datetime.utcnow().date()
     start_date = end_date - timedelta(days=days)
@@ -37,16 +37,16 @@ async def generate_report(
     top_campaigns = []
     
     query = select(
-        VenusDailyMetric.campaign_id,
-        func.sum(VenusDailyMetric.spend).label("total_spend"),
-        func.sum(VenusDailyMetric.clicks).label("total_clicks"),
-        func.sum(VenusDailyMetric.conversions).label("total_conv"),
-        func.sum(VenusDailyMetric.conversion_value).label("total_value"),
+        AdDailyMetric.campaign_id,
+        func.sum(AdDailyMetric.spend).label("total_spend"),
+        func.sum(AdDailyMetric.clicks).label("total_clicks"),
+        func.sum(AdDailyMetric.conversions).label("total_conv"),
+        func.sum(AdDailyMetric.conversion_value).label("total_value"),
     ).where(
-        VenusDailyMetric.user_id == user_id,
-        VenusDailyMetric.date >= str(start_date),
-    ).group_by(VenusDailyMetric.campaign_id).order_by(
-        desc(func.sum(VenusDailyMetric.spend))
+        AdDailyMetric.user_id == user_id,
+        AdDailyMetric.date >= str(start_date),
+    ).group_by(AdDailyMetric.campaign_id).order_by(
+        desc(func.sum(AdDailyMetric.spend))
     ).limit(10)
     
     result = await db.execute(query)

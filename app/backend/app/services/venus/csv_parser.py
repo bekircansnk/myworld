@@ -167,7 +167,7 @@ async def import_rows_to_db(
         campaign_id_map: Optional dict mapping campaign_name -> campaign_id.
                          If not provided, a new campaign lookup will be made.
     """
-    from app.models.venus.daily_metric import VenusDailyMetric
+    from app.models.ads.daily_metric import AdDailyMetric
 
     imported = 0
     skipped = 0
@@ -180,7 +180,7 @@ async def import_rows_to_db(
             campaign_id = campaign_id_map.get(campaign_name)
 
         try:
-            metric = VenusDailyMetric(
+            metric = AdDailyMetric(
                 user_id=user_id,
                 campaign_id=campaign_id,
                 date=row.get("date", datetime.utcnow().strftime("%Y-%m-%d")),

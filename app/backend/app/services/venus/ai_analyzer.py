@@ -20,7 +20,7 @@ async def generate_campaign_analysis(
     user_id: int
 ) -> Dict[str, Any]:
     """Generate AI analysis for a specific campaign using Gemini."""
-    from app.models.venus.campaign import VenusCampaign
+    from app.models.ads.campaign import VenusCampaign
     from app.services.venus.metric_calculator import calculate_campaign_trend
 
     query = select(VenusCampaign).where(
