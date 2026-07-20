@@ -727,6 +727,15 @@ function MonthView({ current, events, onDayClick, onEventClick, onDropItem, onCo
   const days = getMonthDays(current)
   const weekDays = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz']
 
+  const eventsByDate = React.useMemo(() => {
+    const map = new Map<string, CalendarEvent[]>()
+    for (const e of events) {
+      if (!map.has(e.date)) map.set(e.date, [])
+      map.get(e.date)!.push(e)
+    }
+    return map
+  }, [events])
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden h-full">
       <div className="grid grid-cols-7 border-b border-gray-200 dark:border-white/8 shrink-0">
@@ -736,7 +745,7 @@ function MonthView({ current, events, onDayClick, onEventClick, onDropItem, onCo
       </div>
       <div className="flex-1 grid grid-cols-7 auto-rows-fr overflow-y-auto">
         {days.map((day, idx) => {
-          const dayEvents = events.filter(e => e.date === format(day, 'yyyy-MM-dd'))
+          const dayEvents = eventsByDate.get(format(day, 'yyyy-MM-dd')) || []
           const isCurrentMonth = isSameMonth(day, current)
           const today = isToday(day)
 
@@ -798,6 +807,15 @@ function WeekView({ current, events, onEventClick, onDropItem, onContextMenu }: 
 }) {
   const days = getWeekDays(current)
 
+  const eventsByDate = React.useMemo(() => {
+    const map = new Map<string, CalendarEvent[]>()
+    for (const e of events) {
+      if (!map.has(e.date)) map.set(e.date, [])
+      map.get(e.date)!.push(e)
+    }
+    return map
+  }, [events])
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden h-full">
       <div className="grid grid-cols-8 border-b border-gray-200 dark:border-white/8 shrink-0">
@@ -827,8 +845,8 @@ function WeekView({ current, events, onEventClick, onDropItem, onContextMenu }: 
             <div className="w-16 text-right pr-3 py-1 text-[10px] font-medium text-gray-400 dark:text-gray-500 border-r border-gray-100 dark:border-white/6 shrink-0">{hour.toString().padStart(2, '0')}:00</div>
             {days.map((day, dayIdx) => {
               const dateStr = format(day, 'yyyy-MM-dd')
-              const hourEvents = events.filter(e => {
-                if (e.date !== dateStr) return false
+              const dayEvents = eventsByDate.get(dateStr) || []
+              const hourEvents = dayEvents.filter(e => {
                 if (e.allDay) return hour === 0
                 if (!e.startTime) return false
                 return parseInt(e.startTime.split(':')[0]) === hour
