@@ -448,7 +448,7 @@ export function DashboardWidgets() {
                   className="w-full bg-brand-bg dark:bg-slate-900 border-none focus:ring-2 focus:ring-brand-yellow/50 rounded-2xl py-3 px-4 pr-12 text-sm placeholder:text-brand-gray/60 text-brand-dark dark:text-white"
                   placeholder="Hızlı Not / Komut..."
                 />
-                <button onClick={sendAiMessage} className="absolute right-2 top-1.5 w-8 h-8 bg-primary text-primary-foreground rounded-xl flex items-center justify-center hover:opacity-80 transition">
+                <button onClick={sendAiMessage} aria-label="Mesaj Gönder" title="Gönder" className="absolute right-2 top-1.5 w-8 h-8 bg-primary text-primary-foreground rounded-xl flex items-center justify-center hover:opacity-80 transition">
                   <Send className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -473,7 +473,7 @@ export function DashboardWidgets() {
 
             {/* Gelişim Chart */}
             <div className="floating-card rounded-3xl p-5 flex flex-col relative overflow-hidden min-h-[220px]">
-              <button className="absolute top-5 right-5 w-8 h-8 bg-brand-bg dark:bg-slate-900 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-slate-700 transition shrink-0">
+              <button aria-label="Detayları Aç" title="Detaylar" className="absolute top-5 right-5 w-8 h-8 bg-brand-bg dark:bg-slate-900 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-slate-700 transition shrink-0">
                 <ArrowUpRight className="w-3.5 h-3.5 text-brand-gray dark:text-gray-400" />
               </button>
               <h3 className="text-base font-semibold mb-1 text-brand-dark dark:text-white shrink-0">Gelişim</h3>
@@ -523,15 +523,15 @@ export function DashboardWidgets() {
                 </div>
                 <div className="flex space-x-2">
                   {!isTimerRunning ? (
-                    <button onClick={startTimer} className="w-8 h-8 bg-emerald-500 shadow-sm rounded-full flex items-center justify-center hover:bg-emerald-600 transition shrink-0">
+                    <button onClick={startTimer} aria-label="Zamanlayıcıyı Başlat" title="Başlat" className="w-8 h-8 bg-emerald-500 shadow-sm rounded-full flex items-center justify-center hover:bg-emerald-600 transition shrink-0">
                       <Play className="w-3.5 h-3.5 text-white ml-0.5" />
                     </button>
                   ) : (
-                    <button onClick={pauseTimer} className="w-8 h-8 bg-amber-500 shadow-sm rounded-full flex items-center justify-center hover:bg-amber-600 transition shrink-0">
+                    <button onClick={pauseTimer} aria-label="Zamanlayıcıyı Duraklat" title="Duraklat" className="w-8 h-8 bg-amber-500 shadow-sm rounded-full flex items-center justify-center hover:bg-amber-600 transition shrink-0">
                       <Pause className="w-3.5 h-3.5 text-white" />
                     </button>
                   )}
-                  <button onClick={resetTimer} className="w-8 h-8 bg-card shadow-sm border border-border rounded-full flex items-center justify-center hover:bg-muted transition shrink-0">
+                  <button onClick={resetTimer} aria-label="Zamanlayıcıyı Sıfırla" title="Sıfırla" className="w-8 h-8 bg-card shadow-sm border border-border rounded-full flex items-center justify-center hover:bg-muted transition shrink-0">
                     <RotateCcw className="w-3.5 h-3.5 text-brand-dark dark:text-white" />
                   </button>
                 </div>
