@@ -23,25 +23,7 @@ from app.utils.activity import log_activity
 from app.services.email_service import generate_token, send_verification_email, send_password_reset_email, generate_numeric_otp, send_login_otp_email
 from pydantic import BaseModel
 
-class PasswordReset(BaseModel):
-    username: str
-    new_password: str
-
 router = APIRouter()
-
-# ============================================================
-# ESKİ ŞİFRE SIFIRLAMA (Geriye uyumluluk)
-# ============================================================
-@router.post("/reset-password")
-async def reset_password(data: PasswordReset, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.username == data.username))
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
-    user.password_hash = get_password_hash(data.new_password)
-    await db.commit()
-    return {"message": "Şifre başarıyla sıfırlandı"}
-
 
 from app.dependencies.admin import require_super_admin
 
