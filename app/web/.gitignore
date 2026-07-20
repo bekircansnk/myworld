@@ -15,7 +15,14 @@
 
 # next.js
 /.next/
+/.next.nosync/
+*.nosync
 /out/
+
+# binaries & build artifacts
+*.apk
+*.zip
+*.tar.gz
 
 # production
 /build
