@@ -6,8 +6,8 @@ class Task(Base):
     __tablename__ = "tasks"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     title = Column(String, nullable=False)
     description = Column(String, nullable=True)
     priority = Column(String, default="normal") # urgent, normal, low
@@ -19,7 +19,7 @@ class Task(Base):
     ai_suggested_priority = Column(String, nullable=True)
     ai_analysis = Column(String, nullable=True)
     ai_analysis_history = Column(JSON, default=list)
-    parent_task_id = Column(Integer, ForeignKey("tasks.id"), nullable=True)
+    parent_task_id = Column(Integer, ForeignKey("tasks.id"), nullable=True, index=True)
     sort_order = Column(Integer, default=0)
     completed_at = Column(DateTime(timezone=True), nullable=True)
     is_deleted = Column(Boolean, default=False)

@@ -1,0 +1,3 @@
+## 2026-07-21 - PostgreSQL Foreign Key Missing Indexes
+**Learning:** PostgreSQL does not automatically index foreign keys, leading to O(N) sequential scans when querying by `user_id`, `project_id`, etc. Many SQLAlchemy models (`Task`, `Note`, `CalendarEvent`) in this codebase lacked `index=True` on frequently queried relationships, causing severe backend performance bottlenecks.
+**Action:** When adding new SQLAlchemy models with foreign keys, ALWAYS ensure `index=True` is explicitly included for any relationship that will be used for filtering or joins (e.g. `Column(Integer, ForeignKey('users.id'), index=True)`).
