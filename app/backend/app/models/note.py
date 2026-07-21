@@ -7,9 +7,9 @@ class Note(Base):
     __tablename__ = "notes"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True)
-    task_id = Column(Integer, ForeignKey("tasks.id"), nullable=True)  # Cross-reference to task
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
+    task_id = Column(Integer, ForeignKey("tasks.id"), nullable=True, index=True)  # Cross-reference to task
     content = Column(String, nullable=False)
     title = Column(String, nullable=True)
     ai_category = Column(String, nullable=True)

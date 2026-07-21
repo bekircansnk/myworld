@@ -8,16 +8,16 @@ class CalendarEvent(Base):
     __tablename__ = "calendar_events"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     title = Column(String(255), nullable=False)
     description = Column(String, nullable=True)
     start_time = Column(DateTime(timezone=True), nullable=False)
     end_time = Column(DateTime(timezone=True), nullable=False)
     is_all_day = Column(Boolean, default=False)
     event_type = Column(String(50), default="task") # task, routine, personal, etc.
-    task_id = Column(Integer, ForeignKey("tasks.id"), nullable=True) # Optional link to a task
-    note_id = Column(Integer, ForeignKey("notes.id"), nullable=True) # Optional link to a note
-    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True) # Firma bazlı filtreleme
+    task_id = Column(Integer, ForeignKey("tasks.id"), nullable=True, index=True) # Optional link to a task
+    note_id = Column(Integer, ForeignKey("notes.id"), nullable=True, index=True) # Optional link to a note
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True) # Firma bazlı filtreleme
     is_completed = Column(Boolean, default=False)
     is_deleted = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
