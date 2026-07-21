@@ -255,15 +255,52 @@ async def get_app_version():
 async def link_preview(url: str):
     """URL'den sayfa başlığı ve favicon çeker — LinkBreeze özelliği için"""
     import httpx
+    import asyncio
+    import ipaddress
     from urllib.parse import urlparse
     try:
         parsed = urlparse(url)
         if not parsed.scheme:
             url = f"https://{url}"
             parsed = urlparse(url)
+
+        hostname = parsed.hostname
+        if not hostname:
+            return {"title": url, "url": url, "favicon": "", "domain": ""}
+
+        # SSRF Protection: Resolve DNS and check if IP is internal/private
+        loop = asyncio.get_running_loop()
+        try:
+            addr_info = await loop.getaddrinfo(hostname, None)
+            for _, _, _, _, sockaddr in addr_info:
+                ip = ipaddress.ip_address(sockaddr[0])
+                if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_unspecified or ip.is_reserved:
+                    return {"title": "Restricted IP", "url": url, "favicon": "", "domain": parsed.netloc}
+        except Exception:
+            return {"title": parsed.netloc, "url": url, "favicon": "", "domain": parsed.netloc}
         
-        async with httpx.AsyncClient(timeout=3.0, follow_redirects=True) as client:
+        # Follow redirects turned off to prevent redirect SSRF bypass
+        async with httpx.AsyncClient(timeout=3.0, follow_redirects=False) as client:
             resp = await client.get(url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
+            # Handle manual redirect if necessary up to 1 hop, re-checking IP
+            if resp.status_code in (301, 302, 303, 307, 308):
+                redirect_url = resp.headers.get("Location")
+                if redirect_url:
+                    r_parsed = urlparse(redirect_url)
+                    if not r_parsed.scheme:
+                        redirect_url = f"{parsed.scheme}://{parsed.netloc}{redirect_url if redirect_url.startswith('/') else '/' + redirect_url}"
+                        r_parsed = urlparse(redirect_url)
+                    r_hostname = r_parsed.hostname
+                    if r_hostname:
+                        try:
+                            r_addr_info = await loop.getaddrinfo(r_hostname, None)
+                            for _, _, _, _, sockaddr in r_addr_info:
+                                ip = ipaddress.ip_address(sockaddr[0])
+                                if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_unspecified or ip.is_reserved:
+                                    return {"title": "Restricted Redirect", "url": url, "favicon": "", "domain": parsed.netloc}
+                        except Exception:
+                            return {"title": parsed.netloc, "url": url, "favicon": "", "domain": parsed.netloc}
+                    resp = await client.get(redirect_url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
             html = resp.text[:10000]  # İlk 10KB yeterli
         
         # Title çıkar
