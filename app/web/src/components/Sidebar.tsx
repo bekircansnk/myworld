@@ -30,8 +30,9 @@ export function Sidebar() {
     <div className={`hidden lg:flex transition-all duration-300 ${isExpanded ? 'w-72' : 'w-20'} glass-sidebar flex-col shadow-2xl z-10 relative`}>
       {/* İçe/Dışa Kapatma Butonu */}
       <button 
+        aria-label={isExpanded ? "Menüyü daralt" : "Menüyü genişlet"}
         onClick={() => setIsExpanded(!isExpanded)}
-        className="absolute -right-3 top-8 bg-card border border-border shadow-sm rounded-full p-1 z-50 hover:bg-muted transition-colors"
+        className="absolute -right-3 top-8 bg-card border border-border shadow-sm rounded-full p-1 z-50 hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${isExpanded ? '' : 'rotate-180'}`}><path d="m15 18-6-6 6-6"/></svg>
       </button>
@@ -129,11 +130,12 @@ export function Sidebar() {
              {mounted && projects.map(proj => (
                  <div key={proj.id} title={proj.name} className={`w-full flex items-center justify-between rounded-xl transition-all duration-300 group btn-3d ${isExpanded ? 'px-2 py-1 text-left text-sm' : 'justify-center p-2'} ${selectedProjectId === proj.id ? 'bg-card shadow-md inner-shadow-box ring-1 ring-border' : 'hover:bg-muted border-transparent'}`}>
                   <button 
+                    aria-label={`${proj.name} firmasını seç`}
                     onClick={() => {
                         setSelectedProjectId(proj.id)
                         if(!isExpanded) setIsExpanded(true)
                     }}
-                    className={`flex items-center truncate ${isExpanded ? 'flex-1 gap-3 py-2 px-2' : 'justify-center w-full h-8'}`}
+                    className={`flex items-center truncate ${isExpanded ? 'flex-1 gap-3 py-2 px-2' : 'justify-center w-full h-8'} focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none rounded-md`}
                   >
                      <div className="relative w-3 h-3 flex items-center justify-center flex-shrink-0">
                        <div className="w-2.5 h-2.5 rounded-full shadow-sm z-10" style={{ backgroundColor: proj.color }}></div>
@@ -142,12 +144,13 @@ export function Sidebar() {
                   </button>
                   {isExpanded && (
                      <button 
+                       aria-label={`${proj.name} firma ayarları`}
                        onClick={(e) => {
                          e.stopPropagation()
                          setProjectToEdit(proj)
                          setIsSettingsOpen(true)
                        }}
-                       className={`p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all ${selectedProjectId === proj.id ? 'opacity-100 3d-button' : 'opacity-0 group-hover:opacity-100'}`}
+                       className={`p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all ${selectedProjectId === proj.id ? 'opacity-100 3d-button' : 'opacity-0 group-hover:opacity-100'} focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none`}
                      >
                       <Settings2 className="w-4 h-4" />
                     </button>
@@ -162,7 +165,7 @@ export function Sidebar() {
            </div>
            
            <div className={`mt-4 ${isExpanded ? 'px-1' : 'flex justify-center'}`}>
-             {isExpanded ? <ProjectForm /> : <Button variant="ghost" size="icon" onClick={() => setIsExpanded(true)} className="h-10 w-10 shrink-0"><span className="text-lg">+</span></Button>}
+             {isExpanded ? <ProjectForm /> : <Button aria-label="Yeni firma ekle" variant="ghost" size="icon" onClick={() => setIsExpanded(true)} className="h-10 w-10 shrink-0 focus-visible:ring-2 focus-visible:ring-indigo-500"><span className="text-lg">+</span></Button>}
            </div>
         </div>
       </div>
@@ -192,10 +195,11 @@ export function Sidebar() {
           </div>
         ) : (
           <Button
+            aria-label="Temayı değiştir"
             variant="ghost"
             size="icon"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="rounded-full w-10 h-10 hover:bg-muted"
+            className="rounded-full w-10 h-10 hover:bg-muted focus-visible:ring-2 focus-visible:ring-indigo-500"
           >
             {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-indigo-400" />}
           </Button>
