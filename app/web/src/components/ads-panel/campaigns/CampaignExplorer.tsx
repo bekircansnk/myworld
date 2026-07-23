@@ -66,12 +66,14 @@ export function CampaignExplorer({ projectId }: CampaignExplorerProps) {
     });
   };
 
-  const filteredCampaigns = campaigns.filter(c => {
-    const matchesSearch = c.campaign_name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPlatform = platformFilter === 'all' || c.platform === platformFilter;
-    const matchesStatus = statusFilter === 'all' || c.status === statusFilter;
-    return matchesSearch && matchesPlatform && matchesStatus;
-  });
+  const filteredCampaigns = React.useMemo(() => {
+    return campaigns.filter(c => {
+      const matchesSearch = c.campaign_name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesPlatform = platformFilter === 'all' || c.platform === platformFilter;
+      const matchesStatus = statusFilter === 'all' || c.status === statusFilter;
+      return matchesSearch && matchesPlatform && matchesStatus;
+    });
+  }, [campaigns, searchTerm, platformFilter, statusFilter]);
 
   return (
     <div className="flex flex-col h-full gap-6">

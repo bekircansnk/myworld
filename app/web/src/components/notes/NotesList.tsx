@@ -152,19 +152,21 @@ export function NotesList() {
   }
 
   // Filter Logic
-  const filteredNotes = notes.filter(n => {
-    const matchesSearch = (n.title || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          (n.content || '').toLowerCase().includes(searchQuery.toLowerCase())
-    if (!matchesSearch) return false
-    
-    if (activeTab === "Tüm Notlar") return true
-    
-    const cat = n.ai_category || ""
-    if (activeTab === "Yaratıcı Fikirler") return cat.toLowerCase().includes("yaratıcı") || cat.toLowerCase().includes("fikir")
-    if (activeTab === "Genel Notlar") return cat.toLowerCase().includes("genel") || !cat
-    if (activeTab === "Yazılım") return cat.toLowerCase().includes("yazılım") || cat.toLowerCase().includes("kod")
-    return true
-  })
+  const filteredNotes = React.useMemo(() => {
+    return notes.filter(n => {
+      const matchesSearch = (n.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            (n.content || '').toLowerCase().includes(searchQuery.toLowerCase())
+      if (!matchesSearch) return false
+
+      if (activeTab === "Tüm Notlar") return true
+
+      const cat = n.ai_category || ""
+      if (activeTab === "Yaratıcı Fikirler") return cat.toLowerCase().includes("yaratıcı") || cat.toLowerCase().includes("fikir")
+      if (activeTab === "Genel Notlar") return cat.toLowerCase().includes("genel") || !cat
+      if (activeTab === "Yazılım") return cat.toLowerCase().includes("yazılım") || cat.toLowerCase().includes("kod")
+      return true
+    })
+  }, [notes, searchQuery, activeTab])
 
   // Utility to determine card theme based on category
   const getCardTheme = (ai_category?: string) => {
