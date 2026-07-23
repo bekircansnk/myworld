@@ -16,11 +16,13 @@ export function LanguageSelector({ selectedCode, onSelect, label, excludeCode }:
 
   const selectedLanguage = SUPPORTED_LANGUAGES.find(l => l.code === selectedCode) || SUPPORTED_LANGUAGES[0];
 
-  const filteredLanguages = SUPPORTED_LANGUAGES.filter(lang => {
-    if (excludeCode && lang.code === excludeCode) return false;
-    return lang.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-           lang.code.toLowerCase().includes(searchQuery.toLowerCase());
-  });
+  const filteredLanguages = React.useMemo(() => {
+    return SUPPORTED_LANGUAGES.filter(lang => {
+      if (excludeCode && lang.code === excludeCode) return false;
+      return lang.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+             lang.code.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+  }, [excludeCode, searchQuery]);
 
   return (
     <div className="relative flex-1">
