@@ -1,0 +1,4 @@
+## 2026-07-23 - Unauthenticated Password Reset Endpoint Removal
+**Vulnerability:** A legacy `/reset-password` endpoint in `app/backend/app/routers/auth.py` allowed any unauthenticated user to reset any existing user's password merely by providing their username, as there was no token verification or authentication check. This is a critical Broken Access Control vulnerability that leads directly to Account Takeover.
+**Learning:** Legacy endpoints kept for "backward compatibility" without proper security controls represent a massive risk. The system had a secure, token-based alternative (`/reset-password-with-token`) but the insecure one was left exposed.
+**Prevention:** Deprecated or insecure endpoints must be removed, not left in the codebase. All sensitive actions (like password reset) must require either an authenticated session or out-of-band verification (like an emailed secure token).
