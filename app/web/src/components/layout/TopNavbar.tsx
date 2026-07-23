@@ -492,6 +492,8 @@ export function TopNavbar() {
             <button
               onClick={() => { setShowNotifPanel(!showNotifPanel); setShowUserPanel(false); }}
               className="w-9 h-9 md:w-10 md:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative"
+              aria-label="Bildirimler"
+              aria-expanded={showNotifPanel}
             >
               <Bell className="w-4 h-4 text-brand-gray dark:text-gray-400" />
               {unreadCount > 0 && (
@@ -539,6 +541,7 @@ export function TopNavbar() {
                             <button 
                               onClick={(e) => { e.stopPropagation(); dismissNotification(n.id); }} 
                               className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-slate-500 transition p-1 shrink-0 absolute right-1 top-2"
+                              aria-label="Bildirimi kapat"
                             >
                               <X className="w-3 h-3" />
                             </button>
@@ -632,6 +635,7 @@ export function TopNavbar() {
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               className="w-9 h-9 md:w-10 md:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              aria-label={theme === "dark" ? "Açık temaya geç" : "Koyu temaya geç"}
             >
               {theme === "dark" ? <Sun className="w-4 h-4 text-brand-yellow" /> : <Moon className="w-4 h-4 text-brand-dark" />}
             </button>
@@ -642,6 +646,8 @@ export function TopNavbar() {
             <button
               onClick={() => { setShowUserPanel(!showUserPanel); setShowNotifPanel(false); }}
               className={`relative w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors overflow-hidden border-2 ${showUserPanel ? 'border-brand-yellow' : 'border-transparent bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+              aria-label="Kullanıcı menüsü"
+              aria-expanded={showUserPanel}
             >
               {user?.avatar_url ? (
                 <img src={user.avatar_url.startsWith('http') ? user.avatar_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${user.avatar_url}`} alt="Avatar" className="w-full h-full object-cover" />
