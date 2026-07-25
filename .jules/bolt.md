@@ -1,0 +1,3 @@
+## 2024-05-15 - Unmemoized Filtering on Frequently Updated Components
+**Learning:** Found several components where large lists were being filtered synchronously in the render body (`const filteredList = list.filter(...)`), while the component also contained state for text inputs (`searchTerm`). This causes O(N) recalculation of the list on every keystroke, which can degrade typing performance on large datasets.
+**Action:** Always wrap array filtering operations with `useMemo` when the component also contains frequently updated state (like text inputs) to prevent O(N) recalculation on every render.

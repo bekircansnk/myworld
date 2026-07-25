@@ -13,12 +13,14 @@ export function ModelExplorer({ projectId }: ModelExplorerProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  const filteredModels = models.filter(m => {
-    const matchesSearch = m.model_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          (m.sezon_kodu && m.sezon_kodu.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesStatus = statusFilter === 'all' || m.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const filteredModels = React.useMemo(() => {
+    return models.filter(m => {
+      const matchesSearch = m.model_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            (m.sezon_kodu && m.sezon_kodu.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesStatus = statusFilter === 'all' || m.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [models, searchTerm, statusFilter]);
 
   return (
     <div className="flex flex-col h-full gap-6">
