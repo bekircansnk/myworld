@@ -1,0 +1,4 @@
+## 2024-05-15 - Path Traversal in File Uploads
+**Vulnerability:** User-provided filename (`file.filename`) was directly concatenated with a temporary upload directory path (`os.path.join(upload_dir, f"{uuid.uuid4().hex}_{file_name}")`) in `app/backend/app/routers/ads/reports.py`. This allowed writing files to arbitrary locations on the filesystem (e.g. using `../../../etc/passwd` as filename).
+**Learning:** `os.path.join` does not sanitize filenames and will resolve absolute or relative path traversal sequences correctly as path changes. User-provided filenames from `UploadFile` (FastAPI) are not safe by default.
+**Prevention:** Always strictly sanitize user-provided filenames before using them in file system operations. Replace backslashes with forward slashes (to handle Windows paths) and use `os.path.basename()` to extract only the filename component.
