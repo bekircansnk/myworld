@@ -491,6 +491,7 @@ export function TopNavbar() {
           <div className="relative" ref={notifRef}>
             <button
               onClick={() => { setShowNotifPanel(!showNotifPanel); setShowUserPanel(false); }}
+              aria-label="Bildirimler"
               className="w-9 h-9 md:w-10 md:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative"
             >
               <Bell className="w-4 h-4 text-brand-gray dark:text-gray-400" />
@@ -631,6 +632,7 @@ export function TopNavbar() {
           {mounted && (
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              aria-label={theme === 'dark' ? 'Açık temaya geç' : 'Koyu temaya geç'}
               className="w-9 h-9 md:w-10 md:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
             >
               {theme === "dark" ? <Sun className="w-4 h-4 text-brand-yellow" /> : <Moon className="w-4 h-4 text-brand-dark" />}
@@ -641,6 +643,7 @@ export function TopNavbar() {
           <div className="relative" ref={userRef}>
             <button
               onClick={() => { setShowUserPanel(!showUserPanel); setShowNotifPanel(false); }}
+              aria-label="Kullanıcı Menüsü"
               className={`relative w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors overflow-hidden border-2 ${showUserPanel ? 'border-brand-yellow' : 'border-transparent bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
             >
               {user?.avatar_url ? (
