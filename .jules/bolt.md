@@ -1,0 +1,3 @@
+## 2024-07-26 - O(N^2) Anti-Pattern in React Render Loop
+**Learning:** Found a specific performance bottleneck where un-memoized array `.filter()` calls were used to calculate derived data (subtask counts) for each rendered item (task) in a Kanban board. Since this board component also manages frequently-changing local state (like text input for adding new tasks), every keystroke triggered a re-render of all items, resulting in O(N^2) time complexity and noticeable UI lag.
+**Action:** Always pre-compute and group related sub-item statistics into a memoized O(1) lookup dictionary (e.g., using `React.useMemo` to build an `O(N)` hash map of counts) BEFORE iterating over items in the render path, especially in components that also house fast-changing state like text inputs.
