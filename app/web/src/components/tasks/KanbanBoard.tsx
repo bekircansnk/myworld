@@ -210,13 +210,32 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
   // Şimdilik aynı statusKey'li sütunlar aynı görevleri gösterir
   // İleride backend desteğiyle custom status eklenebilir
 
-  // Alt görev sayısını hesapla
-  const getSubtaskCount = (taskId: number) => {
-    return tasks.filter(t => t.parent_task_id === taskId).length
-  }
-  const getDoneSubtaskCount = (taskId: number) => {
-    return tasks.filter(t => t.parent_task_id === taskId && t.status === 'done').length
-  }
+  // Alt görev istatistiklerini hesapla (O(N) optimizasyonu)
+  // ⚡ Bolt: Reduce time complexity from O(N^2) to O(N) by memoizing subtask counts
+  // This prevents UI lag when typing in the quick add input due to unnecessary re-renders
+  const subtaskStats = React.useMemo(() => {
+    const stats: Record<number, { total: number; done: number }> = {}
+    for (const t of tasks) {
+      if (t.parent_task_id) {
+        if (!stats[t.parent_task_id]) {
+          stats[t.parent_task_id] = { total: 0, done: 0 }
+        }
+        stats[t.parent_task_id].total++
+        if (t.status === 'done') {
+          stats[t.parent_task_id].done++
+        }
+      }
+    }
+    return stats
+  }, [tasks])
+
+  const getSubtaskCount = React.useCallback((taskId: number) => {
+    return subtaskStats[taskId]?.total || 0
+  }, [subtaskStats])
+
+  const getDoneSubtaskCount = React.useCallback((taskId: number) => {
+    return subtaskStats[taskId]?.done || 0
+  }, [subtaskStats])
 
   // Hızlı görev ekleme
   const handleQuickAdd = (column: ColumnConfig) => {
