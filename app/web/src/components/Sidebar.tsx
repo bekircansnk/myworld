@@ -31,6 +31,7 @@ export function Sidebar() {
       {/* İçe/Dışa Kapatma Butonu */}
       <button 
         onClick={() => setIsExpanded(!isExpanded)}
+        aria-label={isExpanded ? "Menüyü daralt" : "Menüyü genişlet"}
         className="absolute -right-3 top-8 bg-card border border-border shadow-sm rounded-full p-1 z-50 hover:bg-muted transition-colors"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${isExpanded ? '' : 'rotate-180'}`}><path d="m15 18-6-6 6-6"/></svg>
@@ -195,6 +196,7 @@ export function Sidebar() {
             variant="ghost"
             size="icon"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            aria-label={theme === 'dark' ? 'Açık temaya geç' : 'Koyu temaya geç'}
             className="rounded-full w-10 h-10 hover:bg-muted"
           >
             {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-indigo-400" />}
