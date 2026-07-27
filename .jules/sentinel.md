@@ -1,0 +1,4 @@
+## 2024-05-18 - Path Traversal in AI Analysis Report Uploads
+**Vulnerability:** The AI analysis report creation endpoint (`/api/ads/reports/ai-analysis`) allowed arbitrary file writes via path traversal in the uploaded file name.
+**Learning:** Even though `uuid.uuid4().hex` was prepended to the file name with `_`, the file name wasn't sanitized, allowing an attacker to upload files with names like `../../../etc/passwd`. `os.path.join` natively allows directory climbing out of the base `/tmp/venus_ai_uploads/` folder if it encounters relative path markers `../`, resolving the destination inherently on write open.
+**Prevention:** Strictly sanitize user-provided filenames using `os.path.basename()` after replacing backslashes with forward slashes before any file operations or paths combinations.
