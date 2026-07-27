@@ -66,12 +66,17 @@ export function CampaignExplorer({ projectId }: CampaignExplorerProps) {
     });
   };
 
-  const filteredCampaigns = campaigns.filter(c => {
-    const matchesSearch = c.campaign_name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPlatform = platformFilter === 'all' || c.platform === platformFilter;
-    const matchesStatus = statusFilter === 'all' || c.status === statusFilter;
-    return matchesSearch && matchesPlatform && matchesStatus;
-  });
+  // Performance optimization: Memoize the filtered list to prevent O(N) recalculations on every render (e.g. while typing in search).
+  // Also hoisted searchTerm.toLowerCase() outside the filter loop to avoid repetitive string conversions.
+  const filteredCampaigns = React.useMemo(() => {
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return campaigns.filter(c => {
+      const matchesSearch = c.campaign_name.toLowerCase().includes(lowerSearchTerm);
+      const matchesPlatform = platformFilter === 'all' || c.platform === platformFilter;
+      const matchesStatus = statusFilter === 'all' || c.status === statusFilter;
+      return matchesSearch && matchesPlatform && matchesStatus;
+    });
+  }, [campaigns, searchTerm, platformFilter, statusFilter]);
 
   return (
     <div className="flex flex-col h-full gap-6">
