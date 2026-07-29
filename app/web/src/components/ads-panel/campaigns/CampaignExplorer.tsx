@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAdsStore } from '@/stores/adsStore';
 import { useProjectStore } from '@/stores/projectStore';
 import { Plus, Search, Filter, MoreHorizontal, Edit, Trash2, Target, ExternalLink } from 'lucide-react';
@@ -66,12 +66,18 @@ export function CampaignExplorer({ projectId }: CampaignExplorerProps) {
     });
   };
 
-  const filteredCampaigns = campaigns.filter(c => {
-    const matchesSearch = c.campaign_name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPlatform = platformFilter === 'all' || c.platform === platformFilter;
-    const matchesStatus = statusFilter === 'all' || c.status === statusFilter;
-    return matchesSearch && matchesPlatform && matchesStatus;
-  });
+  // ⚡ Bolt: Memoize filtered campaigns to prevent O(N) recalculations on every render.
+  // Also hoist `searchTerm.toLowerCase()` outside the loop so it is evaluated only once per calculation.
+  const filteredCampaigns = useMemo(() => {
+    const lowerSearchTerm = searchTerm.toLowerCase();
+
+    return campaigns.filter(c => {
+      const matchesSearch = c.campaign_name.toLowerCase().includes(lowerSearchTerm);
+      const matchesPlatform = platformFilter === 'all' || c.platform === platformFilter;
+      const matchesStatus = statusFilter === 'all' || c.status === statusFilter;
+      return matchesSearch && matchesPlatform && matchesStatus;
+    });
+  }, [campaigns, searchTerm, platformFilter, statusFilter]);
 
   return (
     <div className="flex flex-col h-full gap-6">

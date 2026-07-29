@@ -1,0 +1,3 @@
+## 2025-02-12 - Missing memoization on React list filtering with derived lowercased properties
+**Learning:** `filteredCampaigns` arrays and other derived state that loops over collections (doing string transformations like `toLowerCase()`) run on *every* render if left unmemoized. When combined with typing state (like a Search input), this triggers an O(N) evaluation on every keystroke.
+**Action:** When filtering lists based on rapidly updating state (like search input), ALWAYS wrap the derived list in a `useMemo` and extract string manipulation operations like `.toLowerCase()` out of the loop and execute them once to save resources.
