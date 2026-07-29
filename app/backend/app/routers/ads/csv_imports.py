@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from typing import List, Optional
 import io
+import os
 
 from app.database import get_db
 from app.dependencies.auth import get_current_user
@@ -35,11 +36,12 @@ async def upload_csv(
 
     result = await import_rows_to_db(db, parsed["rows"], current_user.id)
 
+    safe_filename = os.path.basename(file.filename.replace("\\", "/")) if file.filename else "unknown"
     # Save import history record
     import_record = AdCsvImport(
         user_id=current_user.id,
         project_id=project_id,
-        filename=file.filename,
+        filename=safe_filename,
         platform_source=parsed["platform"],
         rows_imported=result["imported"],
         status="completed" if result["skipped"] == 0 else "partial",
