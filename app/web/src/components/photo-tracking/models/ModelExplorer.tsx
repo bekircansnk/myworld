@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { usePhotoTrackingStore } from '@/stores/photoTrackingStore';
 import { Layers, Plus, Search, Filter, Edit, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -13,12 +13,16 @@ export function ModelExplorer({ projectId }: ModelExplorerProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  const filteredModels = models.filter(m => {
-    const matchesSearch = m.model_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          (m.sezon_kodu && m.sezon_kodu.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesStatus = statusFilter === 'all' || m.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  // ⚡ BOLT OPTIMIZATION: Memoized filter array and hoisted toLowerCase() out of loop to O(1).
+  const filteredModels = useMemo(() => {
+    const lowerSearch = searchTerm.toLowerCase();
+    return models.filter(m => {
+      const matchesSearch = m.model_name.toLowerCase().includes(lowerSearch) ||
+                            (m.sezon_kodu && m.sezon_kodu.toLowerCase().includes(lowerSearch));
+      const matchesStatus = statusFilter === 'all' || m.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [models, searchTerm, statusFilter]);
 
   return (
     <div className="flex flex-col h-full gap-6">
