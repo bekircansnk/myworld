@@ -115,7 +115,10 @@ async def create_ai_analysis(
     file_size = None
     
     if file and report_source in ["external", "hybrid"]:
-        file_name = file.filename
+        # Sanitize filename to prevent path traversal
+        raw_filename = file.filename or "unknown_file"
+        file_name = os.path.basename(raw_filename.replace("\\", "/"))
+
         file_type = file_name.split(".")[-1] if "." in file_name else "unknown"
         content = await file.read()
         file_size = len(content)
