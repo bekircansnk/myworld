@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from 'react';
 import { SUPPORTED_LANGUAGES } from "./constants";
 import { Language } from "./types";
 import { Search, Check, ChevronDown } from "lucide-react";
@@ -16,11 +16,15 @@ export function LanguageSelector({ selectedCode, onSelect, label, excludeCode }:
 
   const selectedLanguage = SUPPORTED_LANGUAGES.find(l => l.code === selectedCode) || SUPPORTED_LANGUAGES[0];
 
-  const filteredLanguages = SUPPORTED_LANGUAGES.filter(lang => {
-    if (excludeCode && lang.code === excludeCode) return false;
-    return lang.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-           lang.code.toLowerCase().includes(searchQuery.toLowerCase());
-  });
+  // ⚡ BOLT OPTIMIZATION: Memoized filter array and hoisted toLowerCase() out of loop to O(1).
+  const filteredLanguages = useMemo(() => {
+    const lowerSearch = searchQuery.toLowerCase();
+    return SUPPORTED_LANGUAGES.filter(lang => {
+      if (excludeCode && lang.code === excludeCode) return false;
+      return lang.name.toLowerCase().includes(lowerSearch) ||
+             lang.code.toLowerCase().includes(lowerSearch);
+    });
+  }, [searchQuery, excludeCode]);
 
   return (
     <div className="relative flex-1">
