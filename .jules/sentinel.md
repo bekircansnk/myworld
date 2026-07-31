@@ -1,0 +1,4 @@
+## 2024-05-15 - Path Traversal in File Uploads
+**Vulnerability:** The AI Analysis Report upload endpoint in `reports.py` saved files using `uuid.uuid4().hex + "_" + file.filename` directly, allowing an attacker to provide a malicious filename like `../../../../../etc/passwd` to perform directory traversal and overwrite arbitrary files.
+**Learning:** Even when appending prefixes (like UUIDs) to uploaded filenames, the resulting path can still traverse out of the intended directory if the original filename is not properly sanitized.
+**Prevention:** Always strictly sanitize user-provided filenames. For backend file uploads, user-provided filenames (`file.filename`) must be strictly sanitized using `os.path.basename()` after replacing backslashes with forward slashes (`file.filename.replace("\\", "/")`) to prevent path traversal vulnerabilities.
