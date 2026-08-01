@@ -325,6 +325,8 @@ export function LoginOverlay() {
                         type="button" 
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                        aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
+                        aria-pressed={showPassword}
                       >
                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
@@ -350,6 +352,8 @@ export function LoginOverlay() {
                           type="button" 
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                           className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                          aria-label={showConfirmPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
+                          aria-pressed={showConfirmPassword}
                         >
                           {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
