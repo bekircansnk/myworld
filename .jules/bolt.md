@@ -1,0 +1,3 @@
+## 2025-03-09 - Memoize filtering in CampaignExplorer
+**Learning:** `CampaignExplorer.tsx` was recalculating the filtered array of campaigns on every render. During text input inside the same component (like typing in a search bar), this O(N) array filtering—coupled with `.toLowerCase()` being called inside the loop—can cause main thread blocking and typing lag for large lists.
+**Action:** Always wrap derived list filtering in `useMemo` when the component also contains frequent state updates (e.g. text inputs). Hoist static string operations (like `searchTerm.toLowerCase()`) outside the array iteration to avoid unnecessary allocations.
