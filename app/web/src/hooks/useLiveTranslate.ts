@@ -328,7 +328,7 @@ export function useLiveTranslate() {
       ): WebSocket => {
         const ws = new WebSocket(url);
         
-        let connectionTimeout = setTimeout(() => {
+        const connectionTimeout = setTimeout(() => {
           if (ws.readyState !== WebSocket.OPEN) {
             console.warn("WebSocket connection timeout. Reconnecting...");
             ws.close();
