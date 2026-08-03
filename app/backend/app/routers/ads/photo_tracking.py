@@ -25,6 +25,7 @@ from app.schemas.ads.photo_tracking import (
     PhotoRevisionCreate, PhotoRevisionResponse, PhotoOverviewStats,
     PhotoExcelImportResponse
 )
+import os
 import logging
 
 logger = logging.getLogger(__name__)
@@ -369,7 +370,13 @@ async def import_excel(
 ):
     effective_project_id = getattr(request.state, "project_id", None)
     
-    if not file.filename.endswith('.xlsx'):
+    safe_filename = file.filename
+    if safe_filename:
+        safe_filename = os.path.basename(safe_filename.replace("\\", "/"))
+    else:
+        safe_filename = "unknown.xlsx"
+
+    if not safe_filename.endswith('.xlsx'):
         raise HTTPException(status_code=400, detail="Sadece .xlsx dosyaları kabul edilir")
         
     if month is None:
@@ -497,7 +504,7 @@ async def import_excel(
         
         log = PhotoExcelImport(
             user_id=current_user.id,
-            file_name=file.filename,
+            file_name=safe_filename,
             models_imported=models_imported,
             colors_imported=colors_imported,
             status="success"
@@ -513,7 +520,7 @@ async def import_excel(
     except Exception as e:
         log = PhotoExcelImport(
             user_id=current_user.id,
-            file_name=file.filename,
+            file_name=safe_filename,
             status="failed",
             error_log={"error": str(e)}
         )

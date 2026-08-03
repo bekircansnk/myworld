@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from typing import List, Optional
 import io
+import os
 
 from app.database import get_db
 from app.dependencies.auth import get_current_user
@@ -22,6 +23,12 @@ async def upload_csv(
 ):
     from app.services.venus.csv_parser import parse_csv_content, import_rows_to_db
 
+    safe_filename = file.filename
+    if safe_filename:
+        safe_filename = os.path.basename(safe_filename.replace("\\", "/"))
+    else:
+        safe_filename = "unknown.csv"
+
     content = await file.read()
     try:
         content_str = content.decode("utf-8")
@@ -39,7 +46,7 @@ async def upload_csv(
     import_record = AdCsvImport(
         user_id=current_user.id,
         project_id=project_id,
-        filename=file.filename,
+        filename=safe_filename,
         platform_source=parsed["platform"],
         rows_imported=result["imported"],
         status="completed" if result["skipped"] == 0 else "partial",
