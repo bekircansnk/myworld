@@ -66,12 +66,16 @@ export function CampaignExplorer({ projectId }: CampaignExplorerProps) {
     });
   };
 
-  const filteredCampaigns = campaigns.filter(c => {
-    const matchesSearch = c.campaign_name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPlatform = platformFilter === 'all' || c.platform === platformFilter;
-    const matchesStatus = statusFilter === 'all' || c.status === statusFilter;
-    return matchesSearch && matchesPlatform && matchesStatus;
-  });
+  // ⚡ Bolt: Memoize filter loop and hoist string lowercasing to prevent O(N) recalculations on input changes
+  const filteredCampaigns = React.useMemo(() => {
+    const searchLower = searchTerm.toLowerCase();
+    return campaigns.filter(c => {
+      const matchesSearch = c.campaign_name.toLowerCase().includes(searchLower);
+      const matchesPlatform = platformFilter === 'all' || c.platform === platformFilter;
+      const matchesStatus = statusFilter === 'all' || c.status === statusFilter;
+      return matchesSearch && matchesPlatform && matchesStatus;
+    });
+  }, [campaigns, searchTerm, platformFilter, statusFilter]);
 
   return (
     <div className="flex flex-col h-full gap-6">
