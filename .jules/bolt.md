@@ -1,0 +1,3 @@
+## 2024-05-24 - Missing useMemo and Hoisting in React Filter Loops
+**Learning:** In the React frontend, missing `useMemo` on derived array states (like filtering operations) when the component also contains frequently updated state (like text inputs) causes O(N) recalculation overhead on every render. Furthermore, performing repetitive string operations like `.toLowerCase()` inside the filter loop allocates memory and processes strings unnecessarily.
+**Action:** Always wrap array filtering operations with `useMemo` and hoist repetitive string operations like `.toLowerCase()` outside the filter loop for better performance.
