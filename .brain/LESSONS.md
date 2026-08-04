@@ -16,6 +16,22 @@
 - **Sorun:** Jules tarafından açılan her mikro-branşın Vercel üzerinde 100/günlük kotayı tüketmesi.
 - **Çözüm:** `vercel.json` ve `scripts/vercel_ignore.sh` ile `jules-*` dallarındaki derlemeler `exit 0` ile anında iptal edilir. `jules_batch_executor.py batch-merge` ile tek commit olarak canlıya alınır.
 
+### L-03 — Sayfa Kabuğu Modüler Ayrıştırma (`page.tsx` Shell Architecture) (04.08.2026)
+- **Sorun:** `app/web/src/app/page.tsx` 300+ satırlık dev monolit haline gelerek routing, state ve boştakayma zamanlayıcılarını karmaşıklaştırıyordu.
+- **Çözüm:** `page.tsx` 6 satırlık ultra hafif bir sayfa kabuğuna (`<MainViewShell />`) düşürüldü. Mantık `src/components/dashboard/MainViewShell.tsx` modülüne aktarıldı. `page.tsx` dosyasının 50 satırı geçmesi anayasal kural olarak engellendi.
+
+### L-04 — React Portal Mimarisi ve Dynamic SSR Hydration (`createPortal`) (04.08.2026)
+- **Sorun:** Detay panelleri ve komut paletleri (`CommandPaletteModal`) üst kapsayıcıların `overflow: hidden` kuralı nedeniyle mobilde taşamıyordu.
+- **Çözüm:** Tüm popover, modal ve komut paletleri `createPortal(content, document.body)` ile doğrudan `document.body` üzerine asıldı. Next.js SSR için `typeof document !== "undefined"` şartı uygulandı.
+
+### L-05 — Android WebView Touch Performance ve Glassmorphism Override (04.08.2026)
+- **Sorun:** Mobilde `.glass-card` ve `.floating-card` bileşenlerindeki ağır `backdrop-filter: blur(...)` GPU kasılmasına ve kaydırma lag'ine yol açıyordu.
+- **Çözüm:** `globals.css` içerisindeki dokunmatik cihaz backdrop-blur override kuralına `.glass-card, .floating-card, .glass-panel, .glass-sidebar` sınıfları dahil edildi.
+
+### L-06 — Strict `DD.MM.YYYY` Tarih Standartlaştırması ve Zero-Emoji Anayasası (04.08.2026)
+- **Sorun:** Koddaki ham unicode emojiler (`📌`, `📅`, `⚡`, `📝`, `✅`, `💬`, `🎉`) ve değişken tarih formatları (`14 Eki 2024`) görsel tutarsızlık yaratıyordu.
+- **Çözüm:** Emojiler `lucide-react` ikonlarıyla değiştirildi. Tüm tarihler strict `DD.MM.YYYY` / `DD.MM.YYYY HH:mm` biçimine çekildi.
+
 ---
 
 ## 📌 BÖLÜM 2 — SÜREKLİ BEYİN EVRİMİ PROTOKOLÜ (P0++)
