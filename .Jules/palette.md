@@ -1,0 +1,3 @@
+## 2026-08-04 - Global Layout Icon-Only Buttons Missing Accessible Labels
+**Learning:** Global layout elements in this application (such as TopNavbar) frequently use icon-only buttons (like notifications, theme toggles, and user menus) without `aria-label` or `title` attributes. This is a common pattern in the layout components that degrades accessibility.
+**Action:** When adding or modifying global navigation or layout components containing icon-only buttons, always ensure they are accompanied by localized (Turkish) `aria-label` and `title` attributes to support both screen readers and visual hover tooltips.
