@@ -62,12 +62,17 @@ def parse_prompts_from_markdown():
             clean_alias = b_slug.replace("master-", "")
             prompts_map[clean_alias] = item
 
-    # 2. Parse Micro-Prompts (### 1. Title ...)
+    # 2. Parse Micro-Prompts & Suggestions (### 1. Title ...)
     sections = re.split(r'###\s+(\d+)\.\s+([^\n]+)', content)
     for i in range(1, len(sections), 3):
         prompt_num = sections[i].strip()
-        title = sections[i+1].strip()
+        raw_title = sections[i+1].strip()
         block = sections[i+2]
+        
+        # Check if title has backticked alias: ### 25. Jules Suggestion: ... (`suggestion-sqli-xss`)
+        alias_match = re.search(r'`([^`]+)`', raw_title)
+        alias = alias_match.group(1).lower().strip() if alias_match else None
+        clean_title = re.sub(r'`[^`]+`', '', raw_title).strip()
         
         code_blocks = re.findall(r'```text\r?\n(.*?)\r?\n```', block, re.DOTALL)
         if not code_blocks:
@@ -76,12 +81,14 @@ def parse_prompts_from_markdown():
         if code_blocks:
             prompt_text = code_blocks[0].strip()
             item = {
-                "title": title,
+                "title": clean_title,
                 "prompt": prompt_text
             }
             
             prompts_map[prompt_num] = item
-            title_clean = title.lower()
+            if alias:
+                prompts_map[alias] = item
+            title_clean = clean_title.lower()
             
             if "hardcoded" in title_clean or "secret" in title_clean:
                 prompts_map["security-secret"] = item
@@ -207,5 +214,13 @@ if __name__ == "__main__":
                 trigger_session(b)
             except Exception as e:
                 print(f"⚠️ {b} tetikleme uyarısı: {e}")
+    elif arg in ["suggestions", "suggestions-all", "oneri-paketleri"]:
+        suggestions_tasks = ["suggestion-sqli-xss", "suggestion-state-sync", "suggestion-logging", "suggestion-n1", "suggestion-tests"]
+        print(f"💡 Tüm {len(suggestions_tasks)} Jules Onerisi Seansi Sırasıyla Başlatılıyor...")
+        for st in suggestions_tasks:
+            try:
+                trigger_session(st)
+            except Exception as e:
+                print(f"⚠️ {st} tetikleme uyarısı: {e}")
     else:
         trigger_session(arg)

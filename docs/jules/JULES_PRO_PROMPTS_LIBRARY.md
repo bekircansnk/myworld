@@ -337,4 +337,61 @@ Update docs/jules/JULES_CHANGELOG.md in Turkish without unicode emojis.
 
 ---
 
-*Planla (2-My-World) — Jules Pro Prompts & Master Bundle Library v2.0.0*
+## 💡 JULES SUGGESTIONS BETA PROMPTS
+
+### 25. Jules Suggestion: SQL Injection & XSS Vulnerability Audit (`suggestion-sqli-xss`)
+```text
+Role: Senior Security Engineer
+Goal: Continuously scan app/backend/app/ and app/web/src/ for raw SQL string interpolations, unescaped innerHTML, and XSS risks.
+Instructions:
+1. Ensure all database table names and parameters use strict whitelisting or SQLAlchemy parameters.
+2. Remove any dangerouslySetInnerHTML or un-sanitized user content rendering in React components.
+3. Run `cd app/web && pnpm build` to verify zero build errors.
+4. Update docs/jules/JULES_CHANGELOG.md in Turkish without unicode emojis.
+```
+
+### 26. Jules Suggestion: State Sync & Company Switch (`suggestion-state-sync`)
+```text
+Role: Frontend State Architect
+Goal: Audit projectStore.ts, noteStore.ts, and taskStore.ts for stale data fetching when switching company projects.
+Instructions:
+1. Ensure `switchCompany(id)` in projectStore.ts triggers notes, tasks, and calendar events re-fetch for the new project ID.
+2. Verify Zustand store persistence and hydration logic across page navigations.
+3. Run `cd app/web && pnpm build` to verify zero build errors.
+4. Update docs/jules/JULES_CHANGELOG.md in Turkish without unicode emojis.
+```
+
+### 27. Jules Suggestion: Structured Logging & Print Removal (`suggestion-logging`)
+```text
+Role: Backend Quality Specialist
+Goal: Audit app/backend/app/ for leftover print() and console.log() statements.
+Instructions:
+1. Replace all raw print() calls in services (prayer_times_service.py, email_service.py, gemini.py, meeting.py) with structured `logging.getLogger(__name__)`.
+2. Clean up unnecessary console.log statements in frontend stores and hooks.
+3. Run `cd app/web && pnpm build` to verify zero build errors.
+4. Update docs/jules/JULES_CHANGELOG.md in Turkish without unicode emojis.
+```
+
+### 28. Jules Suggestion: N+1 Query Optimization (`suggestion-n1`)
+```text
+Role: Database Performance Specialist
+Goal: Scan FastAPI router endpoints (admin.py, tasks.py, notes.py) for N+1 loop queries.
+Instructions:
+1. Batch count queries using SQL GROUP BY or SQLAlchemy `selectinload` / `joinedload` relationships.
+2. Verify all list endpoints execute O(1) database queries regardless of item count.
+3. Update docs/jules/JULES_CHANGELOG.md in Turkish without unicode emojis.
+```
+
+### 29. Jules Suggestion: Missing Permission Tests (`suggestion-tests`)
+```text
+Role: QA Automation Engineer
+Goal: Audit company permission checks (canEditCompany, user_company_access) and write unit tests.
+Instructions:
+1. Verify permission guards across app/backend/app/routers/ and app/web/src/lib/permissions.ts.
+2. Add pytest test cases for multi-tenant permission validation.
+3. Update docs/jules/JULES_CHANGELOG.md in Turkish without unicode emojis.
+```
+
+---
+
+*Planla (2-My-World) — Jules Pro Prompts & Master Bundle Library v2.1.0*
