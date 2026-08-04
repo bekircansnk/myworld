@@ -1,7 +1,10 @@
 import os
 import requests
+import logging
 from datetime import datetime, date
 import json
+
+logger = logging.getLogger(__name__)
 
 CACHE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "cache")
 
@@ -28,7 +31,7 @@ def get_prayer_times(for_date: date = None, city: str = "Istanbul", country: str
             with open(cache_file, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception as e:
-            print(f"Prayer times cache okuma hatası: {e}")
+            logger.warning("Prayer times cache read error: %s", e)
             
     # 2. Eğer cache'de yoksa API'den çek
     try:
@@ -63,7 +66,7 @@ def get_prayer_times(for_date: date = None, city: str = "Istanbul", country: str
         return result
         
     except Exception as e:
-        print(f"Prayer times API hatası: {e}")
+        logger.error("Prayer times API error: %s", e)
         return _fallback_prayer_times()
 
 def _fallback_prayer_times() -> dict:

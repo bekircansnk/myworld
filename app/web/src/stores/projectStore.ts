@@ -43,6 +43,9 @@ export const useProjectStore = create<ProjectState>()(
       // Firma değişikliği — firma seçilir, mevcut view korunur
       switchCompany: (id) => {
         set({ selectedProjectId: id });
+        import('./noteStore').then(({ useNoteStore }) => {
+          useNoteStore.getState().fetchNotes(id);
+        }).catch(() => {});
       },
 
       fetchProjects: async () => {

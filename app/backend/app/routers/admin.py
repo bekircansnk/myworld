@@ -318,16 +318,28 @@ async def get_companies_overview(
         )
     projects = proj_result.scalars().all()
     
-    overview = []
-    for p in projects:
-        task_count = await db.execute(select(func.count(Task.id)).where(Task.project_id == p.id))
-        user_count = await db.execute(select(func.count(UserCompanyAccess.id)).where(UserCompanyAccess.project_id == p.id))
-        overview.append({
+    # 1-pass batch aggregation (O(1) queries instead of O(N))
+    task_counts_res = await db.execute(
+        select(Task.project_id, func.count(Task.id).label("cnt"))
+        .group_by(Task.project_id)
+    )
+    task_map = {row.project_id: row.cnt for row in task_counts_res.all() if row.project_id is not None}
+
+    user_counts_res = await db.execute(
+        select(UserCompanyAccess.project_id, func.count(UserCompanyAccess.id).label("cnt"))
+        .group_by(UserCompanyAccess.project_id)
+    )
+    user_map = {row.project_id: row.cnt for row in user_counts_res.all() if row.project_id is not None}
+
+    overview = [
+        {
             "id": p.id,
             "name": p.name,
-            "task_count": task_count.scalar() or 0,
-            "user_count": user_count.scalar() or 0,
-        })
+            "task_count": task_map.get(p.id, 0),
+            "user_count": user_map.get(p.id, 0),
+        }
+        for p in projects
+    ]
     return overview
 
 @router.get("/users/{user_id}/companies", response_model=List[dict])
@@ -482,14 +494,14 @@ async def reset_data(
     current_admin: User = Depends(require_super_admin)
 ):
     """Tüm gereksiz verileri (görev, not, takvim vb) temizler."""
-    tables = [
+    ALLOWED_CLEANUP_TABLES = {
         "tasks", "notes", "calendar_events", 
         "chat_messages", "chat_sessions", "activity_logs", 
         "notifications", "timer_sessions", "ai_memory"
-    ]
-    for table in tables:
+    }
+    for table in ALLOWED_CLEANUP_TABLES:
         try:
-            await db.execute(text(f"TRUNCATE TABLE {table} CASCADE"))
+            await db.execute(text(f'TRUNCATE TABLE "{table}" CASCADE'))
             await db.commit()
         except Exception:
             await db.rollback()

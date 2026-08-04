@@ -508,13 +508,6 @@ export function NotesList() {
           </div>
         </DialogContent>
       </Dialog>
-      
-      {/* Global Style additions for hiding scrollbars etc. */}
-      <style dangerouslySetInnerHTML={{__html: `
-         .hide-scrollbar::-webkit-scrollbar { display: none; }
-         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-         .mask-bottom { mask-image: linear-gradient(to top, transparent 0%, black 30%); -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%); }
-      `}} />
     </div>
   )
 }
