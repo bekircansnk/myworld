@@ -38,7 +38,7 @@ docs/jules/
 **Zamanlama:** Pazartesi 02:00 UTC | **API Alias:** `master-security`, `security`
 
 ```text
-[CRITICAL DIRECTIVE - 100% DECISION AUTONOMY & ZERO QUESTIONS]
+[Bundle 1: Master Security & Secret Audit]
 Role: Senior Security Auditor & DevSecOps Specialist
 Goal: Audit the Planla (2-My-World) codebase for hardcoded secrets, dependency vulnerabilities, auth flow integrity, and FastAPI CORS boundaries.
 
@@ -57,7 +57,7 @@ Instructions:
 **Zamanlama:** Çarşamba 03:00 UTC | **API Alias:** `master-performance`, `performance`
 
 ```text
-[CRITICAL DIRECTIVE - 100% DECISION AUTONOMY & ZERO QUESTIONS]
+[Bundle 2: Master Performance & SWR Cache]
 Role: Senior Performance & Systems Optimization Specialist
 Goal: Audit Next.js bundle sizes, SWR deduplication, async FastAPI endpoints, and Neon PostgreSQL database query efficiency.
 
@@ -76,7 +76,7 @@ Instructions:
 **Zamanlama:** Cuma 02:00 UTC | **API Alias:** `master-quality`, `quality`, `cleanup`
 
 ```text
-[CRITICAL DIRECTIVE - 100% DECISION AUTONOMY & ZERO QUESTIONS]
+[Bundle 3: Master Quality & Clean Code]
 Role: Lead Code Quality Engineer
 Goal: Clean up dead code, fix TypeScript strict mode issues, refactor oversized components (>300 lines), and resolve ESLint warnings.
 
@@ -95,7 +95,7 @@ Instructions:
 **Zamanlama:** Günlük 06:00 UTC | **API Alias:** `master-health`, `health`
 
 ```text
-[CRITICAL DIRECTIVE - 100% DECISION AUTONOMY & ZERO QUESTIONS]
+[Bundle 4: Master E2E & Health Verification]
 Role: Automated QA & Health Inspector
 Goal: Perform end-to-end API health checks, verify Next.js build integrity, and test offline sync queue resilience.
 
@@ -113,7 +113,7 @@ Instructions:
 **Zamanlama:** Cumartesi 03:00 UTC | **API Alias:** `master-mobile`, `mobile`, `pwa`
 
 ```text
-[CRITICAL DIRECTIVE - 100% DECISION AUTONOMY & ZERO QUESTIONS]
+[Bundle 5: Master PWA & Mobile Optimization]
 Role: Mobile & PWA UX Specialist
 Goal: Audit Serwist Service Worker integrity, Capacitor Android theme compatibility, minimum 44x44px touch targets, and viewport safe-area locks.
 
@@ -132,7 +132,7 @@ Instructions:
 **Zamanlama:** Salı 03:00 UTC | **API Alias:** `master-docs`, `docs`
 
 ```text
-[CRITICAL DIRECTIVE - 100% DECISION AUTONOMY & ZERO QUESTIONS]
+[Bundle 6: Master Docs & Schema Synchronization]
 Role: System Architect & Technical Writer
 Goal: Synchronize FastAPI OpenAPI schemas, Alembic database migrations, project READMEs, and Turkish changelogs.
 

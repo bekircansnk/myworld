@@ -45,16 +45,17 @@ def parse_prompts_from_markdown():
     prompts_map = {}
 
     # 1. Parse Master Bundles (## 🛡️ BUNDLE 1: Master Security & Secret Audit (`master-security`))
-    bundle_splits = re.split(r'##\s+.*?BUNDLE\s+\d+:\s+([^\n\(`]+)\s*\(`([^`]+)`\)', content)
-    for i in range(1, len(bundle_splits), 3):
-        b_title = bundle_splits[i].strip()
-        b_slug = bundle_splits[i+1].strip().lower()
-        b_block = bundle_splits[i+2]
+    bundle_splits = re.split(r'##\s+.*?BUNDLE\s+(\d+):\s+([^\n\(`]+)\s*\(`([^`]+)`\)', content)
+    for i in range(1, len(bundle_splits), 4):
+        b_num = bundle_splits[i].strip()
+        b_title = bundle_splits[i+1].strip()
+        b_slug = bundle_splits[i+2].strip().lower()
+        b_block = bundle_splits[i+3]
 
         code_blocks = re.findall(r'```text\r?\n(.*?)\r?\n```', b_block, re.DOTALL)
         if code_blocks:
             item = {
-                "title": f"Master Bundle: {b_title}",
+                "title": f"Bundle {b_num}: {b_title}",
                 "prompt": code_blocks[0].strip()
             }
             prompts_map[b_slug] = item
@@ -194,7 +195,17 @@ def trigger_session(task_name):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Kullanım: python3 trigger_jules.py <task_name_or_number>", file=sys.stderr)
+        print("Kullanım: python3 trigger_jules.py <task_name_or_alias_or_all>")
         sys.exit(1)
         
-    trigger_session(sys.argv[1])
+    arg = sys.argv[1].lower().strip()
+    if arg in ["all", "master-all", "tum-bundle-paketleri"]:
+        bundles = ["master-security", "master-performance", "master-quality", "master-health", "master-mobile", "master-docs"]
+        print(f"🚀 Tüm {len(bundles)} Master Bundle Seansı Sırasıyla Başlatılıyor...")
+        for b in bundles:
+            try:
+                trigger_session(b)
+            except Exception as e:
+                print(f"⚠️ {b} tetikleme uyarısı: {e}")
+    else:
+        trigger_session(arg)

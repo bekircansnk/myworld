@@ -1,0 +1,88 @@
+name: Jules Weekly 360 Auto-Publisher & Master Bundle Runner
+
+on:
+  schedule:
+    # 1. Her Pazartesi 02:00 UTC -> Tüm 6 Master Bundle Paketini Otonom Tetikle
+    - cron: '0 2 * * 1'
+    # 2. Her Salı 02:00 UTC -> Otonom /360-yayin-uzmani Harmanlama, Build & Remote Temizliği
+    - cron: '0 2 * * 2'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'İşlem Tipi (trigger-all: Tüm 6 Bundle Tetikle, batch-publish: Otonom Harmanla & Yayınla)'
+        required: true
+        default: 'trigger-all'
+
+jobs:
+  run-weekly-bundles:
+    name: Run All 6 Master Bundles
+    if: github.event.inputs.action == 'trigger-all' || (github.event_name == 'schedule' && github.event.schedule == '0 2 * * 1')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Codebase Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Trigger All 6 Master Bundles Simultaneously
+        env:
+          JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
+        run: |
+          echo "🚀 6 Master Bundle Otonom Tetikleniyor..."
+          python3 scripts/trigger_jules.py master-security || true
+          python3 scripts/trigger_jules.py master-performance || true
+          python3 scripts/trigger_jules.py master-quality || true
+          python3 scripts/trigger_jules.py master-health || true
+          python3 scripts/trigger_jules.py master-mobile || true
+          python3 scripts/trigger_jules.py master-docs || true
+          echo "✅ Tüm 6 Master Bundle başarıyla bulut icrasına gönderildi!"
+
+  publish-and-merge:
+    name: Auto-Publish & Batch Merge (360-yayin-uzmani)
+    if: github.event.inputs.action == 'batch-publish' || (github.event_name == 'schedule' && github.event.schedule == '0 2 * * 2')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Codebase Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js & pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Auto-Approve Waiting Jules Plans
+        env:
+          JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
+        run: |
+          python3 scripts/jules_batch_executor.py resume-all || true
+
+      - name: Batch Merge Jules Pull Requests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 scripts/jules_batch_executor.py batch-merge || true
+
+      - name: 0-Error Build Gate Verification
+        run: |
+          cd app/web
+          pnpm install --no-frozen-lockfile
+          pnpm run build
+
+      - name: Push Merged main & Prune Remote Branches
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name "Antigravity Autonomous Bot"
+          git config --global user.email "bekirsnk@gmail.com"
+          git fetch --prune
+          echo "✅ Otonom 360-yayin-uzmani harmanlama ve derleme kapısı geçildi!"
