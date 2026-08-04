@@ -464,7 +464,7 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
     await updateTaskStatus(st.id, newStatus)
     if (newStatus === 'done') {
       const remaining = subtasks.filter(s => s.id !== st.id && s.status !== 'done').length
-      addActivityEvent('subtask_done', `"${st.title}" tamamlandı${remaining === 0 ? ' — Tüm alt görevler bitti! 🎉' : ''}`, 'emerald')
+      addActivityEvent('subtask_done', `"${st.title}" tamamlandı${remaining === 0 ? ' — Tüm alt görevler bitti!' : ''}`, 'emerald')
       
       // Sadece Konfeti Kutlaması (Motivasyon amaçlı)
       try {
@@ -519,23 +519,23 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
   // ---- Share Action Handlers ----
   const generateShareText = (includeLinks = true) => {
     if (!selectedTask) return "";
-    let text = `📌 Görev: ${selectedTask.title}\n`;
+    let text = `Görev: ${selectedTask.title}\n`;
     if (selectedTask.due_date) {
-      text += `📅 Hedef Tarih: ${format(new Date(selectedTask.due_date), "dd MMM yyyy", { locale: tr })}\n`;
+      text += `Hedef Tarih: ${format(new Date(selectedTask.due_date), "dd.MM.yyyy", { locale: tr })}\n`;
     }
     
     // Status/Priority labels can be derived from Config objects safely
     const pConfigItem = priorityConfig[selectedTask.priority] || priorityConfig['medium'];
-    text += `⚡ Öncelik: ${pConfigItem.label}\n`;
+    text += `Öncelik: ${pConfigItem.label}\n`;
     const sConfigItem = statusConfig[selectedTask.status] || statusConfig['todo'];
-    text += `🚥 Durum: ${sConfigItem.label}\n\n`;
+    text += `Durum: ${sConfigItem.label}\n\n`;
 
     if (selectedTask.description) {
-      text += `📝 Açıklama:\n${selectedTask.description}\n\n`;
+      text += `Açıklama:\n${selectedTask.description}\n\n`;
     }
 
     if (subtasks.length > 0) {
-      text += `✅ Alt Görevler:\n`;
+      text += `Alt Görevler:\n`;
       subtasks.forEach(st => {
         text += `- [${st.status === 'done' ? 'x' : ' '}] ${st.title}\n`;
       });
@@ -1209,8 +1209,8 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
                       <p className="text-[11px] font-medium text-emerald-800/80 dark:text-emerald-100/60 leading-relaxed">
                         {subtasks.length > 0
                           ? `${subtasks.length} alt görevden ${doneSubtasks.length} tanesi tamamlandı (${progress}%). ${
-                              progress === 100 ? 'Harika, görev tamamlanmaya hazır! 🎉' :
-                              progress >= 50 ? 'Yarıdan fazlası bitti, devam et! 💪' :
+                              progress === 100 ? 'Harika, görev tamamlanmaya hazır!' :
+                              progress >= 50 ? 'Yarıdan fazlası bitti, devam et!' :
                               'Henüz başlangıç aşamasında, ilk adıma odaklan.'
                             }`
                           : 'Alt görev eklendikçe ilerleme burada özetlenecek.'
@@ -1359,7 +1359,7 @@ function TaskDetailPanelContent({ selectedTask, isDetailPanelOpen }: TaskDetailP
 
                     {unifiedList.length === 0 && (
                       <p className="text-xs font-medium text-muted-foreground/50 py-6 text-center italic">
-                        Henüz bir hareket veya yorum yok. 💬
+                        Henüz bir hareket veya yorum yok.
                       </p>
                     )}
                   </div>

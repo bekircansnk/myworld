@@ -116,25 +116,27 @@ def resume_waiting_sessions():
         title = s.get("title", "Görev")
         print(f"   ⚡ Uyandırılıyor: [{s_id}] {title}...")
         
-        url = f"{BASE_URL}/{s_name}:sendMessage"
-        headers = {
-            "Content-Type": "application/json",
-            "X-Goog-Api-Key": API_KEY
-        }
-        payload = {
-            "message": "Continue execution. Apply necessary fixes, verify with `cd app/web && pnpm build`, update `docs/jules/JULES_CHANGELOG.md` in Turkish, and finish."
-        }
-        req = urllib.request.Request(
-            url, 
-            data=json.dumps(payload).encode("utf-8"), 
-            headers=headers, 
-            method="POST"
-        )
+        # 1. approvePlan çağrısı (Plana onay verir)
+        approve_url = f"{BASE_URL}/{s_name}:approvePlan"
+        headers = {"Content-Type": "application/json", "X-Goog-Api-Key": API_KEY}
         try:
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                print(f"      ✅ Başarıyla uyandırıldı!")
+            req1 = urllib.request.Request(approve_url, data=b"{}", headers=headers, method="POST")
+            with urllib.request.urlopen(req1, timeout=10):
+                print(f"      ✅ Plana onay verildi (:approvePlan)!")
         except Exception as e:
-            print(f"      ❌ Uyandırma başarısız: {e}")
+            print(f"      ⚠️ approvePlan uyarısı: {e}")
+
+        # 2. sendMessage çağrısı (Otonom devam istemini gönderir)
+        msg_url = f"{BASE_URL}/{s_name}:sendMessage"
+        payload = {
+            "prompt": "Continue execution with 100% decision autonomy. Complete pre-commit steps, apply necessary fixes, verify with `cd app/web && pnpm build`, update `docs/jules/JULES_CHANGELOG.md` in Turkish, and finish cleanly."
+        }
+        try:
+            req2 = urllib.request.Request(msg_url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
+            with urllib.request.urlopen(req2, timeout=10):
+                print(f"      ✅ Devam komutu gönderildi (:sendMessage)!")
+        except Exception as e:
+            print(f"      ❌ Devam komutu gönderilemedi: {e}")
 
 
 def status_sync():

@@ -490,7 +490,7 @@ html, body {
     backface-visibility: hidden;
   }
   /* backdrop-blur Android WebView'de ağır GPU kullanımı yaratır — tüm mobilde sınırla */
-  .backdrop-blur-xl, .backdrop-blur-lg, .backdrop-blur-md, .backdrop-blur-sm {
+  .backdrop-blur-xl, .backdrop-blur-lg, .backdrop-blur-md, .backdrop-blur-sm, .glass-card, .floating-card, .glass-panel, .glass-sidebar {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
     background-opacity: 0.95;
