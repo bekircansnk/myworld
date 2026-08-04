@@ -43,14 +43,35 @@ def parse_prompts_from_markdown():
         content = f.read()
         
     prompts_map = {}
+
+    # 1. Parse Master Bundles (## 🛡️ BUNDLE 1: Master Security & Secret Audit (`master-security`))
+    bundle_splits = re.split(r'##\s+.*?BUNDLE\s+\d+:\s+([^\n\(`]+)\s*\(`([^`]+)`\)', content)
+    for i in range(1, len(bundle_splits), 3):
+        b_title = bundle_splits[i].strip()
+        b_slug = bundle_splits[i+1].strip().lower()
+        b_block = bundle_splits[i+2]
+
+        code_blocks = re.findall(r'```text\r?\n(.*?)\r?\n```', b_block, re.DOTALL)
+        if code_blocks:
+            item = {
+                "title": f"Master Bundle: {b_title}",
+                "prompt": code_blocks[0].strip()
+            }
+            prompts_map[b_slug] = item
+            clean_alias = b_slug.replace("master-", "")
+            prompts_map[clean_alias] = item
+
+    # 2. Parse Micro-Prompts (### 1. Title ...)
     sections = re.split(r'###\s+(\d+)\.\s+([^\n]+)', content)
-    
     for i in range(1, len(sections), 3):
         prompt_num = sections[i].strip()
         title = sections[i+1].strip()
         block = sections[i+2]
         
-        code_blocks = re.findall(r'```[a-zA-Z]*\r?\n(.*?)\r?\n```', block, re.DOTALL)
+        code_blocks = re.findall(r'```text\r?\n(.*?)\r?\n```', block, re.DOTALL)
+        if not code_blocks:
+            code_blocks = re.findall(r'```[a-zA-Z]*\r?\n(.*?)\r?\n```', block, re.DOTALL)
+
         if code_blocks:
             prompt_text = code_blocks[0].strip()
             item = {
@@ -63,21 +84,18 @@ def parse_prompts_from_markdown():
             
             if "hardcoded" in title_clean or "secret" in title_clean:
                 prompts_map["security-secret"] = item
-                prompts_map["security"] = item
             elif "vulnerability" in title_clean:
                 prompts_map["security-vuln"] = item
             elif "auth flow integrity" in title_clean:
                 prompts_map["security-auth"] = item
             elif "bundle size" in title_clean:
                 prompts_map["perf-bundle"] = item
-                prompts_map["performance"] = item
             elif "backend response" in title_clean:
                 prompts_map["perf-response"] = item
             elif "database query optimization" in title_clean:
                 prompts_map["perf-query"] = item
             elif "dead code" in title_clean:
                 prompts_map["code-dead"] = item
-                prompts_map["cleanup"] = item
             elif "typescript strict" in title_clean:
                 prompts_map["code-strict"] = item
             elif "component size" in title_clean:
@@ -86,7 +104,6 @@ def parse_prompts_from_markdown():
                 prompts_map["code-eslint"] = item
             elif "api endpoint health" in title_clean:
                 prompts_map["test-health"] = item
-                prompts_map["health"] = item
             elif "frontend build verification" in title_clean:
                 prompts_map["test-build"] = item
             elif "auth flow e2e" in title_clean:
@@ -109,7 +126,6 @@ def parse_prompts_from_markdown():
                 prompts_map["innovation-feature"] = item
             elif "service worker" in title_clean:
                 prompts_map["pwa-sw"] = item
-                prompts_map["pwa"] = item
             elif "capacitor plugin" in title_clean:
                 prompts_map["pwa-capacitor"] = item
             elif "mobile ui" in title_clean:
