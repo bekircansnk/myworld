@@ -2,6 +2,15 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-08-04] - Sürüm 8.0 - 360° Yayınlama & Jules Entegrasyon Denetimi (0-Error Build Gate)
+
+### Çözüldü & Optimize Edildi
+- **Jules Otomasyon & API Senkronizasyonu:** Bulut Jules API seansları ve remote branşlar denetlendi. Tüm bulut oturumlarının tamamlandığı ve uzak depoda (origin) yetim branş kalmadığı (`origin/main`) doğrulandı.
+- **pnpm-workspace.yaml Build İzinleri:** `@google/genai` paketi için pnpm v11 script çalıştırma izin tanımı (`allowBuilds`) düzeltildi.
+- **0-Error Build Gate:** Next.js derleme süreci yerelde başarıyla çalıştırıldı (`pnpm run build` 0 TypeScript ve 0 derleme hatası ile tamamlandı).
+
+---
+
 ## [2026-06-15] - Sürüm 7.3 - Canlı Sesli Çeviri Model Hatası & Hızlı Yönlendirme Kontrolleri (v6.8 / Code 58)
 
 ### Çözüldü

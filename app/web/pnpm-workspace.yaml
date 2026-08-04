@@ -7,3 +7,4 @@ allowBuilds:
   unrs-resolver: true
   protobufjs: true
   msw: true
+  '@google/genai': true
