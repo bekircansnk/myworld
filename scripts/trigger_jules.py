@@ -4,39 +4,45 @@ import os
 import re
 import sys
 import urllib.request
+from pathlib import Path
 
-# Google Jules API Key ve Repo Tanımları
-API_KEY = os.getenv("JULES_API_KEY")
+# Dinamik Kök Dizin Tespiti
+BASE_DIR = Path(os.getenv("GITHUB_WORKSPACE", Path(__file__).resolve().parent.parent))
+PROMPTS_LIBRARY_PATH = BASE_DIR / "docs" / "jules" / "JULES_PRO_PROMPTS_LIBRARY.md"
+
+
+def get_jules_api_key():
+    key = os.getenv("JULES_API_KEY")
+    if key:
+        return key
+    vault_path = Path("/Users/bekir/.gemini/maestro/rules/global-connections.md")
+    if vault_path.exists():
+        try:
+            with open(vault_path, "r", encoding="utf-8") as f:
+                content = f.read()
+                matches = re.findall(r"AQ\.Ab8RN6[a-zA-Z0-9_\-]+", content)
+                if len(matches) >= 2:
+                    return matches[1]  # PRO Hesabı 2 (My-World)
+                elif matches:
+                    return matches[0]
+        except Exception:
+            pass
+    return None
+
+
+API_KEY = get_jules_api_key()
 REPO_SOURCE = "sources/github/bekircansnk/myworld"
-PROMPTS_LIBRARY_PATH = "/Users/bekir/Uygulamalarim/2-My-World/docs/jules/JULES_PRO_PROMPTS_LIBRARY.md"
 
-# GitHub Actions üzerinde çalışırken workspace yolu farklı olur
-if os.getenv("GITHUB_WORKSPACE"):
-    PROMPTS_LIBRARY_PATH = os.path.join(os.getenv("GITHUB_WORKSPACE"), "docs/jules/JULES_PRO_PROMPTS_LIBRARY.md")
-
-if not API_KEY:
-    print("Hata: JULES_API_KEY ortam değişkeni set edilmemiş!", file=sys.stderr)
-    sys.exit(1)
 
 def parse_prompts_from_markdown():
-    """
-    JULES_PRO_PROMPTS_LIBRARY.md dosyasını okur ve içindeki tüm PROMPT'ları dinamik olarak parse eder.
-    Dönüş formatı: { "1": "prompt...", "security": "prompt...", ... }
-    """
-    if not os.path.exists(PROMPTS_LIBRARY_PATH):
+    if not PROMPTS_LIBRARY_PATH.exists():
         print(f"Hata: Prompt kütüphane dosyası bulunamadı! Yol: {PROMPTS_LIBRARY_PATH}", file=sys.stderr)
         sys.exit(1)
         
     with open(PROMPTS_LIBRARY_PATH, "r", encoding="utf-8") as f:
         content = f.read()
         
-    # Her bir ## başlığını veya kategori başlığını ayıkla
     prompts_map = {}
-    
-    # regex ile '### (\d+)\. ([^\n]+)' veya prompt başlıklarını bul
-    # JULES_PRO_PROMPTS_LIBRARY.md formatı:
-    # ### 1. Hardcoded Secret Scan
-    # Altında ``` veya ```text bloğu var
     sections = re.split(r'###\s+(\d+)\.\s+([^\n]+)', content)
     
     for i in range(1, len(sections), 3):
@@ -44,85 +50,80 @@ def parse_prompts_from_markdown():
         title = sections[i+1].strip()
         block = sections[i+2]
         
-        # Kod bloğu içerisindeki metni çıkar (```text ... ``` veya ``` ... ```)
-        code_blocks = re.findall(r'```(?:text)?\n(.*?)\n```', block, re.DOTALL)
+        code_blocks = re.findall(r'```[a-zA-Z]*\r?\n(.*?)\r?\n```', block, re.DOTALL)
         if code_blocks:
             prompt_text = code_blocks[0].strip()
+            item = {
+                "title": title,
+                "prompt": prompt_text
+            }
             
-            # Hem numara olarak haritala: "1", "2"
-            prompts_map[prompt_num] = prompt_text
-            
-            # Başlıktan slug oluştur
+            prompts_map[prompt_num] = item
             title_clean = title.lower()
             
-            # Özel anahtar kelime eşleştirmeleri
-            if "secret" in title_clean or "hardcoded" in title_clean:
-                prompts_map["security-secret"] = prompt_text
-                prompts_map["security"] = prompt_text  # Fallback
-            if "vulnerability" in title_clean or "dependency" in title_clean:
-                prompts_map["security-vuln"] = prompt_text
-            if "auth" in title_clean or "rbac" in title_clean:
-                prompts_map["security-auth"] = prompt_text
-                
-            if "bundle" in title_clean or "size" in title_clean:
-                prompts_map["perf-bundle"] = prompt_text
-                prompts_map["performance"] = prompt_text  # Fallback
-            if "response" in title_clean or "time" in title_clean or "fastapi" in title_clean:
-                prompts_map["perf-response"] = prompt_text
-            if "query" in title_clean or "database" in title_clean or "optimization" in title_clean:
-                prompts_map["perf-query"] = prompt_text
-                
-            if "dead" in title_clean or "unused" in title_clean:
-                prompts_map["code-dead"] = prompt_text
-                prompts_map["cleanup"] = prompt_text  # Fallback
-            if "strict" in title_clean or "type" in title_clean:
-                prompts_map["code-strict"] = prompt_text
-            if "component" in title_clean or "oversized" in title_clean:
-                prompts_map["code-component"] = prompt_text
-            if "eslint" in title_clean or "formatting" in title_clean:
-                prompts_map["code-eslint"] = prompt_text
-                
-            if "health" in title_clean or "endpoint" in title_clean:
-                prompts_map["test-health"] = prompt_text
-                prompts_map["health"] = prompt_text  # Fallback
-            if "build" in title_clean or "verification" in title_clean:
-                prompts_map["test-build"] = prompt_text
-            if "e2e" in title_clean or "auth flow" in title_clean:
-                prompts_map["test-e2e"] = prompt_text
-            if "offline" in title_clean or "sync" in title_clean:
-                prompts_map["test-offline"] = prompt_text
-                
-            if "wcag" in title_clean or "accessibility" in title_clean:
-                prompts_map["a11y"] = prompt_text
-                
-            if "documentation" in title_clean or "sync" in title_clean:
-                prompts_map["docs-sync"] = prompt_text
-            if "readme" in title_clean or "changelog" in title_clean:
-                prompts_map["docs-readme"] = prompt_text
-                
-            if "migration" in title_clean or "alembic" in title_clean:
-                prompts_map["db-migration"] = prompt_text
-            if "pool" in title_clean or "connection" in title_clean:
-                prompts_map["db-pool"] = prompt_text
-                
-            if "update" in title_clean or "package" in title_clean:
-                prompts_map["innovation-update"] = prompt_text
-            if "feature" in title_clean or "opportunity" in title_clean:
-                prompts_map["innovation-feature"] = prompt_text
-                
-            if "worker" in title_clean or "sw.ts" in title_clean:
-                prompts_map["pwa-sw"] = prompt_text
-                prompts_map["pwa"] = prompt_text  # Fallback
-            if "capacitor" in title_clean or "plugin" in title_clean:
-                prompts_map["pwa-capacitor"] = prompt_text
-            if "mobile" in title_clean or "responsiveness" in title_clean:
-                prompts_map["pwa-mobile"] = prompt_text
+            if "hardcoded" in title_clean or "secret" in title_clean:
+                prompts_map["security-secret"] = item
+                prompts_map["security"] = item
+            elif "vulnerability" in title_clean:
+                prompts_map["security-vuln"] = item
+            elif "auth flow integrity" in title_clean:
+                prompts_map["security-auth"] = item
+            elif "bundle size" in title_clean:
+                prompts_map["perf-bundle"] = item
+                prompts_map["performance"] = item
+            elif "backend response" in title_clean:
+                prompts_map["perf-response"] = item
+            elif "database query optimization" in title_clean:
+                prompts_map["perf-query"] = item
+            elif "dead code" in title_clean:
+                prompts_map["code-dead"] = item
+                prompts_map["cleanup"] = item
+            elif "typescript strict" in title_clean:
+                prompts_map["code-strict"] = item
+            elif "component size" in title_clean:
+                prompts_map["code-component"] = item
+            elif "eslint" in title_clean:
+                prompts_map["code-eslint"] = item
+            elif "api endpoint health" in title_clean:
+                prompts_map["test-health"] = item
+                prompts_map["health"] = item
+            elif "frontend build verification" in title_clean:
+                prompts_map["test-build"] = item
+            elif "auth flow e2e" in title_clean:
+                prompts_map["test-e2e"] = item
+            elif "offline sync queue" in title_clean:
+                prompts_map["test-offline"] = item
+            elif "wcag" in title_clean:
+                prompts_map["a11y"] = item
+            elif "api documentation sync" in title_clean:
+                prompts_map["docs-sync"] = item
+            elif "readme" in title_clean:
+                prompts_map["docs-readme"] = item
+            elif "migration consistency" in title_clean:
+                prompts_map["db-migration"] = item
+            elif "connection pool" in title_clean:
+                prompts_map["db-pool"] = item
+            elif "dependency update" in title_clean:
+                prompts_map["innovation-update"] = item
+            elif "feature opportunity" in title_clean:
+                prompts_map["innovation-feature"] = item
+            elif "service worker" in title_clean:
+                prompts_map["pwa-sw"] = item
+                prompts_map["pwa"] = item
+            elif "capacitor plugin" in title_clean:
+                prompts_map["pwa-capacitor"] = item
+            elif "mobile ui" in title_clean:
+                prompts_map["pwa-mobile"] = item
 
     return prompts_map
 
+
 def trigger_session(task_name):
+    if not API_KEY:
+        print("Hata: JULES_API_KEY ortam değişkeni veya vault anahtarı bulunamadı!", file=sys.stderr)
+        sys.exit(1)
+
     prompts_map = parse_prompts_from_markdown()
-    
     search_key = task_name.lower().strip()
     
     if search_key not in prompts_map:
@@ -130,8 +131,11 @@ def trigger_session(task_name):
         print("Mevcut anahtarlar/numaralar:", ", ".join(sorted(prompts_map.keys())), file=sys.stderr)
         sys.exit(1)
         
-    prompt_content = prompts_map[search_key]
-    print(f"Dinamik Prompt Başarıyla Yüklendi. Görev/Anahtar: {task_name}")
+    p_info = prompts_map[search_key]
+    title = p_info["title"]
+    prompt_content = p_info["prompt"]
+    
+    print(f"Dinamik Prompt Başarıyla Yüklendi. Görev/Anahtar: {task_name} ({title})")
     print(f"Prompt Önizleme (İlk 150 Karakter): {prompt_content[:150]}...")
     
     url = "https://jules.googleapis.com/v1alpha/sessions"
@@ -141,6 +145,7 @@ def trigger_session(task_name):
     }
     
     payload = {
+        "title": title,
         "prompt": prompt_content,
         "sourceContext": {
             "source": REPO_SOURCE,
@@ -158,7 +163,7 @@ def trigger_session(task_name):
     )
     
     try:
-        with urllib.request.urlopen(req) as response:
+        with urllib.request.urlopen(req, timeout=20) as response:
             res_body = response.read().decode("utf-8")
             res_data = json.loads(res_body)
             session_name = res_data.get("name", "Bilinmiyor")
@@ -169,6 +174,7 @@ def trigger_session(task_name):
         if hasattr(e, "read"):
             print(f"API Yanıt Hatası: {e.read().decode('utf-8')}", file=sys.stderr)
         sys.exit(1)
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

@@ -1,85 +1,134 @@
-import urllib.request
+#!/usr/bin/env python3
+import os
+import sys
 import json
 import re
-import os
+import urllib.request
 import subprocess
-import sys
+from datetime import datetime
+from pathlib import Path
 
-key = os.getenv("JULES_API_KEY")
-if not key:
-    print("Hata: JULES_API_KEY ortam değişkeni tanımlı değil!")
-    sys.exit(1)
-library_path = "/Users/bekir/Uygulamalarim/2-My-World/docs/jules/JULES_PRO_PROMPTS_LIBRARY.md"
-report_path = "/Users/bekir/Uygulamalarim/2-My-World/docs/jules/JULES_TASKS_REPORT.md"
-state_file = "/Users/bekir/Uygulamalarim/2-My-World/docs/jules/queue_state.json"
+# Dinamik Kök Dizin Tespiti
+BASE_DIR = Path(os.getenv("GITHUB_WORKSPACE", Path(__file__).resolve().parent.parent))
+LIBRARY_PATH = BASE_DIR / "docs" / "jules" / "JULES_PRO_PROMPTS_LIBRARY.md"
+REPORT_PATH = BASE_DIR / "docs" / "jules" / "JULES_TASKS_REPORT.md"
+STATE_FILE = BASE_DIR / "docs" / "jules" / "queue_state.json"
 
-# Kalan hedeflenen görevler
-all_targets = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+
+def get_jules_api_key():
+    key = os.getenv("JULES_API_KEY")
+    if key:
+        return key
+    vault_path = Path("/Users/bekir/.gemini/maestro/rules/global-connections.md")
+    if vault_path.exists():
+        try:
+            with open(vault_path, "r", encoding="utf-8") as f:
+                content = f.read()
+                matches = re.findall(r"AQ\.Ab8RN6[a-zA-Z0-9_\-]+", content)
+                if len(matches) >= 2:
+                    return matches[1]  # PRO Hesabı 2 (My-World)
+                elif matches:
+                    return matches[0]
+        except Exception:
+            pass
+    return None
+
+
+key = get_jules_api_key()
+REPO_SOURCE = "sources/github/bekircansnk/myworld"
+ALL_TARGETS = list(range(1, 25))
+
 
 def get_active_session_count():
-    url = "https://jules.googleapis.com/v1alpha/sessions"
-    req = urllib.request.Request(
-        url,
-        headers={"X-Goog-Api-Key": key}
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=10) as response:
-            data = json.loads(response.read().decode("utf-8"))
-            sessions = data.get("sessions", [])
-            active_count = 0
-            for s in sessions:
-                src = s.get('sourceContext', {}).get('source', '')
-                if 'myworld' in src.lower() or '2-my-world' in src.lower():
-                    state = s.get("state")
-                    if state in ["IN_PROGRESS", "AWAITING_USER_FEEDBACK", "PLANNING"]:
-                        active_count += 1
-            return active_count
-    except Exception as e:
-        print(f"Aktif seans sayısı alınırken hata: {e}")
-        return 10  # Hata durumunda garantiye alıp tetikleme yapma
+    if not key:
+        print("Hata: JULES_API_KEY anahtarı bulunamadı!")
+        return 10
+
+    sessions = []
+    page_token = None
+    
+    while True:
+        url = "https://jules.googleapis.com/v1alpha/sessions?pageSize=50"
+        if page_token:
+            url += f"&pageToken={page_token}"
+        req = urllib.request.Request(url, headers={"X-Goog-Api-Key": key})
+        try:
+            with urllib.request.urlopen(req, timeout=10) as response:
+                data = json.loads(response.read().decode("utf-8"))
+                page_sessions = data.get("sessions", [])
+                sessions.extend(page_sessions)
+                page_token = data.get("nextPageToken")
+                if not page_token or not page_sessions:
+                    break
+        except Exception as e:
+            print(f"Aktif seans sayısı alınırken hata: {e}")
+            return 10
+
+    active_count = 0
+    for s in sessions:
+        src = s.get('sourceContext', {}).get('source', '')
+        if 'myworld' in src.lower() or '2-my-world' in src.lower():
+            state = s.get("state")
+            if state in ["IN_PROGRESS", "AWAITING_USER_FEEDBACK", "PLANNING"]:
+                active_count += 1
+                
+    return active_count
+
 
 def load_queue_state():
-    if os.path.exists(state_file):
+    if STATE_FILE.exists():
         try:
-            with open(state_file, "r") as f:
+            with open(STATE_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except:
-            pass
-    return {"triggered": [1, 2, 3, 4, 5, 6, 7, 8, 11, 12]}  # İlk tetiklediklerimiz varsayılan olarak ekli
+        except Exception as e:
+            print(f"State file okuma uyarısı: {e}")
+    return {"triggered": []}
+
 
 def save_queue_state(state):
-    with open(state_file, "w") as f:
+    with open(STATE_FILE, "w", encoding="utf-8") as f:
         json.dump(state, f, indent=2)
 
+
 def parse_prompts():
-    with open(library_path, "r", encoding="utf-8") as f:
+    if not LIBRARY_PATH.exists():
+        print(f"Hata: {LIBRARY_PATH} bulunamadı!")
+        return {}
+        
+    with open(LIBRARY_PATH, "r", encoding="utf-8") as f:
         content = f.read()
+        
     prompts_dict = {}
-    pattern = r"### (\d+)\. ([^\n]+)\n\*\*Zamanlama:\*\* [^\n]+\n```\n(.*?)\n```"
-    matches = re.findall(pattern, content, re.DOTALL)
-    for num_str, title, prompt_body in matches:
-        num = int(num_str)
-        prompts_dict[num] = {
-            "title": title.strip(),
-            "prompt": prompt_body.strip()
-        }
+    sections = re.split(r'###\s+(\d+)\.\s+([^\n]+)', content)
+    
+    for i in range(1, len(sections), 3):
+        num = int(sections[i].strip())
+        title = sections[i+1].strip()
+        block = sections[i+2]
+        
+        code_blocks = re.findall(r'```[a-zA-Z]*\r?\n(.*?)\r?\n```', block, re.DOTALL)
+        if code_blocks:
+            prompts_dict[num] = {
+                "title": title,
+                "prompt": code_blocks[0].strip()
+            }
+            
     return prompts_dict
+
 
 def trigger_session(num, p_data):
     url = "https://jules.googleapis.com/v1alpha/sessions"
     title = p_data["title"]
     prompt = p_data["prompt"]
-    full_prompt = f"## Task: {title}\n\n{prompt}"
     
     payload = {
         "title": title,
-        "prompt": full_prompt,
+        "prompt": prompt,
         "sourceContext": {
-            "source": "sources/github/bekircansnk/myworld",
+            "source": REPO_SOURCE,
             "githubRepoContext": {
                 "startingBranch": "main"
-            },
-            "environmentVariablesEnabled": True
+            }
         }
     }
     
@@ -94,35 +143,38 @@ def trigger_session(num, p_data):
     )
     
     try:
-        with urllib.request.urlopen(req, timeout=10) as response:
+        with urllib.request.urlopen(req, timeout=15) as response:
             res_data = json.loads(response.read().decode("utf-8"))
             session_id = res_data.get("name", "").split("/")[-1]
             return session_id
     except Exception as e:
-        print(f"Görev {num} tetiklenirken hata: {e}")
+        print(f"Görev {num} ({title}) tetiklenirken hata: {e}")
         return None
 
+
 def update_report(num, title, session_id):
-    if not os.path.exists(report_path):
+    if not REPORT_PATH.exists():
         return
-    with open(report_path, "r", encoding="utf-8") as f:
+    with open(REPORT_PATH, "r", encoding="utf-8") as f:
         content = f.read()
         
-    # Aktif görevler tablosuna yeni satırı ekleyelim
-    new_row = f"| {num} | {title} | 🔄 | 19.07.2026 | 19.07.2026 | {session_id} |"
+    today_str = datetime.now().strftime("%d.%m.%Y")
+    new_row = f"| {num} | {title} | 🔄 | {today_str} | {today_str} | {session_id} |"
     
-    # regex ile Aktif Görevler tablosunu bulup altına ekleyelim
     pattern = r"(\| # \| Görev \| Durum \| Başlangıç \| Son Güncelleme \| Seans ID \|\n\|---\|---\|---\|---\|---\|---\|\n)"
     replacement = rf"\g<1>{new_row}\n"
     
     updated_content = re.sub(pattern, replacement, content)
-    with open(report_path, "w", encoding="utf-8") as f:
+    with open(REPORT_PATH, "w", encoding="utf-8") as f:
         f.write(updated_content)
 
+
 def push_changes():
-    subprocess.run(["git", "add", "."], cwd="/Users/bekir/Uygulamalarim/2-My-World")
-    subprocess.run(["git", "commit", "-m", "docs: update report with newly auto-triggered session"], cwd="/Users/bekir/Uygulamalarim/2-My-World")
-    subprocess.run(["git", "push", "origin", "main"], cwd="/Users/bekir/Uygulamalarim/2-My-World")
+    if not os.getenv("GITHUB_WORKSPACE"):
+        subprocess.run(["git", "add", "."], cwd=BASE_DIR, check=False)
+        subprocess.run(["git", "commit", "-m", "docs: update report with newly auto-triggered session"], cwd=BASE_DIR, check=False)
+        subprocess.run(["git", "push", "origin", "main"], cwd=BASE_DIR, check=False)
+
 
 def main():
     active_count = get_active_session_count()
@@ -138,15 +190,11 @@ def main():
     state = load_queue_state()
     triggered_list = state.get("triggered", [])
     
-    # Tetiklenmemiş hedefleri bul
-    remaining_targets = [t for t in all_targets if t not in triggered_list]
+    remaining_targets = [t for t in ALL_TARGETS if t not in triggered_list]
     print(f"Tetiklenmeyi bekleyen görevler: {remaining_targets}")
     
     if not remaining_targets:
-        print("Tebrikler! Tüm görevler tetiklendi.")
-        # Eyalet dosyasını temizleyelim
-        if os.path.exists(state_file):
-            os.remove(state_file)
+        print("Tebrikler! Tüm 24 otomasyon görevi sırayla tetiklendi.")
         return
         
     prompts_dict = parse_prompts()
@@ -170,7 +218,8 @@ def main():
         state["triggered"] = triggered_list
         save_queue_state(state)
         push_changes()
-        print("✓ Rapor güncellendi ve GitHub'a push edildi.")
+        print("✓ Rapor güncellendi ve kaydedildi.")
+
 
 if __name__ == "__main__":
     main()
