@@ -100,9 +100,9 @@ element.addEventListener('keydown', (e) => {
 
 ---
 
-### Jules Değişikliklerini Kontrol Etme & Doğrulama
-**Kaynak Dosya:** `JULES_PRO_GUIDE.md`
-Jules bir görevi tamamlayıp yerel koda uyguladıktan sonra yapılması gereken **kontrol ve test adımları**:
+### DECISION-09 — Haftalık Otonom Jules & 360-yayin-uzmani Boru Hattı (04.08.2026)
+- **Karar:** Her Pazartesi 02:00 UTC tüm 6 Master Bundle (`Bundle 1` - `Bundle 6`) GitHub Actions (`jules_weekly_auto_publisher.yml`) ile otonom tetiklenecektir.
+- **Yayınlama Kararı:** Her Salı 02:00 UTC otonom `/360-yayin-uzmani` adımı çalıştırılarak onaylanan seanslar harmanlanacak (`batch-merge`), `pnpm run build` 0-error gate'inden geçirilecek ve yetim remote branşlar silinecektir.
+- **Otonomi Düzeyi:** %100 Karar Otonomisi (`[CRITICAL DIRECTIVE - 100% DECISION AUTONOMY & ZERO QUESTIONS]`). Insan müdahalesi veya manuel onay gerekmeksizin sistem kendi kendini günceller.
 
----
 
