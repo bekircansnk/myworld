@@ -1,9 +1,3 @@
 {
-  "ignoreCommand": "if [ -f ./scripts/vercel_ignore.sh ]; then bash ./scripts/vercel_ignore.sh; else exit 1; fi",
-  "git": {
-    "deploymentEnabled": {
-      "main": true,
-      "*": false
-    }
-  }
+  "ignoreCommand": "if [ -f ./scripts/vercel_ignore.sh ]; then bash ./scripts/vercel_ignore.sh; else exit 1; fi"
 }

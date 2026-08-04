@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Vercel Build Ignore Script for Planla (2-My-World)
+# Vercel Build Ignore Script for 2-My-World (Planla)
 # Exits with 0 to CANCEL / SKIP build.
 # Exits with 1 to PROCEED with build.
 
@@ -11,7 +11,7 @@ COMMIT_MSG="${VERCEL_GIT_COMMIT_MESSAGE:-}"
 echo "[VERCEL IGNORE CHECK] Branch: '$COMMIT_REF', Author: '$AUTHOR'"
 
 # 1. Block any Jules branch or commit
-if [[ "$COMMIT_REF" == jules-* ]] || [[ "$COMMIT_REF" == *jules* ]] || [[ "$AUTHOR" == *jules* ]] || [[ "$AUTHOR" == *google-jules* ]]; then
+if [[ "$COMMIT_REF" == jules-* ]] || [[ "$COMMIT_REF" == *jules* ]] || [[ "$COMMIT_REF" == palette-* ]] || [[ "$AUTHOR" == *jules* ]] || [[ "$AUTHOR" == *google-jules* ]]; then
   echo "🚫 [CANCEL BUILD] Jules branch or commit detected ($COMMIT_REF / $AUTHOR). Skipping Vercel build."
   exit 0
 fi

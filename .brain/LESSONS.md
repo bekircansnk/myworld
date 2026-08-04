@@ -32,6 +32,11 @@
 - **Sorun:** Koddaki ham unicode emojiler (`📌`, `📅`, `⚡`, `📝`, `✅`, `💬`, `🎉`) ve değişken tarih formatları (`14 Eki 2024`) görsel tutarsızlık yaratıyordu.
 - **Çözüm:** Emojiler `lucide-react` ikonlarıyla değiştirildi. Tüm tarihler strict `DD.MM.YYYY` / `DD.MM.YYYY HH:mm` biçimine çekildi.
 
+### L-07 — Vercel Otomatik Yan Dal Derleme Engeli (`scripts/vercel_ignore.sh`) (04.08.2026)
+- **Sorun:** Jules veya harici otomasyonların açtığı `palette-*`, `jules-*` gibi yan dalların Vercel tarafından otomatik Preview Build olarak tetiklenip derleme kotasını tüketmesi.
+- **Teşhis:** Vercel projesinde varsayılan olarak tüm git dallarına otomatik preview build açıktır. `vercel.json` içerisinde `ignoreCommand` tanımlanmadığı için her commit Vercel'e girmekteydi.
+- **Çözüm:** `scripts/vercel_ignore.sh` oluşturuldu. `app/web/vercel.json` ve kök `vercel.json` dosyalarına `"ignoreCommand": "bash scripts/vercel_ignore.sh"` eklendi. `jules-*`, `palette-*` ve non-main dallarda betik `exit 0` (build cancel) verir. Sadece `main` dalındaki commit'lerde `exit 1` (build proceed) vererek kota tüketimini kalıcı olarak sıfırlar.
+
 ---
 
 ## 📌 BÖLÜM 2 — SÜREKLİ BEYİN EVRİMİ PROTOKOLÜ (P0++)
