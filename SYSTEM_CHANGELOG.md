@@ -2,6 +2,17 @@
 
 Bu dosya, My World projesinde yapılan tüm mimari, tasarım ve fonksiyonel değişiklikleri (Web, Backend, Genel UX) takip etmek için kullanılır.
 
+## [2026-08-04] - Sürüm 8.1 - 360° Yayınlama & Evolved 6-Master Bundle Mimarisi
+
+### Yenilik & Optimize Edildi
+- **6-Master Bundle Jules Prompt Mimarisi:** Parçalanmış promptlar yerine `%100 Karar Otonomisi`, `Zero-Emoji` ve `Build Verification Gate` kuralları ile donatılmış 6 Master Prompt Bundle (`master-security`, `master-performance`, `master-quality`, `master-health`, `master-mobile`, `master-docs`) devreye alındı.
+- **Vercel Build Shield (Kota Kalkanı):** `vercel.json` ve `scripts/vercel_ignore.sh` ile Jules preview branşlarındaki Vercel derlemeleri anında iptal edilecek şekilde yapılandırıldı (`exit 0`). Vercel derleme dakikaları korumaya alındı.
+- **PRO Hesap 2 İzolasyonu:** Tüm Jules otomasyon seansları `bekirsnk@gmail.com` PRO Hesap 2 altında izole edildi. İlk test seansı (`sessions/7943176036341687133`) başarıyla başlatıldı.
+- **Otomatik Seans Arşivleme:** `scripts/archive_completed_jules.py` ile tüm pasif/tamamlanmış eski bulut seansları arşivlenerek temiz başlangıç yapıldı.
+- **0-Error Build Gate:** Yerel Next.js 16 derlemesi (`pnpm run build`) 0 hata ile tamamlandı ve GitHub Actions CI/CD hattına aktarıldı.
+
+---
+
 ## [2026-08-04] - Sürüm 8.0 - 360° Yayınlama & Jules Entegrasyon Denetimi (0-Error Build Gate)
 
 ### Çözüldü & Optimize Edildi
