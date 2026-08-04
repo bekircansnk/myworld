@@ -11,7 +11,9 @@
 1. **[CRITICAL DIRECTIVE - 100% DECISION AUTONOMY]**: Jules insansız oturumlarda soru sormaz (`Needs clarification` durumuna düşmez). Tüm mimari kararları bu anayasaya göre kendisi otonom alır.
 2. **[ZERO MOCK DATA RULE]**: Jules asla sahte/mock veri üretmez. Her zaman canlı Neon PostgreSQL / FastAPI yapısıyla tam uyumlu çalışır.
 3. **[VERIFICATION GATE & CHANGELOG]**: Jules yaptığı her kod değişikliğinden sonra `cd app/web && pnpm run build` (0 Hata) ve `pytest` koşturur; ardından [docs/jules/JULES_CHANGELOG.md](file:///Users/bekir/Uygulamalarim/2-My-World/docs/jules/JULES_CHANGELOG.md) dosyasına standart Türkçe şablonla kayıt düşer.
-4. **[ZERO EMOJI RULE]**: Koddalarda, commit mesajlarında, changelog kayıtlarında ve PR açıklamalarında unicode emoji KULLANILAMAZ. Yalnızca Lucide-react simgeleri veya SVG kullanılır.
+4. **[ZERO EMOJI RULE]**: Koddalarda, commit mesajlarında, changelog kayıtlarında me unicode emoji KULLANILAMAZ. Yalnızca Lucide-react simgeleri veya SVG kullanılır.
+5. **[HYBRID GEMINI KEY FALLBACK RULE]**: `app/web/src/lib/geminiKeys.ts` dosyasında `process.env` (ör. `NEXT_PUBLIC_GEMINI_KEYS`) önceliklidir; ancak Canlı Sesli Çeviri (WebSocket Live Audio) modülünün çökmeksizin çalışması ve 429 Rate Limit durumunda otomatik rotasyon yapabilmesi için hibrit base64 fallback yapısı ve `rotateGeminiApiKey()` fonksiyonu KORUNMALIDIR.
+
 
 ---
 
