@@ -1,0 +1,4 @@
+## 2024-03-24 - [Unauthenticated Password Reset Endpoint]
+**Vulnerability:** Found an unauthenticated endpoint (`/api/auth/reset-password`) that allowed resetting ANY user's password by simply providing their username and a new password. It completely bypassed all authentication and authorization checks.
+**Learning:** Legacy endpoints (labeled as "Geriye uyumluluk" or backwards compatibility) are a major source of critical security risks, especially when they bypass newly implemented secure mechanisms (like the token-based reset which was also present in the codebase).
+**Prevention:** Never leave unauthenticated endpoints that modify critical state, such as passwords. When introducing secure replacements (like token-based resets), legacy methods must be removed or properly secured immediately, not kept for backwards compatibility. Always ensure endpoints that mutate user credentials require strong authorization (e.g. valid session, OTP, or reset token).
