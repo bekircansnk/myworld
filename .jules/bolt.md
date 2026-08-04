@@ -1,0 +1,3 @@
+## 2024-05-24 - O(N^2) Filter within Render Loop Anti-Pattern
+**Learning:** Found a severe performance bottleneck in `KanbanBoard.tsx` where child components were calling `.filter()` on the entire task list to calculate subtask counts. Since this filter ran for *every* task rendered on the board, the computational complexity ballooned to O(N^2) during renders and drag-and-drop operations, leading to noticeable stuttering with larger task volumes.
+**Action:** Always extract collection derivations out of the render loop. Compute mappings once in a single O(N) pass, store them in a hash map using `useMemo`, and execute O(1) lookups during the render cycle.
