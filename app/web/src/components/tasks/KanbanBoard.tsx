@@ -190,11 +190,40 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
     return list;
   }, [columns, mainTasks]);
 
-  // Belirli bir sütundaki görevleri getir
-  const getColumnTasks = React.useCallback((column: ColumnConfig): Task[] => {
-    return mainTasks
-      .filter(t => t.status === column.statusKey)
-      .sort((a, b) => {
+  // ⚡ Bolt Optimization: Calculate subtask stats in O(N) using useMemo instead of O(N²) in render loop
+  const subtaskStats = React.useMemo(() => {
+    const stats: Record<number, { total: number; done: number }> = {}
+
+    // O(N) single pass through all tasks
+    for (const task of tasks) {
+      if (task.parent_task_id) {
+        if (!stats[task.parent_task_id]) {
+          stats[task.parent_task_id] = { total: 0, done: 0 }
+        }
+        stats[task.parent_task_id].total += 1
+        if (task.status === 'done') {
+          stats[task.parent_task_id].done += 1
+        }
+      }
+    }
+    return stats
+  }, [tasks])
+
+  // ⚡ Bolt Optimization: Group and sort column tasks in O(N log N) once, instead of O(N log N) per column on every render
+  const groupedTasks = React.useMemo(() => {
+    const groups: Record<string, Task[]> = {}
+
+    for (const task of mainTasks) {
+      const statusKey = task.status || ''
+      if (!groups[statusKey]) {
+        groups[statusKey] = []
+      }
+      groups[statusKey].push(task)
+    }
+
+    // Sort each group
+    for (const statusKey in groups) {
+      groups[statusKey].sort((a, b) => {
         // Öncelik: Manuel sort_order
         if ((a.sort_order ?? 0) !== (b.sort_order ?? 0)) {
           return (a.sort_order ?? 0) - (b.sort_order ?? 0)
@@ -204,19 +233,15 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
         const dateB = new Date(b.created_at ?? 0).getTime()
         return dateA - dateB
       })
+    }
+
+    return groups
   }, [mainTasks])
 
-  // Aynı statusKey'e sahip birden fazla sütun olduğunda görevleri ayırt etmek için
-  // Şimdilik aynı statusKey'li sütunlar aynı görevleri gösterir
-  // İleride backend desteğiyle custom status eklenebilir
-
-  // Alt görev sayısını hesapla
-  const getSubtaskCount = (taskId: number) => {
-    return tasks.filter(t => t.parent_task_id === taskId).length
-  }
-  const getDoneSubtaskCount = (taskId: number) => {
-    return tasks.filter(t => t.parent_task_id === taskId && t.status === 'done').length
-  }
+  // Belirli bir sütundaki görevleri getir
+  const getColumnTasks = React.useCallback((column: ColumnConfig): Task[] => {
+    return groupedTasks[column.statusKey] || []
+  }, [groupedTasks])
 
   // Hızlı görev ekleme
   const handleQuickAdd = (column: ColumnConfig) => {
@@ -630,8 +655,8 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                             >
                               <TaskCard
                                 task={task}
-                                subtaskCount={getSubtaskCount(task.id)}
-                                doneSubtaskCount={getDoneSubtaskCount(task.id)}
+                                subtaskCount={subtaskStats[task.id]?.total || 0}
+                                doneSubtaskCount={subtaskStats[task.id]?.done || 0}
                                 isProjectView={isProjectView}
                               />
                             </div>
