@@ -210,13 +210,25 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
   // Şimdilik aynı statusKey'li sütunlar aynı görevleri gösterir
   // İleride backend desteğiyle custom status eklenebilir
 
-  // Alt görev sayısını hesapla
-  const getSubtaskCount = (taskId: number) => {
-    return tasks.filter(t => t.parent_task_id === taskId).length
-  }
-  const getDoneSubtaskCount = (taskId: number) => {
-    return tasks.filter(t => t.parent_task_id === taskId && t.status === 'done').length
-  }
+  // ⚡ Bolt Optimization: Calculate subtask stats in a single O(N) pass to avoid O(N*M) filtering during render loop
+  const subtaskStats = React.useMemo(() => {
+    const stats: Record<number, { total: number; done: number }> = {};
+    for (const task of tasks) {
+      if (task.parent_task_id) {
+        if (!stats[task.parent_task_id]) {
+          stats[task.parent_task_id] = { total: 0, done: 0 };
+        }
+        stats[task.parent_task_id].total += 1;
+        if (task.status === 'done') {
+          stats[task.parent_task_id].done += 1;
+        }
+      }
+    }
+    return stats;
+  }, [tasks]);
+
+  const getSubtaskCount = (taskId: number) => subtaskStats[taskId]?.total || 0;
+  const getDoneSubtaskCount = (taskId: number) => subtaskStats[taskId]?.done || 0;
 
   // Hızlı görev ekleme
   const handleQuickAdd = (column: ColumnConfig) => {
