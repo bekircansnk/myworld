@@ -190,32 +190,60 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
     return list;
   }, [columns, mainTasks]);
 
+  // Cache grouped and sorted column tasks to avoid O(N²) scaling on re-renders
+  const tasksByColumn = React.useMemo(() => {
+    const grouped = mainTasks.reduce((acc, task) => {
+      const status = task.status || 'todo';
+      if (!acc[status]) acc[status] = [];
+      acc[status].push(task);
+      return acc;
+    }, {} as Record<string, Task[]>);
+
+    // Sort each group once
+    for (const status in grouped) {
+      grouped[status].sort((a, b) => {
+        if ((a.sort_order ?? 0) !== (b.sort_order ?? 0)) {
+          return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+        }
+        const dateA = new Date(a.created_at ?? 0).getTime();
+        const dateB = new Date(b.created_at ?? 0).getTime();
+        return dateA - dateB;
+      });
+    }
+    return grouped;
+  }, [mainTasks]);
+
   // Belirli bir sütundaki görevleri getir
   const getColumnTasks = React.useCallback((column: ColumnConfig): Task[] => {
-    return mainTasks
-      .filter(t => t.status === column.statusKey)
-      .sort((a, b) => {
-        // Öncelik: Manuel sort_order
-        if ((a.sort_order ?? 0) !== (b.sort_order ?? 0)) {
-          return (a.sort_order ?? 0) - (b.sort_order ?? 0)
-        }
-        // İkinci öncelik: Oluşturulma tarihi
-        const dateA = new Date(a.created_at ?? 0).getTime()
-        const dateB = new Date(b.created_at ?? 0).getTime()
-        return dateA - dateB
-      })
-  }, [mainTasks])
+    return tasksByColumn[column.statusKey] || [];
+  }, [tasksByColumn]);
 
   // Aynı statusKey'e sahip birden fazla sütun olduğunda görevleri ayırt etmek için
   // Şimdilik aynı statusKey'li sütunlar aynı görevleri gösterir
   // İleride backend desteğiyle custom status eklenebilir
 
+  // Cache subtask counts in a single O(N) pass to avoid O(N²) scaling during list render
+  const subtaskStats = React.useMemo(() => {
+    const stats: Record<number, { total: number; done: number }> = {};
+    for (let i = 0; i < tasks.length; i++) {
+      const parentId = tasks[i].parent_task_id;
+      if (parentId) {
+        if (!stats[parentId]) stats[parentId] = { total: 0, done: 0 };
+        stats[parentId].total++;
+        if (tasks[i].status === 'done') {
+          stats[parentId].done++;
+        }
+      }
+    }
+    return stats;
+  }, [tasks]);
+
   // Alt görev sayısını hesapla
   const getSubtaskCount = (taskId: number) => {
-    return tasks.filter(t => t.parent_task_id === taskId).length
+    return subtaskStats[taskId]?.total || 0;
   }
   const getDoneSubtaskCount = (taskId: number) => {
-    return tasks.filter(t => t.parent_task_id === taskId && t.status === 'done').length
+    return subtaskStats[taskId]?.done || 0;
   }
 
   // Hızlı görev ekleme
