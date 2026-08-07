@@ -115,7 +115,13 @@ async def create_ai_analysis(
     file_size = None
     
     if file and report_source in ["external", "hybrid"]:
-        file_name = file.filename
+        # Sanitize filename to prevent path traversal
+        raw_filename = getattr(file, "filename", None) or "upload.tmp"
+        # Convert backslashes to forward slashes and extract basename
+        file_name = os.path.basename(raw_filename.replace("\\", "/"))
+        # Strip any remaining problematic characters as a fallback
+        file_name = "".join(c for c in file_name if c.isalnum() or c in " ._-")
+
         file_type = file_name.split(".")[-1] if "." in file_name else "unknown"
         content = await file.read()
         file_size = len(content)

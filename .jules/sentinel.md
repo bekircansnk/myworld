@@ -1,0 +1,4 @@
+## 2025-02-21 - [Critical] Prevent Path Traversal in AI Analysis Report Uploads
+**Vulnerability:** Found a critical path traversal vulnerability in `app/backend/app/routers/ads/reports.py` where user-uploaded file names were concatenated directly into the OS path string (`f"{uuid.uuid4().hex}_{file.filename}"`) without sanitation. An attacker could specify `../../../etc/passwd` to overwrite arbitrary system files. Also `file.filename` could be `None` leading to 500 error.
+**Learning:** Python's `os.path.join` interprets `../` even after valid directory names, so standard interpolation is fully vulnerable if path strings are arbitrary.
+**Prevention:** Always use `os.path.basename` to extract the final component of a filename, and filter it further (e.g., stripping dangerous characters) before saving it to the filesystem. When using FastAPI's `UploadFile`, account for `file.filename` potentially being `None`.
