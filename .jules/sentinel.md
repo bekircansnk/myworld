@@ -1,0 +1,4 @@
+## 2025-08-08 - Path Traversal via UploadFile in FastAPI
+**Vulnerability:** Found uses of `file.filename` directly interpolated into file paths (e.g., `os.path.join(upload_dir, f"{uuid.uuid4().hex}_{file.filename}")`) without sanitization in `app/backend/app/routers/ads/reports.py` and saved directly to the database in other modules.
+**Learning:** FastAPI's `UploadFile` (based on Starlette) passes the client-provided `filename` as is. Since `werkzeug.utils.secure_filename` is not in `requirements.txt` by default, an attacker could supply `../../../etc/passwd` to bypass the directory constraint despite `os.path.join` usage.
+**Prevention:** Always sanitize `UploadFile.filename` using `os.path.basename((file.filename or "").replace("\\", "/"))` before using it in any file system operations or storing it in the database.
