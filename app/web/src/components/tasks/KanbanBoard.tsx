@@ -210,13 +210,23 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
   // Şimdilik aynı statusKey'li sütunlar aynı görevleri gösterir
   // İleride backend desteğiyle custom status eklenebilir
 
-  // Alt görev sayısını hesapla
-  const getSubtaskCount = (taskId: number) => {
-    return tasks.filter(t => t.parent_task_id === taskId).length
-  }
-  const getDoneSubtaskCount = (taskId: number) => {
-    return tasks.filter(t => t.parent_task_id === taskId && t.status === 'done').length
-  }
+  // Alt görev sayısını O(N) cache'le - Her renderda tüm tasks listesini dönüp filtrelemek O(N^2) performans sorunu yaratır.
+  // Bunun yerine 1 kere O(N) tarayıp Hash Map'e atıyoruz.
+  const { subtaskCounts, doneSubtaskCounts } = React.useMemo(() => {
+    const subtask = {} as Record<number, number>;
+    const doneSubtask = {} as Record<number, number>;
+
+    tasks.forEach(t => {
+      if (t.parent_task_id) {
+        subtask[t.parent_task_id] = (subtask[t.parent_task_id] || 0) + 1;
+        if (t.status === 'done') {
+          doneSubtask[t.parent_task_id] = (doneSubtask[t.parent_task_id] || 0) + 1;
+        }
+      }
+    });
+
+    return { subtaskCounts: subtask, doneSubtaskCounts: doneSubtask };
+  }, [tasks]);
 
   // Hızlı görev ekleme
   const handleQuickAdd = (column: ColumnConfig) => {
@@ -630,8 +640,8 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                             >
                               <TaskCard
                                 task={task}
-                                subtaskCount={getSubtaskCount(task.id)}
-                                doneSubtaskCount={getDoneSubtaskCount(task.id)}
+                                subtaskCount={subtaskCounts[task.id] || 0}
+                                doneSubtaskCount={doneSubtaskCounts[task.id] || 0}
                                 isProjectView={isProjectView}
                               />
                             </div>
