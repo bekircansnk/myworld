@@ -1,0 +1,4 @@
+## 2026-08-09 - Path Traversal in File Uploads
+**Vulnerability:** The application was using the raw, unvalidated `file.filename` from the client upload request to construct the destination file path directly on the server file system.
+**Learning:** This occurs when standard upload utilities are used without a sanitization step, assuming the client provides a safe filename. The `fastapi.UploadFile` object does not automatically sanitize this attribute, leading to directory traversal risks if an attacker uploads a file named `../../etc/passwd`. Furthermore, Windows style backslashes must be handled even on Unix servers to ensure `os.path.basename` effectively strips out malicious paths.
+**Prevention:** Always use `os.path.basename` combined with backslash normalization (e.g. `filename.replace('\\', '/')`) or a dedicated library like `werkzeug.utils.secure_filename` to strip out directories from the client's provided filename before writing to the disk.
