@@ -9,6 +9,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 import { showContextMenu } from "@/components/ui/ContextMenu"
 import { format, isPast } from "date-fns"
 import { tr } from "date-fns/locale"
+import { useTheme } from "next-themes"
 
 interface TaskCardProps {
   task: Task
@@ -78,7 +79,7 @@ function ProgressBar({ percent, accentColor }: { percent: number; accentColor: s
   )
 }
 
-export function TaskCard({ task, subtaskCount = 0, doneSubtaskCount = 0, isProjectView = false }: TaskCardProps) {
+export const TaskCard = React.memo(function TaskCard({ task, subtaskCount = 0, doneSubtaskCount = 0, isProjectView = false }: TaskCardProps) {
   const { openTaskDetail, deleteTask } = useTaskStore()
   const [isOpening, setIsOpening] = React.useState(false)
 
@@ -93,15 +94,11 @@ export function TaskCard({ task, subtaskCount = 0, doneSubtaskCount = 0, isProje
   const hasSubtasks = subtaskCount > 0
   const progressPercent = hasSubtasks ? Math.round((doneSubtaskCount / subtaskCount) * 100) : 0
 
-  // Dark mode algılama
-  const [isDark, setIsDark] = React.useState(false)
-  React.useEffect(() => {
-    const checkDark = () => setIsDark(document.documentElement.classList.contains('dark'))
-    checkDark()
-    const observer = new MutationObserver(checkDark)
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
-    return () => observer.disconnect()
-  }, [])
+  // ⚡ Bolt Optimizasyonu:
+  // - useTheme hook'u ile dark mode algılama yapıldı. Eskiden her TaskCard kendi MutationObserver'ını yaratıyordu, bu da bellek ve işlemci israfına yol açıyordu.
+  // - React.memo() kullanılarak gereksiz yeniden render işlemleri engellendi, özellikle Kanban panosu gibi çok fazla kartın olduğu yerlerde performansı önemli ölçüde artırır.
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
 
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false)
 
@@ -237,4 +234,4 @@ export function TaskCard({ task, subtaskCount = 0, doneSubtaskCount = 0, isProje
       </div>
     </>
   )
-}
+})
