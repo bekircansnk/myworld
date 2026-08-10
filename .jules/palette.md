@@ -1,0 +1,3 @@
+## 2026-08-10 - Interactive Element Accessibility
+**Learning:** In this app, many icon-only controls (native `<button>`, custom `<Button>`) lack `aria-label`s and `focus-visible` states, making them invisible to screen readers and inaccessible via keyboard navigation.
+**Action:** Always ensure native `<button>` tags include `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring` and that all icon-only interactive elements have Turkish `aria-label` attributes for proper accessibility and keyboard support.
