@@ -32,6 +32,13 @@
 ### 📝 MSSQL (Venus) Hakkında Not
 - Venus (MSSQL) bağlantısı ile ilgili kod incelemesi yapıldı. Venus modelleri ve servislerinin şu anda ana PostgreSQL veritabanını (`app/backend/app/database.py`) kullandığı ve projede aktif/ayrı bir MSSQL bağlantısı bulunmadığı tespit edildi.
 
+## 20.07.2026 — Kullanıcı Deneyimi ve Erişilebilirlik İyileştirmeleri
+
+### 🎨 Sidebar Erişilebilirlik (A11y) İyileştirmeleri
+- `app/web/src/components/Sidebar.tsx` bileşenindeki ikon düğmelerine (daraltma, proje seçimi, proje ayarları, yeni proje, tema değiştirme) `aria-label` ve `title` özellikleri eklendi.
+- Klavyeyle gezinmeyi kolaylaştırmak için bu düğmelere `focus-visible:ring-2` odaklanma (focus) halkaları eklendi.
+- Ekran okuyucu kullanıcıları ve klavye gezintisi için görünmez/küçük detaylardaki pürüzler giderildi.
+
 ---
 
 <!-- Yeni girişler bu satırın üzerine eklenecek -->
