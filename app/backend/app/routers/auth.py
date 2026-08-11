@@ -508,6 +508,7 @@ async def update_profile(
 
 @router.post("/upload-avatar")
 async def upload_avatar(file: UploadFile = File(...), current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    # Using secure_filename if needed, though here we just read it directly without saving to disk
     # Read file content
     content = await file.read()
     

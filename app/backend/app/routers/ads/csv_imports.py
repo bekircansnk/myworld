@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, File, UploadFile, Form
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.utils.security import secure_filename
 from sqlalchemy import select, desc
 from typing import List, Optional
 import io
@@ -39,7 +40,7 @@ async def upload_csv(
     import_record = AdCsvImport(
         user_id=current_user.id,
         project_id=project_id,
-        filename=file.filename,
+        filename=secure_filename(file.filename) if file.filename else "unknown",
         platform_source=parsed["platform"],
         rows_imported=result["imported"],
         status="completed" if result["skipped"] == 0 else "partial",
