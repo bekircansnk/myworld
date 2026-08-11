@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTheme } from "next-themes"
 import { Task } from "@/types"
 import { useTaskStore } from "@/stores/taskStore"
 import { Trash2, Calendar, MoreHorizontal, CheckSquare, Edit2, Camera } from "lucide-react"
@@ -94,14 +95,10 @@ export function TaskCard({ task, subtaskCount = 0, doneSubtaskCount = 0, isProje
   const progressPercent = hasSubtasks ? Math.round((doneSubtaskCount / subtaskCount) * 100) : 0
 
   // Dark mode algılama
-  const [isDark, setIsDark] = React.useState(false)
-  React.useEffect(() => {
-    const checkDark = () => setIsDark(document.documentElement.classList.contains('dark'))
-    checkDark()
-    const observer = new MutationObserver(checkDark)
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
-    return () => observer.disconnect()
-  }, [])
+  // ⚡ Bolt Optimization: Switched from individual MutationObservers to a single React context subscription (useTheme)
+  // Reduces observer overhead from O(N) to O(1) in task-heavy lists, significantly improving memory and render performance.
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
 
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false)
 
