@@ -14,6 +14,7 @@ from app.services.venus.ai_report_analyst import analyze_report_data
 from app.services.venus.pdf_generator import generate_ai_report_pdf
 from fastapi import File, UploadFile, Form
 import os
+from app.utils.security import secure_filename
 import uuid
 import datetime
 
@@ -115,7 +116,7 @@ async def create_ai_analysis(
     file_size = None
     
     if file and report_source in ["external", "hybrid"]:
-        file_name = file.filename
+        file_name = secure_filename(file.filename) if file.filename else "unknown"
         file_type = file_name.split(".")[-1] if "." in file_name else "unknown"
         content = await file.read()
         file_size = len(content)

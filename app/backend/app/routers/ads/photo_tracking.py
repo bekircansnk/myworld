@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.utils.security import secure_filename
 from sqlalchemy import select, update, delete, extract, func
 from sqlalchemy.orm import selectinload
 from typing import List, Optional
@@ -369,7 +370,8 @@ async def import_excel(
 ):
     effective_project_id = getattr(request.state, "project_id", None)
     
-    if not file.filename.endswith('.xlsx'):
+    safe_filename = secure_filename(file.filename) if file.filename else ""
+    if not safe_filename.endswith('.xlsx'):
         raise HTTPException(status_code=400, detail="Sadece .xlsx dosyaları kabul edilir")
         
     if month is None:
@@ -497,7 +499,7 @@ async def import_excel(
         
         log = PhotoExcelImport(
             user_id=current_user.id,
-            file_name=file.filename,
+            file_name=safe_filename,
             models_imported=models_imported,
             colors_imported=colors_imported,
             status="success"
@@ -513,7 +515,7 @@ async def import_excel(
     except Exception as e:
         log = PhotoExcelImport(
             user_id=current_user.id,
-            file_name=file.filename,
+            file_name=safe_filename,
             status="failed",
             error_log={"error": str(e)}
         )
