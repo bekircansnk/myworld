@@ -1,0 +1,3 @@
+## 2024-08-12 - Chunk Splitting Next.js Dashboard Routes
+**Learning:** The `MainViewShell` acts as a monolithic shell pulling in numerous massive sub-components (Calendar, Ads Panel, AI Chat, etc.) statically. Next.js does not automatically code-split standard React conditional rendering statements inside a single client component, leading to massive initial JS payloads even if a user never views those specific tabs.
+**Action:** Use `next/dynamic` from Next.js on large conditional render chunks (especially route-level layout components) to explicitly command Webpack to generate separate JavaScript bundles for those paths, drastically reducing the initial load time.
