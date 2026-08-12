@@ -4,6 +4,7 @@
 > Format: DD.MM.YYYY
 
 ---
+- 12.08.2026 - Sohbet bileşenindeki (ChatWidget) ikon düğmelerine erişilebilirlik (aria-label) ve ipucu (title) eklendi.
 
 ## 19.07.2026 — Başlangıç
 
