@@ -6,24 +6,27 @@ import { useProjectStore } from "@/stores/projectStore"
 import { useWebSocketStore } from "@/stores/webSocketStore"
 import { useCalendarStore } from "@/stores/calendarStore"
 import { useNoteStore } from "@/stores/noteStore"
-import { KanbanBoard } from "@/components/tasks/KanbanBoard"
-import { TaskDetailPanel } from "@/components/tasks/TaskDetailPanel"
-import { NoteDetailPanel } from "@/components/notes/NoteDetailPanel"
-import { DashboardWidgets } from "@/components/dashboard/DashboardWidgets"
-import { NotesList } from "@/components/notes/NotesList"
 import { MorningScreen } from "@/components/dashboard/MorningScreen"
-import { CalendarPage } from "@/components/calendar/CalendarPage"
-import { AIChatDashboard } from "@/components/ai-chat/AIChatDashboard"
+
+import dynamic from 'next/dynamic'
+
+const KanbanBoard = dynamic(() => import('@/components/tasks/KanbanBoard').then(mod => mod.KanbanBoard), { ssr: false })
+const TaskDetailPanel = dynamic(() => import('@/components/tasks/TaskDetailPanel').then(mod => mod.TaskDetailPanel), { ssr: false })
+const NoteDetailPanel = dynamic(() => import('@/components/notes/NoteDetailPanel').then(mod => mod.NoteDetailPanel), { ssr: false })
+const DashboardWidgets = dynamic(() => import('@/components/dashboard/DashboardWidgets').then(mod => mod.DashboardWidgets), { ssr: false })
+const NotesList = dynamic(() => import('@/components/notes/NotesList').then(mod => mod.NotesList), { ssr: false })
+const CalendarPage = dynamic(() => import('@/components/calendar/CalendarPage').then(mod => mod.CalendarPage), { ssr: false })
+const AIChatDashboard = dynamic(() => import('@/components/ai-chat/AIChatDashboard').then(mod => mod.AIChatDashboard), { ssr: false })
+const AdminPanel = dynamic(() => import('@/components/admin/AdminPanel').then(mod => mod.AdminPanel), { ssr: false })
+const LiveTranslatePage = dynamic(() => import('@/components/live-translate').then(mod => mod.LiveTranslatePage), { ssr: false })
+const AdsLayout = dynamic(() => import('@/components/ads-panel/AdsLayout').then(mod => mod.AdsLayout), { ssr: false })
+const PhotoTrackingLayout = dynamic(() => import('@/components/photo-tracking/PhotoTrackingLayout').then(mod => mod.PhotoTrackingLayout), { ssr: false })
+const CommandPaletteModal = dynamic(() => import('@/components/command-palette/CommandPaletteModal').then(mod => mod.CommandPaletteModal), { ssr: false })
 import { TopNavbar } from "@/components/layout/TopNavbar"
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav"
 import { useAuthStore, canViewCompany, canEditCompany, canAccessAdminPanel } from "@/store/authStore"
 import { LoginOverlay } from "@/components/auth/LoginOverlay"
-import { AdsLayout } from "@/components/ads-panel/AdsLayout"
-import { PhotoTrackingLayout } from "@/components/photo-tracking/PhotoTrackingLayout"
 import { OfflineBanner } from "@/components/ui/OfflineBanner"
-import { AdminPanel } from "@/components/admin/AdminPanel"
-import { LiveTranslatePage } from "@/components/live-translate"
-import { CommandPaletteModal } from "@/components/command-palette/CommandPaletteModal"
 
 export function MainViewShell() {
   const { user, isAuthenticated, isLoading: authLoading, checkAuth, _hasHydrated: authHydrated } = useAuthStore()
