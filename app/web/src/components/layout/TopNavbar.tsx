@@ -122,8 +122,9 @@ export function TopNavbar() {
         </button>
         <button
           onClick={handleInstallApp}
-          className="sm:hidden flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all animate-pulse hover:animate-none"
+          className="sm:hidden flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all animate-pulse hover:animate-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900"
           title="Uygulamayı Yükle"
+          aria-label="Uygulamayı Yükle"
         >
           +
         </button>
@@ -491,7 +492,8 @@ export function TopNavbar() {
           <div className="relative" ref={notifRef}>
             <button
               onClick={() => { setShowNotifPanel(!showNotifPanel); setShowUserPanel(false); }}
-              className="w-9 h-9 md:w-10 md:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative"
+              className="w-9 h-9 md:w-10 md:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900"
+              aria-label="Bildirimler"
             >
               <Bell className="w-4 h-4 text-brand-gray dark:text-gray-400" />
               {unreadCount > 0 && (
@@ -631,7 +633,8 @@ export function TopNavbar() {
           {mounted && (
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="w-9 h-9 md:w-10 md:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              className="w-9 h-9 md:w-10 md:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900"
+              aria-label={theme === "dark" ? "Açık temaya geç" : "Koyu temaya geç"}
             >
               {theme === "dark" ? <Sun className="w-4 h-4 text-brand-yellow" /> : <Moon className="w-4 h-4 text-brand-dark" />}
             </button>
@@ -641,7 +644,8 @@ export function TopNavbar() {
           <div className="relative" ref={userRef}>
             <button
               onClick={() => { setShowUserPanel(!showUserPanel); setShowNotifPanel(false); }}
-              className={`relative w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors overflow-hidden border-2 ${showUserPanel ? 'border-brand-yellow' : 'border-transparent bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+              className={`relative w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors overflow-hidden border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900 ${showUserPanel ? 'border-brand-yellow' : 'border-transparent bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+              aria-label="Kullanıcı profili"
             >
               {user?.avatar_url ? (
                 <img src={user.avatar_url.startsWith('http') ? user.avatar_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${user.avatar_url}`} alt="Avatar" className="w-full h-full object-cover" />
