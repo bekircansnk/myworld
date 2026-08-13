@@ -1,0 +1,4 @@
+## 2024-08-13 - Path Traversal in AI Analysis Report Uploads
+**Vulnerability:** The AI Analysis Report upload endpoint at `/api/ads/reports/ai-analysis` saved files to disk using the unsanitized user-provided `file.filename` directly in `os.path.join`, enabling Path Traversal attacks where a malicious filename could write arbitrary files to the server.
+**Learning:** Even internal tool endpoints or mock functions that write temporary files to disk using user-provided filenames must sanitize input. Python's `os.path.join` is vulnerable to directory traversal if the second argument contains absolute paths or `../`.
+**Prevention:** Always sanitize `file.filename` using a strict whitelist approach before using it in file operations, specifically stripping out path manipulation characters like `/` and `\`, and preventing filenames from starting with dots or dashes.
