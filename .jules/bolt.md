@@ -1,0 +1,3 @@
+## 2024-08-13 - Dashboard Widget Performance Optimization
+**Learning:** In Dashboard widgets containing timers and clocks (like `DashboardWidgets.tsx`), `setInterval` causes frequent component re-renders (every second or minute). Unmemoized array filtering (e.g. `tasks.filter`) running on these render cycles causes severe performance degradation, specifically `O(N)` repeated work for `N` tasks.
+**Action:** Always wrap expensive list filtering logic in `React.useMemo` if a parent component possesses state variables (like clocks/timers) that frequently re-render the view without the source list (`tasks`) mutating.
