@@ -1,0 +1,3 @@
+## 2025-02-12 - Missing ARIA Labels on Icon-only Buttons
+**Learning:** Found a pattern of icon-only interactive elements (buttons for notifications, theme toggle, user profile menu, dismissing notifications) in the top navbar lacking accessible names (`aria-label`). This causes screen readers to either announce "button" (without context) or read the class names/file names of the SVG, which provides a poor experience for users relying on assistive technology.
+**Action:** When working on navigation bars or toolbars with icon-only buttons, prioritize adding descriptive `aria-label`s in the local language (Turkish in this case).
