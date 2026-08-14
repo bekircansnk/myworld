@@ -5,6 +5,13 @@
 
 ---
 
+## 14.08.2026 — Güvenlik İyileştirmeleri
+
+### 🛡️ Dosya Yolu Zafiyeti (Path Traversal) Çözümü
+- AI rapor yükleme uç noktasındaki (`app/backend/app/routers/ads/reports.py`) Path Traversal zafiyeti giderildi.
+- Kötü niyetli kullanıcıların sunucuda istedikleri konuma dosya yazmasını engellemek için `app/utils/security.py` içerisine `secure_filename` fonksiyonu eklendi.
+- Kullanıcıdan gelen dosya isimleri, dosya sistemine kaydedilmeden önce bu fonksiyon ile temizlenmesi sağlandı.
+
 ## 19.07.2026 — Başlangıç
 
 ### 🏗️ Jules Otonom Altyapı Kurulumu
