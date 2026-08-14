@@ -1,0 +1,3 @@
+## 2024-05-18 - Prevent O(N) Array Filtering on Unrelated Keystroke State
+**Learning:** In React components like `NotesList.tsx` with rapid state updates (e.g., `newNoteContent` text input), unmemoized list filtering triggers `O(N)` repeated work on every keystroke render cycle. Repeatedly calling `.toLowerCase()` on the search query inside the `.filter` loop causes redundant string allocations and slows down typing responsiveness significantly.
+**Action:** Always wrap expensive list filtering operations in `React.useMemo` and hoist invariant loop computations (like `searchQuery.toLowerCase()`) outside the `.filter` iteration to minimize redundant work and improve component responsiveness.
