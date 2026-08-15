@@ -1,0 +1,3 @@
+## 2025-08-15 - Prevent Cascading Re-renders from Un-memoized Arrays
+ **Learning:** In React, passing un-memoized derived arrays (like `tasks.filter()`) into downstream hooks (`useMemo`, `useEffect`) causes their references to change on every render. If the component contains a live timer (e.g., `setInterval`) that triggers a state update every second, this causes all downstream hooks to recalculate every second, leading to O(N) performance bottlenecks.
+ **Action:** Always wrap expensive list filtering operations or derived array creations in `React.useMemo` before using them as dependencies or rendering them in components with frequent re-renders.
