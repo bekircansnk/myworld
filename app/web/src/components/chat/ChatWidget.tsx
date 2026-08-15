@@ -209,10 +209,10 @@ export function ChatWidget() {
               >
                 <Bug className="w-3.5 h-3.5" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={clearHistory}>
+              <Button aria-label="Sohbet geçmişini temizle" title="Sohbet geçmişini temizle" variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={clearHistory}>
                 <Trash2 className="w-3.5 h-3.5" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={toggleChat}>
+              <Button aria-label="Sohbeti kapat" title="Sohbeti kapat" variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={toggleChat}>
                 <X className="w-3.5 h-3.5" />
               </Button>
             </div>
@@ -264,7 +264,7 @@ export function ChatWidget() {
                 disabled={isLoading}
                 autoFocus
               />
-              <Button type="submit" size="icon" disabled={!inputValue.trim() || isLoading} className="shrink-0 h-9 w-9">
+              <Button aria-label="Mesaj gönder" title="Mesaj gönder" type="submit" size="icon" disabled={!inputValue.trim() || isLoading} className="shrink-0 h-9 w-9">
                 <Send className="h-4 w-4" />
               </Button>
             </form>
