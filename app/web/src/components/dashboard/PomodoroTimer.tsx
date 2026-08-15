@@ -159,7 +159,7 @@ export function PomodoroTimer() {
              {isLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 
              isActive ? <><Pause className="w-4 h-4 mr-1.5" /> Duraklat</> : <><Play className="w-4 h-4 mr-1.5" /> Başlat</>}
           </Button>
-          <Button onClick={resetTimer} variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-muted/40 hover:bg-muted/60 border border-border text-slate-600 dark:text-slate-300 btn-3d" disabled={isLoading}>
+          <Button aria-label="Zamanlayıcıyı sıfırla" title="Zamanlayıcıyı sıfırla" onClick={resetTimer} variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-muted/40 hover:bg-muted/60 border border-border text-slate-600 dark:text-slate-300 btn-3d" disabled={isLoading}>
             <RotateCcw className="w-4 h-4" />
           </Button>
         </div>
