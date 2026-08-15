@@ -1,0 +1,4 @@
+## 2024-10-27 - Path Traversal in Ad Reports Upload
+**Vulnerability:** The `/ai-analysis` upload endpoint in `app/backend/app/routers/ads/reports.py` wrote user-uploaded files directly to disk using `os.path.join(upload_dir, f"{uuid}_{file.filename}")` without validating or sanitizing `file.filename`. This allowed a path traversal attack if a malicious filename like `../../../../etc/passwd` was supplied.
+**Learning:** Even when prefixing files with UUIDs, the `file.filename` property from `UploadFile` is entirely user-controlled and unsafe. In Python, `os.path.join` will traverse directories or even treat the input as an absolute path if it begins with `/`.
+**Prevention:** Always sanitize the `UploadFile.filename` property using a strict allowlist character function (like `secure_filename`) before passing it to any OS or filesystem API.
