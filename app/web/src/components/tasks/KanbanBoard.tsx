@@ -558,6 +558,7 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
                         onClick={() => { setAddingToColumn(column.id); setNewCardTitle("") }}
                         className="w-6 h-6 flex items-center justify-center hover:bg-muted rounded transition-colors text-muted-foreground hover:text-foreground"
                         title="Kart Ekle"
+                        aria-label={`${column.label} sütununa kart ekle`}
                       >
                         <Plus className="w-3.5 h-3.5" />
                       </button>
@@ -565,7 +566,10 @@ export function KanbanBoard({ projectId, canEdit = true }: KanbanBoardProps) {
 
                     {!column.id.startsWith('fallback_') && (
                       <DropdownMenu>
-                        <DropdownMenuTrigger className="w-6 h-6 flex items-center justify-center hover:bg-muted rounded transition-colors text-muted-foreground hover:text-foreground border-0 focus:outline-none focus:ring-0 appearance-none">
+                        <DropdownMenuTrigger
+                          className="w-6 h-6 flex items-center justify-center hover:bg-muted rounded transition-colors text-muted-foreground hover:text-foreground border-0 focus:outline-none focus:ring-0 appearance-none"
+                          aria-label={`${column.label} sütunu seçenekleri`}
+                        >
                           <MoreVertical className="w-3.5 h-3.5" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48 text-sm">
