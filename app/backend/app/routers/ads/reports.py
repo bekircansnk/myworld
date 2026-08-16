@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from typing import List, Optional
@@ -9,10 +9,11 @@ from app.models.user import User
 from app.models.ads.report_template import AdReportTemplate
 from app.models.ads.ai_analysis_report import AdAiAnalysisReport
 from app.schemas.ads.report_template import ReportTemplateCreate, ReportTemplateUpdate, ReportTemplateResponse
-from app.schemas.ads.ai_analysis_report import AIAnalysisReportCreate, AIAnalysisReportResponse, AIAnalysisReportUpdate
+from app.schemas.ads.ai_analysis_report import AIAnalysisReportResponse
 from app.services.venus.ai_report_analyst import analyze_report_data
 from app.services.venus.pdf_generator import generate_ai_report_pdf
 from fastapi import File, UploadFile, Form
+from app.utils.security import secure_filename
 import os
 import uuid
 import datetime
@@ -115,7 +116,7 @@ async def create_ai_analysis(
     file_size = None
     
     if file and report_source in ["external", "hybrid"]:
-        file_name = file.filename
+        file_name = secure_filename(file.filename)
         file_type = file_name.split(".")[-1] if "." in file_name else "unknown"
         content = await file.read()
         file_size = len(content)
