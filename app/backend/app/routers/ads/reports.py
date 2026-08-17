@@ -1,27 +1,31 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+import datetime
+import os
+import uuid
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc
-from typing import List, Optional
 
 from app.database import get_db
 from app.dependencies.auth import get_current_user
-from app.models.user import User
-from app.models.ads.report_template import AdReportTemplate
 from app.models.ads.ai_analysis_report import AdAiAnalysisReport
-from app.schemas.ads.report_template import ReportTemplateCreate, ReportTemplateUpdate, ReportTemplateResponse
-from app.schemas.ads.ai_analysis_report import AIAnalysisReportCreate, AIAnalysisReportResponse, AIAnalysisReportUpdate
+from app.models.ads.report_template import AdReportTemplate
+from app.models.user import User
+from app.schemas.ads.ai_analysis_report import AIAnalysisReportResponse
+from app.schemas.ads.report_template import (
+    ReportTemplateCreate,
+    ReportTemplateResponse,
+    ReportTemplateUpdate,
+)
 from app.services.venus.ai_report_analyst import analyze_report_data
 from app.services.venus.pdf_generator import generate_ai_report_pdf
-from fastapi import File, UploadFile, Form
-import os
-import uuid
-import datetime
+from app.utils.security import secure_filename
 
 router = APIRouter(tags=["Ads Panel Reports"])
 
-@router.get("", response_model=List[ReportTemplateResponse])
+@router.get("", response_model=list[ReportTemplateResponse])
 async def get_reports(
-    project_id: Optional[int] = None,
+    project_id: int | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -86,9 +90,9 @@ async def delete_report(
 
 # --- AI Analysis Report Endpoints ---
 
-@router.get("/ai-analysis", response_model=List[AIAnalysisReportResponse])
+@router.get("/ai-analysis", response_model=list[AIAnalysisReportResponse])
 async def get_ai_reports(
-    project_id: Optional[int] = None,
+    project_id: int | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -102,9 +106,9 @@ async def get_ai_reports(
 @router.post("/ai-analysis", response_model=AIAnalysisReportResponse)
 async def create_ai_analysis(
     title: str = Form(...),
-    project_id: Optional[int] = Form(None),
+    project_id: int | None = Form(None),
     report_source: str = Form("internal"),
-    file: Optional[UploadFile] = File(None),
+    file: UploadFile | None = File(None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -115,7 +119,7 @@ async def create_ai_analysis(
     file_size = None
     
     if file and report_source in ["external", "hybrid"]:
-        file_name = file.filename
+        file_name = secure_filename(file.filename)
         file_type = file_name.split(".")[-1] if "." in file_name else "unknown"
         content = await file.read()
         file_size = len(content)
