@@ -4,6 +4,7 @@
 > Format: DD.MM.YYYY
 
 ---
+- 17.08.2026 - ModelExplorer ve WeeklyBoard bileşenlerindeki dizi filtreleme işlemleri performans için optimize edildi.
 
 ## 19.07.2026 — Başlangıç
 
