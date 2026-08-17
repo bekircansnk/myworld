@@ -404,6 +404,17 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const importingWeekRef = React.useRef<number | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<number>(1);
+
+  const modelsByWeek = React.useMemo(() => {
+    const grouped: Record<number, typeof models> = {};
+    models.forEach(m => {
+      if (!grouped[m.week_number]) {
+        grouped[m.week_number] = [];
+      }
+      grouped[m.week_number].push(m);
+    });
+    return grouped;
+  }, [models]);
   
   const [importResult, setImportResult] = useState<{
     isOpen: boolean;
@@ -622,7 +633,7 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
       ) : (
         <div className="flex flex-col gap-6">
            {weeks.map(weekNum => {
-             const weekModels = models.filter(m => m.week_number === weekNum);
+             const weekModels = modelsByWeek[weekNum] || [];
              const completedCount = weekModels.filter(m => m.status === 'completed').length;
              
              return (
