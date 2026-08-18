@@ -575,6 +575,17 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
   };
 
   const weeks = [1, 2, 3, 4];
+
+  const modelsByWeek = React.useMemo(() => {
+    const grouped: Record<number, PhotoModel[]> = { 1: [], 2: [], 3: [], 4: [] };
+    models.forEach(m => {
+      if (m.week_number && grouped[m.week_number]) {
+        grouped[m.week_number].push(m);
+      }
+    });
+    return grouped;
+  }, [models]);
+
   const monthName = format(new Date(currentYear, currentMonth - 1), 'MMMM yyyy', { locale: tr });
 
   return (
@@ -622,7 +633,7 @@ export function WeeklyBoard({ projectId }: { projectId: number | null }) {
       ) : (
         <div className="flex flex-col gap-6">
            {weeks.map(weekNum => {
-             const weekModels = models.filter(m => m.week_number === weekNum);
+             const weekModels = modelsByWeek[weekNum] || [];
              const completedCount = weekModels.filter(m => m.status === 'completed').length;
              
              return (
