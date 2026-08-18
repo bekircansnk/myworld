@@ -37,7 +37,9 @@ export function TodayTasks() {
               <li key={task.id} className="p-3 flex items-start gap-3 hover:bg-muted/50 transition-colors">
                 <button 
                   onClick={() => updateTaskStatus(task.id, 'done')}
-                  className="mt-0.5 text-muted-foreground hover:text-green-500 transition-colors"
+                  className="mt-0.5 text-muted-foreground hover:text-green-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 rounded-full transition-colors"
+                  aria-label={`${task.title} görevini tamamla`}
+                  title="Tamamlandı olarak işaretle"
                 >
                   <Circle className="w-4 h-4" />
                 </button>
