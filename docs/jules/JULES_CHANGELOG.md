@@ -4,6 +4,7 @@
 > Format: DD.MM.YYYY
 
 ---
+- 18.08.2026 - [Performans] CalendarPage bileseninde agir calisan filtreleme islemleri React.useMemo ile onbellege alindi ve O(N*M) performansi O(N) harita aramalarina donusturuldu.
 
 ## 19.07.2026 — Başlangıç
 
