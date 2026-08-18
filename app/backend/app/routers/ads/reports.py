@@ -16,6 +16,7 @@ from fastapi import File, UploadFile, Form
 import os
 import uuid
 import datetime
+from app.utils.security import secure_filename
 
 router = APIRouter(tags=["Ads Panel Reports"])
 
@@ -115,7 +116,7 @@ async def create_ai_analysis(
     file_size = None
     
     if file and report_source in ["external", "hybrid"]:
-        file_name = file.filename
+        file_name = secure_filename(file.filename) if file.filename else "unnamed_file"
         file_type = file_name.split(".")[-1] if "." in file_name else "unknown"
         content = await file.read()
         file_size = len(content)

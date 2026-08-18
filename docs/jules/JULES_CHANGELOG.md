@@ -4,6 +4,10 @@
 > Format: DD.MM.YYYY
 
 ---
+**18.08.2026**
+- 🛡️ Dosya yükleme işleminde Path Traversal güvenlik açığı giderildi (`app/backend/app/routers/ads/reports.py`)
+- 🛡️ Güvenli dosya adı temizleme fonksiyonu eklendi (`app/backend/app/utils/security.py`)
+
 
 ## 19.07.2026 — Başlangıç
 
