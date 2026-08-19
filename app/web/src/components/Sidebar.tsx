@@ -31,6 +31,7 @@ export function Sidebar() {
       {/* İçe/Dışa Kapatma Butonu */}
       <button 
         onClick={() => setIsExpanded(!isExpanded)}
+        aria-label={isExpanded ? "Kenar çubuğunu daralt" : "Kenar çubuğunu genişlet"}
         className="absolute -right-3 top-8 bg-card border border-border shadow-sm rounded-full p-1 z-50 hover:bg-muted transition-colors"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${isExpanded ? '' : 'rotate-180'}`}><path d="m15 18-6-6 6-6"/></svg>
@@ -133,6 +134,7 @@ export function Sidebar() {
                         setSelectedProjectId(proj.id)
                         if(!isExpanded) setIsExpanded(true)
                     }}
+                    aria-label={`${proj.name} projesini seç`}
                     className={`flex items-center truncate ${isExpanded ? 'flex-1 gap-3 py-2 px-2' : 'justify-center w-full h-8'}`}
                   >
                      <div className="relative w-3 h-3 flex items-center justify-center flex-shrink-0">
@@ -147,6 +149,7 @@ export function Sidebar() {
                          setProjectToEdit(proj)
                          setIsSettingsOpen(true)
                        }}
+                       aria-label={`${proj.name} proje ayarları`}
                        className={`p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all ${selectedProjectId === proj.id ? 'opacity-100 3d-button' : 'opacity-0 group-hover:opacity-100'}`}
                      >
                       <Settings2 className="w-4 h-4" />
