@@ -31,12 +31,17 @@ export function CommandPaletteModal() {
 
   if (!isOpen) return null
 
+  // ⚡ Bolt Optimization: Hoisted query.toLowerCase() outside the filter loops
+  // Impact: Prevents O(N) redundant string allocations, reducing memory garbage
+  // and CPU cycles during keystroke renders.
+  const lowerQuery = query.toLowerCase()
+
   const filteredTasks = tasks
-    .filter(t => t.title.toLowerCase().includes(query.toLowerCase()))
+    .filter(t => t.title.toLowerCase().includes(lowerQuery))
     .slice(0, 5)
 
   const filteredProjects = projects
-    .filter(p => p.name.toLowerCase().includes(query.toLowerCase()))
+    .filter(p => p.name.toLowerCase().includes(lowerQuery))
     .slice(0, 3)
 
   const handleSelectView = (view: any) => {
