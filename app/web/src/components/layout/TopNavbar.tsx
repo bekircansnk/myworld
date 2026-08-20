@@ -490,6 +490,7 @@ export function TopNavbar() {
           {/* Bildirim Paneli */}
           <div className="relative" ref={notifRef}>
             <button
+              aria-label="Bildirimler"
               onClick={() => { setShowNotifPanel(!showNotifPanel); setShowUserPanel(false); }}
               className="w-9 h-9 md:w-10 md:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative"
             >
@@ -630,6 +631,7 @@ export function TopNavbar() {
           {/* Light/Dark Toggle */}
           {mounted && (
             <button
+              aria-label="Temayı değiştir"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               className="w-9 h-9 md:w-10 md:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
             >
@@ -640,6 +642,7 @@ export function TopNavbar() {
           {/* User Panel */}
           <div className="relative" ref={userRef}>
             <button
+              aria-label="Kullanıcı menüsü"
               onClick={() => { setShowUserPanel(!showUserPanel); setShowNotifPanel(false); }}
               className={`relative w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors overflow-hidden border-2 ${showUserPanel ? 'border-brand-yellow' : 'border-transparent bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
             >

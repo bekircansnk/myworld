@@ -30,6 +30,7 @@ export function Sidebar() {
     <div className={`hidden lg:flex transition-all duration-300 ${isExpanded ? 'w-72' : 'w-20'} glass-sidebar flex-col shadow-2xl z-10 relative`}>
       {/* İçe/Dışa Kapatma Butonu */}
       <button 
+        aria-label="Menüyü daralt/genişlet"
         onClick={() => setIsExpanded(!isExpanded)}
         className="absolute -right-3 top-8 bg-card border border-border shadow-sm rounded-full p-1 z-50 hover:bg-muted transition-colors"
       >
@@ -142,6 +143,7 @@ export function Sidebar() {
                   </button>
                   {isExpanded && (
                      <button 
+                       aria-label="Firma ayarları"
                        onClick={(e) => {
                          e.stopPropagation()
                          setProjectToEdit(proj)
