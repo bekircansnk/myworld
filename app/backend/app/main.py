@@ -256,11 +256,26 @@ async def link_preview(url: str):
     """URL'den sayfa başlığı ve favicon çeker — LinkBreeze özelliği için"""
     import httpx
     from urllib.parse import urlparse
+    import socket
+    import ipaddress
     try:
         parsed = urlparse(url)
         if not parsed.scheme:
             url = f"https://{url}"
             parsed = urlparse(url)
+
+        if parsed.scheme not in ("http", "https"):
+            raise ValueError("Invalid scheme")
+
+        # Prevent SSRF
+        hostname = parsed.hostname
+        if not hostname:
+            raise ValueError("No hostname provided")
+
+        ip_addr = socket.gethostbyname(hostname)
+        ip = ipaddress.ip_address(ip_addr)
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_reserved:
+            raise ValueError("Access to internal networks is forbidden")
         
         async with httpx.AsyncClient(timeout=3.0, follow_redirects=True) as client:
             resp = await client.get(url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
@@ -278,6 +293,9 @@ async def link_preview(url: str):
         favicon = f"{parsed.scheme}://{parsed.netloc}/favicon.ico"
         
         return {"title": title, "url": url, "favicon": favicon, "domain": parsed.netloc}
+    except ValueError as e:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception:
         parsed = urlparse(url)
         return {"title": parsed.netloc or url, "url": url, "favicon": "", "domain": parsed.netloc or ""}
