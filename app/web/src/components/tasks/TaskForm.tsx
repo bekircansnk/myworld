@@ -123,7 +123,8 @@ export function TaskForm() {
           {/* Kapatma Butonu */}
           <button
             onClick={() => setOpen(false)}
-            className="absolute top-4 right-4 z-50 w-8 h-8 flex items-center justify-center rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors"
+            className="absolute top-4 right-4 z-50 w-8 h-8 flex items-center justify-center rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            aria-label="Kapat"
           >
             <X className="w-4 h-4" />
           </button>

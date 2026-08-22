@@ -64,7 +64,11 @@ export function MobileBottomNav() {
           <div className="mx-3 mb-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-2xl overflow-hidden">
             <div className="px-4 py-3 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
               <span className="text-xs font-bold text-slate-500 dark:text-gray-400 uppercase tracking-wider">Diğer Modüller</span>
-              <button onClick={() => setShowMore(false)} className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10">
+              <button
+                onClick={() => setShowMore(false)}
+                className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                aria-label="Menüyü kapat"
+              >
                 <X className="w-4 h-4 text-slate-400" />
               </button>
             </div>
@@ -123,7 +127,8 @@ export function MobileBottomNav() {
           {/* "Daha Fazla" butonu */}
           <button
             onClick={() => setShowMore(prev => !prev)}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 px-0.5 py-1 transition-all ${
+            aria-expanded={showMore}
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 px-0.5 py-1 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:rounded-lg ${
               isMoreActive || showMore
                 ? 'text-indigo-600 dark:text-indigo-400'
                 : 'text-slate-400 dark:text-gray-500'
