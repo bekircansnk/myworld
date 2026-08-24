@@ -494,14 +494,21 @@ async def reset_data(
     current_admin: User = Depends(require_super_admin)
 ):
     """Tüm gereksiz verileri (görev, not, takvim vb) temizler."""
-    ALLOWED_CLEANUP_TABLES = {
-        "tasks", "notes", "calendar_events", 
-        "chat_messages", "chat_sessions", "activity_logs", 
-        "notifications", "timer_sessions", "ai_memory"
-    }
-    for table in ALLOWED_CLEANUP_TABLES:
+    # Pre-constructed queries to avoid SQL injection via f-strings in text()
+    CLEANUP_QUERIES = [
+        text('TRUNCATE TABLE "tasks" CASCADE'),
+        text('TRUNCATE TABLE "notes" CASCADE'),
+        text('TRUNCATE TABLE "calendar_events" CASCADE'),
+        text('TRUNCATE TABLE "chat_messages" CASCADE'),
+        text('TRUNCATE TABLE "chat_sessions" CASCADE'),
+        text('TRUNCATE TABLE "activity_logs" CASCADE'),
+        text('TRUNCATE TABLE "notifications" CASCADE'),
+        text('TRUNCATE TABLE "timer_sessions" CASCADE'),
+        text('TRUNCATE TABLE "ai_memory" CASCADE'),
+    ]
+    for query in CLEANUP_QUERIES:
         try:
-            await db.execute(text(f'TRUNCATE TABLE "{table}" CASCADE'))
+            await db.execute(query)
             await db.commit()
         except Exception:
             await db.rollback()
