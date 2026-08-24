@@ -1,0 +1,3 @@
+## 2024-08-24 - Calendar Events O(N*M) Rendering Optimization
+**Learning:** In React components that render long calendars (like month/week/day views), doing `events.filter(...)` inside the `.map(...)` loop for every day/hour creates an O(N*M) performance bottleneck, especially as the number of events grows. This forces the entire events array to be iterated over multiple times per render cycle.
+**Action:** Always pre-group events by date/hour into a hash map (`Map` or `Record`) using a single `useMemo` O(N) pass, then use O(1) lookups inside the render loops to improve performance dramatically.
