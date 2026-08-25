@@ -31,6 +31,8 @@ export function Sidebar() {
       {/* İçe/Dışa Kapatma Butonu */}
       <button 
         onClick={() => setIsExpanded(!isExpanded)}
+        aria-label={isExpanded ? 'Menüyü daralt' : 'Menüyü genişlet'}
+        title={isExpanded ? 'Menüyü daralt' : 'Menüyü genişlet'}
         className="absolute -right-3 top-8 bg-card border border-border shadow-sm rounded-full p-1 z-50 hover:bg-muted transition-colors"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${isExpanded ? '' : 'rotate-180'}`}><path d="m15 18-6-6 6-6"/></svg>
@@ -133,6 +135,7 @@ export function Sidebar() {
                         setSelectedProjectId(proj.id)
                         if(!isExpanded) setIsExpanded(true)
                     }}
+                    aria-label={proj.name}
                     className={`flex items-center truncate ${isExpanded ? 'flex-1 gap-3 py-2 px-2' : 'justify-center w-full h-8'}`}
                   >
                      <div className="relative w-3 h-3 flex items-center justify-center flex-shrink-0">
@@ -147,6 +150,8 @@ export function Sidebar() {
                          setProjectToEdit(proj)
                          setIsSettingsOpen(true)
                        }}
+                       aria-label="Firma ayarları"
+                       title="Firma ayarları"
                        className={`p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all ${selectedProjectId === proj.id ? 'opacity-100 3d-button' : 'opacity-0 group-hover:opacity-100'}`}
                      >
                       <Settings2 className="w-4 h-4" />
@@ -162,7 +167,7 @@ export function Sidebar() {
            </div>
            
            <div className={`mt-4 ${isExpanded ? 'px-1' : 'flex justify-center'}`}>
-             {isExpanded ? <ProjectForm /> : <Button variant="ghost" size="icon" onClick={() => setIsExpanded(true)} className="h-10 w-10 shrink-0"><span className="text-lg">+</span></Button>}
+             {isExpanded ? <ProjectForm /> : <Button variant="ghost" size="icon" onClick={() => setIsExpanded(true)} aria-label="Yeni firma ekle" title="Yeni firma ekle" className="h-10 w-10 shrink-0"><span className="text-lg">+</span></Button>}
            </div>
         </div>
       </div>
@@ -195,6 +200,8 @@ export function Sidebar() {
             variant="ghost"
             size="icon"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            aria-label="Temayı değiştir"
+            title="Temayı değiştir"
             className="rounded-full w-10 h-10 hover:bg-muted"
           >
             {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-indigo-400" />}
