@@ -727,6 +727,15 @@ function MonthView({ current, events, onDayClick, onEventClick, onDropItem, onCo
   const days = getMonthDays(current)
   const weekDays = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz']
 
+  const eventsByDate = React.useMemo(() => {
+    const map = new Map<string, CalendarEvent[]>();
+    for (const event of events) {
+      if (!map.has(event.date)) map.set(event.date, []);
+      map.get(event.date)!.push(event);
+    }
+    return map;
+  }, [events]);
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden h-full">
       <div className="grid grid-cols-7 border-b border-gray-200 dark:border-white/8 shrink-0">
@@ -736,7 +745,7 @@ function MonthView({ current, events, onDayClick, onEventClick, onDropItem, onCo
       </div>
       <div className="flex-1 grid grid-cols-7 auto-rows-fr overflow-y-auto">
         {days.map((day, idx) => {
-          const dayEvents = events.filter(e => e.date === format(day, 'yyyy-MM-dd'))
+          const dayEvents = eventsByDate.get(format(day, 'yyyy-MM-dd')) || [];
           const isCurrentMonth = isSameMonth(day, current)
           const today = isToday(day)
 
@@ -798,6 +807,23 @@ function WeekView({ current, events, onEventClick, onDropItem, onContextMenu }: 
 }) {
   const days = getWeekDays(current)
 
+  const eventsMap = React.useMemo(() => {
+    const map = new Map<string, CalendarEvent[]>();
+    for (const event of events) {
+      if (event.allDay) {
+        const key = `${event.date}_0`;
+        if (!map.has(key)) map.set(key, []);
+        map.get(key)!.push(event);
+      } else if (event.startTime) {
+        const hour = parseInt(event.startTime.split(':')[0]);
+        const key = `${event.date}_${hour}`;
+        if (!map.has(key)) map.set(key, []);
+        map.get(key)!.push(event);
+      }
+    }
+    return map;
+  }, [events]);
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden h-full">
       <div className="grid grid-cols-8 border-b border-gray-200 dark:border-white/8 shrink-0">
@@ -827,12 +853,7 @@ function WeekView({ current, events, onEventClick, onDropItem, onContextMenu }: 
             <div className="w-16 text-right pr-3 py-1 text-[10px] font-medium text-gray-400 dark:text-gray-500 border-r border-gray-100 dark:border-white/6 shrink-0">{hour.toString().padStart(2, '0')}:00</div>
             {days.map((day, dayIdx) => {
               const dateStr = format(day, 'yyyy-MM-dd')
-              const hourEvents = events.filter(e => {
-                if (e.date !== dateStr) return false
-                if (e.allDay) return hour === 0
-                if (!e.startTime) return false
-                return parseInt(e.startTime.split(':')[0]) === hour
-              })
+              const hourEvents = eventsMap.get(`${dateStr}_${hour}`) || [];
               return (
                 <div key={dayIdx} 
                   onDragOver={(e) => e.preventDefault()}
@@ -881,9 +902,22 @@ function DayView({ current, events, onEventClick, onAddEvent, onContextMenu }: {
   current: Date; events: CalendarEvent[]; onEventClick: (event: CalendarEvent, e: React.MouseEvent) => void; onAddEvent: () => void; onContextMenu: (e: React.MouseEvent, event: CalendarEvent) => void
 }) {
   const dateStr = format(current, 'yyyy-MM-dd')
-  const dayEvents = events.filter(e => e.date === dateStr)
-  const allDayEvents = dayEvents.filter(e => e.allDay)
-  const timedEvents = dayEvents.filter(e => !e.allDay && e.startTime)
+
+  const { allDayEvents, timedEventsMap } = React.useMemo(() => {
+    const allDay: CalendarEvent[] = [];
+    const timedMap = new Map<number, CalendarEvent[]>();
+    for (const e of events) {
+      if (e.date !== dateStr) continue;
+      if (e.allDay) {
+        allDay.push(e);
+      } else if (e.startTime) {
+        const hour = parseInt(e.startTime.split(':')[0]);
+        if (!timedMap.has(hour)) timedMap.set(hour, []);
+        timedMap.get(hour)!.push(e);
+      }
+    }
+    return { allDayEvents: allDay, timedEventsMap: timedMap };
+  }, [events, dateStr]);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden h-full">
@@ -904,7 +938,7 @@ function DayView({ current, events, onEventClick, onAddEvent, onContextMenu }: {
       )}
       <div className="flex-1 overflow-y-auto">
         {HOURS.map(hour => {
-          const hourEvents = timedEvents.filter(e => e.startTime && parseInt(e.startTime.split(':')[0]) === hour)
+          const hourEvents = timedEventsMap.get(hour) || [];
           return (
             <div key={hour} className="flex min-h-[64px] border-b border-gray-50 dark:border-white/4 group">
               <div className="w-20 text-right pr-4 py-2 text-[11px] font-medium text-gray-400 dark:text-gray-500 shrink-0 border-r border-gray-100 dark:border-white/6">{hour.toString().padStart(2, '0')}:00</div>
