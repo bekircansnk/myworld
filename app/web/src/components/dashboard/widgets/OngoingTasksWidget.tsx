@@ -20,6 +20,17 @@ export function OngoingTasksWidget() {
       .slice(0, 3)
   }, [tasks])
 
+  const subtasksMap = React.useMemo(() => {
+    const map = new Map<number, typeof tasks>();
+    tasks.forEach(t => {
+      if (t.parent_task_id) {
+        if (!map.has(t.parent_task_id)) map.set(t.parent_task_id, []);
+        map.get(t.parent_task_id)!.push(t);
+      }
+    });
+    return map;
+  }, [tasks]);
+
   return (
     <div className="glass-card p-6 h-full flex flex-col">
       <div className="flex items-center justify-between mb-6">
@@ -42,8 +53,8 @@ export function OngoingTasksWidget() {
           </div>
         ) : (
           urgentTasks.map((task, idx) => {
-            const subtasks = tasks.filter(t => t.parent_task_id === task.id)
-            const doneSubs = subtasks.filter(t => t.status === 'done').length
+            const subtasks = subtasksMap.get(task.id) || [];
+            const doneSubs = subtasks.filter(t => t.status === 'done').length;
             const progress = subtasks.length > 0 ? Math.round((doneSubs / subtasks.length) * 100) : 0
             const project = projects.find(p => p.id === task.project_id)
             const isFirst = idx === 0

@@ -5,6 +5,13 @@
 
 ---
 
+## 25.08.2026 — Performans İyileştirmesi: React Render Optimizasyonu
+
+### ⚡ OngoingTasksWidget O(N) Optimizasyonu
+- `app/web/src/components/dashboard/widgets/OngoingTasksWidget.tsx` dosyasında `urgentTasks.map()` döngüsü içindeki `tasks.filter()` çağrısı nedeniyle oluşan O(N*M) darboğazı giderildi.
+- Alt görevlerin `useMemo` ile tek seferde hesaplanan bir hash map'e (`subtasksMap`) kaydedilmesi ve döngü içinde O(1) hızında okunması sağlandı.
+- `.jules/bolt.md` günlüğüne bu kalıp için yeni bir öğrenim (learning) notu eklendi.
+
 ## 19.07.2026 — Başlangıç
 
 ### 🏗️ Jules Otonom Altyapı Kurulumu
