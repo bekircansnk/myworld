@@ -231,18 +231,21 @@ async def get_role_templates(current_admin: User = Depends(require_admin)):
 @router.get("/stats", response_model=AdminStatsResponse)
 async def get_stats(db: AsyncSession = Depends(get_db), current_admin: User = Depends(require_admin)):
     # Total Users
-    users_result = await db.execute(select(User))
-    users = users_result.scalars().all()
+    # Optimization: Replaced O(N) in-memory counting via .scalars().all()
+    # with O(1) database aggregate queries using func.count() to reduce memory overhead.
+    total_users_result = await db.execute(select(func.count(User.id)))
+    active_users_result = await db.execute(select(func.count(User.id)).where(User.is_active == True))
     
-    active = sum(1 for u in users if u.is_active)
-    inactive = len(users) - active
+    total = total_users_result.scalar() or 0
+    active = active_users_result.scalar() or 0
+    inactive = total - active
     
     tasks_count = await db.execute(select(func.count(Task.id)))
     notes_count = await db.execute(select(func.count(Note.id)))
     events_count = await db.execute(select(func.count(CalendarEvent.id)))
     
     return {
-        "total_users": len(users),
+        "total_users": total,
         "active_users": active,
         "inactive_users": inactive,
         "total_tasks": tasks_count.scalar() or 0,
