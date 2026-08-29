@@ -492,8 +492,9 @@ export function TopNavbar() {
             <button
               onClick={() => { setShowNotifPanel(!showNotifPanel); setShowUserPanel(false); }}
               className="w-9 h-9 md:w-10 md:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative"
+              aria-label="Bildirimler"
             >
-              <Bell className="w-4 h-4 text-brand-gray dark:text-gray-400" />
+              <Bell className="w-4 h-4 text-brand-gray dark:text-gray-400" aria-hidden="true" />
               {unreadCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm">
                   {unreadCount}
@@ -632,8 +633,9 @@ export function TopNavbar() {
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               className="w-9 h-9 md:w-10 md:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              aria-label="Tema değiştir"
             >
-              {theme === "dark" ? <Sun className="w-4 h-4 text-brand-yellow" /> : <Moon className="w-4 h-4 text-brand-dark" />}
+              {theme === "dark" ? <Sun className="w-4 h-4 text-brand-yellow" aria-hidden="true" /> : <Moon className="w-4 h-4 text-brand-dark" aria-hidden="true" />}
             </button>
           )}
 
@@ -642,11 +644,12 @@ export function TopNavbar() {
             <button
               onClick={() => { setShowUserPanel(!showUserPanel); setShowNotifPanel(false); }}
               className={`relative w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors overflow-hidden border-2 ${showUserPanel ? 'border-brand-yellow' : 'border-transparent bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+              aria-label="Kullanıcı menüsü"
             >
               {user?.avatar_url ? (
-                <img src={user.avatar_url.startsWith('http') ? user.avatar_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${user.avatar_url}`} alt="Avatar" className="w-full h-full object-cover" />
+                <img src={user.avatar_url.startsWith('http') ? user.avatar_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${user.avatar_url}`} alt="Avatar" className="w-full h-full object-cover" aria-hidden="true" />
               ) : (
-                <User className="w-4 h-4 text-brand-gray dark:text-gray-400" />
+                <User className="w-4 h-4 text-brand-gray dark:text-gray-400" aria-hidden="true" />
               )}
               {(updateState === "available" || updateState === "dismissed") && (
                 <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border border-white dark:border-slate-950 animate-pulse animate-duration-1000" />
