@@ -530,45 +530,34 @@ async def cleanup_orphan_data(
     if valid_ids:
         # project_id var AMA geçerli firmaya ait olmayan verileri sil
         # Görevler
-        orphan_tasks = await db.execute(
-            select(Task).where(Task.project_id.isnot(None), Task.project_id.notin_(valid_ids))
+        tasks_res = await db.execute(
+            delete(Task).where(Task.project_id.isnot(None), Task.project_id.notin_(valid_ids))
         )
-        task_list = orphan_tasks.scalars().all()
-        deleted["tasks"] = len(task_list)
-        if task_list:
-            await db.execute(delete(Task).where(Task.project_id.isnot(None), Task.project_id.notin_(valid_ids)))
+        deleted["tasks"] = tasks_res.rowcount
         
         # Notlar
-        orphan_notes = await db.execute(
-            select(Note).where(Note.project_id.isnot(None), Note.project_id.notin_(valid_ids))
+        notes_res = await db.execute(
+            delete(Note).where(Note.project_id.isnot(None), Note.project_id.notin_(valid_ids))
         )
-        note_list = orphan_notes.scalars().all()
-        deleted["notes"] = len(note_list)
-        if note_list:
-            await db.execute(delete(Note).where(Note.project_id.isnot(None), Note.project_id.notin_(valid_ids)))
+        deleted["notes"] = notes_res.rowcount
         
         # Takvim
-        orphan_events = await db.execute(
-            select(CalendarEvent).where(CalendarEvent.project_id.isnot(None), CalendarEvent.project_id.notin_(valid_ids))
+        events_res = await db.execute(
+            delete(CalendarEvent).where(CalendarEvent.project_id.isnot(None), CalendarEvent.project_id.notin_(valid_ids))
         )
-        event_list = orphan_events.scalars().all()
-        deleted["events"] = len(event_list)
-        if event_list:
-            await db.execute(delete(CalendarEvent).where(CalendarEvent.project_id.isnot(None), CalendarEvent.project_id.notin_(valid_ids)))
+        deleted["events"] = events_res.rowcount
         
         # Chat Sessions + Messages
         orphan_sessions = await db.execute(
-            select(ChatSession).where(ChatSession.project_id.isnot(None), ChatSession.project_id.notin_(valid_ids))
+            select(ChatSession.id).where(ChatSession.project_id.isnot(None), ChatSession.project_id.notin_(valid_ids))
         )
-        session_list = orphan_sessions.scalars().all()
-        orphan_session_ids = [s.id for s in session_list]
-        deleted["sessions"] = len(session_list)
+        orphan_session_ids = [s[0] for s in orphan_sessions.all()]
+        deleted["sessions"] = len(orphan_session_ids)
         if orphan_session_ids:
-            msg_result = await db.execute(
-                select(ChatMessage).where(ChatMessage.session_id.in_(orphan_session_ids))
+            msg_res = await db.execute(
+                delete(ChatMessage).where(ChatMessage.session_id.in_(orphan_session_ids))
             )
-            deleted["messages"] = len(msg_result.scalars().all())
-            await db.execute(delete(ChatMessage).where(ChatMessage.session_id.in_(orphan_session_ids)))
+            deleted["messages"] = msg_res.rowcount
             await db.execute(delete(ChatSession).where(ChatSession.id.in_(orphan_session_ids)))
     
     await db.commit()
