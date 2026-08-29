@@ -1,0 +1,4 @@
+## 2025-02-28 - SSRF in httpx
+**Vulnerability:** Server-Side Request Forgery (SSRF) in link preview endpoint via httpx.
+**Learning:** Even when doing DNS pre-flight checks to block private/loopback IPs, `httpx` will follow HTTP 302 Redirects by default (`follow_redirects=True`). An attacker could provide a public URL that redirects to an internal IP (like `127.0.0.1`), bypassing the initial DNS check. Additionally, `0.0.0.0` (`ip_obj.is_unspecified`) routes to localhost on Linux but isn't classified as private/loopback by python's `ipaddress` module, allowing a bypass.
+**Prevention:** Explicitly set `follow_redirects=False` on HTTP clients when fetching user-provided URLs to prevent redirect-based SSRF bypasses. When validating IPs, always check for `is_unspecified` in addition to `is_private`, `is_loopback`, and `is_link_local`.

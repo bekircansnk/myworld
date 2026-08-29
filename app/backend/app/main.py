@@ -255,15 +255,30 @@ async def get_app_version():
 async def link_preview(url: str):
     """URL'den sayfa başlığı ve favicon çeker — LinkBreeze özelliği için"""
     import httpx
+    import socket
+    import ipaddress
+    import asyncio
     from urllib.parse import urlparse
     try:
         parsed = urlparse(url)
         if not parsed.scheme:
             url = f"https://{url}"
             parsed = urlparse(url)
+
+        hostname = parsed.hostname
+        if hostname:
+            loop = asyncio.get_running_loop()
+            # Sanitize the URL to prevent SSRF (CWE-918) vulnerabilities
+            addr_info = await loop.run_in_executor(None, lambda: socket.getaddrinfo(hostname, None))
+            for res in addr_info:
+                ip = res[4][0]
+                ip_obj = ipaddress.ip_address(ip)
+                if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_unspecified:
+                    return {"title": "Restricted URL", "url": url, "favicon": "", "domain": parsed.netloc}
         
-        async with httpx.AsyncClient(timeout=3.0, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=3.0, follow_redirects=False) as client:
             resp = await client.get(url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
+            # Handle manual redirect if necessary, or just block redirects entirely to be safe
             html = resp.text[:10000]  # İlk 10KB yeterli
         
         # Title çıkar
