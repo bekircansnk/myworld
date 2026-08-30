@@ -197,8 +197,9 @@ export function ChatWidget() {
                 className={`h-7 w-7 text-muted-foreground`}
                 onClick={toggleSound}
                 title={isSoundEnabled ? "Sesi Kapat" : "Sesi Aç"}
+                aria-label={isSoundEnabled ? "Sesi Kapat" : "Sesi Aç"}
               >
-                {isSoundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+                {isSoundEnabled ? <Volume2 className="w-3.5 h-3.5" aria-hidden="true" /> : <VolumeX className="w-3.5 h-3.5" aria-hidden="true" />}
               </Button>
               <Button
                 variant="ghost"
@@ -206,14 +207,15 @@ export function ChatWidget() {
                 className={`h-7 w-7 ${showDebug ? 'text-amber-500' : 'text-muted-foreground'}`}
                 onClick={toggleDebug}
                 title="Debug modunu aç/kapat"
+                aria-label="Debug modunu aç/kapat"
               >
-                <Bug className="w-3.5 h-3.5" />
+                <Bug className="w-3.5 h-3.5" aria-hidden="true" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={clearHistory}>
-                <Trash2 className="w-3.5 h-3.5" />
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={clearHistory} title="Geçmişi temizle" aria-label="Geçmişi temizle">
+                <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={toggleChat}>
-                <X className="w-3.5 h-3.5" />
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={toggleChat} title="Sohbeti kapat" aria-label="Sohbeti kapat">
+                <X className="w-3.5 h-3.5" aria-hidden="true" />
               </Button>
             </div>
           </CardHeader>
@@ -264,8 +266,8 @@ export function ChatWidget() {
                 disabled={isLoading}
                 autoFocus
               />
-              <Button type="submit" size="icon" disabled={!inputValue.trim() || isLoading} className="shrink-0 h-9 w-9">
-                <Send className="h-4 w-4" />
+              <Button type="submit" size="icon" disabled={!inputValue.trim() || isLoading} className="shrink-0 h-9 w-9" title="Gönder" aria-label="Gönder">
+                <Send className="h-4 w-4" aria-hidden="true" />
               </Button>
             </form>
           </CardFooter>
