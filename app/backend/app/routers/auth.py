@@ -32,8 +32,14 @@ router = APIRouter()
 # ============================================================
 # ESKİ ŞİFRE SIFIRLAMA (Geriye uyumluluk)
 # ============================================================
+from app.dependencies.admin import require_super_admin
+
 @router.post("/reset-password")
-async def reset_password(data: PasswordReset, db: AsyncSession = Depends(get_db)):
+async def reset_password(
+    data: PasswordReset,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_super_admin)
+):
     result = await db.execute(select(User).where(User.username == data.username))
     user = result.scalars().first()
     if not user:
@@ -42,8 +48,6 @@ async def reset_password(data: PasswordReset, db: AsyncSession = Depends(get_db)
     await db.commit()
     return {"message": "Şifre başarıyla sıfırlandı"}
 
-
-from app.dependencies.admin import require_super_admin
 
 # ============================================================
 # KAYIT — E-posta destekli
