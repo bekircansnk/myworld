@@ -255,24 +255,54 @@ async def get_app_version():
 async def link_preview(url: str):
     """URL'den sayfa başlığı ve favicon çeker — LinkBreeze özelliği için"""
     import httpx
-    from urllib.parse import urlparse
+    from urllib.parse import urlparse, urljoin
+    import socket
+    import ipaddress
+    import asyncio
+    import re
+    from html import unescape
+
     try:
-        parsed = urlparse(url)
-        if not parsed.scheme:
-            url = f"https://{url}"
-            parsed = urlparse(url)
+        current_url = url
+        max_redirects = 5
+        html = ""
         
-        async with httpx.AsyncClient(timeout=3.0, follow_redirects=True) as client:
-            resp = await client.get(url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
-            html = resp.text[:10000]  # İlk 10KB yeterli
+        async with httpx.AsyncClient(timeout=3.0, follow_redirects=False) as client:
+            for _ in range(max_redirects):
+                parsed = urlparse(current_url)
+                if not parsed.scheme:
+                    current_url = f"https://{current_url}"
+                    parsed = urlparse(current_url)
+
+                if not parsed.hostname:
+                    raise ValueError("Invalid hostname")
+
+                # Sanitize the hostname to prevent SSRF vulnerabilities
+                loop = asyncio.get_running_loop()
+                try:
+                    addr_info = await loop.run_in_executor(None, socket.getaddrinfo, parsed.hostname, None)
+                except socket.gaierror:
+                    raise ValueError("Could not resolve hostname")
+
+                for res in addr_info:
+                    ip = ipaddress.ip_address(res[4][0])
+                    if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_unspecified:
+                        raise ValueError("Access to internal/private IPs is forbidden")
+
+                resp = await client.get(current_url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
+
+                if 300 <= resp.status_code < 400 and "location" in resp.headers:
+                    current_url = urljoin(current_url, resp.headers["location"])
+                    continue
+
+                html = resp.text[:10000]  # İlk 10KB yeterli
+                break
         
         # Title çıkar
-        import re
         title_match = re.search(r'<title[^>]*>(.*?)</title>', html, re.IGNORECASE | re.DOTALL)
         title = title_match.group(1).strip() if title_match else parsed.netloc
         
         # HTML entity decode
-        from html import unescape
         title = unescape(title)
         
         favicon = f"{parsed.scheme}://{parsed.netloc}/favicon.ico"
