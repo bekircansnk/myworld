@@ -262,8 +262,39 @@ async def link_preview(url: str):
             url = f"https://{url}"
             parsed = urlparse(url)
         
-        async with httpx.AsyncClient(timeout=3.0, follow_redirects=True) as client:
-            resp = await client.get(url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
+        import socket
+        import ipaddress
+        import asyncio
+        from urllib.parse import urljoin
+        from fastapi import HTTPException
+
+        async def check_host(hostname: str):
+            try:
+                loop = asyncio.get_running_loop()
+                info = await loop.run_in_executor(None, socket.getaddrinfo, hostname, None)
+                for res in info:
+                    ip_str = res[4][0]
+                    ip = ipaddress.ip_address(ip_str)
+                    if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_unspecified:
+                        raise HTTPException(status_code=400, detail="Erişim engellendi: Yerel IP tespit edildi")
+            except socket.gaierror:
+                raise HTTPException(status_code=400, detail="Geçersiz alan adı")
+
+        current_url = url
+        async with httpx.AsyncClient(timeout=3.0, follow_redirects=False) as client:
+            # En fazla 3 redirect'i elle takip et
+            for _ in range(3):
+                p = urlparse(current_url)
+                if not p.hostname:
+                    raise HTTPException(status_code=400, detail="Geçersiz URL")
+                await check_host(p.hostname)
+
+                resp = await client.get(current_url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
+                if resp.status_code in (301, 302, 303, 307, 308) and "Location" in resp.headers:
+                    current_url = urljoin(current_url, resp.headers["Location"])
+                else:
+                    break
+
             html = resp.text[:10000]  # İlk 10KB yeterli
         
         # Title çıkar
