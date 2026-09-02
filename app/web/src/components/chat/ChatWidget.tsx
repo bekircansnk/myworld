@@ -197,6 +197,7 @@ export function ChatWidget() {
                 className={`h-7 w-7 text-muted-foreground`}
                 onClick={toggleSound}
                 title={isSoundEnabled ? "Sesi Kapat" : "Sesi Aç"}
+                aria-label={isSoundEnabled ? "Sesi Kapat" : "Sesi Aç"}
               >
                 {isSoundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
               </Button>
@@ -205,14 +206,15 @@ export function ChatWidget() {
                 size="icon"
                 className={`h-7 w-7 ${showDebug ? 'text-amber-500' : 'text-muted-foreground'}`}
                 onClick={toggleDebug}
-                title="Debug modunu aç/kapat"
+                title="Debug Modunu Aç/Kapat"
+                aria-label="Debug Modunu Aç/Kapat"
               >
                 <Bug className="w-3.5 h-3.5" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={clearHistory}>
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={clearHistory} title="Geçmişi Temizle" aria-label="Geçmişi Temizle">
                 <Trash2 className="w-3.5 h-3.5" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={toggleChat}>
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={toggleChat} title="Sohbeti Kapat" aria-label="Sohbeti Kapat">
                 <X className="w-3.5 h-3.5" />
               </Button>
             </div>
@@ -264,7 +266,7 @@ export function ChatWidget() {
                 disabled={isLoading}
                 autoFocus
               />
-              <Button type="submit" size="icon" disabled={!inputValue.trim() || isLoading} className="shrink-0 h-9 w-9">
+              <Button type="submit" size="icon" disabled={!inputValue.trim() || isLoading} className="shrink-0 h-9 w-9" title="Gönder" aria-label="Gönder">
                 <Send className="h-4 w-4" />
               </Button>
             </form>
