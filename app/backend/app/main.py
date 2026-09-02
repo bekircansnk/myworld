@@ -255,15 +255,48 @@ async def get_app_version():
 async def link_preview(url: str):
     """URL'den sayfa başlığı ve favicon çeker — LinkBreeze özelliği için"""
     import httpx
+    import socket
+    import asyncio
+    import ipaddress
     from urllib.parse import urlparse
     try:
         parsed = urlparse(url)
         if not parsed.scheme:
             url = f"https://{url}"
             parsed = urlparse(url)
+
+        async def is_safe_url(target_url: str) -> bool:
+            p = urlparse(target_url)
+            if not p.hostname:
+                return False
+            try:
+                loop = asyncio.get_running_loop()
+                addr_info = await loop.run_in_executor(None, socket.getaddrinfo, p.hostname, None)
+                for info in addr_info:
+                    ip_obj = ipaddress.ip_address(info[4][0])
+                    if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_unspecified:
+                        return False
+                return True
+            except (socket.gaierror, ValueError):
+                return False
+
+        if not await is_safe_url(url):
+            return {"title": parsed.netloc or url, "url": url, "favicon": "", "domain": parsed.netloc or ""}
         
-        async with httpx.AsyncClient(timeout=3.0, follow_redirects=True) as client:
-            resp = await client.get(url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
+        async with httpx.AsyncClient(timeout=3.0, follow_redirects=False) as client:
+            resp = None
+            current_url = url
+            for _ in range(3): # max 3 redirects
+                if not await is_safe_url(current_url):
+                    break
+                resp = await client.get(current_url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
+                if resp.is_redirect:
+                    current_url = str(resp.next_request.url)
+                else:
+                    break
+
+            if not resp or resp.is_redirect:
+                return {"title": parsed.netloc or url, "url": url, "favicon": "", "domain": parsed.netloc or ""}
             html = resp.text[:10000]  # İlk 10KB yeterli
         
         # Title çıkar
