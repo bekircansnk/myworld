@@ -255,16 +255,49 @@ async def get_app_version():
 async def link_preview(url: str):
     """URL'den sayfa başlığı ve favicon çeker — LinkBreeze özelliği için"""
     import httpx
-    from urllib.parse import urlparse
+    import asyncio
+    import socket
+    import ipaddress
+    from urllib.parse import urlparse, urljoin
     try:
         parsed = urlparse(url)
         if not parsed.scheme:
             url = f"https://{url}"
             parsed = urlparse(url)
+
+        loop = asyncio.get_running_loop()
+        current_url = url
+        resp = None
         
-        async with httpx.AsyncClient(timeout=3.0, follow_redirects=True) as client:
-            resp = await client.get(url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
-            html = resp.text[:10000]  # İlk 10KB yeterli
+        async with httpx.AsyncClient(timeout=3.0, follow_redirects=False) as client:
+            for _ in range(3): # Max redirects
+                parsed = urlparse(current_url)
+                hostname = parsed.hostname
+                if not hostname:
+                    break
+
+                try:
+                    addrs = await loop.run_in_executor(None, socket.getaddrinfo, hostname, None)
+                except socket.gaierror:
+                    raise ValueError("Invalid hostname")
+
+                for addr in addrs:
+                    ip_obj = ipaddress.ip_address(addr[4][0])
+                    if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_unspecified:
+                        raise ValueError("Restricted IP")
+
+                resp = await client.get(current_url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
+                if resp.status_code in (301, 302, 303, 307, 308) and "location" in resp.headers:
+                    current_url = resp.headers["location"]
+                    if not current_url.startswith("http"):
+                        current_url = urljoin(str(resp.url), current_url)
+                    continue
+                break
+
+        if not resp:
+            raise ValueError("Failed to fetch")
+
+        html = resp.text[:10000]  # İlk 10KB yeterli
         
         # Title çıkar
         import re
