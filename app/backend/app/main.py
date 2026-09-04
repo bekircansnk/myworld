@@ -251,20 +251,59 @@ async def get_app_version():
         "changelog": "- Gemini Live API websocket bağlantısındaki model adı hatası giderildi (gemini-2.5-flash-native-audio-latest modeline geçildi).\n- 80'den fazla dil desteği aktif edildi.\n- Ana panele hızlı hoparlör/kulaklık geçişi ve çıkış yönlendirme kontrolleri eklendi.\n- Ekrana anlık websocket ve bağlantı loglarını basan canlı teşhis konsolu entegre edildi.\n- Mobilde (Android WebView) ekran taşması/kayması CSS flex düzeniyle düzeltildi.\n- Mobil yazı transkript modalı tam ekran bottom-sheet baloncuğuna dönüştürüldü.\n- Sürüm v6.8 (Code 58)"
     }
 
+async def _is_safe_url(target_url: str) -> bool:
+    import socket
+    import ipaddress
+    import asyncio
+    from urllib.parse import urlparse
+    parsed = urlparse(target_url)
+    hostname = parsed.hostname
+    if not hostname:
+        return False
+    try:
+        loop = asyncio.get_running_loop()
+        addr_info = await loop.run_in_executor(None, socket.getaddrinfo, hostname, None)
+    except socket.gaierror:
+        return False
+
+    for info in addr_info:
+        ip_str = info[4][0]
+        try:
+            ip = ipaddress.ip_address(ip_str)
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_unspecified:
+                return False
+        except ValueError:
+            pass
+    return True
+
 @app.get("/api/link-preview")
 async def link_preview(url: str):
     """URL'den sayfa başlığı ve favicon çeker — LinkBreeze özelliği için"""
     import httpx
-    from urllib.parse import urlparse
+    from urllib.parse import urlparse, urljoin
     try:
         parsed = urlparse(url)
         if not parsed.scheme:
             url = f"https://{url}"
             parsed = urlparse(url)
-        
-        async with httpx.AsyncClient(timeout=3.0, follow_redirects=True) as client:
-            resp = await client.get(url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
-            html = resp.text[:10000]  # İlk 10KB yeterli
+
+        current_url = url
+        html = ""
+        async with httpx.AsyncClient(timeout=3.0, follow_redirects=False) as client:
+            for _ in range(5):  # Max 5 redirects
+                if not await _is_safe_url(current_url):
+                    return {"title": parsed.netloc or url, "url": url, "favicon": "", "domain": parsed.netloc or ""}
+
+                resp = await client.get(current_url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
+
+                if resp.status_code in (301, 302, 303, 307, 308):
+                    location = resp.headers.get("Location")
+                    if not location:
+                        break
+                    current_url = urljoin(current_url, location)
+                else:
+                    html = resp.text[:10000]
+                    break
         
         # Title çıkar
         import re

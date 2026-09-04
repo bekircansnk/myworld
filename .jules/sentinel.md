@@ -1,0 +1,4 @@
+## 2024-09-04 - Fix SSRF in Link Preview Endpoint
+**Vulnerability:** The `/api/link-preview` endpoint blindly fetched URLs provided by users via `httpx.AsyncClient`, allowing attackers to perform Server-Side Request Forgery (SSRF) and access internal resources like localhost, private networks, or cloud metadata services.
+**Learning:** External URL fetching must always validate the resolved IP address against restricted ranges (e.g., loopback, private) before making the request. Additionally, auto-redirects must be disabled (`follow_redirects=False`) to prevent attackers from bypassing initial validation via 3xx redirects.
+**Prevention:** Implement an IP verification step using `socket.getaddrinfo` and `ipaddress.ip_address` to block internal IPs, and avoid using `follow_redirects=True` unless each redirect hop is manually validated.
