@@ -255,16 +255,46 @@ async def get_app_version():
 async def link_preview(url: str):
     """URL'den sayfa başlığı ve favicon çeker — LinkBreeze özelliği için"""
     import httpx
-    from urllib.parse import urlparse
+    import asyncio
+    import socket
+    import ipaddress
+    from urllib.parse import urlparse, urljoin
     try:
         parsed = urlparse(url)
         if not parsed.scheme:
             url = f"https://{url}"
             parsed = urlparse(url)
         
-        async with httpx.AsyncClient(timeout=3.0, follow_redirects=True) as client:
-            resp = await client.get(url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
-            html = resp.text[:10000]  # İlk 10KB yeterli
+        async with httpx.AsyncClient(timeout=3.0, follow_redirects=False) as client:
+            current_url = url
+            html = ""
+            for _ in range(3):
+                p_url = urlparse(current_url)
+                if not p_url.hostname:
+                    raise ValueError("Invalid hostname")
+
+                loop = asyncio.get_running_loop()
+                try:
+                    addr_info = await loop.run_in_executor(None, socket.getaddrinfo, p_url.hostname, None)
+                except socket.gaierror:
+                    raise ValueError("Cannot resolve hostname")
+
+                is_safe = True
+                for res in addr_info:
+                    ip = ipaddress.ip_address(res[4][0])
+                    if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_unspecified:
+                        is_safe = False
+                        break
+
+                if not is_safe:
+                    raise ValueError("Private IP not allowed")
+
+                resp = await client.get(current_url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
+                if resp.is_redirect and "location" in resp.headers:
+                    current_url = urljoin(current_url, resp.headers["location"])
+                else:
+                    html = resp.text[:10000]
+                    break
         
         # Title çıkar
         import re
