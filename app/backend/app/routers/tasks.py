@@ -68,18 +68,23 @@ async def reorder_tasks(
 ):
     effective_project_id = getattr(request.state, "project_id", None)
     
-    for item in reorder_data.items:
-        if current_user.role == "super_admin":
-            query = select(Task).where(Task.id == item.id)
-        elif effective_project_id:
-            query = select(Task).where(Task.id == item.id, Task.project_id == effective_project_id)
-        else:
-            query = select(Task).where(Task.id == item.id, Task.user_id == current_user.id)
-            
-        result = await db.execute(query)
-        task = result.scalars().first()
-        if task:
-            task.sort_order = item.sort_order
+    # ⚡ Bolt: Prevent N+1 queries by extracting IDs and fetching all tasks at once
+    task_ids = [item.id for item in reorder_data.items]
+    order_map = {item.id: item.sort_order for item in reorder_data.items}
+
+    if current_user.role == "super_admin":
+        query = select(Task).where(Task.id.in_(task_ids))
+    elif effective_project_id:
+        query = select(Task).where(Task.id.in_(task_ids), Task.project_id == effective_project_id)
+    else:
+        query = select(Task).where(Task.id.in_(task_ids), Task.user_id == current_user.id)
+
+    result = await db.execute(query)
+    tasks = result.scalars().all()
+
+    for task in tasks:
+        if task.id in order_map:
+            task.sort_order = order_map[task.id]
             
     await db.commit()
     return {"status": "ok", "message": "Tasks reordered"}
