@@ -523,15 +523,15 @@ export function DashboardWidgets() {
                 </div>
                 <div className="flex space-x-2">
                   {!isTimerRunning ? (
-                    <button onClick={startTimer} className="w-8 h-8 bg-emerald-500 shadow-sm rounded-full flex items-center justify-center hover:bg-emerald-600 transition shrink-0">
+                    <button onClick={startTimer} className="w-8 h-8 bg-emerald-500 shadow-sm rounded-full flex items-center justify-center hover:bg-emerald-600 transition shrink-0" aria-label="Zamanlayıcıyı başlat" title="Zamanlayıcıyı başlat">
                       <Play className="w-3.5 h-3.5 text-white ml-0.5" />
                     </button>
                   ) : (
-                    <button onClick={pauseTimer} className="w-8 h-8 bg-amber-500 shadow-sm rounded-full flex items-center justify-center hover:bg-amber-600 transition shrink-0">
+                    <button onClick={pauseTimer} className="w-8 h-8 bg-amber-500 shadow-sm rounded-full flex items-center justify-center hover:bg-amber-600 transition shrink-0" aria-label="Zamanlayıcıyı duraklat" title="Zamanlayıcıyı duraklat">
                       <Pause className="w-3.5 h-3.5 text-white" />
                     </button>
                   )}
-                  <button onClick={resetTimer} className="w-8 h-8 bg-card shadow-sm border border-border rounded-full flex items-center justify-center hover:bg-muted transition shrink-0">
+                  <button onClick={resetTimer} className="w-8 h-8 bg-card shadow-sm border border-border rounded-full flex items-center justify-center hover:bg-muted transition shrink-0" aria-label="Zamanlayıcıyı sıfırla" title="Zamanlayıcıyı sıfırla">
                     <RotateCcw className="w-3.5 h-3.5 text-brand-dark dark:text-white" />
                   </button>
                 </div>
