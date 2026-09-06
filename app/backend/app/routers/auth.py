@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import or_
+from sqlalchemy import or_, update
 import os
 import base64
 from datetime import datetime, timedelta
@@ -182,15 +182,14 @@ async def send_login_otp(data: SendOTPRequest, request: Request, background_task
         raise HTTPException(status_code=403, detail="Hesabınız devre dışı")
         
     # Eski kullanılmamış OTP'leri geçersiz yap
-    old_tokens = await db.execute(
-        select(EmailVerification).where(
+    # ⚡ Bolt Optimization: Replaced O(N) loop with O(1) bulk update to eliminate N+1 DB roundtrips.
+    await db.execute(
+        update(EmailVerification).where(
             EmailVerification.user_id == user.id,
             EmailVerification.token_type == "login_otp",
             EmailVerification.used == False
-        )
+        ).values(used=True)
     )
-    for old in old_tokens.scalars().all():
-        old.used = True
         
     # Yeni 6 haneli OTP oluştur (5 dakika geçerli)
     otp_code = generate_numeric_otp(6)
@@ -293,15 +292,14 @@ async def resend_verification(data: ResendVerificationRequest, background_tasks:
         return {"message": "E-posta adresiniz zaten doğrulanmış"}
     
     # Eski kullanılmamış tokenleri geçersiz yap
-    old_tokens = await db.execute(
-        select(EmailVerification).where(
+    # ⚡ Bolt Optimization: Replaced O(N) loop with O(1) bulk update to eliminate N+1 DB roundtrips.
+    await db.execute(
+        update(EmailVerification).where(
             EmailVerification.user_id == user.id,
             EmailVerification.token_type == "verify_email",
             EmailVerification.used == False
-        )
+        ).values(used=True)
     )
-    for old in old_tokens.scalars().all():
-        old.used = True
     
     # Yeni token oluştur
     token = generate_token()
@@ -331,15 +329,14 @@ async def forgot_password(data: ForgotPasswordRequest, background_tasks: Backgro
         return {"message": "E-posta adresinize şifre sıfırlama linki gönderildi"}
     
     # Eski kullanılmamış reset tokenlerini geçersiz yap
-    old_tokens = await db.execute(
-        select(EmailVerification).where(
+    # ⚡ Bolt Optimization: Replaced O(N) loop with O(1) bulk update to eliminate N+1 DB roundtrips.
+    await db.execute(
+        update(EmailVerification).where(
             EmailVerification.user_id == user.id,
             EmailVerification.token_type == "reset_password",
             EmailVerification.used == False
-        )
+        ).values(used=True)
     )
-    for old in old_tokens.scalars().all():
-        old.used = True
     
     # Yeni token oluştur (1 saat geçerli)
     token = generate_token()
