@@ -255,15 +255,47 @@ async def get_app_version():
 async def link_preview(url: str):
     """URL'den sayfa başlığı ve favicon çeker — LinkBreeze özelliği için"""
     import httpx
+    import socket
+    import ipaddress
+    import asyncio
     from urllib.parse import urlparse
+    from fastapi import HTTPException
+
+    async def resolve_and_check_ip(hostname: str):
+        try:
+            loop = asyncio.get_running_loop()
+            addr_info = await loop.run_in_executor(None, socket.getaddrinfo, hostname, None)
+            for info in addr_info:
+                ip = info[4][0]
+                ip_obj = ipaddress.ip_address(ip)
+                if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_unspecified:
+                    raise HTTPException(status_code=400, detail="Invalid or private IP address not allowed")
+        except socket.gaierror:
+            raise HTTPException(status_code=400, detail="Could not resolve hostname")
+
     try:
         parsed = urlparse(url)
         if not parsed.scheme:
             url = f"https://{url}"
             parsed = urlparse(url)
+
+        await resolve_and_check_ip(parsed.hostname)
         
-        async with httpx.AsyncClient(timeout=3.0, follow_redirects=True) as client:
-            resp = await client.get(url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
+        async with httpx.AsyncClient(timeout=3.0, follow_redirects=False) as client:
+            current_url = url
+            for _ in range(3): # Max 3 redirects
+                resp = await client.get(current_url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
+                if resp.is_redirect:
+                    next_url = resp.headers.get("Location")
+                    if not next_url:
+                        break
+                    from urllib.parse import urljoin
+                    current_url = urljoin(current_url, next_url)
+                    parsed_next = urlparse(current_url)
+                    await resolve_and_check_ip(parsed_next.hostname)
+                else:
+                    break
+
             html = resp.text[:10000]  # İlk 10KB yeterli
         
         # Title çıkar
@@ -278,6 +310,8 @@ async def link_preview(url: str):
         favicon = f"{parsed.scheme}://{parsed.netloc}/favicon.ico"
         
         return {"title": title, "url": url, "favicon": favicon, "domain": parsed.netloc}
+    except HTTPException:
+        raise
     except Exception:
         parsed = urlparse(url)
         return {"title": parsed.netloc or url, "url": url, "favicon": "", "domain": parsed.netloc or ""}
