@@ -1,0 +1,4 @@
+## 2026-09-07 - [CRITICAL] Arbitrary File Write via Path Traversal in AI Report Uploads
+**Vulnerability:** The AI report upload endpoint (`/api/ads/reports/ai-analysis`) directly used `file.filename` in `os.path.join` alongside a UUID prefix. A filename containing directory traversal characters (e.g., `../../../../../etc/passwd`) allowed escaping the intended upload directory, enabling arbitrary file overwrites.
+**Learning:** Prefixing a user-controlled filename with safe strings (like UUIDs) is not sufficient to prevent path traversal if the filename contains `../` sequences, as `os.path.join` resolves these traverses relative to the preceding path segments.
+**Prevention:** Always use `os.path.basename()` to strip any directory path structure from user-uploaded filenames before utilizing them in file system operations.
