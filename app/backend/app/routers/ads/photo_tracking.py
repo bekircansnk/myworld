@@ -384,6 +384,33 @@ async def import_excel(
         models_imported = 0
         colors_imported = 0
         
+        # Pre-fetch existing models to fix N+1 issue
+        if 'MADDE AÇIKLAMASI' in df.columns:
+            unique_model_names = df['MADDE AÇIKLAMASI'].dropna().astype(str).str.strip().unique().tolist()
+            unique_model_names = [name for name in unique_model_names if name]
+        else:
+            unique_model_names = []
+
+        existing_models = {}
+        existing_colors = {}
+        if unique_model_names:
+            m_q = select(PhotoModel).where(
+                PhotoModel.model_name.in_(unique_model_names),
+                PhotoModel.user_id == current_user.id,
+                PhotoModel.month == month,
+                PhotoModel.year == year
+            )
+            m_res = await db.execute(m_q)
+            for m in m_res.scalars().all():
+                existing_models[m.model_name] = m
+
+            model_ids = [m.id for m in existing_models.values()]
+            if model_ids:
+                c_q = select(PhotoModelColor).where(PhotoModelColor.model_id.in_(model_ids))
+                c_res = await db.execute(c_q)
+                for c in c_res.scalars().all():
+                    existing_colors[(c.model_id, c.color_name)] = c
+
         current_model_name = None
         current_model_id = None
         current_season = None
@@ -397,14 +424,7 @@ async def import_excel(
                 if pd.notna(sezon) and str(sezon).strip() != '':
                     current_season = str(sezon).strip()
                 
-                m_q = select(PhotoModel).where(
-                    PhotoModel.model_name == current_model_name,
-                    PhotoModel.user_id == current_user.id,
-                    PhotoModel.month == month,
-                    PhotoModel.year == year
-                )
-                m_res = await db.execute(m_q)
-                model = m_res.scalar_one_or_none()
+                model = existing_models.get(current_model_name)
                 
                 if not model:
                     model = PhotoModel(
@@ -419,6 +439,7 @@ async def import_excel(
                     db.add(model)
                     await db.commit()
                     await db.refresh(model)
+                    existing_models[current_model_name] = model
                     models_imported += 1
                 else:
                     if current_season:
@@ -431,12 +452,7 @@ async def import_excel(
             if pd.notna(color_name) and str(color_name).strip() != '' and current_model_id:
                 c_name = str(color_name).strip()
                 
-                c_q = select(PhotoModelColor).where(
-                    PhotoModelColor.model_id == current_model_id,
-                    PhotoModelColor.color_name == c_name
-                )
-                c_res = await db.execute(c_q)
-                color = c_res.scalar_one_or_none()
+                color = existing_colors.get((current_model_id, c_name))
                 
                 def parse_social(val):
                     s = str(val).strip().lower()
@@ -473,6 +489,7 @@ async def import_excel(
                         revision_note=rev_note_raw if rev_note_raw else None
                     )
                     db.add(color)
+                    existing_colors[(current_model_id, c_name)] = color
                     colors_imported += 1
                 else:
                     color.ig_required = ig_req
