@@ -5,6 +5,12 @@
 
 ---
 
+## 03.09.2024 — Performans İyileştirmeleri
+
+### ⚡ Bolt: Dashboard Performans İyileştirmesi
+- `DashboardWidgets.tsx` bileşenindeki yoğun dizi filtreleme işlemleri (`tasks.filter`) `useMemo` ile sarmalandı.
+- Bu sayede bileşen içi zaman bazlı state güncellemelerinde (dakikada bir) gereksiz hesaplamalar önlendi.
+
 ## 19.07.2026 — Başlangıç
 
 ### 🏗️ Jules Otonom Altyapı Kurulumu
