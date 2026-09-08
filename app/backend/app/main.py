@@ -256,28 +256,96 @@ async def link_preview(url: str):
     """URL'den sayfa başlığı ve favicon çeker — LinkBreeze özelliği için"""
     import httpx
     from urllib.parse import urlparse
+    import socket
+    import ipaddress
+    import asyncio
+
+    async def get_safe_ip(check_url: str) -> str | None:
+        try:
+            h = urlparse(check_url).hostname
+            if not h: return None
+
+            loop = asyncio.get_running_loop()
+            # Non-blocking DNS resolution in thread pool
+            res = await loop.run_in_executor(None, socket.getaddrinfo, h, None)
+
+            for r in res:
+                ip_str = r[4][0]
+                ip = ipaddress.ip_address(ip_str)
+                # is_global covers private, loopback, link_local, multicast, and unspecified (0.0.0.0)
+                if not ip.is_global:
+                    return None
+                return ip_str # Return first safe resolved IP to avoid TOCTOU
+            return None
+        except (socket.gaierror, ValueError, Exception):
+            return None
+
     try:
         parsed = urlparse(url)
         if not parsed.scheme:
             url = f"https://{url}"
             parsed = urlparse(url)
-        
-        async with httpx.AsyncClient(timeout=3.0, follow_redirects=True) as client:
-            resp = await client.get(url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
+
+        async with httpx.AsyncClient(timeout=3.0, follow_redirects=False) as client:
+            current_url = url
+            resp = None
+            for _ in range(3): # Max 3 redirects
+                safe_ip = await get_safe_ip(current_url)
+                if not safe_ip:
+                    raise Exception("Invalid or unsafe URL")
+
+                curr_parsed = urlparse(current_url)
+
+                # Directly request the resolved safe IP to prevent DNS Rebinding.
+                # Only do this for HTTP to avoid TLS/SNI validation errors.
+                # For HTTPS, we accept the small TOCTOU risk to maintain functionality
+                # as overriding the Host header on HTTPS breaks almost all modern sites.
+                if curr_parsed.scheme == "http":
+                    direct_url = f"http://{safe_ip}"
+                    if curr_parsed.port:
+                        direct_url += f":{curr_parsed.port}"
+                    direct_url += f"{curr_parsed.path}"
+                    if curr_parsed.query:
+                        direct_url += f"?{curr_parsed.query}"
+
+                    headers = {
+                        "User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)",
+                        "Host": curr_parsed.netloc.split(":")[0]
+                    }
+                    resp = await client.get(direct_url, headers=headers)
+                else:
+                    # For HTTPS, we use the original URL to not break SNI
+                    resp = await client.get(current_url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinkBreeze/1.0)"})
+
+                if resp.status_code in (301, 302, 303, 307, 308):
+                    next_url = resp.headers.get("Location")
+                    if not next_url:
+                        break
+                    # Handle relative redirects
+                    if not urlparse(next_url).netloc:
+                        from urllib.parse import urljoin
+                        next_url = urljoin(current_url, next_url)
+                    current_url = next_url
+                else:
+                    break
+
+            if resp is None:
+                raise Exception("Failed to fetch")
+
             html = resp.text[:10000]  # İlk 10KB yeterli
         
         # Title çıkar
         import re
         title_match = re.search(r'<title[^>]*>(.*?)</title>', html, re.IGNORECASE | re.DOTALL)
-        title = title_match.group(1).strip() if title_match else parsed.netloc
+        title = title_match.group(1).strip() if title_match else urlparse(current_url).netloc
         
         # HTML entity decode
         from html import unescape
         title = unescape(title)
         
-        favicon = f"{parsed.scheme}://{parsed.netloc}/favicon.ico"
+        favicon = f"{urlparse(current_url).scheme}://{urlparse(current_url).netloc}/favicon.ico"
         
-        return {"title": title, "url": url, "favicon": favicon, "domain": parsed.netloc}
+        return {"title": title, "url": current_url, "favicon": favicon, "domain": urlparse(current_url).netloc}
     except Exception:
         parsed = urlparse(url)
         return {"title": parsed.netloc or url, "url": url, "favicon": "", "domain": parsed.netloc or ""}
