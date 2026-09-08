@@ -206,12 +206,16 @@ export function DashboardWidgets() {
   }
 
   // === TASK STATS (LIVE) ===
-  const mainTasks = tasks.filter(t => !t.parent_task_id)
-  const todoTasks = mainTasks.filter(t => t.status === 'todo')
-  const doneTasks = mainTasks.filter(t => t.status === 'done')
-  const inProgressTasks = mainTasks.filter(t => t.status !== 'done' && t.status !== 'todo')
-  const totalTasks = mainTasks.length
-  const completionRate = totalTasks > 0 ? Math.round((doneTasks.length / totalTasks) * 100) : 0
+  const { mainTasks, todoTasks, doneTasks, inProgressTasks, totalTasks, completionRate } = React.useMemo(() => {
+    const main = tasks.filter(t => !t.parent_task_id)
+    const todo = main.filter(t => t.status === 'todo')
+    const done = main.filter(t => t.status === 'done')
+    const inProgress = main.filter(t => t.status !== 'done' && t.status !== 'todo')
+    const total = main.length
+    const compRate = total > 0 ? Math.round((done.length / total) * 100) : 0
+
+    return { mainTasks: main, todoTasks: todo, doneTasks: done, inProgressTasks: inProgress, totalTasks: total, completionRate: compRate }
+  }, [tasks])
 
   // === Gelişim chart — Haftalık (Pzt - Paz) ===
   // Gün bazlı key — sadece gün değiştiğinde yeniden hesapla
