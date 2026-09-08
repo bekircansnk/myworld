@@ -194,6 +194,8 @@ export function Sidebar() {
           <Button
             variant="ghost"
             size="icon"
+            aria-label="Temayı değiştir"
+            title="Temayı değiştir"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             className="rounded-full w-10 h-10 hover:bg-muted"
           >
