@@ -153,25 +153,32 @@ async def bulk_update_tasks(
 ):
     effective_project_id = getattr(request.state, "project_id", None)
     
+    # Determine the where clause based on permissions
+    base_where = Task.id.in_(bulk_data.task_ids)
     if current_user.role == "super_admin":
-        query = select(Task).where(Task.id.in_(bulk_data.task_ids))
+        where_clause = base_where
     elif effective_project_id:
-        query = select(Task).where(Task.id.in_(bulk_data.task_ids), Task.project_id == effective_project_id)
+        where_clause = and_(base_where, Task.project_id == effective_project_id)
     else:
-        query = select(Task).where(Task.id.in_(bulk_data.task_ids), Task.user_id == current_user.id)
+        where_clause = and_(base_where, Task.user_id == current_user.id)
         
-    result = await db.execute(query)
-    tasks = result.scalars().all()
-    for task in tasks:
-        if bulk_data.status is not None:
-            task.status = bulk_data.status
-        if bulk_data.priority is not None:
-            task.priority = bulk_data.priority
-        if bulk_data.project_id is not None:
-            task.project_id = bulk_data.project_id
-            
+    # Build the update values dictionary, skipping None values
+    update_values = {}
+    if bulk_data.status is not None:
+        update_values['status'] = bulk_data.status
+    if bulk_data.priority is not None:
+        update_values['priority'] = bulk_data.priority
+    if bulk_data.project_id is not None:
+        update_values['project_id'] = bulk_data.project_id
+
+    if not update_values:
+        return {"status": "ok", "message": "0 tasks updated (no data provided)"}
+
+    stmt = update(Task).where(where_clause).values(**update_values)
+    result = await db.execute(stmt)
     await db.commit()
-    return {"status": "ok", "message": f"{len(tasks)} tasks updated"}
+
+    return {"status": "ok", "message": f"{result.rowcount} tasks updated"}
 
 @router.post("", response_model=TaskResponse)
 async def create_task(
