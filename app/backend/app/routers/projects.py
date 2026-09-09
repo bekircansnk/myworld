@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import or_
+from sqlalchemy import or_, delete
 from typing import List
 import logging
 
@@ -139,18 +139,15 @@ async def delete_project(
         raise HTTPException(status_code=404, detail="Project not found")
     
     # Firma erişim kayıtlarını temizle
-    access_result = await db.execute(
-        select(UserCompanyAccess).where(UserCompanyAccess.project_id == project_id)
+    await db.execute(
+        delete(UserCompanyAccess).where(UserCompanyAccess.project_id == project_id)
     )
-    for access in access_result.scalars().all():
-        await db.delete(access)
         
     from app.models.task import Task
     from app.models.note import Note
     from app.models.calendar_event import CalendarEvent
     from app.models.chat_session import ChatSession
     from app.models.chat_message import ChatMessage
-    from sqlalchemy import delete
     
     # İlgili tüm verileri sil
     # 1. Görevler
