@@ -11,16 +11,22 @@ connect_args = {}
 if settings.environment != "development":
     connect_args["ssl"] = True
 
+engine_args = {
+    "echo": True if settings.environment == "development" else False,
+    "future": True,
+    "pool_recycle": 300,
+    "pool_pre_ping": True,
+    "pool_timeout": 30,
+    "connect_args": connect_args,
+}
+
+if "sqlite" not in settings.database_url:
+    engine_args["pool_size"] = 10
+    engine_args["max_overflow"] = 20
+
 engine = create_async_engine(
     settings.database_url,
-    echo=True if settings.environment == "development" else False,
-    future=True,
-    pool_size=10,
-    max_overflow=20,
-    pool_recycle=300,
-    pool_pre_ping=True,
-    pool_timeout=30,
-    connect_args=connect_args,
+    **engine_args
 )
 
 AsyncSessionLocal = async_sessionmaker(

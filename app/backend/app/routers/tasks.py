@@ -68,16 +68,22 @@ async def reorder_tasks(
 ):
     effective_project_id = getattr(request.state, "project_id", None)
     
+    item_ids = [item.id for item in reorder_data.items]
+    if not item_ids:
+        return {"status": "ok", "message": "Tasks reordered"}
+
+    if current_user.role == "super_admin":
+        query = select(Task).where(Task.id.in_(item_ids))
+    elif effective_project_id:
+        query = select(Task).where(Task.id.in_(item_ids), Task.project_id == effective_project_id)
+    else:
+        query = select(Task).where(Task.id.in_(item_ids), Task.user_id == current_user.id)
+
+    result = await db.execute(query)
+    tasks = {task.id: task for task in result.scalars().all()}
+
     for item in reorder_data.items:
-        if current_user.role == "super_admin":
-            query = select(Task).where(Task.id == item.id)
-        elif effective_project_id:
-            query = select(Task).where(Task.id == item.id, Task.project_id == effective_project_id)
-        else:
-            query = select(Task).where(Task.id == item.id, Task.user_id == current_user.id)
-            
-        result = await db.execute(query)
-        task = result.scalars().first()
+        task = tasks.get(item.id)
         if task:
             task.sort_order = item.sort_order
             
