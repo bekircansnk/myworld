@@ -1,0 +1,3 @@
+## 2024-05-24 - Resolve N+1 query bottleneck in task reordering
+**Learning:** When updating multiple database records sequentially via a loop (like `/reorder` endpoint), making individual `SELECT` queries for each item creates a significant N+1 performance bottleneck. In this specific architecture using FastAPI + SQLAlchemy, this can rapidly block the asyncio event loop or exhaust connections under load.
+**Action:** Always extract item IDs and use `.in_()` to fetch all required entities in a single batch query, map them by ID in memory, and then update their fields before executing a single commit.
