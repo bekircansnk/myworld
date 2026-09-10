@@ -30,6 +30,8 @@ export function Sidebar() {
     <div className={`hidden lg:flex transition-all duration-300 ${isExpanded ? 'w-72' : 'w-20'} glass-sidebar flex-col shadow-2xl z-10 relative`}>
       {/* İçe/Dışa Kapatma Butonu */}
       <button 
+        aria-label="Menüyü Daralt / Genişlet"
+        title={isExpanded ? "Daralt" : "Genişlet"}
         onClick={() => setIsExpanded(!isExpanded)}
         className="absolute -right-3 top-8 bg-card border border-border shadow-sm rounded-full p-1 z-50 hover:bg-muted transition-colors"
       >
@@ -129,6 +131,8 @@ export function Sidebar() {
              {mounted && projects.map(proj => (
                  <div key={proj.id} title={proj.name} className={`w-full flex items-center justify-between rounded-xl transition-all duration-300 group btn-3d ${isExpanded ? 'px-2 py-1 text-left text-sm' : 'justify-center p-2'} ${selectedProjectId === proj.id ? 'bg-card shadow-md inner-shadow-box ring-1 ring-border' : 'hover:bg-muted border-transparent'}`}>
                   <button 
+                    aria-label={`Proje seç: ${proj.name}`}
+                    title={`Proje seç: ${proj.name}`}
                     onClick={() => {
                         setSelectedProjectId(proj.id)
                         if(!isExpanded) setIsExpanded(true)
@@ -142,6 +146,8 @@ export function Sidebar() {
                   </button>
                   {isExpanded && (
                      <button 
+                       aria-label="Proje Ayarları"
+                       title="Proje Ayarları"
                        onClick={(e) => {
                          e.stopPropagation()
                          setProjectToEdit(proj)
