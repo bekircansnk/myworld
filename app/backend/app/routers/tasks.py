@@ -68,18 +68,20 @@ async def reorder_tasks(
 ):
     effective_project_id = getattr(request.state, "project_id", None)
     
+    task_ids = [item.id for item in reorder_data.items]
+    if current_user.role == "super_admin":
+        query = select(Task).where(Task.id.in_(task_ids))
+    elif effective_project_id:
+        query = select(Task).where(Task.id.in_(task_ids), Task.project_id == effective_project_id)
+    else:
+        query = select(Task).where(Task.id.in_(task_ids), Task.user_id == current_user.id)
+
+    result = await db.execute(query)
+    tasks = {task.id: task for task in result.scalars().all()}
+
     for item in reorder_data.items:
-        if current_user.role == "super_admin":
-            query = select(Task).where(Task.id == item.id)
-        elif effective_project_id:
-            query = select(Task).where(Task.id == item.id, Task.project_id == effective_project_id)
-        else:
-            query = select(Task).where(Task.id == item.id, Task.user_id == current_user.id)
-            
-        result = await db.execute(query)
-        task = result.scalars().first()
-        if task:
-            task.sort_order = item.sort_order
+        if item.id in tasks:
+            tasks[item.id].sort_order = item.sort_order
             
     await db.commit()
     return {"status": "ok", "message": "Tasks reordered"}
@@ -132,8 +134,9 @@ Lütfen sadece JSON formatında, yeni sıralamaya göre task ID'lerini içeren b
         ordered_ids = json.loads(text)
         
         # update sort_order in db
+        active_tasks_dict = {t.id: t for t in active_tasks}
         for idx, task_id in enumerate(ordered_ids):
-            task = next((t for t in active_tasks if t.id == task_id), None)
+            task = active_tasks_dict.get(task_id)
             if task:
                 task.sort_order = idx
                 
