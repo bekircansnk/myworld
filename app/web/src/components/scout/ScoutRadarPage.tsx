@@ -303,8 +303,42 @@ function generateClientHtml(title: string, markdownText: string, dateStr: string
 
     .prose a { color: #6366f1; text-decoration: none; font-weight: 600; }
     .prose pre { background: #0f172a !important; color: #38bdf8 !important; padding: 1.25rem; border-radius: 1.25rem; overflow-x: auto; border: 1px solid rgba(99,102,241,0.25); font-family: ui-monospace, monospace; font-size: 0.82rem; line-height: 1.65; }
+    html.light .prose pre { background: #f8fafc !important; color: #0f172a !important; border: 1px solid #e2e8f0 !important; box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important; }
+    html.light .prose pre code { color: #0f172a !important; }
     .prose code { background: rgba(99, 102, 241, 0.15); color: #6366f1; padding: 0.2rem 0.45rem; border-radius: 0.35rem; font-size: 0.88em; }
     .prose pre code { background: transparent; padding: 0; color: inherit; font-size: inherit; border: none; }
+
+    /* SELF-CONTAINED BUTTON & CONTROLS FALLBACK */
+    button, select { font-family: inherit; cursor: pointer; outline: none; }
+    .tab-btn, .persp-btn, header button, header select {
+      border-radius: 0.75rem;
+      padding: 0.375rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+    }
+    html.light header button, html.light header select {
+      background: #f1f5f9;
+      color: #334155;
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+    html.light header button:hover, html.light header select:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+    html.dark header button, html.dark header select {
+      background: rgba(30, 41, 59, 0.8);
+      color: #e2e8f0;
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    html.dark header button:hover, html.dark header select:hover {
+      background: rgba(51, 65, 85, 0.9);
+      color: #ffffff;
+    }
 
     /* FONT SCALER */
     .font-scaler-sm .prose p, .font-scaler-sm .prose li, .font-scaler-sm .prose td { font-size: 0.875rem !important; line-height: 1.6 !important; }
@@ -1369,9 +1403,9 @@ function AbTestsBenchmarkView({ briefing, fontSize }: { briefing: ScoutBriefing;
             </div>
 
             {/* KAPSAMLI EDİTORYAL VAKA ANALİZİ & ENTEGRASYON SÖZLEŞMESİ */}
-            <div className="p-5 rounded-2xl bg-amber-50/90 dark:bg-indigo-950/40 border border-amber-200/80 dark:border-indigo-500/30 space-y-3 text-xs md:text-sm leading-relaxed">
-              <div className="flex items-center gap-2 font-bold text-amber-900 dark:text-indigo-200">
-                <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <div className={`p-5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/70 dark:border-indigo-500/30 space-y-3 leading-relaxed ${fontClass}`}>
+              <div className="flex items-center gap-2 font-bold text-indigo-900 dark:text-indigo-200">
+                <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                 <span>💡 Sistem Mimarı Değerlendirmesi & Entegrasyon Sözleşmesi (CRM App & Planla):</span>
               </div>
               <p className="text-slate-700 dark:text-slate-300">
@@ -1383,7 +1417,7 @@ function AbTestsBenchmarkView({ briefing, fontSize }: { briefing: ScoutBriefing;
               <p className="text-slate-700 dark:text-slate-300">
                 <strong>Neden Kazandı?:</strong> Klasik RAG'de fonksiyon gövdeleri rastgele satırlardan kesilerek semantik bütünlük bozulmakta ve model eksik tipleri uydurarak halüsinasyona düşmekteydi. AST Bilgi Grafiği ise doğrudan AST soyut ağacını ayrıştırarak yalnızca çağrılan fonksiyonu, tip imzasını ve bağımlılıklarını modele sundu. Token harcaması 128k'dan 820'ye (%99.3) düşerken yanıt hızı 6.3 kat arttı ve halüsinasyon %0.0'a kilitlendi.
               </p>
-              <div className="p-3 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-amber-300/60 dark:border-indigo-400/30 text-amber-950 dark:text-indigo-200 font-medium">
+              <div className="p-3 rounded-xl bg-white/90 dark:bg-slate-900/80 border border-indigo-200/80 dark:border-indigo-400/30 text-indigo-950 dark:text-indigo-200 font-medium">
                 🚀 <strong>Sistemin Kalbine Entegrasyon (Nasıl ve Nerede Çalışıyor?):</strong> Bu kazanım Maestro Sovereign Core mimarimizin tam kalbine entegre edildi. <code>auto_discover_skill.py</code> ve <code>preflight_gate.py</code> araçlarımıza Niyet Algılama (Intent Detection) yapısı yerleştirildi. Artık sistem bir kodlama ihtiyacı sezdiğinde monolitik dosya okumak yerine bu AST MCP sunucusunu otomatik tetiklemektedir. Ajanlarımız artık çok daha az token harcayarak, kesin tip doğruluğuyla ve sıfır hata ile kod yazmakta; sistem tamamen bu deterministik çekirdeğe emanet edilmiş durumdadır.
               </div>
             </div>
@@ -1445,9 +1479,9 @@ function AbTestsBenchmarkView({ briefing, fontSize }: { briefing: ScoutBriefing;
               </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-amber-50/90 dark:bg-indigo-950/40 border border-amber-200/80 dark:border-indigo-500/30 space-y-3 text-xs md:text-sm leading-relaxed">
-              <div className="flex items-center gap-2 font-bold text-amber-900 dark:text-indigo-200">
-                <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <div className={`p-5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/70 dark:border-indigo-500/30 space-y-3 leading-relaxed ${fontClass}`}>
+              <div className="flex items-center gap-2 font-bold text-indigo-900 dark:text-indigo-200">
+                <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                 <span>💡 Sistem Mimarı Değerlendirmesi (Dual-Tier Modeli):</span>
               </div>
               <p className="text-slate-700 dark:text-slate-300">
@@ -1456,7 +1490,7 @@ function AbTestsBenchmarkView({ briefing, fontSize }: { briefing: ScoutBriefing;
               <p className="text-slate-700 dark:text-slate-300">
                 <strong>Neden Kazandı?:</strong> Tekil model ufak lint hatalarında dahi tüm prompt'u tekrar çalıştırarak 2.8 tura kilitlenirken; Dual-Tier mimaride Gemini Omni ilk taslağı 1.2 saniyede üretmekte, Claude Critic ise kodu yürütmeye girmeden katı kurallarla denetlemektedir. İlk sefer başarısı %71.2'den %98.4'e sıçramıştır.
               </p>
-              <div className="p-3 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-amber-300/60 dark:border-indigo-400/30 text-amber-950 dark:text-indigo-200 font-medium">
+              <div className="p-3 rounded-xl bg-white/90 dark:bg-slate-900/80 border border-indigo-200/80 dark:border-indigo-400/30 text-indigo-950 dark:text-indigo-200 font-medium">
                 🚀 <strong>Sistemin Kalbine Entegrasyon:</strong> LiteLLM Proxy ve Maestro <code>cognitive_gate.py</code> içerisine <code>Provider Pinning</code> kuralları eklendi. T0/T1 rutin görevleri hafif icracılara bırakılırken, mimari ve güvenlik onayı Critic'e kilitlenerek fatura %64 düşürüldü.
               </div>
             </div>
@@ -1518,9 +1552,9 @@ function AbTestsBenchmarkView({ briefing, fontSize }: { briefing: ScoutBriefing;
               </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-amber-50/90 dark:bg-indigo-950/40 border border-amber-200/80 dark:border-indigo-500/30 space-y-3 text-xs md:text-sm leading-relaxed">
-              <div className="flex items-center gap-2 font-bold text-amber-900 dark:text-indigo-200">
-                <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <div className={`p-5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/70 dark:border-indigo-500/30 space-y-3 leading-relaxed ${fontClass}`}>
+              <div className="flex items-center gap-2 font-bold text-indigo-900 dark:text-indigo-200">
+                <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                 <span>💡 Sistem Mimarı Değerlendirmesi:</span>
               </div>
               <p className="text-slate-700 dark:text-slate-300">
@@ -2831,16 +2865,6 @@ export function ScoutRadarPage() {
                 <option value="sec-checklist">🎯 Aksiyon Listesi</option>
                 <option value="sec-telemetry">📊 Telemetri</option>
               </select>
-
-              {/* Zen Tema Değiştirici (Sun / Moon) */}
-              <button
-                onClick={handleToggleTheme}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/90 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 text-xs font-semibold transition-all"
-                title={isDark ? "Aydınlık Okuma Moduna Geç" : "Karanlık Gece Moduna Geç"}
-              >
-                {isDark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-indigo-600" />}
-                <span className="hidden sm:inline">{isDark ? 'Aydınlık' : 'Karanlık'}</span>
-              </button>
 
               <div className="flex items-center bg-slate-100 dark:bg-slate-800/90 rounded-xl p-0.5 border border-slate-200 dark:border-white/10 text-xs font-semibold">
                 <button

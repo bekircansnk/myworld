@@ -298,6 +298,40 @@ def parse_markdown_to_html(md_text: str, title: str) -> str:
     html.light .prose td {{ color: #1e293b; border-bottom: 1px solid rgba(0, 0, 0, 0.05); }}
     html.light .prose blockquote {{ border-left: 4px solid #4f46e5; background: #f5f3ff; color: #334155; border: 1px solid rgba(79, 70, 229, 0.15); border-left-width: 4px; }}
     html.light .prose code {{ background: rgba(99, 102, 241, 0.08); color: #4338ca; border: 1px solid rgba(99, 102, 241, 0.15); }}
+    html.light .prose pre {{ background: #f8fafc !important; color: #0f172a !important; border: 1px solid #e2e8f0 !important; box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important; }}
+    html.light .prose pre code {{ color: #0f172a !important; }}
+
+    /* SELF-CONTAINED BUTTON & CONTROLS FALLBACK */
+    button, select {{ font-family: inherit; cursor: pointer; outline: none; }}
+    .tab-btn, .persp-btn, header button, header select {{
+      border-radius: 0.75rem;
+      padding: 0.375rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+    }}
+    html.light header button, html.light header select {{
+      background: #f1f5f9;
+      color: #334155;
+      border-color: rgba(0, 0, 0, 0.08);
+    }}
+    html.light header button:hover, html.light header select:hover {{
+      background: #e2e8f0;
+      color: #0f172a;
+    }}
+    html.dark header button, html.dark header select {{
+      background: rgba(30, 41, 59, 0.8);
+      color: #e2e8f0;
+      border-color: rgba(255, 255, 255, 0.1);
+    }}
+    html.dark header button:hover, html.dark header select:hover {{
+      background: rgba(51, 65, 85, 0.9);
+      color: #ffffff;
+    }}
 
     /* COMMON TYPOGRAPHY & CODE */
     .prose table {{ width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 1rem; overflow: hidden; margin: 1.5rem 0; }}
