@@ -128,8 +128,16 @@ function cleanAndPrepareReportHtml(rawHtml: string, theme: string = 'light', fon
       const parser = new DOMParser()
       const doc = parser.parseFromString(rawHtml, 'text/html')
 
-      // 1. Remove all top headers and redundant navbars
-      doc.querySelectorAll('header, .header-bar, #theme-toggle-btn').forEach(el => el.remove())
+      // 1. Remove all top headers, redundant navbars and legacy toolbar controls
+      doc.querySelectorAll('header, .header-bar, #theme-toggle-btn, .tab-btn, .persp-btn').forEach(el => el.remove())
+      doc.querySelectorAll('button[onclick*="switchView"], button[onclick*="switchPersp"], select[onchange*="jumpToSection"]').forEach(el => {
+        const parent = el.closest('div')
+        if (parent && parent.querySelectorAll('button, select').length <= 8) {
+          parent.remove()
+        } else {
+          el.remove()
+        }
+      })
 
       // 2. Remove secondary duplicate panes if present
       const panesToRemove = ['pane-magazine', 'pane-perspective', 'pane-ab', 'pane-raw']
@@ -1541,18 +1549,17 @@ export function ScoutRadarPage() {
       if (targetIframe && targetIframe.contentWindow) {
         targetIframe.contentWindow.postMessage({ type: 'SCROLL_TO_SECTION', sectionId: val }, '*')
       }
+      return
     }
 
     // Direct navigation to A/B test view
-    if (val === 'sec-ab' && readerViewMode !== 'html') {
+    if (val === 'sec-ab') {
       setReaderViewMode('ab_tests')
       return
     }
 
     if (secMap[val]) {
-      if (readerViewMode !== 'html') {
-        setReaderViewMode('perspective')
-      }
+      setReaderViewMode('perspective')
       setPerspectiveTab(secMap[val])
       return
     }
@@ -1616,43 +1623,8 @@ export function ScoutRadarPage() {
           </div>
         </div>
 
-        {/* Aksiyon Araçları */}
+        {/* Global Aksiyon Araçları */}
         <div className="flex items-center gap-2">
-          {/* Sun / Moon Theme Toggle */}
-          <button
-            onClick={handleToggleTheme}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-white/10 transition-all"
-            title={isDark ? "Aydınlık Okuma Moduna Geç" : "Karanlık Gece Moduna Geç"}
-          >
-            {isDark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-indigo-600" />}
-            <span className="hidden xl:inline">{isDark ? 'Aydınlık Mod' : 'Karanlık Mod'}</span>
-          </button>
-
-          {/* Yazı Boyutu Seçici */}
-          <div className="hidden sm:flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-xl p-0.5 border border-slate-200/80 dark:border-white/10 text-xs font-semibold">
-            <button
-              onClick={() => setFontSize('sm')}
-              className={`px-2 py-1 rounded-lg transition-all ${fontSize === 'sm' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-              title="Küçük Yazı (14px)"
-            >
-              A-
-            </button>
-            <button
-              onClick={() => setFontSize('base')}
-              className={`px-2 py-1 rounded-lg transition-all ${fontSize === 'base' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-              title="Standart Yazı (16px)"
-            >
-              A
-            </button>
-            <button
-              onClick={() => setFontSize('lg')}
-              className={`px-2 py-1 rounded-lg transition-all ${fontSize === 'lg' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-              title="Büyük Yazı (18px)"
-            >
-              A+
-            </button>
-          </div>
-
           {/* Raporu Kopyala */}
           <button
             onClick={handleCopyReport}
@@ -1694,15 +1666,6 @@ export function ScoutRadarPage() {
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
             <span className="hidden sm:inline">RAG Asistanı</span>
-          </button>
-
-          {/* Tam Ekran Modu */}
-          <button
-            onClick={() => setIsFullscreen(!isFullscreen)}
-            className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 transition-colors"
-            title={isFullscreen ? "Tam Ekrandan Çık" : "Odaklanma / Tam Ekran Modu"}
-          >
-            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
 
           {/* Yenile */}
@@ -2050,6 +2013,15 @@ export function ScoutRadarPage() {
                       title="AI Intelligence HTML Report"
                       srcDoc={renderedHtml}
                       className="w-full h-full flex-1 border-none"
+                      onLoad={(e) => {
+                        try {
+                          const cw = e.currentTarget.contentWindow
+                          if (cw) {
+                            cw.postMessage({ type: 'SET_THEME', theme: isDark ? 'dark' : 'light' }, '*')
+                            cw.postMessage({ type: 'SET_FONT_SIZE', size: fontSize }, '*')
+                          }
+                        } catch (_) {}
+                      }}
                     />
                   </div>
                 </div>
@@ -2590,6 +2562,15 @@ export function ScoutRadarPage() {
                     title="Fullscreen AI Report"
                     srcDoc={renderedHtml}
                     className="w-full h-full border-none"
+                    onLoad={(e) => {
+                      try {
+                        const cw = e.currentTarget.contentWindow
+                        if (cw) {
+                          cw.postMessage({ type: 'SET_THEME', theme: isDark ? 'dark' : 'light' }, '*')
+                          cw.postMessage({ type: 'SET_FONT_SIZE', size: fontSize }, '*')
+                        }
+                      } catch (_) {}
+                    }}
                   />
                 </div>
               </div>
@@ -2598,6 +2579,24 @@ export function ScoutRadarPage() {
             {readerViewMode === 'magazine' && (
               <div id="fullscreen-scroll-container" className="flex-1 overflow-y-auto p-4 md:p-10">
                 <div className="max-w-5xl mx-auto bg-white dark:bg-[#111625]/90 border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 md:p-12 shadow-2xl space-y-6">
+                  <div className="border-b border-slate-200 dark:border-white/10 pb-6 flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[11px] uppercase tracking-wider font-extrabold px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                          Dahili Stratejik İstihbarat
+                        </span>
+                        <span className="text-[11px] font-bold text-slate-400">
+                          Döngü #{selectedBriefing.id * 4}
+                        </span>
+                      </div>
+                      <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                        {selectedBriefing.title}
+                      </h2>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        Hazırlayan: Baş İstihbarat ve Strateji Direktörü (Maestro 360 Swarm) • {selectedBriefing.date}
+                      </p>
+                    </div>
+                  </div>
                   <RichMarkdownViewer
                     content={selectedBriefing.content || selectedBriefing.description}
                     fontSize={fontSize}

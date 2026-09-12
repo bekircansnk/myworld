@@ -269,40 +269,90 @@ async def run_e2e():
             await page.screenshot(path="/Users/bekir/Uygulamalarim/2-My-World/scripts/screenshots/06_scout_ab_tests_view.png")
             print("[OK] Screenshot 6 kaydedildi: 06_scout_ab_tests_view.png", flush=True)
 
-            # 8. Tam Ekran Odaklanma Modu (100vw / 100vh Modal)
-            print("[*] Odaklanma / Tam Ekran modu test ediliyor...", flush=True)
+            # 8. Mod 1'e (Cam HTML) geri dön ve Tam Ekran Odaklanma Modu (Zen) Testleri
+            print("[*] Cam HTML moduna geri dönülüyor...", flush=True)
+            cam_html_btn = await page.query_selector("button:has-text('Cam HTML')")
+            assert cam_html_btn is not None, "Cam HTML butonu bulunamadı!"
+            await cam_html_btn.click()
+            await page.wait_for_timeout(1000)
+
+            print("[*] Odaklanma / Tam Ekran (Zen) modu test ediliyor...", flush=True)
             fullscreen_btn = await page.query_selector("button[title*='Odaklanma']")
             assert fullscreen_btn is not None, "Tam ekran butonu bulunamadı!"
             await fullscreen_btn.click()
-            await page.wait_for_timeout(1000)
+            await page.wait_for_timeout(1200)
 
             zen_label = await page.query_selector("text=Odaklanma Modu (Zen)")
             assert zen_label is not None, "Tam Ekran Odaklanma Modu modalı açılmadı!"
+            print("[OK] Tam Ekran Odaklanma (Zen) Modu açıldı.", flush=True)
 
-            # Başlık gezgini kontrolü ve atlama
-            toc_select = await page.query_selector("select:has-text('Başlığa Git')")
-            assert toc_select is not None, "Başlık Gezgini seçicisi bulunamadı!"
+            # Zen Mod 1: Cam HTML İframe Testi
+            zen_iframe = await page.query_selector("iframe[title='Fullscreen AI Report']")
+            assert zen_iframe is not None, "Zen modunda HTML iframe bulunamadı!"
+            await page.screenshot(path="/Users/bekir/Uygulamalarim/2-My-World/scripts/screenshots/07_scout_zen_html.png")
+            print("[OK] Screenshot 7 kaydedildi: 07_scout_zen_html.png", flush=True)
+
+            # Zen Başlık Gezgini (TOC) Testi
+            toc_select = await page.query_selector("div.fixed select")
+            assert toc_select is not None, "Zen Başlık Gezgini seçicisi bulunamadı!"
             await toc_select.select_option("sec-frontier")
-            await page.wait_for_timeout(800)
+            await page.wait_for_timeout(600)
+            print("[OK] Zen TOC seçici başarıyla çalıştı.", flush=True)
 
-            # Tam ekran içinden telemetri sekmesi kontrolü
+            # Zen Tema Değiştirici Testi (Aydınlık / Karanlık)
+            zen_theme_btn = await page.query_selector("div.fixed button[title*='Mod']")
+            if zen_theme_btn:
+                await zen_theme_btn.click()
+                await page.wait_for_timeout(500)
+                await page.screenshot(path="/Users/bekir/Uygulamalarim/2-My-World/scripts/screenshots/08_scout_zen_dark.png")
+                print("[OK] Zen Karanlık mod screenshot kaydedildi: 08_scout_zen_dark.png", flush=True)
+                # Tekrar light moda dön
+                await zen_theme_btn.click()
+                await page.wait_for_timeout(500)
+
+            # Zen Mod 2: Magazin Görünümü
+            fs_mag_btn = await page.query_selector("div.fixed button:has-text('Magazin')")
+            if fs_mag_btn:
+                await fs_mag_btn.click()
+                await page.wait_for_timeout(800)
+                assert await page.query_selector("div.fixed :has-text('Dahili Stratejik İstihbarat')") is not None, "Zen Magazin modu yüklenemedi!"
+                print("[OK] Zen Magazin modu başarıyla doğrulandı.", flush=True)
+
+            # Zen Mod 3: Bölüm Gezgini ve Telemetri
             fs_persp_btn = await page.query_selector("div.fixed button:has-text('Bölüm Gezgini')")
             if fs_persp_btn:
                 await fs_persp_btn.click()
-                await page.wait_for_timeout(600)
+                await page.wait_for_timeout(800)
                 fs_telemetry = await page.query_selector("div.fixed button:has-text('Telemetri')")
                 if fs_telemetry:
                     await fs_telemetry.click()
-                    await page.wait_for_timeout(600)
+                    await page.wait_for_timeout(800)
                     assert await page.query_selector("text=Worker 1: GitHub & MCP") is not None, "Tam ekranda Telemetri tablosu bulunamadı!"
+                    print("[OK] Zen Bölüm Gezgini ve Telemetri tablosu doğrulandı.", flush=True)
 
-            await page.screenshot(path="/Users/bekir/Uygulamalarim/2-My-World/scripts/screenshots/07_scout_fullscreen_zen.png")
-            print("[OK] Screenshot 7 kaydedildi: 07_scout_fullscreen_zen.png", flush=True)
+            # Zen Mod 4: A/B Testleri
+            fs_ab_btn = await page.query_selector("div.fixed button:has-text('A/B Testleri')")
+            if fs_ab_btn:
+                await fs_ab_btn.click()
+                await page.wait_for_timeout(800)
+                assert await page.query_selector("div.fixed :has-text('Canlı Sistem Doğrulaması & Benchmark')") is not None, "Zen A/B Testleri yüklenemedi!"
+                print("[OK] Zen A/B Testleri modu başarıyla doğrulandı.", flush=True)
+
+            # Zen Mod 5: Ham Kaynak
+            fs_raw_btn = await page.query_selector("div.fixed button:has-text('Ham')")
+            if fs_raw_btn:
+                await fs_raw_btn.click()
+                await page.wait_for_timeout(600)
+                assert await page.query_selector("div.fixed pre") is not None, "Zen Ham Kaynak yüklenemedi!"
+                print("[OK] Zen Ham Kaynak modu başarıyla doğrulandı.", flush=True)
+
+            await page.screenshot(path="/Users/bekir/Uygulamalarim/2-My-World/scripts/screenshots/09_scout_zen_complete.png")
+            print("[OK] Screenshot 9 kaydedildi: 09_scout_zen_complete.png", flush=True)
 
             # Esc tuşu ile tam ekrandan çıkış
             print("[*] Esc tuşu ile tam ekrandan çıkılıyor...", flush=True)
             await page.keyboard.press("Escape")
-            await page.wait_for_timeout(600)
+            await page.wait_for_timeout(800)
             zen_modal_after = await page.query_selector("text=Odaklanma Modu (Zen)")
             assert zen_modal_after is None, "Esc tuşuna basılmasına rağmen tam ekran modalı kapanmadı!"
             print("[OK] Tam Ekran modalı Esc tuşu ile başarıyla kapatıldı.", flush=True)
