@@ -65,6 +65,35 @@ def parse_markdown_to_html(md_text: str, title: str) -> str:
     except Exception:
         body_html = f"<pre style='white-space: pre-wrap;'>{md_text}</pre>"
         
+    mapping = [
+        (r'özet|summary|60\s*saniye', 'sec-summary'),
+        (r'github|mcp|proje|repo', 'sec-github'),
+        (r'frontier|model|lab|deepmind|anthropic|openai', 'sec-frontier'),
+        (r'topluluk|community|nabız|twitter|reddit|hacker', 'sec-community'),
+        (r'mimari|architecture|fsm|topoloji|üretim|ajan tasarımı', 'sec-architecture'),
+        (r'a/b|benchmark|karşılaştırma|deney', 'sec-ab'),
+        (r'aksiyon|checklist|yapılacak|kontrol', 'sec-checklist'),
+        (r'telemetri|orkestrasyon|kota|worker', 'sec-telemetry'),
+    ]
+    def inject_ids(match):
+        tag_open = match.group(1)
+        inner = match.group(2)
+        tag_close = match.group(3)
+        inner_lower = inner.lower()
+        sec_id = ""
+        for pat, sid in mapping:
+            if re.search(pat, inner_lower):
+                sec_id = sid
+                break
+        if sec_id:
+            if 'id="' in tag_open:
+                tag_open = re.sub(r'id="[^"]*"', f'id="{sec_id}"', tag_open)
+            else:
+                tag_open = f'<h2 id="{sec_id}"' + tag_open[3:]
+        return f"{tag_open}{inner}{tag_close}"
+
+    body_html = re.sub(r'(<h2[^>]*>)(.*?)(</h2>)', inject_ids, body_html, flags=re.IGNORECASE | re.DOTALL)
+
     date_match = re.search(r'\d{4}-\d{2}-\d{2}', title)
     date_str = date_match.group(0) if date_match else datetime.now().strftime("%Y-%m-%d")
     words = len(md_text.split())
@@ -90,7 +119,7 @@ def parse_markdown_to_html(md_text: str, title: str) -> str:
     .prose code {{ background: rgba(99, 102, 241, 0.2); color: #c7d2fe; padding: 0.25rem 0.5rem; border-radius: 0.4rem; font-size: 0.86em; border: 1px solid rgba(99,102,241,0.3); }}
     .prose pre code {{ background: transparent; padding: 0; color: inherit; font-size: inherit; border: none; }}
     .prose h1 {{ font-size: 2.15rem; font-weight: 900; color: #ffffff; letter-spacing: -0.025em; margin-bottom: 1.25rem; }}
-    .prose h2 {{ font-size: 1.4rem; font-weight: 800; color: #ffffff; margin-top: 2.25rem; margin-bottom: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 0.6rem; display: flex; align-items: center; gap: 0.6rem; }}
+    .prose h2 {{ font-size: 1.4rem; font-weight: 800; color: #ffffff; margin-top: 2.25rem; margin-bottom: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 0.6rem; display: flex; align-items: center; gap: 0.6rem; scroll-margin-top: 5rem; }}
     .prose h3 {{ font-size: 1.15rem; font-weight: 700; color: #f8fafc; margin-top: 1.5rem; margin-bottom: 0.6rem; }}
     .prose p {{ line-height: 1.75; margin-bottom: 1.1rem; color: #e2e8f0; font-size: 0.95rem; }}
     .prose ul, .prose ol {{ margin-left: 1.75rem; margin-bottom: 1.25rem; color: #f1f5f9; font-size: 0.95rem; }}
@@ -130,8 +159,8 @@ def parse_markdown_to_html(md_text: str, title: str) -> str:
       </div>
 
       <!-- 5-MODE SWITCHER BUTTONS -->
-      <div class="flex items-center gap-1 p-1 bg-slate-900/90 rounded-2xl border border-white/10 text-xs font-semibold">
-        <button onclick="switchView('html')" id="tab-html" class="tab-btn active px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 text-slate-300 hover:text-white">
+      <div class="flex items-center gap-1 p-1 bg-slate-900/90 rounded-2xl border border-white/10 text-xs font-semibold overflow-x-auto max-w-full scrollbar-none shrink-0">
+        <button onclick="switchView('html')" id="tab-html" class="tab-btn active px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 text-slate-300 hover:text-white shrink-0">
           <i class="fa-solid fa-eye"></i> <span>🌟 Cam HTML</span>
         </button>
         <button onclick="switchView('magazine')" id="tab-magazine" class="tab-btn px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 text-slate-300 hover:text-white">
@@ -475,10 +504,21 @@ def parse_markdown_to_html(md_text: str, title: str) -> str:
       if (val === 'sec-summary') {{
         switchView('perspective');
         switchPersp('summary');
+        return;
       }} else if (val === 'sec-ab') {{
         switchView('ab');
+        return;
       }} else {{
-        switchView('html');
+        const activeTab = document.querySelector('.tab-btn.active');
+        if (!activeTab || activeTab.id !== 'tab-html') {{
+          switchView('html');
+        }}
+        setTimeout(() => {{
+          const el = document.getElementById(val);
+          if (el) {{
+            el.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+          }}
+        }}, 100);
       }}
     }}
 
@@ -524,7 +564,7 @@ def parse_report_sections(content: str) -> Dict[str, Any]:
     telemetry_rows = []
     telemetry_text = ""
     for k, v in sections.items():
-        if any(term in k.lower() for term in ["telemetri", "orkestrasyon", "benchmark", "worker"]):
+        if any(term in k.lower() for term in ["telemetri", "orkestrasyon", "kota", "worker"]):
             telemetry_text = v
             break
 

@@ -212,6 +212,16 @@ async def run_e2e():
                 await page.screenshot(path="/Users/bekir/Uygulamalarim/2-My-World/scripts/screenshots/04_scout_checklist_tab.png")
                 print("[OK] Screenshot 4 kaydedildi: 04_scout_checklist_tab.png", flush=True)
 
+            # Sekme 4: Telemetri & Kota Rotasyonu (A/B Çakışması Engellendiği Doğrulanır)
+            print("[*] Perspektif Sekme 4: Telemetri sekmesi doğrulanıyor...", flush=True)
+            telemetry_btn = await page.query_selector("button:has-text('Telemetri')")
+            assert telemetry_btn is not None, "Telemetri butonu bulunamadı!"
+            await telemetry_btn.click()
+            await page.wait_for_timeout(800)
+            worker_cell = await page.query_selector("text=Worker 1: GitHub & MCP")
+            assert worker_cell is not None, "Telemetri sekmesinde Worker 1 tablosu bulunamadı!"
+            print("[OK] Telemetri tablosu ve Worker 1 başarıyla doğrulandı.", flush=True)
+
             # 6. MOD 4: Ham Kaynak (Markdown / JSON / HTML Source)
             print("[*] Mod 4: Ham Kaynak moduna geçiliyor...", flush=True)
             raw_btn = await page.query_selector("button:has-text('Ham Kaynak')")
@@ -257,9 +267,22 @@ async def run_e2e():
             zen_label = await page.query_selector("text=Odaklanma Modu (Zen)")
             assert zen_label is not None, "Tam Ekran Odaklanma Modu modalı açılmadı!"
 
-            # Başlık gezgini kontrolü
+            # Başlık gezgini kontrolü ve atlama
             toc_select = await page.query_selector("select:has-text('Başlığa Git')")
             assert toc_select is not None, "Başlık Gezgini seçicisi bulunamadı!"
+            await toc_select.select_option("sec-frontier")
+            await page.wait_for_timeout(800)
+
+            # Tam ekran içinden telemetri sekmesi kontrolü
+            fs_persp_btn = await page.query_selector("div.fixed button:has-text('Bölüm Gezgini')")
+            if fs_persp_btn:
+                await fs_persp_btn.click()
+                await page.wait_for_timeout(600)
+                fs_telemetry = await page.query_selector("div.fixed button:has-text('Telemetri')")
+                if fs_telemetry:
+                    await fs_telemetry.click()
+                    await page.wait_for_timeout(600)
+                    assert await page.query_selector("text=Worker 1: GitHub & MCP") is not None, "Tam ekranda Telemetri tablosu bulunamadı!"
 
             await page.screenshot(path="/Users/bekir/Uygulamalarim/2-My-World/scripts/screenshots/07_scout_fullscreen_zen.png")
             print("[OK] Screenshot 7 kaydedildi: 07_scout_fullscreen_zen.png", flush=True)

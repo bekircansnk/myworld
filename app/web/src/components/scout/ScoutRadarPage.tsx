@@ -107,7 +107,21 @@ function generateClientHtml(title: string, markdownText: string, dateStr: string
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/^# (.*$)/gim, '<h1 class="text-2xl md:text-3xl font-black text-white mb-4 tracking-tight">$1</h1>')
-    .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-indigo-300 mt-8 mb-3 pb-2 border-b border-white/10 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>$1</h2>')
+    .replace(/^## (.*$)/gim, (_, headingText) => {
+      const lower = headingText.toLowerCase()
+      let secId = ''
+      if (lower.includes('özet') || lower.includes('summary') || lower.includes('60 saniye')) secId = 'sec-summary'
+      else if (lower.includes('github') || lower.includes('mcp')) secId = 'sec-github'
+      else if (lower.includes('frontier') || lower.includes('model') || lower.includes('lab')) secId = 'sec-frontier'
+      else if (lower.includes('topluluk') || lower.includes('community')) secId = 'sec-community'
+      else if (lower.includes('mimari') || lower.includes('fsm') || lower.includes('topoloji') || lower.includes('üretim') || lower.includes('ajan tasarımı')) secId = 'sec-architecture'
+      else if (lower.includes('a/b') || lower.includes('benchmark') || lower.includes('karşılaştırma')) secId = 'sec-ab'
+      else if (lower.includes('aksiyon') || lower.includes('checklist') || lower.includes('kontrol')) secId = 'sec-checklist'
+      else if (lower.includes('telemetri') || lower.includes('orkestrasyon') || lower.includes('kota')) secId = 'sec-telemetry'
+
+      const idAttr = secId ? `id="${secId}"` : ''
+      return `<h2 ${idAttr} class="text-xl font-bold text-indigo-300 mt-8 mb-3 pb-2 border-b border-white/10 flex items-center gap-2 scroll-mt-20"><span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>${headingText}</h2>`
+    })
     .replace(/^### (.*$)/gim, '<h3 class="text-lg font-bold text-slate-200 mt-6 mb-2">$1</h3>')
     .replace(/^> (.*$)/gim, '<blockquote class="border-l-4 border-indigo-500 pl-4 py-2 my-4 bg-indigo-950/20 text-slate-300 italic rounded-r-xl">$1</blockquote>')
     .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-white">$1</strong>')
@@ -174,20 +188,20 @@ function generateClientHtml(title: string, markdownText: string, dateStr: string
       </div>
 
       <!-- 5-MODE SWITCHER BUTTONS -->
-      <div class="flex items-center gap-1 p-1 bg-slate-900/90 rounded-2xl border border-white/10 text-xs font-semibold">
-        <button onclick="switchView('html')" id="tab-html" class="tab-btn active px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 text-slate-300 hover:text-white">
+      <div class="flex items-center gap-1 p-1 bg-slate-900/90 rounded-2xl border border-white/10 text-xs font-semibold overflow-x-auto max-w-full scrollbar-none shrink-0">
+        <button onclick="switchView('html')" id="tab-html" class="tab-btn active px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 text-slate-300 hover:text-white shrink-0">
           <i class="fa-solid fa-eye"></i> <span>🌟 Cam HTML</span>
         </button>
-        <button onclick="switchView('magazine')" id="tab-magazine" class="tab-btn px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 text-slate-300 hover:text-white">
+        <button onclick="switchView('magazine')" id="tab-magazine" class="tab-btn px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 text-slate-300 hover:text-white shrink-0">
           <i class="fa-solid fa-book-open"></i> <span>📑 İnteraktif Magazin</span>
         </button>
-        <button onclick="switchView('perspective')" id="tab-perspective" class="tab-btn px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 text-slate-300 hover:text-white">
+        <button onclick="switchView('perspective')" id="tab-perspective" class="tab-btn px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 text-slate-300 hover:text-white shrink-0">
           <i class="fa-solid fa-layer-group"></i> <span>🎯 Bölüm Gezgini</span>
         </button>
-        <button onclick="switchView('ab')" id="tab-ab" class="tab-btn px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 text-slate-300 hover:text-white">
+        <button onclick="switchView('ab')" id="tab-ab" class="tab-btn px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 text-slate-300 hover:text-white shrink-0">
           <i class="fa-solid fa-flask"></i> <span>🧪 A/B Testleri</span>
         </button>
-        <button onclick="switchView('raw')" id="tab-raw" class="tab-btn px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 text-slate-300 hover:text-white">
+        <button onclick="switchView('raw')" id="tab-raw" class="tab-btn px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 text-slate-300 hover:text-white shrink-0">
           <i class="fa-solid fa-terminal"></i> <span>📄 Ham Kaynak</span>
         </button>
       </div>
@@ -514,10 +528,21 @@ function generateClientHtml(title: string, markdownText: string, dateStr: string
       if (val === 'sec-summary') {
         switchView('perspective');
         switchPersp('summary');
+        return;
       } else if (val === 'sec-ab') {
         switchView('ab');
+        return;
       } else {
-        switchView('html');
+        const activeTab = document.querySelector('.tab-btn.active');
+        if (!activeTab || activeTab.id !== 'tab-html') {
+          switchView('html');
+        }
+        setTimeout(() => {
+          const el = document.getElementById(val);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
       }
     }
 
@@ -840,14 +865,14 @@ function RichMarkdownViewer({
             const headingText = String(block.data)
             const headingLower = headingText.toLowerCase()
             let sectionAnchor = ''
-            if (headingLower.includes('özet') || headingLower.includes('summary')) sectionAnchor = 'sec-summary'
+            if (headingLower.includes('özet') || headingLower.includes('summary') || headingLower.includes('60 saniye')) sectionAnchor = 'sec-summary'
             else if (headingLower.includes('github') || headingLower.includes('mcp')) sectionAnchor = 'sec-github'
             else if (headingLower.includes('frontier') || headingLower.includes('model') || headingLower.includes('lab')) sectionAnchor = 'sec-frontier'
             else if (headingLower.includes('topluluk') || headingLower.includes('community')) sectionAnchor = 'sec-community'
-            else if (headingLower.includes('mimari') || headingLower.includes('fsm') || headingLower.includes('topoloji')) sectionAnchor = 'sec-architecture'
+            else if (headingLower.includes('mimari') || headingLower.includes('fsm') || headingLower.includes('topoloji') || headingLower.includes('üretim') || headingLower.includes('ajan tasarımı')) sectionAnchor = 'sec-architecture'
             else if (headingLower.includes('a/b') || headingLower.includes('benchmark') || headingLower.includes('karşılaştırma')) sectionAnchor = 'sec-ab'
             else if (headingLower.includes('aksiyon') || headingLower.includes('checklist') || headingLower.includes('kontrol')) sectionAnchor = 'sec-checklist'
-            else if (headingLower.includes('telemetri') || headingLower.includes('orkestrasyon')) sectionAnchor = 'sec-telemetry'
+            else if (headingLower.includes('telemetri') || headingLower.includes('orkestrasyon') || headingLower.includes('kota')) sectionAnchor = 'sec-telemetry'
 
             return (
               <div key={idx} id={sectionAnchor || undefined} className="pt-6 pb-2 border-b border-slate-200/80 dark:border-white/10 scroll-mt-20">
@@ -1442,13 +1467,13 @@ export function ScoutRadarPage() {
   }
 
   // Fuzzy-resolved sections for perspective views
-  const sectionSummary = findSection(rawSections, ['özet', 'summary', 'kritik'])
+  const sectionSummary = findSection(rawSections, ['özet', 'summary', '60 saniye'])
   const sectionGithub = findSection(rawSections, ['github', 'mcp', 'proje', 'repo'])
   const sectionFrontier = findSection(rawSections, ['frontier', 'lab', 'model', 'deepmind', 'anthropic', 'openai'])
   const sectionCommunity = findSection(rawSections, ['topluluk', 'community', 'nabız', 'twitter', 'reddit', 'hacker'])
-  const sectionArchitecture = findSection(rawSections, ['mimari', 'architecture', 'ajan tasarımı', 'fsm', 'topoloji'])
-  const sectionChecklist = findSection(rawSections, ['aksiyon', 'checklist', 'yapılacak'])
-  const sectionTelemetry = findSection(rawSections, ['telemetri', 'benchmark', 'orkestrasyon', 'kota'])
+  const sectionArchitecture = findSection(rawSections, ['mimari', 'architecture', 'ajan tasarımı', 'fsm', 'topoloji', 'üretim'])
+  const sectionChecklist = findSection(rawSections, ['aksiyon', 'checklist', 'yapılacak', 'kontrol'])
+  const sectionTelemetry = findSection(rawSections, ['telemetri', 'orkestrasyon', 'kota', 'worker'])
   const sectionAb = findSection(rawSections, ['a/b', 'benchmark', 'karşılaştırma', 'deney'])
 
   // Escape key listener for fullscreen mode
@@ -1473,9 +1498,23 @@ export function ScoutRadarPage() {
       setReaderViewMode('magazine')
     }
     setTimeout(() => {
-      const el = document.getElementById(val)
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      if (val.startsWith('sec-dyn-')) {
+        const sIdx = parseInt(val.replace('sec-dyn-', ''), 10)
+        const targetSec = sectionList[sIdx]
+        if (targetSec) {
+          const headings = document.querySelectorAll('h2')
+          for (const h of Array.from(headings)) {
+            if (h.textContent && h.textContent.toLowerCase().includes(targetSec.title.slice(0, 15).toLowerCase())) {
+              h.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              return
+            }
+          }
+        }
+      } else {
+        const el = document.getElementById(val)
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
       }
     }, 120)
   }
@@ -1491,7 +1530,7 @@ export function ScoutRadarPage() {
   }, [selectedBriefing])
 
   return (
-    <div className={`flex-1 flex flex-col h-full bg-[#f8fafc] dark:bg-[#080b11] text-slate-900 dark:text-slate-100 overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
+    <div className="flex-1 flex flex-col h-full bg-[#f8fafc] dark:bg-[#080b11] text-slate-900 dark:text-slate-100 overflow-hidden">
       {/* ------------------------------------------------------------- */}
       {/* 1. ÜST KOKPİT & GÖZLEMEVİ BARI */}
       {/* ------------------------------------------------------------- */}
@@ -1777,15 +1816,14 @@ export function ScoutRadarPage() {
         <div className="flex-1 flex flex-col overflow-hidden bg-[#fbfcfd] dark:bg-[#090c13]">
           {selectedBriefing ? (
             <div className="flex-1 flex flex-col overflow-hidden">
-              {/* -------------------------------------------------- */}
-              {/* 4-MODLU GÖRÜNÜM SEÇİCİ KONTROL BARI */}
+              {/* 5-MODLU GÖRÜNÜM SEÇİCİ KONTROL BARI */}
               {/* -------------------------------------------------- */}
               <div className="px-4 md:px-6 py-2.5 border-b border-slate-200/80 dark:border-white/10 bg-white/70 dark:bg-[#0e1320]/70 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 shrink-0">
-                {/* Ana Mod Seçici */}
-                <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 dark:bg-slate-900/90 rounded-2xl border border-slate-200/60 dark:border-white/5 text-xs font-semibold">
+                {/* Ana Mod Seçici (5 Mod) */}
+                <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 dark:bg-slate-900/90 rounded-2xl border border-slate-200/60 dark:border-white/5 text-xs font-semibold overflow-x-auto max-w-full scrollbar-none shrink-0">
                   <button
                     onClick={() => setReaderViewMode('html')}
-                    className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0 ${
                       readerViewMode === 'html'
                         ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                         : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white'
@@ -1797,7 +1835,7 @@ export function ScoutRadarPage() {
 
                   <button
                     onClick={() => setReaderViewMode('magazine')}
-                    className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0 ${
                       readerViewMode === 'magazine'
                         ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                         : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white'
@@ -1809,7 +1847,7 @@ export function ScoutRadarPage() {
 
                   <button
                     onClick={() => setReaderViewMode('perspective')}
-                    className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0 ${
                       readerViewMode === 'perspective'
                         ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                         : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white'
@@ -1821,7 +1859,7 @@ export function ScoutRadarPage() {
 
                   <button
                     onClick={() => setReaderViewMode('ab_tests')}
-                    className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0 ${
                       readerViewMode === 'ab_tests'
                         ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                         : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white'
@@ -1833,7 +1871,7 @@ export function ScoutRadarPage() {
 
                   <button
                     onClick={() => setReaderViewMode('raw')}
-                    className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0 ${
                       readerViewMode === 'raw'
                         ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                         : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white'
@@ -2355,10 +2393,10 @@ export function ScoutRadarPage() {
             </div>
 
             {/* Orta: 5 Mod Seçici */}
-            <div className="flex items-center gap-1 p-1 bg-slate-900/90 rounded-2xl border border-white/10 text-xs font-semibold">
+            <div className="flex items-center gap-1 p-1 bg-slate-900/90 rounded-2xl border border-white/10 text-xs font-semibold overflow-x-auto max-w-full scrollbar-none shrink-0">
               <button
                 onClick={() => setReaderViewMode('html')}
-                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0 ${
                   readerViewMode === 'html'
                     ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                     : 'text-slate-300 hover:text-white'
@@ -2369,7 +2407,7 @@ export function ScoutRadarPage() {
               </button>
               <button
                 onClick={() => setReaderViewMode('magazine')}
-                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0 ${
                   readerViewMode === 'magazine'
                     ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                     : 'text-slate-300 hover:text-white'
@@ -2380,7 +2418,7 @@ export function ScoutRadarPage() {
               </button>
               <button
                 onClick={() => setReaderViewMode('perspective')}
-                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0 ${
                   readerViewMode === 'perspective'
                     ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                     : 'text-slate-300 hover:text-white'
@@ -2391,7 +2429,7 @@ export function ScoutRadarPage() {
               </button>
               <button
                 onClick={() => setReaderViewMode('ab_tests')}
-                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0 ${
                   readerViewMode === 'ab_tests'
                     ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                     : 'text-slate-300 hover:text-white'
@@ -2402,7 +2440,7 @@ export function ScoutRadarPage() {
               </button>
               <button
                 onClick={() => setReaderViewMode('raw')}
-                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0 ${
                   readerViewMode === 'raw'
                     ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                     : 'text-slate-300 hover:text-white'
@@ -2530,6 +2568,24 @@ export function ScoutRadarPage() {
                       {tab.label}
                     </button>
                   ))}
+
+                  {/* Ek dinamik sekmeler varsa */}
+                  {sectionList.filter(s => 
+                    !['özet', 'summary', '60 saniye', 'github', 'mcp', 'frontier', 'topluluk', 'community', 'mimari', 'ab', 'a/b', 'benchmark', 'aksiyon', 'checklist', 'telemetri', 'orkestrasyon', 'kota']
+                    .some(kw => s.title.toLowerCase().includes(kw))
+                  ).map((s, sIdx) => (
+                    <button
+                      key={`dyn-${sIdx}`}
+                      onClick={() => setPerspectiveTab(`dyn-${sIdx}`)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 shrink-0 ${
+                        perspectiveTab === `dyn-${sIdx}`
+                          ? 'bg-indigo-600 text-white shadow-sm'
+                          : 'bg-slate-800/60 hover:bg-slate-800 text-slate-300'
+                      }`}
+                    >
+                      {s.title.slice(0, 20)}...
+                    </button>
+                  ))}
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6 md:p-10">
@@ -2627,6 +2683,24 @@ export function ScoutRadarPage() {
                         />
                       </div>
                     )}
+
+                    {/* DİNAMİK BÖLÜM EŞLEŞMESİ (FULLSCREEN) */}
+                    {perspectiveTab.startsWith('dyn-') && (() => {
+                      const idx = parseInt(perspectiveTab.replace('dyn-', ''), 10)
+                      const dynSec = sectionList[idx]
+                      if (!dynSec) return <p className="text-slate-400">Bölüm bulunamadı.</p>
+                      return (
+                        <div className="p-6 md:p-8 rounded-3xl bg-[#111625] border border-white/10 shadow-sm space-y-4">
+                          <h3 className="text-lg font-black text-white">
+                            {dynSec.title}
+                          </h3>
+                          <RichMarkdownViewer
+                            content={dynSec.body}
+                            fontSize={fontSize}
+                          />
+                        </div>
+                      )
+                    })()}
                   </div>
                 </div>
               </div>
