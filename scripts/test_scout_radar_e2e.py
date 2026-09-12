@@ -44,6 +44,7 @@ mock_scout_data = [
                 "🐦 Topluluk Nabzı: Twitter/X, Reddit & HackerNews Çıkarımları": "AI Slop yorgunluğu ve Karpathy dosya tabanlı durum hiyerarşisi açık kaynak dünyasında ana akım oldu.",
                 "🏗️ Üretim Mimarisi ve Ajan Tasarımı İçin Kritik Dersler": "```\n+=======================================================================================+\n|                            MAESTRO 360 HİBRİT TOPOLOJİSİ                              |\n+=======================================================================================+\n|  MAC (KOKPİT & GELİŞTİRME)             VPS (COMPUTE, ORKESTRASYON & WORKER)           |\n|  +---------------------------+         +--------------------------------------------+ |\n|  | Modern Kokpit (React/SSE) |         | LiteLLM Proxy (Virtual Keys & Sanitizer)   | |\n|  +-------------▲-------------+         +---------------------▲----------------------+ |\n|                │ (SSE Replay)                                │ (Failover / Pinning)   |\n|  +-------------┴-------------+         +---------------------┴----------------------+ |\n|  | CQRS Outbox Olay Tüketimi |<=======>| Redis Streams / NATS JetStream Olay Yolu   | |\n+=======================================================================================+\n```",
                 "🎯 Maestro 360 İçin Bugünkü Somut Aksiyon Listesi (Checklist)": "- [ ] **Codebase Memory MCP Entegrasyonu:** AST Bilgi Grafiği entegrasyonu.\n- [ ] **Karpathy Bellek Hiyerarşisi Kurulması:** `raw/`, `wiki/`, `ctx/`, `mem/` mimarisi.\n- [ ] **LiteLLM Provider Pinning Konfigürasyonu:** Sağlayıcı sabitlemesi ve önbellek kilitlenmesi.",
+                "🧪 Maestro, CRM App ve Planla İçin A/B Testleri & Benchmark": "### Senaryo 1: Codebase Memory MCP vs Monolitik Bağlam\n- Token tasarrufu: %99.3\n- Yanıt süresi: 340ms vs 2150ms\n### Senaryo 2: Dual-Tier Model Dağıtım Stratejisi\n- İlk sefer başarısı: %98.4 vs %71.2\n### Senaryo 3: İstihbarat & Bilgi Tüketimi (Planla Scout Radarı)\n- Aksiyona dönüşme: %92 vs %35",
                 "📊 Çoklu-Ajan Orkestrasyon & Kota Rotasyon Telemetrisi": "| Ajan Rolü | Görevlendirilen Google Hesabı | Çalışma Süresi | Durum |\n| :--- | :--- | :--- | :--- |\n| **Worker 1:** GitHub & MCP | `bekirsnk@gmail.com` | 19.55s | ✅ Başarılı |\n| **Worker 2:** Frontier Labs | `bekircansaganak@gmail.com` | 11.25s | ✅ Başarılı |\n| **Worker 3:** Topluluk Nabzı | `cazadoryedek@gmail.com` | 16.55s | ✅ Başarılı |\n| **Worker 4:** Üretim Mimarisi | `bekirsnk34@gmail.com` | 16.04s | ✅ Başarılı |\n| **Worker 5:** Sentez Direktörü | `kadekkazador@gmail.com` | 27.32s | ✅ Başarılı |"
             },
             "section_list": [
@@ -52,8 +53,14 @@ mock_scout_data = [
                 {"title": "🔬 Frontier AI & Araştırma Bültenleri (DeepMind, Anthropic, OpenAI)", "body": "Claude Mythos 5.1 and Gemini Omni dual-tier evaluation."},
                 {"title": "🐦 Topluluk Nabzı: Twitter/X, Reddit & HackerNews Çıkarımları", "body": "AI Slop yorgunluğu ve Karpathy mimarisi."},
                 {"title": "🏗️ Üretim Mimarisi ve Ajan Tasarımı İçin Kritik Dersler", "body": "LangGraph FSM and CQRS Redis Streams."},
+                {"title": "🧪 Maestro, CRM App ve Planla İçin A/B Testleri & Benchmark", "body": "Senaryo 1, 2, 3 benchmark testleri ve KPI karşılaştırmaları."},
                 {"title": "🎯 Maestro 360 İçin Bugünkü Somut Aksiyon Listesi (Checklist)", "body": "- [ ] AST MCP\n- [ ] Karpathy Memory"},
                 {"title": "📊 Çoklu-Ajan Orkestrasyon & Kota Rotasyon Telemetrisi", "body": "| Ajan Rolü | Çalışma Süresi |\n| Worker 1 | 19.55s |"}
+            ],
+            "ab_scenarios": [
+                {"title": "Senaryo 1: Codebase Memory MCP vs Monolitik Bağlam", "body": "Token tasarrufu %99.3, gecikme 340ms vs 2150ms."},
+                {"title": "Senaryo 2: Dual-Tier Model Dağıtım Stratejisi", "body": "Gemini Omni + Critic ile %98.4 ilk sefer başarısı."},
+                {"title": "Senaryo 3: İstihbarat & Bilgi Tüketimi (Planla Scout Radarı)", "body": "Cam portalı ve Zen modu ile %92 aksiyona dönüşme."}
             ],
             "telemetry_rows": [
                 {"Ajan Rolü": "Worker 1: GitHub & MCP", "Görevlendirilen Google Hesabı": "bekirsnk@gmail.com", "Çalışma Süresi": "19.55s", "Durum": "✅ Başarılı"},
@@ -220,6 +227,50 @@ async def run_e2e():
 
             await page.screenshot(path="/Users/bekir/Uygulamalarim/2-My-World/scripts/screenshots/05_scout_raw_json.png")
             print("[OK] Screenshot 5 kaydedildi: 05_scout_raw_json.png", flush=True)
+
+            # 7. MOD 5: A/B Testleri & Canlı Karşılaştırma Sekmesi ve Kartları
+            print("[*] Mod 5: A/B Testleri & Canlı Karşılaştırma sekmesine geçiliyor...", flush=True)
+            ab_btn = await page.query_selector("button:has-text('A/B Testleri')")
+            assert ab_btn is not None, "A/B Testleri butonu bulunamadı!"
+            await ab_btn.click()
+            await page.wait_for_timeout(1000)
+
+            ab_title = await page.query_selector("text=Canlı Sistem Doğrulaması & Benchmark")
+            assert ab_title is not None, "A/B Benchmark başlığı bulunamadı!"
+
+            scenario1 = await page.query_selector("text=Senaryo 1: Codebase Memory MCP vs Monolitik Bağlam")
+            assert scenario1 is not None, "Senaryo 1 Benchmark kartı bulunamadı!"
+
+            scenario2 = await page.query_selector("text=Senaryo 2: Model Dağıtım Stratejisi")
+            assert scenario2 is not None, "Senaryo 2 Benchmark kartı bulunamadı!"
+
+            await page.screenshot(path="/Users/bekir/Uygulamalarim/2-My-World/scripts/screenshots/06_scout_ab_tests_view.png")
+            print("[OK] Screenshot 6 kaydedildi: 06_scout_ab_tests_view.png", flush=True)
+
+            # 8. Tam Ekran Odaklanma Modu (100vw / 100vh Modal)
+            print("[*] Odaklanma / Tam Ekran modu test ediliyor...", flush=True)
+            fullscreen_btn = await page.query_selector("button[title*='Odaklanma']")
+            assert fullscreen_btn is not None, "Tam ekran butonu bulunamadı!"
+            await fullscreen_btn.click()
+            await page.wait_for_timeout(1000)
+
+            zen_label = await page.query_selector("text=Odaklanma Modu (Zen)")
+            assert zen_label is not None, "Tam Ekran Odaklanma Modu modalı açılmadı!"
+
+            # Başlık gezgini kontrolü
+            toc_select = await page.query_selector("select:has-text('Başlığa Git')")
+            assert toc_select is not None, "Başlık Gezgini seçicisi bulunamadı!"
+
+            await page.screenshot(path="/Users/bekir/Uygulamalarim/2-My-World/scripts/screenshots/07_scout_fullscreen_zen.png")
+            print("[OK] Screenshot 7 kaydedildi: 07_scout_fullscreen_zen.png", flush=True)
+
+            # Esc tuşu ile tam ekrandan çıkış
+            print("[*] Esc tuşu ile tam ekrandan çıkılıyor...", flush=True)
+            await page.keyboard.press("Escape")
+            await page.wait_for_timeout(600)
+            zen_modal_after = await page.query_selector("text=Odaklanma Modu (Zen)")
+            assert zen_modal_after is None, "Esc tuşuna basılmasına rağmen tam ekran modalı kapanmadı!"
+            print("[OK] Tam Ekran modalı Esc tuşu ile başarıyla kapatıldı.", flush=True)
 
             print("\n==================================================================", flush=True)
             print(" [BAŞARILI] PLAYWRIGHT E2E KONTROL VE TESTLERİ %100 BAŞARIYLA TAMAMLANDI!", flush=True)
