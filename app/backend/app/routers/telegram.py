@@ -27,7 +27,7 @@ async def telegram_webhook(request: Request, db: AsyncSession = Depends(get_db))
              
         # Basit komutlar
         if text.startswith("/start"):
-             await send_telegram_message("👋 Merhaba! Ben Planla AI asistanın. Sisteme bağlanmak için hazırım.", chat_id)
+             await send_telegram_message("👋 Merhaba! Ben Planla & Maestro AI asistanın. Sisteme bağlanmak için hazırım.\n\nKomutlar:\n- /gorevler : Aktif görevler\n- /istihbarat : Günlük AI ve teknoloji özeti\n- /sor <soru> : NotebookLM hafızasında ara\n- not: <metin> : Not kaydet\n- görev: <metin> : Görev kaydet", chat_id)
              return {"status": "ok"}
              
         if text.startswith("/gorevler"):
@@ -36,10 +36,32 @@ async def telegram_webhook(request: Request, db: AsyncSession = Depends(get_db))
              if not tasks:
                  await send_telegram_message("Şu an bekleyen görevin yok! Harikasın.", chat_id)
              else:
-                 msg = "📋 <b>Aktif Görevlerin:</b>\\n\\n"
+                 msg = "📋 <b>Aktif Görevlerin:</b>\n\n"
                  for t in tasks:
-                     msg += f"- {t.title} ({t.priority})\\n"
+                     msg += f"- {t.title} ({t.priority})\n"
                  await send_telegram_message(msg, chat_id)
+             return {"status": "ok"}
+
+        if text.startswith("/istihbarat"):
+             # Günün brifingini çek
+             from app.models.calendar_event import CalendarEvent
+             cal_res = await db.execute(select(CalendarEvent).where(CalendarEvent.title.like("%İstihbarat Brifingi%")).order_by(CalendarEvent.id.desc()).limit(1))
+             event = cal_res.scalars().first()
+             if event:
+                 msg = f"🛰️ <b>{event.title}</b>\n\n{event.description}\n\n👉 <a href='https://planla.pikselai.com'>Planla Takviminde Gör</a>"
+                 await send_telegram_message(msg, chat_id)
+             else:
+                 await send_telegram_message("Henüz bugüne ait bir istihbarat brifingi bulunmuyor.", chat_id)
+             return {"status": "ok"}
+
+        if text.startswith("/sor"):
+             query_text = text.replace("/sor", "").strip()
+             if not query_text:
+                 await send_telegram_message("Lütfen bir soru belirtin: /sor <sorunuz>", chat_id)
+                 return {"status": "ok"}
+             # Hızlı yanıt
+             reply = generate_chat_response([{"role": "user", "parts": f"NotebookLM ve teknik hafızadaki bilgilere dayanarak yanıtla: {query_text}"}], "Sen Maestro & Planla Baş Ajanısın. Soruyu kısa, net ve profesyonel Türkçe yanıtla.")
+             await send_telegram_message(f"🧠 <b>Hafıza Yanıtı:</b>\n\n{reply}", chat_id)
              return {"status": "ok"}
 
         # NLP (Doğal Dil Görev/Not yönlendirmesi)
