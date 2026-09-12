@@ -118,95 +118,148 @@ function parseMarkdownSectionsClient(content: string): {
 }
 
 // -------------------------------------------------------------
-// HELPER: CLIENT-SIDE INTERACTIVE MULTI-VIEW HTML GENERATOR
+// HELPER: REPORT HTML SANITIZER & ADAPTER
 // -------------------------------------------------------------
-function generateClientHtml(title: string, markdownText: string, dateStr: string, activeTheme: string = 'light'): string {
-  const { rawSections } = parseMarkdownSectionsClient(markdownText)
-  const formatSection = (keywords: string[], fallback: string) => {
-    for (const [secTitle, secBody] of Object.entries(rawSections)) {
-      if (keywords.some(kw => secTitle.toLowerCase().includes(kw))) {
-        const bodyFormatted = secBody
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/^### (.*$)/gim, '<h3 class="text-base font-bold mt-4 mb-2">$1</h3>')
-          .replace(/^#### (.*$)/gim, '<h4 class="text-sm font-bold mt-3 mb-1">$1</h4>')
-          .replace(/^> (.*$)/gim, '<blockquote class="border-l-4 border-indigo-500 pl-4 py-2 my-2 italic rounded-r-xl">$1</blockquote>')
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em>$1</em>')
-          .replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded font-mono text-xs border">$1</code>')
-          .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="hover:underline font-semibold">$1 ↗</a>')
-          .replace(/^- (.*$)/gim, '<li class="ml-4 list-disc">$1</li>')
-          .replace(/\n\n/g, '</p><p class="text-sm leading-relaxed mb-3">')
-        return `<h2 class="text-xl font-bold mb-4 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>${secTitle}</h2><div class="prose max-w-none"><p class="text-sm leading-relaxed mb-3">${bodyFormatted}</p></div>`
+function cleanAndPrepareReportHtml(rawHtml: string, theme: string = 'light', fontSize: FontSize = 'base'): string {
+  if (!rawHtml) return ""
+
+  if (typeof window !== 'undefined') {
+    try {
+      const parser = new DOMParser()
+      const doc = parser.parseFromString(rawHtml, 'text/html')
+
+      // 1. Remove all top headers and redundant navbars
+      doc.querySelectorAll('header, .header-bar, #theme-toggle-btn').forEach(el => el.remove())
+
+      // 2. Remove secondary duplicate panes if present
+      const panesToRemove = ['pane-magazine', 'pane-perspective', 'pane-ab', 'pane-raw']
+      panesToRemove.forEach(id => {
+        const p = doc.getElementById(id)
+        if (p) p.remove()
+      })
+
+      // 3. If pane-html exists, ensure it is visible and unwrapped
+      const paneHtml = doc.getElementById('pane-html')
+      if (paneHtml) {
+        paneHtml.classList.remove('hidden')
+        paneHtml.classList.add('block')
       }
-    }
-    return fallback
+
+      // 4. Clean up main container layout and classes
+      const mainEl = doc.querySelector('main')
+      if (mainEl) {
+        mainEl.className = 'max-w-4xl mx-auto w-full px-4 sm:px-6 md:px-8 py-8'
+      }
+
+      // 5. Apply theme & font scaler classes
+      doc.documentElement.className = theme
+      doc.body.className = `min-h-screen flex flex-col font-scaler-${fontSize} ${theme}`
+
+      // 6. Ensure base styles & message listener script are present
+      let styleTag = doc.querySelector('style#scout-clean-style')
+      if (!styleTag) {
+        styleTag = doc.createElement('style')
+        styleTag.id = 'scout-clean-style'
+        styleTag.textContent = `
+          *, *::before, *::after { box-sizing: border-box; }
+          html, body { margin: 0; padding: 0; width: 100%; min-height: 100%; overflow-x: hidden; }
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+          .prose { width: 100%; max-width: 100%; }
+          .prose table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 1rem; overflow: hidden; margin: 1.5rem 0; }
+          .prose th { padding: 0.75rem 1rem; font-weight: 700; text-align: left; font-size: 0.8rem; text-transform: uppercase; }
+          .prose td { padding: 0.75rem 1rem; font-size: 0.875rem; }
+          .prose pre { padding: 1.25rem; border-radius: 1.25rem; overflow-x: auto; max-width: 100%; font-size: 0.82rem; line-height: 1.65; }
+          .prose p { word-break: break-word; }
+          html.dark body { background: #080b11; color: #f1f5f9; }
+          html.dark .glass-card { background: rgba(17, 22, 37, 0.88); border: 1px solid rgba(255, 255, 255, 0.10); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+          html.dark .prose h1, html.dark .prose h2, html.dark .prose strong { color: #ffffff; }
+          html.dark .prose h3 { color: #f8fafc; }
+          html.dark .prose p, html.dark .prose li { color: #e2e8f0; }
+          html.dark .prose pre { background: #0b101d !important; color: #38bdf8 !important; border: 1px solid rgba(99,102,241,0.25); }
+          html.dark .prose code { background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.25); }
+          html.light body { background: #f8fafc; color: #0f172a; }
+          html.light .glass-card { background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.08); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04); }
+          html.light .prose h1, html.light .prose h2, html.light .prose strong { color: #09090b; }
+          html.light .prose h3 { color: #1e293b; }
+          html.light .prose p, html.light .prose li { color: #334155; }
+          html.light .prose pre { background: #f8fafc !important; color: #0f172a !important; border: 1px solid #e2e8f0 !important; }
+          html.light .prose code { background: rgba(99, 102, 241, 0.08); color: #4338ca; border: 1px solid rgba(99,102,241,0.15); }
+          body.font-scaler-sm .prose p, body.font-scaler-sm .prose li { font-size: 0.85rem !important; }
+          body.font-scaler-base .prose p, body.font-scaler-base .prose li { font-size: 0.95rem !important; }
+          body.font-scaler-lg .prose p, body.font-scaler-lg .prose li { font-size: 1.05rem !important; }
+        `
+        doc.head.appendChild(styleTag)
+      }
+
+      // 7. Inject postMessage listener script
+      let msgScript = doc.querySelector('script#scout-msg-script')
+      if (!msgScript) {
+        msgScript = doc.createElement('script')
+        msgScript.id = 'scout-msg-script'
+        msgScript.textContent = `
+          window.addEventListener('message', function(e) {
+            if (!e.data) return;
+            if (e.data.type === 'SET_THEME' && e.data.theme) {
+              if (e.data.theme === 'dark') {
+                document.documentElement.classList.remove('light');
+                document.documentElement.classList.add('dark');
+                document.body.classList.remove('light');
+                document.body.classList.add('dark');
+              } else {
+                document.documentElement.classList.remove('dark');
+                document.documentElement.classList.add('light');
+                document.body.classList.remove('dark');
+                document.body.classList.add('light');
+              }
+            }
+            if (e.data.type === 'SET_FONT_SIZE' && e.data.size) {
+              document.body.classList.remove('font-scaler-sm', 'font-scaler-base', 'font-scaler-lg');
+              document.body.classList.add('font-scaler-' + e.data.size);
+            }
+            if (e.data.type === 'SCROLL_TO_SECTION' && e.data.sectionId) {
+              const el = document.getElementById(e.data.sectionId);
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }
+          });
+        `
+        doc.body.appendChild(msgScript)
+      }
+
+      return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML
+    } catch (_) {}
   }
 
-  const subSummaryHtml = formatSection(['özet', 'summary', '60 saniye'], `
-    <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>⚡ 60 Saniyelik Stratejik Yönetici Özeti</h2>
-    <div class="prose max-w-none">
-      <p class="text-sm leading-relaxed mb-3">1. <strong>MCP Evrimi:</strong> DeusData AST Bilgi Grafiği ile %99 token tasarrufu.</p>
-      <p class="text-sm leading-relaxed mb-3">2. <strong>Frontier Modellerde Çift Kademeli Dağıtım:</strong> Hızlı İcracı (Gemini Omni) + Derin Doğrulayıcı (Claude Critic).</p>
-      <p class="text-sm leading-relaxed mb-3">3. <strong>Karpathy Bellek Hiyerarşisi:</strong> raw/ -> wiki/ -> ctx/ -> mem/ ile döngü kilitlenmesi önleme.</p>
-    </div>
-  `)
+  // Fallback for SSR
+  let cleaned = rawHtml
+    .replace(/<header[^>]*>[\s\S]*?<\/header>/gi, '')
+    .replace(/<div id="pane-(magazine|perspective|ab|raw)"[\s\S]*?<\/div>\s*(?=(<div id="pane-|<\/main>))/gi, '')
 
-  const subGithubHtml = formatSection(['github', 'mcp', 'proje', 'repo'], `
-    <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>🚀 Radarımıza Giren En Sıcak GitHub & MCP Projeleri</h2>
-    <div class="prose max-w-none">
-      <p class="text-sm leading-relaxed mb-3">• <strong>DeusData/codebase-memory-mcp:</strong> AST Destekli Bilgi Grafiği MCP Sunucusu (%99 token tasarrufu).</p>
-      <p class="text-sm leading-relaxed mb-3">• <strong>livekit/agents:</strong> Olay Güdümlü Çok Modlu Konuşma Orkestrasyonu.</p>
-    </div>
-  `)
+  cleaned = cleaned.replace(/<html([^>]*)class="([^"]*)"/i, (_, p1, p2) => {
+    const cleanCls = p2.replace(/\b(dark|light)\b/g, '').trim()
+    return `<html${p1}class="${cleanCls} ${theme}"`
+  })
 
-  const subFrontierHtml = formatSection(['frontier', 'lab', 'model', 'deepmind', 'anthropic', 'openai'], `
-    <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>🔬 Frontier AI & Araştırma Bültenleri</h2>
-    <div class="prose max-w-none">
-      <p class="text-sm leading-relaxed mb-3">Anthropic Claude Mythos 5.1 & Fable 5.1 ve DeepMind Gemini Omni & Nano Banana modelleri analiz edildi.</p>
-    </div>
-  `)
+  cleaned = cleaned.replace(/<body([^>]*)class="([^"]*)"/i, (_, p1, p2) => {
+    const cleanCls = p2.replace(/\b(dark|light|font-scaler-\w+)\b/g, '').trim()
+    return `<body${p1}class="${cleanCls} font-scaler-${fontSize} ${theme}"`
+  })
 
-  const subCommunityHtml = formatSection(['topluluk', 'community', 'nabız', 'twitter', 'reddit', 'hacker'], `
-    <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>🌐 Topluluk Nabzı</h2>
-    <div class="prose max-w-none">
-      <p class="text-sm leading-relaxed mb-3">AI Slop yorgunluğu ve Karpathy dosya tabanlı durum hiyerarşisi açık kaynak dünyasında ana akım oldu.</p>
-    </div>
-  `)
+  return cleaned
+}
 
-  const subArchitectureHtml = formatSection(['mimari', 'architecture', 'fsm', 'topoloji', 'üretim', 'ajan tasarımı'], `
-    <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>🏗️ Üretim Mimarisi ve Ajan Tasarımı</h2>
-    <div class="prose max-w-none">
-      <p class="text-sm leading-relaxed mb-3">LangGraph FSM, CQRS Redis Streams ve LiteLLM Provider Pinning ile kesintisiz hibrit orkestrasyon.</p>
-    </div>
-  `)
-
-  const subChecklistHtml = formatSection(['aksiyon', 'checklist', 'yapılacak', 'kontrol'], `
-    <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>🎯 Maestro 360 İçin Bugünkü Somut Aksiyon Listesi</h2>
-    <div class="prose max-w-none">
-      <ul class="space-y-2 text-sm">
-        <li class="flex items-center gap-2"><span>[ ]</span> <strong>Codebase Memory MCP Entegrasyonu:</strong> AST Bilgi Grafiği kancaları.</li>
-        <li class="flex items-center gap-2"><span>[ ]</span> <strong>Karpathy Bellek Hiyerarşisi:</strong> raw/ -&gt; wiki/ -&gt; ctx/ -&gt; mem/ yapısı.</li>
-        <li class="flex items-center gap-2"><span>[ ]</span> <strong>LiteLLM Provider Pinning:</strong> Sağlayıcı sabitlemesi.</li>
-      </ul>
-    </div>
-  `)
-
-  const subTelemetryHtml = formatSection(['telemetri', 'orkestrasyon', 'kota', 'worker'], `
-    <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>📊 Çoklu-Ajan Orkestrasyon & Kota Rotasyon Telemetrisi</h2>
-    <div class="prose max-w-none">
-      <p class="text-sm leading-relaxed mb-3">5-Worker Swarm %100 başarıyla 90.71 saniyede tamamlandı. Quorum 5/5 sağlandı.</p>
-    </div>
-  `)
-
-  const escapedMd = markdownText
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-
-  const bodyHtml = markdownText
+// -------------------------------------------------------------
+// HELPER: CLIENT-SIDE PURE REPORT HTML GENERATOR
+// -------------------------------------------------------------
+function generateClientHtml(
+  title: string,
+  markdownText: string,
+  dateStr: string,
+  activeTheme: string = 'light',
+  fontSize: FontSize = 'base'
+): string {
+  const bodyHtml = (markdownText || '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -227,14 +280,16 @@ function generateClientHtml(title: string, markdownText: string, dateStr: string
       return `<h2 ${idAttr} class="text-xl font-bold mt-8 mb-3 pb-2 flex items-center gap-2 scroll-mt-20"><span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>${headingText}</h2>`
     })
     .replace(/^### (.*$)/gim, '<h3 class="text-lg font-bold mt-6 mb-2">$1</h3>')
+    .replace(/^#### (.*$)/gim, '<h4 class="text-sm font-bold mt-3 mb-1">$1</h4>')
     .replace(/^> (.*$)/gim, '<blockquote class="border-l-4 border-indigo-500 pl-4 py-2 my-4 italic rounded-r-xl">$1</blockquote>')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded font-mono text-xs border">$1</code>')
     .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="hover:underline font-semibold">$1 ↗</a>')
+    .replace(/^- (.*$)/gim, '<li class="ml-4 list-disc">$1</li>')
     .replace(/\n\n/g, '</p><p class="text-sm leading-relaxed mb-4">')
 
-  const initialClass = activeTheme === 'light' ? 'light' : 'dark'
+  const initialClass = activeTheme === 'dark' ? 'dark' : 'light'
 
   return `<!DOCTYPE html>
 <html lang="tr" class="${initialClass}">
@@ -250,542 +305,150 @@ function generateClientHtml(title: string, markdownText: string, dateStr: string
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    :root {
-      --bg-canvas-dark: #080b11;
-      --card-bg-dark: rgba(17, 22, 37, 0.88);
-      --card-border-dark: rgba(255, 255, 255, 0.10);
-      --text-main-dark: #f1f5f9;
-
-      --bg-canvas-light: #f8fafc;
-      --card-bg-light: #ffffff;
-      --card-border-light: rgba(0, 0, 0, 0.08);
-      --text-main-light: #09090b;
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      overflow-x: hidden;
     }
-
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       transition: background-color 0.2s ease, color 0.2s ease;
     }
 
-    html.dark body { background: var(--bg-canvas-dark); color: var(--text-main-dark); }
-    html.dark .glass-card { background: var(--card-bg-dark); border: 1px solid var(--card-border-dark); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
-    html.dark header { background: rgba(11, 15, 25, 0.90); border-bottom: 1px solid rgba(255,255,255,0.10); }
+    /* DARK THEME */
+    html.dark body { background: #080b11; color: #f1f5f9; }
+    html.dark .glass-card { background: rgba(17, 22, 37, 0.88); border: 1px solid rgba(255, 255, 255, 0.10); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+    html.dark .sub-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); }
+    html.dark .narrative-box { background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.3); color: #e2e8f0; }
     html.dark .prose h1 { color: #ffffff; }
-    html.dark .prose h2 { color: #ffffff; border-bottom: 1px solid rgba(255,255,255,0.12); }
+    html.dark .prose h2 { color: #ffffff; border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
     html.dark .prose h3 { color: #f8fafc; }
+    html.dark .prose h4 { color: #e2e8f0; }
     html.dark .prose p, html.dark .prose li { color: #e2e8f0; }
     html.dark .prose strong { color: #ffffff; }
     html.dark .prose table { background: rgba(18, 23, 39, 0.85); border: 1px solid rgba(255,255,255,0.12); }
     html.dark .prose th { background: rgba(30, 41, 59, 0.95); color: #a5b4fc; border-bottom: 1px solid rgba(255,255,255,0.15); }
     html.dark .prose td { border-bottom: 1px solid rgba(255,255,255,0.06); color: #e2e8f0; }
-    html.dark .prose blockquote { border-left: 4px solid #6366f1; background: rgba(99, 102, 241, 0.08); color: #cbd5e1; }
-    html.dark .sub-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); }
-    html.dark .narrative-box { background: rgba(99, 102, 241, 0.07); border: 1px solid rgba(99, 102, 241, 0.25); color: #e2e8f0; }
+    html.dark .prose blockquote { border-left: 4px solid #6366f1; background: rgba(99, 102, 241, 0.08); color: #cbd5e1; border: 1px solid rgba(99,102,241,0.15); border-left-width: 4px; }
+    html.dark .prose code { background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99,102,241,0.25); }
+    html.dark .prose pre { background: #0b101d !important; color: #38bdf8 !important; border: 1px solid rgba(99,102,241,0.25); box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
 
-    html.light body { background: var(--bg-canvas-light); color: var(--text-main-light); }
-    html.light .glass-card { background: var(--card-bg-light); border: 1px solid var(--card-border-light); box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-    html.light header { background: rgba(255, 255, 255, 0.95); border-bottom: 1px solid var(--card-border-light); box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+    /* LIGHT THEME (EDITORIAL PAPER MODE) */
+    html.light body { background: #f8fafc; color: #0f172a; }
+    html.light .glass-card { background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.08); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04); }
+    html.light .sub-card { background: #f8fafc; border: 1px solid rgba(0, 0, 0, 0.06); }
+    html.light .narrative-box { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; }
     html.light .prose h1 { color: #09090b; }
-    html.light .prose h2 { color: #09090b; border-bottom: 1px solid rgba(0,0,0,0.08); }
+    html.light .prose h2 { color: #09090b; border-bottom: 1px solid rgba(0, 0, 0, 0.08); }
     html.light .prose h3 { color: #1e293b; }
+    html.light .prose h4 { color: #334155; }
     html.light .prose p, html.light .prose li { color: #334155; }
     html.light .prose strong { color: #09090b; }
-    html.light .prose table { background: #ffffff; border: 1px solid rgba(0,0,0,0.08); }
-    html.light .prose th { background: #f1f5f9; color: #4338ca; border-bottom: 1px solid rgba(0,0,0,0.08); }
-    html.light .prose td { border-bottom: 1px solid rgba(0,0,0,0.05); color: #1e293b; }
-    html.light .prose blockquote { border-left: 4px solid #4f46e5; background: #f5f3ff; color: #334155; }
-    html.light .sub-card { background: #f8fafc; border: 1px solid rgba(0,0,0,0.06); }
-    html.light .narrative-box { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; }
-    html.light .tab-btn { color: #64748b !important; }
-    html.light .tab-btn:hover { color: #0f172a !important; }
-    html.light .persp-btn { color: #64748b !important; background: #f1f5f9 !important; }
-    html.light .persp-btn:hover { color: #0f172a !important; background: #e2e8f0 !important; }
-
-    .prose a { color: #6366f1; text-decoration: none; font-weight: 600; }
-    .prose pre { background: #0f172a !important; color: #38bdf8 !important; padding: 1.25rem; border-radius: 1.25rem; overflow-x: auto; border: 1px solid rgba(99,102,241,0.25); font-family: ui-monospace, monospace; font-size: 0.82rem; line-height: 1.65; }
+    html.light .prose table { background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.08); }
+    html.light .prose th { background: #f1f5f9; color: #4338ca; border-bottom: 1px solid rgba(0, 0, 0, 0.08); }
+    html.light .prose td { color: #1e293b; border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
+    html.light .prose blockquote { border-left: 4px solid #4f46e5; background: #f5f3ff; color: #334155; border: 1px solid rgba(79, 70, 229, 0.15); border-left-width: 4px; }
+    html.light .prose code { background: rgba(99, 102, 241, 0.08); color: #4338ca; border: 1px solid rgba(99,102,241,0.15); }
     html.light .prose pre { background: #f8fafc !important; color: #0f172a !important; border: 1px solid #e2e8f0 !important; box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important; }
     html.light .prose pre code { color: #0f172a !important; }
-    .prose code { background: rgba(99, 102, 241, 0.15); color: #6366f1; padding: 0.2rem 0.45rem; border-radius: 0.35rem; font-size: 0.88em; }
-    .prose pre code { background: transparent; padding: 0; color: inherit; font-size: inherit; border: none; }
 
-    /* SELF-CONTAINED BUTTON & CONTROLS FALLBACK */
-    button, select { font-family: inherit; cursor: pointer; outline: none; }
-    .tab-btn, .persp-btn, header button, header select {
-      border-radius: 0.75rem;
-      padding: 0.375rem 0.75rem;
-      font-size: 0.75rem;
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.375rem;
-      transition: all 0.15s ease;
-      border: 1px solid transparent;
-    }
-    html.light header button, html.light header select {
-      background: #f1f5f9;
-      color: #334155;
-      border-color: rgba(0, 0, 0, 0.08);
-    }
-    html.light header button:hover, html.light header select:hover {
-      background: #e2e8f0;
-      color: #0f172a;
-    }
-    html.dark header button, html.dark header select {
-      background: rgba(30, 41, 59, 0.8);
-      color: #e2e8f0;
-      border-color: rgba(255, 255, 255, 0.1);
-    }
-    html.dark header button:hover, html.dark header select:hover {
-      background: rgba(51, 65, 85, 0.9);
-      color: #ffffff;
-    }
+    /* COMMON TYPOGRAPHY */
+    .prose { width: 100%; max-width: 100%; }
+    .prose h1 { font-size: 2rem; font-weight: 900; letter-spacing: -0.025em; margin-bottom: 1.25rem; line-height: 1.25; }
+    .prose h2 { font-size: 1.35rem; font-weight: 800; margin-top: 2.25rem; margin-bottom: 0.85rem; padding-bottom: 0.6rem; scroll-margin-top: 2rem; }
+    .prose h3 { font-size: 1.1rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.6rem; }
+    .prose h4 { font-size: 0.95rem; font-weight: 700; margin-top: 1.2rem; margin-bottom: 0.4rem; }
+    .prose p { line-height: 1.75; margin-bottom: 1.1rem; word-break: break-word; }
+    .prose ul, .prose ol { margin-left: 1.5rem; margin-bottom: 1.25rem; }
+    .prose li { margin-bottom: 0.5rem; line-height: 1.65; }
+    .prose a { color: #6366f1; text-decoration: none; font-weight: 600; }
+    .prose a:hover { text-decoration: underline; }
+    .prose table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 1rem; overflow: hidden; margin: 1.5rem 0; display: table; }
+    .prose th { padding: 0.75rem 1rem; font-weight: 700; text-align: left; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .prose td { padding: 0.75rem 1rem; font-size: 0.875rem; }
+    .prose pre { padding: 1.25rem; border-radius: 1.25rem; overflow-x: auto; max-width: 100%; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.82rem; line-height: 1.65; }
+    .prose code { padding: 0.2rem 0.45rem; border-radius: 0.35rem; font-size: 0.88em; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .prose pre code { background: transparent !important; padding: 0 !important; font-size: inherit; border: none !important; }
 
     /* FONT SCALER */
-    .font-scaler-sm .prose p, .font-scaler-sm .prose li, .font-scaler-sm .prose td { font-size: 0.875rem !important; line-height: 1.6 !important; }
-    .font-scaler-sm .prose h1 { font-size: 1.85rem !important; }
-    .font-scaler-sm .prose h2 { font-size: 1.25rem !important; }
-    .font-scaler-sm .prose h3 { font-size: 1.05rem !important; }
+    body.font-scaler-sm .prose p, body.font-scaler-sm .prose li, body.font-scaler-sm .prose td { font-size: 0.85rem !important; line-height: 1.6 !important; }
+    body.font-scaler-sm .prose h1 { font-size: 1.75rem !important; }
+    body.font-scaler-sm .prose h2 { font-size: 1.2rem !important; }
+    body.font-scaler-sm .prose h3 { font-size: 1rem !important; }
 
-    .font-scaler-base .prose p, .font-scaler-base .prose li, .font-scaler-base .prose td { font-size: 0.95rem !important; line-height: 1.75 !important; }
-    .font-scaler-base .prose h1 { font-size: 2.15rem !important; }
-    .font-scaler-base .prose h2 { font-size: 1.4rem !important; }
-    .font-scaler-base .prose h3 { font-size: 1.15rem !important; }
+    body.font-scaler-base .prose p, body.font-scaler-base .prose li, body.font-scaler-base .prose td { font-size: 0.95rem !important; line-height: 1.75 !important; }
+    body.font-scaler-base .prose h1 { font-size: 2rem !important; }
+    body.font-scaler-base .prose h2 { font-size: 1.35rem !important; }
+    body.font-scaler-base .prose h3 { font-size: 1.1rem !important; }
 
-    .font-scaler-lg .prose p, .font-scaler-lg .prose li, .font-scaler-lg .prose td { font-size: 1.1rem !important; line-height: 1.85 !important; }
-    .font-scaler-lg .prose h1 { font-size: 2.45rem !important; }
-    .font-scaler-lg .prose h2 { font-size: 1.6rem !important; }
-    .font-scaler-lg .prose h3 { font-size: 1.3rem !important; }
+    body.font-scaler-lg .prose p, body.font-scaler-lg .prose li, body.font-scaler-lg .prose td { font-size: 1.05rem !important; line-height: 1.85 !important; }
+    body.font-scaler-lg .prose h1 { font-size: 2.3rem !important; }
+    body.font-scaler-lg .prose h2 { font-size: 1.5rem !important; }
+    body.font-scaler-lg .prose h3 { font-size: 1.25rem !important; }
 
-    .tab-btn.active { background: #4f46e5 !important; color: #ffffff !important; box-shadow: 0 4px 15px rgba(79,70,229,0.3) !important; }
-    .persp-btn.active { background: #4f46e5 !important; color: #ffffff !important; box-shadow: 0 2px 8px rgba(79,70,229,0.25) !important; }
+    @media print {
+      body { background: #fff !important; color: #000 !important; padding: 0 !important; }
+      .glass-card { background: #fff !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
+      .no-print { display: none !important; }
+    }
   </style>
 </head>
-<body class="min-h-screen flex flex-col font-scaler-base">
-  <header class="sticky top-0 z-50 backdrop-blur-xl px-4 md:px-8 py-3 shrink-0 shadow-sm">
-    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-black text-sm shadow-md shadow-indigo-500/30">
-          <i class="fa-solid fa-compass animate-pulse"></i>
+<body class="min-h-screen flex flex-col font-scaler-${fontSize} ${initialClass}">
+  <main class="max-w-4xl mx-auto w-full px-4 sm:px-6 md:px-8 py-8">
+    <div class="glass-card rounded-3xl p-6 sm:p-10 md:p-12 relative">
+      <div class="border-b border-slate-200 dark:border-white/10 pb-6 mb-8">
+        <div class="flex items-center gap-2 mb-3 flex-wrap">
+          <span class="text-[11px] uppercase tracking-wider font-extrabold px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+            Dahili Stratejik İstihbarat Raporu
+          </span>
+          <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            ${dateStr}
+          </span>
         </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <span class="font-extrabold text-sm md:text-base tracking-tight">Maestro 360-Scout İstihbarat Portalı</span>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">${dateStr}</span>
-          </div>
-          <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">Çift Temalı İnteraktif Okuma & Benchmark Modu</p>
-        </div>
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight leading-tight mb-3">
+          ${title}
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+          Maestro 360 Çoklu-Ajan Swarm Direktörlüğü • 2026 SOTA Mimari Brifingi
+        </p>
       </div>
 
-      <div class="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-white/10 text-xs font-semibold overflow-x-auto max-w-full scrollbar-none shrink-0">
-        <button onclick="switchView('html')" id="tab-html" class="tab-btn active px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0">
-          <i class="fa-solid fa-eye"></i> <span>🌟 Cam HTML</span>
-        </button>
-        <button onclick="switchView('magazine')" id="tab-magazine" class="tab-btn px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0">
-          <i class="fa-solid fa-book-open"></i> <span>📑 İnteraktif Magazin</span>
-        </button>
-        <button onclick="switchView('perspective')" id="tab-perspective" class="tab-btn px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0">
-          <i class="fa-solid fa-layer-group"></i> <span>🎯 Bölüm Gezgini</span>
-        </button>
-        <button onclick="switchView('ab')" id="tab-ab" class="tab-btn px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0">
-          <i class="fa-solid fa-flask"></i> <span>🧪 A/B Testleri</span>
-        </button>
-        <button onclick="switchView('raw')" id="tab-raw" class="tab-btn px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0">
-          <i class="fa-solid fa-terminal"></i> <span>📄 Ham Kaynak</span>
-        </button>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <button onclick="toggleTheme()" id="theme-toggle-btn" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 text-xs font-semibold flex items-center gap-1 transition-all" title="Aydınlık / Karanlık Tema Değiştir">
-          <i class="fa-solid fa-sun text-amber-500" id="theme-icon"></i>
-          <span id="theme-text" class="hidden xl:inline text-[11px]">Tema</span>
-        </button>
-
-        <select onchange="jumpToSection(this.value)" class="text-xs bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 rounded-xl px-2.5 py-1.5 outline-none hover:border-indigo-400 transition-all cursor-pointer">
-          <option value="">⚡ Hızlı Gezinti (TOC)...</option>
-          <option value="sec-summary">⚡ 60 Saniyelik Özet</option>
-          <option value="sec-github">🚀 GitHub & MCP</option>
-          <option value="sec-frontier">🔬 Frontier Modeller</option>
-          <option value="sec-community">🌐 Topluluk Nabzı</option>
-          <option value="sec-architecture">🏗️ Mimari & FSM</option>
-          <option value="sec-ab">🧪 A/B Testleri</option>
-          <option value="sec-checklist">🎯 Aksiyon Listesi</option>
-          <option value="sec-telemetry">📊 Telemetri</option>
-        </select>
-
-        <div class="flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-xl p-0.5 border border-slate-200 dark:border-white/10 text-xs font-semibold">
-          <button onclick="setFontSize('sm')" id="btn-font-sm" class="px-2 py-1 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-white" title="Küçük Yazı (14px)">A-</button>
-          <button onclick="setFontSize('base')" id="btn-font-base" class="px-2 py-1 text-indigo-600 dark:text-indigo-400 font-bold" title="Standart Yazı (16px)">A</button>
-          <button onclick="setFontSize('lg')" id="btn-font-lg" class="px-2 py-1 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-white" title="Büyük Yazı (18px)">A+</button>
-        </div>
-
-        <button onclick="window.print()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 text-xs font-semibold flex items-center gap-1 transition-all" title="Yazdır / PDF">
-          <i class="fa-solid fa-print"></i> <span class="hidden md:inline">Yazdır</span>
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <main class="flex-1 max-w-6xl w-full mx-auto p-4 md:p-8">
-    <div id="pane-html" class="view-pane block">
-      <div class="glass-card rounded-3xl p-6 md:p-12 relative overflow-hidden">
-        <div class="prose max-w-none font-reader">
-          ${bodyHtml}
-        </div>
-      </div>
-    </div>
-
-    <div id="pane-magazine" class="view-pane hidden space-y-6">
-      <div class="glass-card rounded-3xl p-6 md:p-12 space-y-8">
-        <div class="border-b border-slate-200 dark:border-white/10 pb-6 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <div class="flex items-center gap-2 mb-2">
-              <span class="text-[11px] uppercase tracking-wider font-extrabold px-2.5 py-1 rounded-lg bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30">
-                Dahili Stratejik İstihbarat Magazini
-              </span>
-              <span class="text-[11px] font-bold text-slate-400">2026 SOTA Mimari</span>
-            </div>
-            <h1 class="text-2xl md:text-3xl font-black tracking-tight">${title}</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Maestro 360 Çoklu-Ajan Swarm Direktörlüğü • ${dateStr}
-            </p>
-          </div>
-          <div class="flex items-center gap-2">
-            <button onclick="window.print()" class="px-3.5 py-2 text-xs font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-md transition-all flex items-center gap-1.5">
-              <i class="fa-solid fa-print"></i> PDF Kaydet
-            </button>
-          </div>
-        </div>
-
-        <div class="prose max-w-none font-reader">
-          ${bodyHtml}
-        </div>
-      </div>
-    </div>
-
-    <div id="pane-perspective" class="view-pane hidden space-y-6">
-      <div class="glass-card rounded-3xl p-6 md:p-8 space-y-6">
-        <div class="flex items-center gap-1.5 pb-3 border-b border-slate-200 dark:border-white/10 overflow-x-auto text-xs font-semibold scrollbar-none">
-          <button onclick="switchPersp('summary')" id="persp-summary" class="persp-btn active px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0">
-            <span>⚡ 60s Özeti</span>
-          </button>
-          <button onclick="switchPersp('github')" id="persp-github" class="persp-btn px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0">
-            <span>🚀 GitHub & MCP</span>
-          </button>
-          <button onclick="switchPersp('frontier')" id="persp-frontier" class="persp-btn px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0">
-            <span>🔬 Frontier AI</span>
-          </button>
-          <button onclick="switchPersp('community')" id="persp-community" class="persp-btn px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0">
-            <span>🌐 Topluluk Nabzı</span>
-          </button>
-          <button onclick="switchPersp('architecture')" id="persp-architecture" class="persp-btn px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0">
-            <span>🏗️ Mimari & FSM</span>
-          </button>
-          <button onclick="switchPersp('ab')" id="persp-ab" class="persp-btn px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0">
-            <span>🧪 A/B Testleri</span>
-          </button>
-          <button onclick="switchPersp('checklist')" id="persp-checklist" class="persp-btn px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0">
-            <span>🎯 Aksiyonlar</span>
-          </button>
-          <button onclick="switchPersp('telemetry')" id="persp-telemetry" class="persp-btn px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0">
-            <span>📊 Telemetri</span>
-          </button>
-        </div>
-
-        <div id="sub-summary" class="persp-subpane block space-y-4">
-          <div class="prose max-w-none font-reader">
-            ${subSummaryHtml}
-          </div>
-        </div>
-
-        <div id="sub-github" class="persp-subpane hidden space-y-4">
-          <div class="prose max-w-none font-reader">
-            ${subGithubHtml}
-          </div>
-        </div>
-
-        <div id="sub-frontier" class="persp-subpane hidden space-y-4">
-          <div class="prose max-w-none font-reader">
-            ${subFrontierHtml}
-          </div>
-        </div>
-
-        <div id="sub-community" class="persp-subpane hidden space-y-4">
-          <div class="prose max-w-none font-reader">
-            ${subCommunityHtml}
-          </div>
-        </div>
-
-        <div id="sub-architecture" class="persp-subpane hidden space-y-4">
-          <div class="prose max-w-none font-reader">
-            ${subArchitectureHtml}
-          </div>
-        </div>
-
-        <div id="sub-ab" class="persp-subpane hidden space-y-4">
-          <div class="prose max-w-none font-reader">
-            <h2 id="sec-ab" class="text-xl font-bold mb-4 flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>🧪 Maestro, CRM App ve Planla İçin A/B Testleri &amp; Benchmark
-            </h2>
-            <div class="p-5 rounded-2xl narrative-box space-y-3 mb-6">
-              <div class="font-bold text-sm flex items-center gap-2">
-                <i class="fa-solid fa-flask text-indigo-500"></i>
-                <span>Canlı Sistem Benchmark Doğrulaması (CRM App :8000 &amp; Planla :3000):</span>
-              </div>
-              <p class="text-xs md:text-sm leading-relaxed">
-                AST Codebase Memory MCP, klasik monolitik bağlam ve kaba vektör RAG'e karşı <strong>%99.3 token tasarrufu</strong> ve <strong>6.3x hız artışı</strong> sağlamış, aylık maliyeti $148.50'den $1.20'ye düşürmüştür.
-              </p>
-              <button onclick="switchView('ab')" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition-all flex items-center gap-1.5 shadow-md">
-                <span>Tüm Detaylı A/B Vaka Kartlarını ve Yönetici Analizlerini Aç</span> &rarr;
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div id="sub-checklist" class="persp-subpane hidden space-y-4">
-          <div class="prose max-w-none font-reader">
-            ${subChecklistHtml}
-          </div>
-        </div>
-
-        <div id="sub-telemetry" class="persp-subpane hidden space-y-4">
-          <div class="prose max-w-none font-reader">
-            ${subTelemetryHtml}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="pane-ab" class="view-pane hidden space-y-6">
-      <div class="glass-card rounded-3xl p-6 md:p-12 space-y-8">
-        <div class="border-b border-slate-200 dark:border-white/10 pb-6">
-          <div class="flex items-center gap-2 mb-2 flex-wrap">
-            <span class="text-[11px] uppercase tracking-wider font-extrabold px-2.5 py-1 rounded-lg bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30">
-              Canlı Sistem Doğrulaması & Benchmark
-            </span>
-            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">CRM_APP & Planla Aktif</span>
-          </div>
-          <h2 class="text-2xl md:text-3xl font-black tracking-tight">
-            🧪 Araştırma Bulgularının Üretim Sistemlerimizdeki A/B Test Sonuçları
-          </h2>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Günlük istihbaratta keşfedilen SOTA yöntemler sistemlerimize uygulanmış ve canlı telemetrik metriklerle kıyaslanmıştır.
-          </p>
-        </div>
-
-        <div class="prose max-w-none font-reader">
-          <div class="p-6 rounded-2xl sub-card space-y-4">
-            <h3 class="text-base md:text-lg font-bold flex items-center gap-2">
-              <i class="fa-solid fa-code text-indigo-500"></i>
-              <span>Senaryo 1: Codebase Memory MCP vs Monolitik Bağlam (CRM App & Planla)</span>
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
-              <div class="p-4 rounded-xl sub-card">
-                <div class="text-xs font-bold text-rose-500 uppercase">Varyant A (Klasik Monolitik / RAG)</div>
-                <ul class="text-xs space-y-1 mt-2">
-                  <li>İstek Başı: 128.450 token</li>
-                  <li>Gecikme: 2.140 ms</li>
-                  <li>Halüsinasyon: %18.2</li>
-                  <li>Aylık Fatura: $148.50</li>
-                </ul>
-              </div>
-              <div class="p-4 rounded-xl narrative-box">
-                <div class="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase">Varyant B (AST Codebase Memory MCP) 🏆</div>
-                <ul class="text-xs space-y-1 mt-2">
-                  <li>İstek Başı: 820 token (%99.3 Tasarruf!)</li>
-                  <li>Gecikme: 340 ms (6.3x Daha Hızlı!)</li>
-                  <li>Halüsinasyon: %0.0 Deterministik</li>
-                  <li>Aylık Fatura: $1.20</li>
-                </ul>
-              </div>
-            </div>
-            <blockquote class="text-xs leading-relaxed">
-              <strong>Sistem Mimarı Değerlendirmesi & Entegrasyon Sözleşmesi:</strong><br>
-              Mevcut sistemimizde kullanılan monolitik bağlam enjeksiyonu ve kaba metin parçalama ile yeni keşfedilen Tree-sitter / AST destekli DeusData/codebase-memory-mcp ikili sunucusu karşılaştırıldı. CRM App (Next.js 15, PostgreSQL, 50k+ LOC) ve Planla (FastAPI + React, 70k+ LOC) üzerinde 20 farklı çoklu dosya refaktör testi koşturuldu. AST grafiği sayesinde token tüketimi %99.3 düşerken halüsinasyon sıfırlandı. Bu kazanım Maestro Sovereign Core'un kalbine işlendi; Niyet Algılama (Intent Detection) kancalarıyla ajanlar artık kod yazmadan önce AST bellek yapısını sorgulamaktadır.
-            </blockquote>
-          </div>
-
-          <div class="p-6 rounded-2xl sub-card space-y-4 mt-6">
-            <h3 class="text-base md:text-lg font-bold flex items-center gap-2">
-              <i class="fa-solid fa-microchip text-purple-500"></i>
-              <span>Senaryo 2: Model Dağıtım Stratejisi (Maestro Sovereign Core)</span>
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
-              <div class="p-4 rounded-xl sub-card">
-                <div class="text-xs font-bold text-rose-500 uppercase">Varyant A (Tekil Frontier Model)</div>
-                <ul class="text-xs space-y-1 mt-2">
-                  <li>İlk Sefer Başarısı: %71.2</li>
-                  <li>Düzeltme Döngüsü: 2.8 tur</li>
-                  <li>İstek Başı Maliyet: $0.045</li>
-                </ul>
-              </div>
-              <div class="p-4 rounded-xl narrative-box">
-                <div class="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase">Varyant B (Dual-Tier Dağıtım) 🏆</div>
-                <ul class="text-xs space-y-1 mt-2">
-                  <li>İlk Sefer Başarısı: %98.4</li>
-                  <li>Düzeltme Döngüsü: 1.1 tur</li>
-                  <li>Fatura Tasarrufu: %64 İndirim</li>
-                </ul>
-              </div>
-            </div>
-            <blockquote class="text-xs leading-relaxed">
-              <strong>Sistem Mimarı Değerlendirmesi:</strong> Hızlı İcracı (Gemini Omni) taslak kodu üretirken, Derin Doğrulayıcı (Claude Critic) kodu anayasa ve tip kontrolünden geçirmektedir. LiteLLM Proxy katmanına Provider Pinning kuralları işlenmiş ve mimarimizin kalbine kilitlenmiştir.
-            </blockquote>
-          </div>
-
-          <div class="p-6 rounded-2xl sub-card space-y-4 mt-6">
-            <h3 class="text-base md:text-lg font-bold flex items-center gap-2">
-              <i class="fa-solid fa-chart-line text-sky-500"></i>
-              <span>Senaryo 3: İstihbarat & Bilgi Tüketimi (Planla Scout Radarı)</span>
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
-              <div class="p-4 rounded-xl sub-card">
-                <div class="text-xs font-bold text-rose-500 uppercase">Varyant A (Düz Metin / Terminal Log)</div>
-                <ul class="text-xs space-y-1 mt-2">
-                  <li>Okuma Süresi: 24 dakika</li>
-                  <li>Aksiyona Dönüşme: %35</li>
-                  <li>İnteraktif Soru-Cevap: Yok</li>
-                </ul>
-              </div>
-              <div class="p-4 rounded-xl narrative-box">
-                <div class="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase">Varyant B (Cam Portalı & Zen Modu) 🏆</div>
-                <ul class="text-xs space-y-1 mt-2">
-                  <li>Okuma Süresi: 60s özet / 8 dk tam</li>
-                  <li>Aksiyona Dönüşme: %92</li>
-                  <li>İnteraktif Soru-Cevap: Zero-Token NotebookLM RAG</li>
-                </ul>
-              </div>
-            </div>
-            <blockquote class="text-xs leading-relaxed">
-              <strong>Sistem Mimarı Değerlendirmesi:</strong> Sabah bültenlerinin düz terminal metinleri yerine 2026 cam ve tam ekran Zen okuma portalı olarak sunulması mühendislik ekibinin günlük aksiyon alma verimliliğini %162 artırmıştır. Planla uygulamasında /scout rotasına ve takvim brifinglerine doğrudan bağlanmıştır.
-            </blockquote>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="pane-raw" class="view-pane hidden space-y-6">
-      <div class="flex items-center justify-between gap-4 flex-wrap pb-2 border-b border-slate-200 dark:border-white/10">
-        <div>
-          <h2 class="text-lg font-bold">📄 Ham Markdown İstihbarat Kaynağı</h2>
-        </div>
-        <button onclick="copyRawText()" id="copy-raw-btn" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-all">
-          <i class="fa-solid fa-copy"></i> <span>Tümünü Kopyala</span>
-        </button>
-      </div>
-      <pre id="raw-source" class="bg-slate-900 border border-slate-200 dark:border-white/10 p-6 rounded-3xl font-mono text-xs text-emerald-400 whitespace-pre-wrap leading-relaxed shadow-2xl select-all">${escapedMd}</pre>
+      <article class="prose max-w-none font-reader">
+        ${bodyHtml}
+      </article>
     </div>
   </main>
 
   <script>
-    function switchView(mode) {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      const activeBtn = document.getElementById('tab-' + mode);
-      if (activeBtn) activeBtn.classList.add('active');
-
-      document.querySelectorAll('.view-pane').forEach(p => p.classList.add('hidden'));
-      const targetPane = document.getElementById('pane-' + mode);
-      if (targetPane) targetPane.classList.remove('hidden');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function switchPersp(sub) {
-      document.querySelectorAll('.persp-btn').forEach(btn => btn.classList.remove('active'));
-      const activeBtn = document.getElementById('persp-' + sub);
-      if (activeBtn) activeBtn.classList.add('active');
-
-      if (sub === 'ab') {
-        switchView('ab');
-        return;
-      }
-
-      document.querySelectorAll('.persp-subpane').forEach(p => p.classList.add('hidden'));
-      const targetSub = document.getElementById('sub-' + sub);
-      if (targetSub) targetSub.classList.remove('hidden');
-    }
-
-    function setTheme(mode) {
-      const html = document.documentElement;
-      const body = document.body;
-      const icon = document.getElementById('theme-icon');
-      if (mode === 'light') {
-        html.classList.remove('dark');
-        html.classList.add('light');
-        body.classList.remove('dark');
-        body.classList.add('light');
-        if (icon) icon.className = 'fa-solid fa-moon text-indigo-600';
-      } else {
-        html.classList.remove('light');
-        html.classList.add('dark');
-        body.classList.remove('light');
-        body.classList.add('dark');
-        if (icon) icon.className = 'fa-solid fa-sun text-amber-500';
-      }
-      try {
-        window.parent.postMessage({ type: 'THEME_CHANGED', theme: mode }, '*');
-      } catch (e) {}
-    }
-
-    function toggleTheme() {
-      const isLight = document.documentElement.classList.contains('light');
-      setTheme(isLight ? 'dark' : 'light');
-    }
-
     window.addEventListener('message', function(e) {
-      if (e.data && e.data.type === 'SET_THEME' && e.data.theme) {
-        setTheme(e.data.theme);
+      if (!e.data) return;
+      if (e.data.type === 'SET_THEME' && e.data.theme) {
+        if (e.data.theme === 'dark') {
+          document.documentElement.classList.remove('light');
+          document.documentElement.classList.add('dark');
+          document.body.classList.remove('light');
+          document.body.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+          document.documentElement.classList.add('light');
+          document.body.classList.remove('dark');
+          document.body.classList.add('light');
+        }
+      }
+      if (e.data.type === 'SET_FONT_SIZE' && e.data.size) {
+        document.body.classList.remove('font-scaler-sm', 'font-scaler-base', 'font-scaler-lg');
+        document.body.classList.add('font-scaler-' + e.data.size);
+      }
+      if (e.data.type === 'SCROLL_TO_SECTION' && e.data.sectionId) {
+        const el = document.getElementById(e.data.sectionId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       }
     });
-
-    function setFontSize(size) {
-      document.body.classList.remove('font-scaler-sm', 'font-scaler-base', 'font-scaler-lg');
-      document.body.classList.add('font-scaler-' + size);
-      const sizes = ['sm', 'base', 'lg'];
-      sizes.forEach(s => {
-        const btn = document.getElementById('btn-font-' + s);
-        if (btn) {
-          if (s === size) {
-            btn.className = 'px-2 py-1 text-indigo-600 dark:text-indigo-400 font-bold';
-          } else {
-            btn.className = 'px-2 py-1 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-white';
-          }
-        }
-      });
-    }
-
-    function jumpToSection(val) {
-      if (!val) return;
-      const secMap = {
-        'sec-summary': 'summary',
-        'sec-github': 'github',
-        'sec-frontier': 'frontier',
-        'sec-community': 'community',
-        'sec-architecture': 'architecture',
-        'sec-ab': 'ab',
-        'sec-checklist': 'checklist',
-        'sec-telemetry': 'telemetry'
-      };
-      if (secMap[val]) {
-        switchView('perspective');
-        switchPersp(secMap[val]);
-      } else {
-        switchView('html');
-        setTimeout(() => {
-          const el = document.getElementById(val);
-          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-      }
-    }
-
-    function copyRawText() {
-      const text = document.getElementById('raw-source').innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = document.getElementById('copy-raw-btn');
-        btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> Kopyalandı!';
-        setTimeout(() => {
-          btn.innerHTML = '<i class="fa-solid fa-copy"></i> Tümünü Kopyala';
-        }, 2000);
-      });
-    }
   </script>
 </body>
 </html>`
@@ -1590,43 +1253,6 @@ export function ScoutRadarPage() {
   const { theme, setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
 
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  const activeTheme = mounted ? (resolvedTheme || (theme === 'system' ? 'light' : theme) || 'light') : 'light'
-  const isDark = activeTheme === 'dark'
-
-  const handleToggleTheme = () => {
-    const nextTheme = isDark ? 'light' : 'dark'
-    setTheme(nextTheme)
-    try {
-      if (iframeRef.current && iframeRef.current.contentWindow) {
-        iframeRef.current.contentWindow.postMessage({ type: 'SET_THEME', theme: nextTheme }, '*')
-      }
-    } catch (_) {}
-  }
-
-  // Listen for theme toggle inside iframe
-  React.useEffect(() => {
-    const handleMsg = (e: MessageEvent) => {
-      if (e.data && e.data.type === 'THEME_CHANGED' && e.data.theme) {
-        setTheme(e.data.theme)
-      }
-    }
-    window.addEventListener('message', handleMsg)
-    return () => window.removeEventListener('message', handleMsg)
-  }, [setTheme])
-
-  // Synchronize activeTheme changes into iframe
-  React.useEffect(() => {
-    try {
-      if (iframeRef.current && iframeRef.current.contentWindow) {
-        iframeRef.current.contentWindow.postMessage({ type: 'SET_THEME', theme: activeTheme }, '*')
-      }
-    } catch (_) {}
-  }, [activeTheme])
-
   const [briefings, setBriefings] = React.useState<ScoutBriefing[]>([])
   const [selectedBriefing, setSelectedBriefing] = React.useState<ScoutBriefing | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
@@ -1652,6 +1278,65 @@ export function ScoutRadarPage() {
   const [isAsking, setIsAsking] = React.useState(false)
 
   const iframeRef = React.useRef<HTMLIFrameElement>(null)
+  const zenIframeRef = React.useRef<HTMLIFrameElement>(null)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const activeTheme = mounted ? (resolvedTheme || (theme === 'system' ? 'light' : theme) || 'light') : 'light'
+  const isDark = activeTheme === 'dark'
+
+  const handleToggleTheme = () => {
+    const nextTheme = isDark ? 'light' : 'dark'
+    setTheme(nextTheme)
+    try {
+      const msg = { type: 'SET_THEME', theme: nextTheme }
+      if (iframeRef.current && iframeRef.current.contentWindow) {
+        iframeRef.current.contentWindow.postMessage(msg, '*')
+      }
+      if (zenIframeRef.current && zenIframeRef.current.contentWindow) {
+        zenIframeRef.current.contentWindow.postMessage(msg, '*')
+      }
+    } catch (_) {}
+  }
+
+  // Listen for theme toggle inside iframe
+  React.useEffect(() => {
+    const handleMsg = (e: MessageEvent) => {
+      if (e.data && e.data.type === 'THEME_CHANGED' && e.data.theme) {
+        setTheme(e.data.theme)
+      }
+    }
+    window.addEventListener('message', handleMsg)
+    return () => window.removeEventListener('message', handleMsg)
+  }, [setTheme])
+
+  // Synchronize activeTheme changes into both iframes
+  React.useEffect(() => {
+    try {
+      const msg = { type: 'SET_THEME', theme: activeTheme }
+      if (iframeRef.current && iframeRef.current.contentWindow) {
+        iframeRef.current.contentWindow.postMessage(msg, '*')
+      }
+      if (zenIframeRef.current && zenIframeRef.current.contentWindow) {
+        zenIframeRef.current.contentWindow.postMessage(msg, '*')
+      }
+    } catch (_) {}
+  }, [activeTheme, isFullscreen])
+
+  // Synchronize font size into both iframes
+  React.useEffect(() => {
+    try {
+      const msg = { type: 'SET_FONT_SIZE', size: fontSize }
+      if (iframeRef.current && iframeRef.current.contentWindow) {
+        iframeRef.current.contentWindow.postMessage(msg, '*')
+      }
+      if (zenIframeRef.current && zenIframeRef.current.contentWindow) {
+        zenIframeRef.current.contentWindow.postMessage(msg, '*')
+      }
+    } catch (_) {}
+  }, [fontSize, isFullscreen])
 
   const fetchBriefings = React.useCallback(async () => {
     setIsLoading(true)
@@ -1696,7 +1381,8 @@ export function ScoutRadarPage() {
       content = selectedBriefing.content || selectedBriefing.description
       mimeType = 'text/markdown'
     } else if (format === 'html') {
-      content = selectedBriefing.html || generateClientHtml(selectedBriefing.title, selectedBriefing.content || selectedBriefing.description, selectedBriefing.date, activeTheme)
+      const baseHtml = selectedBriefing.html || generateClientHtml(selectedBriefing.title, selectedBriefing.content || selectedBriefing.description, selectedBriefing.date, activeTheme, fontSize)
+      content = cleanAndPrepareReportHtml(baseHtml, isDark ? 'dark' : 'light', fontSize)
       mimeType = 'text/html'
     } else if (format === 'json') {
       content = JSON.stringify(selectedBriefing, null, 2)
@@ -1715,8 +1401,9 @@ export function ScoutRadarPage() {
   }
 
   const handlePrintHtml = () => {
-    if (iframeRef.current && iframeRef.current.contentWindow) {
-      iframeRef.current.contentWindow.print()
+    const targetIframe = isFullscreen ? zenIframeRef.current : iframeRef.current
+    if (targetIframe && targetIframe.contentWindow) {
+      targetIframe.contentWindow.print()
     } else {
       window.print()
     }
@@ -1724,7 +1411,8 @@ export function ScoutRadarPage() {
 
   const handleOpenHtmlInNewTab = () => {
     if (!selectedBriefing) return
-    const htmlToOpen = selectedBriefing.html || generateClientHtml(selectedBriefing.title, selectedBriefing.content || selectedBriefing.description, selectedBriefing.date, activeTheme)
+    const baseHtml = selectedBriefing.html || generateClientHtml(selectedBriefing.title, selectedBriefing.content || selectedBriefing.description, selectedBriefing.date, activeTheme, fontSize)
+    const htmlToOpen = cleanAndPrepareReportHtml(baseHtml, isDark ? 'dark' : 'light', fontSize)
     const blob = new Blob([htmlToOpen], { type: 'text/html;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     window.open(url, '_blank')
@@ -1847,13 +1535,24 @@ export function ScoutRadarPage() {
       'sec-telemetry': 'telemetry'
     }
 
-    if (val === 'sec-ab') {
+    // If currently in Cam HTML mode: notify the active iframe to smoothly scroll
+    if (readerViewMode === 'html') {
+      const targetIframe = isFullscreen ? zenIframeRef.current : iframeRef.current
+      if (targetIframe && targetIframe.contentWindow) {
+        targetIframe.contentWindow.postMessage({ type: 'SCROLL_TO_SECTION', sectionId: val }, '*')
+      }
+    }
+
+    // Direct navigation to A/B test view
+    if (val === 'sec-ab' && readerViewMode !== 'html') {
       setReaderViewMode('ab_tests')
       return
     }
 
     if (secMap[val]) {
-      setReaderViewMode('perspective')
+      if (readerViewMode !== 'html') {
+        setReaderViewMode('perspective')
+      }
       setPerspectiveTab(secMap[val])
       return
     }
@@ -1878,48 +1577,18 @@ export function ScoutRadarPage() {
     }, 150)
   }
 
-  // HTML content for iframe (dynamically synchronizes active theme)
+  // HTML content for iframe (dynamically synchronizes active theme and font size)
   const renderedHtml = React.useMemo(() => {
     if (!selectedBriefing) return ""
-    let rawHtml = selectedBriefing.html || generateClientHtml(
+    const rawHtml = selectedBriefing.html || generateClientHtml(
       selectedBriefing.title, 
       selectedBriefing.content || selectedBriefing.description, 
       selectedBriefing.date || 'Bugün',
-      activeTheme
+      activeTheme,
+      fontSize
     )
-
-    if (rawHtml) {
-      if (!rawHtml.includes('darkMode: \'class\'') && !rawHtml.includes('darkMode: "class"')) {
-        rawHtml = rawHtml.replace(
-          /<script src="https:\/\/cdn\.tailwindcss\.com"><\/script>/i,
-          '<script src="https://cdn.tailwindcss.com"></script><script>tailwind = { darkMode: "class" };</script>'
-        )
-      }
-
-      if (isDark) {
-        return rawHtml
-          .replace(/<html([^>]*)class="([^"]*)"/i, (m, p1, p2) => {
-            const cleaned = p2.replace(/\b(dark|light)\b/g, '').trim()
-            return `<html${p1}class="${cleaned} dark"`
-          })
-          .replace(/<body([^>]*)class="([^"]*)"/i, (m, p1, p2) => {
-            const cleaned = p2.replace(/\b(dark|light)\b/g, '').trim()
-            return `<body${p1}class="${cleaned} dark"`
-          })
-      } else {
-        return rawHtml
-          .replace(/<html([^>]*)class="([^"]*)"/i, (m, p1, p2) => {
-            const cleaned = p2.replace(/\b(dark|light)\b/g, '').trim()
-            return `<html${p1}class="${cleaned} light"`
-          })
-          .replace(/<body([^>]*)class="([^"]*)"/i, (m, p1, p2) => {
-            const cleaned = p2.replace(/\b(dark|light)\b/g, '').trim()
-            return `<body${p1}class="${cleaned} light"`
-          })
-      }
-    }
-    return rawHtml
-  }, [selectedBriefing, activeTheme, isDark])
+    return cleanAndPrepareReportHtml(rawHtml, isDark ? 'dark' : 'light', fontSize)
+  }, [selectedBriefing, activeTheme, isDark, fontSize])
 
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-[#080b11] text-slate-900 dark:text-slate-100 overflow-hidden">
@@ -2311,6 +1980,26 @@ export function ScoutRadarPage() {
                     </button>
                   </div>
 
+                  {/* Hızlı Gezinti (TOC) */}
+                  <select
+                    onChange={(e) => {
+                      handleJumpSection(e.target.value)
+                      e.target.value = ""
+                    }}
+                    className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-white/10 rounded-xl px-2.5 py-1.5 outline-none hover:border-indigo-400 transition-all cursor-pointer max-w-[150px] sm:max-w-[180px] truncate"
+                    defaultValue=""
+                  >
+                    <option value="" disabled>⚡ Hızlı Gezinti (TOC)...</option>
+                    <option value="sec-summary">⚡ 60 Saniyelik Özet</option>
+                    <option value="sec-github">🚀 GitHub & MCP</option>
+                    <option value="sec-frontier">🔬 Frontier Modeller</option>
+                    <option value="sec-community">🌐 Topluluk Nabzı</option>
+                    <option value="sec-architecture">🏗️ Mimari & FSM</option>
+                    <option value="sec-ab">🧪 A/B Testleri</option>
+                    <option value="sec-checklist">🎯 Aksiyon Listesi</option>
+                    <option value="sec-telemetry">📊 Telemetri</option>
+                  </select>
+
                   {/* Zen Tam Ekran Butonu */}
                   <button
                     onClick={() => setIsFullscreen(true)}
@@ -2323,24 +2012,6 @@ export function ScoutRadarPage() {
 
                   {readerViewMode === 'html' && (
                     <div className="flex items-center gap-1 text-xs">
-                      <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-0.5 border border-slate-200 dark:border-white/10">
-                        <button
-                          onClick={() => setHtmlZoom(prev => Math.max(75, prev - 10))}
-                          className="p-1 rounded-lg hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
-                          title="Uzaklaştır"
-                        >
-                          <ZoomOut className="w-3.5 h-3.5" />
-                        </button>
-                        <span className="px-1.5 text-[11px] font-mono text-slate-500 font-bold">{htmlZoom}%</span>
-                        <button
-                          onClick={() => setHtmlZoom(prev => Math.min(130, prev + 10))}
-                          className="p-1 rounded-lg hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
-                          title="Yakınlaştır"
-                        >
-                          <ZoomIn className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-
                       <button
                         onClick={handlePrintHtml}
                         className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
@@ -2373,18 +2044,12 @@ export function ScoutRadarPage() {
               {/* MOD 1: KUSURSUZ CAM HTML RAPOR ÖNİZLEME (IFRAME) */}
               {readerViewMode === 'html' && (
                 <div className="flex-1 overflow-hidden p-4 md:p-6 flex flex-col">
-                  <div className="flex-1 rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-2xl overflow-hidden bg-white dark:bg-[#0b0d13] relative flex flex-col">
+                  <div className="flex-1 rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-2xl overflow-hidden bg-white dark:bg-[#080b11] relative flex flex-col">
                     <iframe
                       ref={iframeRef}
                       title="AI Intelligence HTML Report"
                       srcDoc={renderedHtml}
-                      className="w-full flex-1 border-none"
-                      style={{
-                        transform: `scale(${htmlZoom / 100})`,
-                        transformOrigin: 'top center',
-                        height: `${100 * (100 / htmlZoom)}%`,
-                        width: '100%'
-                      }}
+                      className="w-full h-full flex-1 border-none"
                     />
                   </div>
                 </div>
@@ -2850,8 +2515,22 @@ export function ScoutRadarPage() {
                 <span className="hidden md:inline">{isDark ? 'Aydınlık' : 'Karanlık'}</span>
               </button>
 
+              {readerViewMode === 'html' && (
+                <button
+                  onClick={handlePrintHtml}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/90 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-white/10 text-xs font-semibold transition-all"
+                  title="Yazdır / PDF Olarak Kaydet"
+                >
+                  <Printer className="w-3.5 h-3.5 text-slate-600 dark:text-slate-300" />
+                  <span className="hidden md:inline">Yazdır</span>
+                </button>
+              )}
+
               <select
-                onChange={(e) => handleJumpSection(e.target.value)}
+                onChange={(e) => {
+                  handleJumpSection(e.target.value)
+                  e.target.value = ""
+                }}
                 className="text-xs bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 rounded-xl px-2.5 py-1.5 outline-none hover:border-indigo-400 transition-all cursor-pointer max-w-[160px] md:max-w-[220px] truncate"
                 defaultValue=""
               >
@@ -2907,6 +2586,7 @@ export function ScoutRadarPage() {
               <div className="flex-1 p-4 md:p-8 flex flex-col overflow-hidden">
                 <div className="flex-1 rounded-3xl border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden bg-white dark:bg-[#0b0d13]">
                   <iframe
+                    ref={zenIframeRef}
                     title="Fullscreen AI Report"
                     srcDoc={renderedHtml}
                     className="w-full h-full border-none"
