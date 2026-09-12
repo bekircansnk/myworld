@@ -867,6 +867,8 @@ function RichMarkdownViewer({
     navigator.clipboard.writeText(code)
     setCopiedCodeId(id)
     setTimeout(() => setCopiedCodeId(null), 2000)
+  }
+
   const sizeMap: Record<FontSize, {
     wrapper: string
     h1: string
@@ -1070,13 +1072,13 @@ function RichMarkdownViewer({
   }, [content])
 
   return (
-    <div className={`space-y-4 ${fontClasses[fontSize]}`}>
+    <div className={`space-y-4 ${curSize.wrapper}`}>
       {blocks.map((block, idx) => {
         switch (block.type) {
           case 'h1':
             return (
               <div key={idx} className="pt-2 pb-4 border-b border-slate-200 dark:border-white/10">
-                <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+                <h1 className={`${curSize.h1} font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3`}>
                   {renderInlineMarkdown(block.data, isHighContrast)}
                 </h1>
               </div>
@@ -1086,7 +1088,7 @@ function RichMarkdownViewer({
             const headingText = String(block.data)
             return (
               <div key={idx} className="pt-6 pb-2 border-b border-slate-200/80 dark:border-white/10 scroll-mt-20">
-                <h2 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <h2 className={`${curSize.h2} font-bold text-slate-900 dark:text-white flex items-center gap-2`}>
                   <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-sm shadow-indigo-500/50"></span>
                   {renderInlineMarkdown(headingText, isHighContrast)}
                 </h2>
@@ -1096,14 +1098,14 @@ function RichMarkdownViewer({
 
           case 'h3':
             return (
-              <h3 key={idx} className="text-base font-bold text-slate-900 dark:text-slate-100 pt-3">
+              <h3 key={idx} className={`${curSize.h3} font-bold text-slate-900 dark:text-slate-100 pt-3`}>
                 {renderInlineMarkdown(block.data, isHighContrast)}
               </h3>
             )
 
           case 'h4':
             return (
-              <h4 key={idx} className="text-sm font-semibold text-slate-800 dark:text-slate-200 pt-2">
+              <h4 key={idx} className={`${curSize.h4} font-semibold text-slate-800 dark:text-slate-200 pt-2`}>
                 {renderInlineMarkdown(block.data, isHighContrast)}
               </h4>
             )
@@ -1115,7 +1117,7 @@ function RichMarkdownViewer({
             return (
               <blockquote
                 key={idx}
-                className="my-3 pl-4 py-2.5 border-l-4 border-indigo-500 bg-indigo-50/70 dark:bg-indigo-950/30 rounded-r-2xl text-slate-800 dark:text-slate-200 italic border border-indigo-200/60 dark:border-indigo-800/30"
+                className={`my-3 pl-4 py-2.5 border-l-4 border-indigo-500 bg-indigo-50/70 dark:bg-indigo-950/30 rounded-r-2xl text-slate-800 dark:text-slate-200 italic border border-indigo-200/60 dark:border-indigo-800/30 ${curSize.body}`}
               >
                 {renderInlineMarkdown(block.data, isHighContrast)}
               </blockquote>
@@ -1133,14 +1135,14 @@ function RichMarkdownViewer({
                 onClick={() => onToggleChecklist && onToggleChecklist(cIdx)}
                 className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-100/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
               >
-                <div className={`mt-0.5 w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                <div className={`mt-0.5 w-5 h-5 rounded-lg border flex items-center justify-center transition-all shrink-0 ${
                   isCompleted 
                     ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm' 
                     : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 group-hover:border-indigo-400'
                 }`}>
                   {isCompleted && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                 </div>
-                <div className={`flex-1 text-slate-800 dark:text-slate-100 text-xs md:text-sm ${isCompleted ? 'line-through opacity-50' : ''}`}>
+                <div className={`flex-1 text-slate-800 dark:text-slate-100 ${curSize.checklist} ${isCompleted ? 'line-through opacity-50' : ''}`}>
                   {renderInlineMarkdown(block.data.text, isHighContrast)}
                 </div>
               </div>
@@ -1151,7 +1153,7 @@ function RichMarkdownViewer({
             return (
               <div key={idx} className="flex items-start gap-2.5 pl-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-2 shrink-0" />
-                <div className="flex-1 text-slate-700 dark:text-slate-200">
+                <div className={`flex-1 text-slate-700 dark:text-slate-200 ${curSize.body}`}>
                   {renderInlineMarkdown(block.data, isHighContrast)}
                 </div>
               </div>
@@ -1163,7 +1165,7 @@ function RichMarkdownViewer({
                 <span className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
                   {block.data.num}
                 </span>
-                <div className="flex-1 text-slate-700 dark:text-slate-200">
+                <div className={`flex-1 text-slate-700 dark:text-slate-200 ${curSize.body}`}>
                   {renderInlineMarkdown(block.data.text, isHighContrast)}
                 </div>
               </div>
@@ -1171,21 +1173,21 @@ function RichMarkdownViewer({
 
           case 'diagram':
             return (
-              <div key={idx} className="my-4 rounded-2xl border border-indigo-200 dark:border-indigo-500/30 bg-slate-50 dark:bg-[#080d1a] shadow-md dark:shadow-xl overflow-hidden">
-                <div className="px-4 py-2 bg-indigo-50 dark:bg-indigo-950/70 border-b border-indigo-200 dark:border-indigo-500/20 flex items-center justify-between">
+              <div key={idx} className="my-4 rounded-2xl border border-slate-200 dark:border-indigo-500/30 bg-slate-50 dark:bg-[#080d1a] shadow-sm dark:shadow-xl overflow-hidden">
+                <div className="px-4 py-2 bg-slate-100/80 dark:bg-indigo-950/70 border-b border-slate-200 dark:border-indigo-500/20 flex items-center justify-between">
                   <span className="text-xs font-mono font-bold text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5">
                     <Layers className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                     📐 Mimari Topoloji Şeması (ASCII FSM)
                   </span>
                   <button
                     onClick={() => handleCopyCode(block.data.code, `diag-${idx}`)}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/60 dark:hover:bg-indigo-800 text-[11px] font-medium text-indigo-800 dark:text-indigo-200 transition-colors"
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white hover:bg-slate-200 dark:bg-indigo-900/60 dark:hover:bg-indigo-800 text-[11px] font-medium text-slate-700 dark:text-indigo-200 border border-slate-200 dark:border-transparent transition-colors"
                   >
                     {copiedCodeId === `diag-${idx}` ? <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3 h-3" />}
                     {copiedCodeId === `diag-${idx}` ? 'Kopyalandı' : 'Kopyala'}
                   </button>
                 </div>
-                <pre className="p-4 overflow-x-auto font-mono text-[11px] md:text-xs text-indigo-950 dark:text-cyan-300 leading-relaxed tracking-tight select-all">
+                <pre className={`p-4 overflow-x-auto font-mono ${curSize.code} text-slate-900 dark:text-cyan-300 leading-relaxed tracking-tight select-all`}>
                   {block.data.code}
                 </pre>
               </div>
@@ -1193,20 +1195,20 @@ function RichMarkdownViewer({
 
           case 'code':
             return (
-              <div key={idx} className="my-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-900 text-slate-100 shadow-md overflow-hidden">
-                <div className="px-4 py-1.5 bg-slate-950/80 border-b border-white/10 flex items-center justify-between">
-                  <span className="text-xs font-mono text-slate-400 uppercase font-semibold">
+              <div key={idx} className="my-3 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-100/80 dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-sm overflow-hidden">
+                <div className="px-4 py-1.5 bg-slate-200/60 dark:bg-slate-950/80 border-b border-slate-200 dark:border-white/10 flex items-center justify-between">
+                  <span className="text-xs font-mono text-slate-600 dark:text-slate-400 uppercase font-semibold">
                     {block.data.lang || 'code'}
                   </span>
                   <button
                     onClick={() => handleCopyCode(block.data.code, `code-${idx}`)}
-                    className="flex items-center gap-1 px-2 py-0.5 rounded-md hover:bg-white/10 text-[11px] text-slate-300 transition-colors"
+                    className="flex items-center gap-1 px-2 py-0.5 rounded-md hover:bg-slate-300/60 dark:hover:bg-white/10 text-[11px] text-slate-600 dark:text-slate-300 transition-colors"
                   >
-                    {copiedCodeId === `code-${idx}` ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    {copiedCodeId === `code-${idx}` ? <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3 h-3" />}
                     {copiedCodeId === `code-${idx}` ? 'Kopyalandı' : 'Kopyala'}
                   </button>
                 </div>
-                <pre className="p-4 overflow-x-auto font-mono text-xs text-sky-300 leading-relaxed">
+                <pre className={`p-4 overflow-x-auto font-mono ${curSize.code} text-slate-900 dark:text-sky-300 leading-relaxed`}>
                   {block.data.code}
                 </pre>
               </div>
@@ -1215,7 +1217,7 @@ function RichMarkdownViewer({
           case 'table':
             return (
               <div className="my-4 rounded-2xl border border-slate-200/80 dark:border-white/10 overflow-x-auto shadow-sm bg-white dark:bg-slate-900/40 backdrop-blur-md">
-                <table className="w-full text-left border-collapse text-xs md:text-sm">
+                <table className={`w-full text-left border-collapse ${curSize.table}`}>
                   <thead>
                     <tr className="border-b border-slate-200/80 dark:border-white/10 bg-slate-100/70 dark:bg-slate-800/60">
                       {block.data.headers.map((h: string, hIdx: number) => (
@@ -1257,7 +1259,7 @@ function RichMarkdownViewer({
           case 'paragraph':
           default:
             return (
-              <p key={idx} className="text-slate-700 dark:text-slate-200 leading-relaxed">
+              <p key={idx} className={`text-slate-700 dark:text-slate-200 ${curSize.body}`}>
                 {renderInlineMarkdown(block.data, isHighContrast)}
               </p>
             )
@@ -2451,9 +2453,9 @@ export function ScoutRadarPage() {
                     <div className="max-w-5xl mx-auto space-y-6">
                       {/* ÖZET */}
                       {perspectiveTab === 'summary' && (
-                        <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-br from-amber-50/90 via-orange-50/60 to-indigo-50/50 dark:from-indigo-950/90 dark:via-[#0e1424] dark:to-[#0a0d17] border border-amber-300/80 dark:border-indigo-500/40 shadow-xl text-slate-900 dark:text-white">
-                          <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-sm mb-2">
-                            <Zap className="w-4 h-4 animate-pulse" />
+                        <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#111522] border border-slate-200/80 dark:border-white/10 shadow-sm text-slate-900 dark:text-white">
+                          <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-sm mb-2">
+                            <Zap className="w-4 h-4 text-amber-500 animate-pulse" />
                             60 Saniyelik Stratejik Yönetici Özeti
                           </div>
                           <h3 className="text-xl font-black text-slate-900 dark:text-white mb-4">
@@ -2830,6 +2832,16 @@ export function ScoutRadarPage() {
                 <option value="sec-telemetry">📊 Telemetri</option>
               </select>
 
+              {/* Zen Tema Değiştirici (Sun / Moon) */}
+              <button
+                onClick={handleToggleTheme}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/90 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 text-xs font-semibold transition-all"
+                title={isDark ? "Aydınlık Okuma Moduna Geç" : "Karanlık Gece Moduna Geç"}
+              >
+                {isDark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-indigo-600" />}
+                <span className="hidden sm:inline">{isDark ? 'Aydınlık' : 'Karanlık'}</span>
+              </button>
+
               <div className="flex items-center bg-slate-100 dark:bg-slate-800/90 rounded-xl p-0.5 border border-slate-200 dark:border-white/10 text-xs font-semibold">
                 <button
                   onClick={() => setFontSize('sm')}
@@ -2922,9 +2934,9 @@ export function ScoutRadarPage() {
                 <div className="flex-1 overflow-y-auto p-6 md:p-10">
                   <div className="max-w-5xl mx-auto space-y-6">
                     {perspectiveTab === 'summary' && (
-                      <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-br from-amber-50/90 via-orange-50/60 to-indigo-50/50 dark:from-indigo-950/90 dark:via-[#0e1424] dark:to-[#0a0d17] border border-amber-300/80 dark:border-indigo-500/40 shadow-xl text-slate-900 dark:text-white">
-                        <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-sm mb-2">
-                          <Zap className="w-4 h-4 animate-pulse" />
+                      <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#111522] border border-slate-200/80 dark:border-white/10 shadow-sm text-slate-900 dark:text-white">
+                        <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-sm mb-2">
+                          <Zap className="w-4 h-4 text-amber-500 animate-pulse" />
                           60 Saniyelik Stratejik Yönetici Özeti
                         </div>
                         <h3 className="text-xl font-black text-slate-900 dark:text-white mb-4">
