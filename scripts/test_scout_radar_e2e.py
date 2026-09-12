@@ -99,8 +99,7 @@ async def run_e2e():
     try:
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)
-            # service_workers='block' prevents Serwist SW from dropping mocked API calls
-            context = await browser.new_context(viewport={"width": 1440, "height": 900}, service_workers="block")
+            context = await browser.new_context(viewport={"width": 1440, "height": 900}, service_workers="block", color_scheme="light")
             page = await context.new_page()
 
             cors_headers = {
@@ -197,14 +196,15 @@ async def run_e2e():
             await page.screenshot(path="/Users/bekir/Uygulamalarim/2-My-World/scripts/screenshots/03_scout_60s_contrast_light.png")
             print("[OK] Screenshot 60s light kaydedildi: 03_scout_60s_contrast_light.png", flush=True)
 
-            # Dark mode'a geçip kontrastı doğrula
             theme_btn = await page.query_selector("button:has(svg.lucide-moon), button:has(svg.lucide-sun)")
             if theme_btn:
                 await theme_btn.click()
                 await page.wait_for_timeout(500)
                 await page.screenshot(path="/Users/bekir/Uygulamalarim/2-My-World/scripts/screenshots/03_scout_60s_contrast_dark.png")
                 print("[OK] Screenshot 60s dark kaydedildi: 03_scout_60s_contrast_dark.png", flush=True)
-                # Tekrar light mode'a dön (veya dark kalsın)
+                # Tekrar light mode'a dön
+                await theme_btn.click()
+                await page.wait_for_timeout(500)
 
             print("[OK] 60s Özeti sekmesi başarıyla doğrulandı.", flush=True)
 
