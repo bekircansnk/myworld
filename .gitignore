@@ -55,3 +55,11 @@ skills-lock.json
 /app/web/public/venus_ads_rehber.md
 scripts/screenshots/
 
+# Maestro Runtime & Ephemeral Brain State (Never commit to Git)
+.brain/BASELINE_HEALTH.json
+.brain/PREFLIGHT_TOKEN
+.brain/SESSION_STATE.json
+.brain/CLAUDE_HANDOVER_STATE.json
+.brain/CLAUDE_LIVE_TELEMETRY.md
+.brain/*.tmp
+
