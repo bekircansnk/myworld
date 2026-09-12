@@ -31,3 +31,28 @@ async def get_weekly_reports(limit: int = 12, db: AsyncSession = Depends(get_db)
     query = select(WeeklyReport).where(WeeklyReport.user_id == current_user.id).order_by(desc(WeeklyReport.week_start)).limit(limit)
     result = await db.execute(query)
     return result.scalars().all()
+
+@router.get("/scout")
+async def get_scout_briefings(limit: int = 30, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Maestro 360-Scout tarafından takvime ve veritabanına eklenen günlük istihbarat brifinglerini listeler."""
+    from app.models.calendar_event import CalendarEvent
+    query = (
+        select(CalendarEvent)
+        .where(CalendarEvent.title.like("%İstihbarat Brifingi%"))
+        .order_by(desc(CalendarEvent.id))
+        .limit(limit)
+    )
+    result = await db.execute(query)
+    events = result.scalars().all()
+    return [
+        {
+            "id": e.id,
+            "title": e.title,
+            "description": e.description,
+            "date": e.start_time.strftime("%Y-%m-%d") if e.start_time else "",
+            "created_at": e.created_at.isoformat() if e.created_at else None,
+            "project_id": e.project_id
+        }
+        for e in events
+    ]
+

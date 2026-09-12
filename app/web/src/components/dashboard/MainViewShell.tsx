@@ -23,6 +23,7 @@ import { PhotoTrackingLayout } from "@/components/photo-tracking/PhotoTrackingLa
 import { OfflineBanner } from "@/components/ui/OfflineBanner"
 import { AdminPanel } from "@/components/admin/AdminPanel"
 import { LiveTranslatePage } from "@/components/live-translate"
+import { ScoutRadarPage } from "@/components/scout/ScoutRadarPage"
 import { CommandPaletteModal } from "@/components/command-palette/CommandPaletteModal"
 
 export function MainViewShell() {
@@ -193,6 +194,7 @@ export function MainViewShell() {
   const isPhotoTracking = viewMode === 'photo_tracking'
   const isAdminPanel = viewMode === 'admin'
   const isLiveTranslate = viewMode === 'live_translate'
+  const isScout = viewMode === 'scout'
 
   const renderErrorState = (message: string) => (
     <div className="app-shell flex flex-col w-full overflow-hidden" id="app-root">
@@ -253,6 +255,8 @@ export function MainViewShell() {
           <PhotoTrackingLayout projectId={selectedProjectId} />
         ) : isLiveTranslate ? (
           <LiveTranslatePage />
+        ) : isScout ? (
+          <ScoutRadarPage />
         ) : (
           <div className={`flex-1 min-h-0 flex flex-col mobile-content-area ${isDashboard ? 'overflow-y-auto lg:overflow-hidden p-3 md:p-5 lg:p-8' : (viewMode === 'notes' ? 'overflow-y-auto overflow-x-hidden p-3 md:p-5 lg:p-8' : 'overflow-hidden')}`}>
 

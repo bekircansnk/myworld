@@ -4,7 +4,7 @@ import * as React from "react"
 import { useProjectStore } from "@/stores/projectStore"
 import { useTaskStore } from "@/stores/taskStore"
 import { useTheme } from "next-themes"
-import { LayoutDashboard, ListTodo, CalendarDays, NotebookPen, Bot, Megaphone, Camera, Menu, Bell, Search, Plus, Loader2, PlayCircle, Clock, CheckCircle2, MoreVertical, X, Shield, Sun, Moon, User, ChevronDown, AlertTriangle, Check, Smartphone, Briefcase, ClipboardList, MessageSquare, Sparkles, RefreshCw, Languages } from "lucide-react"
+import { LayoutDashboard, ListTodo, CalendarDays, NotebookPen, Bot, Megaphone, Camera, Menu, Bell, Search, Plus, Loader2, PlayCircle, Clock, CheckCircle2, MoreVertical, X, Shield, Sun, Moon, User, ChevronDown, AlertTriangle, Check, Smartphone, Briefcase, ClipboardList, MessageSquare, Sparkles, RefreshCw, Languages, Compass } from "lucide-react"
 import { format, isToday, isTomorrow, isBefore, addDays } from "date-fns"
 import { tr } from "date-fns/locale"
 import { api } from "@/lib/api"
@@ -378,6 +378,7 @@ export function TopNavbar() {
     ...(canViewCompany(user, 'calendar', selectedProjectId) ? [{ id: 'calendar', label: 'Takvim', icon: CalendarDays }] : []),
     ...(canViewCompany(user, 'notes', selectedProjectId) ? [{ id: 'notes', label: 'Notlar', icon: NotebookPen }] : []),
     ...(canViewCompany(user, 'ai_chat', selectedProjectId) ? [{ id: 'ai_chat', label: 'AI Sohbet', icon: Bot }] : []),
+    { id: 'scout', label: 'Radar', icon: Compass },
     { id: 'live_translate', label: 'Sesli Çeviri', icon: Languages },
     ...(canViewCompany(user, 'ads', selectedProjectId) ? [{ id: 'ads', label: 'Reklam', icon: Megaphone }] : []),
     ...(canViewCompany(user, 'photo_tracking', selectedProjectId) ? [{ id: 'photo_tracking', label: 'Fotoğraf Takip', icon: Camera }] : []),
