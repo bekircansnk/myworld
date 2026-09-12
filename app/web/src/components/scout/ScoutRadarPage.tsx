@@ -11,7 +11,6 @@ import {
   BookOpen, 
   Sparkles, 
   RefreshCw, 
-  Database, 
   Send,
   Download,
   Copy,
@@ -28,7 +27,14 @@ import {
   Maximize2,
   Minimize2,
   ChevronRight,
-  Code2
+  Code2,
+  Printer,
+  Eye,
+  Layout,
+  ZoomIn,
+  ZoomOut,
+  Terminal,
+  Share2
 } from "lucide-react"
 
 interface ChecklistItem {
@@ -44,6 +50,11 @@ interface GithubProject {
   details: string
 }
 
+interface SectionItem {
+  title: string
+  body: string
+}
+
 interface ScoutBriefing {
   id: number
   title: string
@@ -55,6 +66,7 @@ interface ScoutBriefing {
   html?: string
   parsed?: {
     raw_sections?: Record<string, string>
+    section_list?: SectionItem[]
     telemetry_rows?: Array<Record<string, string>>
     github_projects?: GithubProject[]
     checklist_items?: ChecklistItem[]
@@ -62,15 +74,70 @@ interface ScoutBriefing {
     reading_time_min?: number
     metrics?: {
       total_workers?: number
+      successful_workers?: number
+      quorum_str?: string
+      total_duration_sec?: number
       token_saving_pct?: number
+      completed_checks?: number
+      total_checks?: number
       architecture_nodes?: number
       reading_time_min?: number
     }
   }
 }
 
-type TabMode = 'all' | 'summary' | 'github' | 'frontier' | 'architecture' | 'checklist' | 'telemetry' | 'raw'
+type ReaderViewMode = 'html' | 'magazine' | 'perspective' | 'raw'
+type PerspectiveTab = 'summary' | 'github' | 'frontier' | 'community' | 'architecture' | 'checklist' | 'telemetry' | string
 type FontSize = 'sm' | 'base' | 'lg'
+
+// -------------------------------------------------------------
+// HELPER: CLIENT-SIDE HTML GENERATOR (FALLBACK)
+// -------------------------------------------------------------
+function generateClientHtml(title: string, markdownText: string, dateStr: string): string {
+  let bodyHtml = markdownText
+    .replace(/^# (.*$)/gim, '<h1 class="text-2xl md:text-3xl font-black text-white mb-4 tracking-tight">$1</h1>')
+    .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-indigo-300 mt-8 mb-3 pb-2 border-b border-white/10 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>$1</h2>')
+    .replace(/^### (.*$)/gim, '<h3 class="text-lg font-bold text-slate-200 mt-6 mb-2">$1</h3>')
+    .replace(/^> (.*$)/gim, '<blockquote class="border-l-4 border-indigo-500 pl-4 py-2 my-4 bg-indigo-950/20 text-slate-300 italic rounded-r-xl">$1</blockquote>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-white">$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em class="italic text-slate-300">$1</em>')
+    .replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300 font-mono text-xs border border-indigo-800/40">$1</code>')
+    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-indigo-400 hover:underline font-semibold">$1 ↗</a>')
+    .replace(/\n\n/g, '</p><p class="text-slate-300 text-sm leading-relaxed mb-4">')
+
+  return `<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background: #0b0d13; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    .prose table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 1rem; overflow: hidden; margin: 1.5rem 0; background: rgba(20, 24, 36, 0.7); border: 1px solid rgba(255,255,255,0.08); }
+    .prose th { background: rgba(30, 41, 59, 0.8); padding: 0.75rem 1rem; font-weight: 700; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); color: #818cf8; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .prose td { padding: 0.75rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.875rem; color: #cbd5e1; }
+    .prose tr:last-child td { border-bottom: none; }
+    .prose pre { background: #0f172a; padding: 1.25rem; border-radius: 1rem; overflow-x: auto; border: 1px solid rgba(255,255,255,0.1); font-family: ui-monospace, monospace; font-size: 0.82rem; line-height: 1.6; color: #38bdf8; }
+    @media print {
+      body { background: #fff !important; color: #000 !important; padding: 0 !important; }
+      .bg-\\[\\#121622\\]\\/80 { background: #fff !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen p-4 md:p-8 bg-[#0b0d13]">
+  <div class="max-w-5xl mx-auto">
+    <div class="bg-[#121622]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-10 shadow-2xl relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="prose max-w-none text-slate-300">
+        <p class="text-slate-300 text-sm leading-relaxed mb-4">${bodyHtml}</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`
+}
 
 // -------------------------------------------------------------
 // INLINE MARKDOWN PARSER (Bold, Italic, Code, Link)
@@ -138,15 +205,30 @@ function renderInlineMarkdown(text: string): React.ReactNode {
 }
 
 // -------------------------------------------------------------
+// FUZZY / KEYWORD SECTION RESOLVER
+// -------------------------------------------------------------
+function findSection(sections: Record<string, string>, keywords: string[]): { title: string; content: string } | null {
+  for (const [title, content] of Object.entries(sections)) {
+    const lower = title.toLowerCase()
+    if (keywords.some(kw => lower.includes(kw.toLowerCase()))) {
+      return { title, content }
+    }
+  }
+  return null
+}
+
+// -------------------------------------------------------------
 // RICH MARKDOWN BLOCK VIEWER
 // -------------------------------------------------------------
 function RichMarkdownViewer({
   content,
   fontSize = 'base',
+  checklistStates,
   onToggleChecklist
 }: {
   content: string
   fontSize: FontSize
+  checklistStates?: Record<number, boolean>
   onToggleChecklist?: (index: number) => void
 }) {
   const [copiedCodeId, setCopiedCodeId] = React.useState<string | null>(null)
@@ -163,11 +245,11 @@ function RichMarkdownViewer({
     lg: "text-base leading-relaxed"
   }
 
-  // Split markdown into semantic blocks
   const blocks = React.useMemo(() => {
-    const rawBlocks: Array<{ type: string; data: any; raw: string }> = []
+    const rawBlocks: Array<{ type: string; data: any; raw: string; checkIdx?: number }> = []
     const lines = content.split('\n')
     let i = 0
+    let checkCounter = 0
 
     while (i < lines.length) {
       const line = lines[i]
@@ -181,7 +263,7 @@ function RichMarkdownViewer({
           codeLines.push(lines[i])
           i++
         }
-        i++ // consume closing ```
+        i++
         const codeContent = codeLines.join('\n')
         const isDiagram = codeContent.includes('+--') || codeContent.includes('|') || codeContent.includes('-->') || codeContent.includes('+==')
         rawBlocks.push({
@@ -259,9 +341,11 @@ function RichMarkdownViewer({
       // 6. Checklist item
       const checkMatch = line.match(/^-\s+\[([ xX])\]\s+(.*)/)
       if (checkMatch) {
+        const cIdx = checkCounter++
         rawBlocks.push({
           type: 'checklist',
-          data: { completed: checkMatch[1].toLowerCase() === 'x', text: checkMatch[2] },
+          data: { completedDefault: checkMatch[1].toLowerCase() === 'x', text: checkMatch[2] },
+          checkIdx: cIdx,
           raw: line
         })
         i++
@@ -319,7 +403,7 @@ function RichMarkdownViewer({
           case 'h1':
             return (
               <div key={idx} className="pt-2 pb-4 border-b border-slate-200 dark:border-white/10">
-                <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+                <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
                   {renderInlineMarkdown(block.data)}
                 </h1>
               </div>
@@ -330,7 +414,7 @@ function RichMarkdownViewer({
             return (
               <div key={idx} className="pt-6 pb-2 border-b border-slate-200/80 dark:border-white/10">
                 <h2 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-sm shadow-indigo-500/50"></span>
                   {renderInlineMarkdown(headingText)}
                 </h2>
               </div>
@@ -358,31 +442,37 @@ function RichMarkdownViewer({
             return (
               <blockquote
                 key={idx}
-                className="my-3 pl-4 py-2 border-l-4 border-indigo-500 bg-indigo-50/40 dark:bg-indigo-950/20 rounded-r-2xl text-slate-700 dark:text-slate-300 italic"
+                className="my-3 pl-4 py-2.5 border-l-4 border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30 rounded-r-2xl text-slate-700 dark:text-slate-300 italic"
               >
                 {renderInlineMarkdown(block.data)}
               </blockquote>
             )
 
-          case 'checklist':
+          case 'checklist': {
+            const cIdx = block.checkIdx ?? idx
+            const isCompleted = checklistStates && cIdx in checklistStates 
+              ? checklistStates[cIdx] 
+              : block.data.completedDefault
+
             return (
               <div
                 key={idx}
-                onClick={() => onToggleChecklist && onToggleChecklist(idx)}
-                className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-100/60 dark:hover:bg-slate-800/40 transition-colors cursor-pointer"
+                onClick={() => onToggleChecklist && onToggleChecklist(cIdx)}
+                className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-100/70 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
               >
                 <div className={`mt-0.5 w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
-                  block.data.completed 
+                  isCompleted 
                     ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm' 
-                    : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'
+                    : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 group-hover:border-indigo-400'
                 }`}>
-                  {block.data.completed && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                  {isCompleted && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                 </div>
-                <div className={`flex-1 text-slate-800 dark:text-slate-200 ${block.data.completed ? 'line-through opacity-60' : ''}`}>
+                <div className={`flex-1 text-slate-800 dark:text-slate-200 text-xs md:text-sm ${isCompleted ? 'line-through opacity-50' : ''}`}>
                   {renderInlineMarkdown(block.data.text)}
                 </div>
               </div>
             )
+          }
 
           case 'bullet':
             return (
@@ -409,10 +499,10 @@ function RichMarkdownViewer({
           case 'diagram':
             return (
               <div key={idx} className="my-4 rounded-2xl border border-indigo-500/20 dark:border-indigo-500/30 bg-[#080d1a] shadow-xl overflow-hidden">
-                <div className="px-4 py-2 bg-indigo-950/60 border-b border-indigo-500/20 flex items-center justify-between">
+                <div className="px-4 py-2 bg-indigo-950/70 border-b border-indigo-500/20 flex items-center justify-between">
                   <span className="text-xs font-mono font-bold text-indigo-300 flex items-center gap-1.5">
                     <Layers className="w-3.5 h-3.5 text-indigo-400" />
-                    📐 Mimari & Topoloji Şeması (ASCII FSM)
+                    📐 Mimari Topoloji Şeması (ASCII FSM)
                   </span>
                   <button
                     onClick={() => handleCopyCode(block.data.code, `diag-${idx}`)}
@@ -505,7 +595,7 @@ function RichMarkdownViewer({
 }
 
 // -------------------------------------------------------------
-// MAIN COMPONENT
+// MAIN OBSERVATORY COMPONENT
 // -------------------------------------------------------------
 export function ScoutRadarPage() {
   const [briefings, setBriefings] = React.useState<ScoutBriefing[]>([])
@@ -513,16 +603,26 @@ export function ScoutRadarPage() {
   const [isLoading, setIsLoading] = React.useState(true)
   const [searchQuery, setSearchQuery] = React.useState("")
   const [filterCategory, setFilterCategory] = React.useState<string>("all")
-  const [activeTab, setActiveTab] = React.useState<TabMode>('all')
+  
+  // Navigation & View Modes
+  const [readerViewMode, setReaderViewMode] = React.useState<ReaderViewMode>('html')
+  const [perspectiveTab, setPerspectiveTab] = React.useState<PerspectiveTab>('summary')
+  const [rawSubTab, setRawSubTab] = React.useState<'markdown' | 'json' | 'html_source'>('markdown')
   const [fontSize, setFontSize] = React.useState<FontSize>('base')
+  const [htmlZoom, setHtmlZoom] = React.useState<number>(100)
+  
+  // States
   const [isCopied, setIsCopied] = React.useState(false)
-  const [isDrawerOpen, setIsDrawerOpen] = React.useState(true)
+  const [isDrawerOpen, setIsDrawerOpen] = React.useState(false)
   const [isFullscreen, setIsFullscreen] = React.useState(false)
+  const [checklistStates, setChecklistStates] = React.useState<Record<number, boolean>>({})
 
   // Chat & RAG state
   const [question, setQuestion] = React.useState("")
   const [chatAnswer, setChatAnswer] = React.useState<string | null>(null)
   const [isAsking, setIsAsking] = React.useState(false)
+
+  const iframeRef = React.useRef<HTMLIFrameElement>(null)
 
   const fetchBriefings = React.useCallback(async () => {
     setIsLoading(true)
@@ -550,6 +650,13 @@ export function ScoutRadarPage() {
     setTimeout(() => setIsCopied(false), 2000)
   }
 
+  const handleToggleChecklist = (idx: number) => {
+    setChecklistStates(prev => ({
+      ...prev,
+      [idx]: !prev[idx]
+    }))
+  }
+
   const handleDownload = (formatType: 'markdown' | 'html' | 'json') => {
     if (!selectedBriefing) return
     const dateStr = selectedBriefing.date || "rapor"
@@ -562,7 +669,7 @@ export function ScoutRadarPage() {
       mimeType = "text/markdown"
       ext = "md"
     } else if (formatType === 'html') {
-      content = selectedBriefing.html || `<!DOCTYPE html><html><body><pre>${selectedBriefing.content}</pre></body></html>`
+      content = selectedBriefing.html || generateClientHtml(selectedBriefing.title, selectedBriefing.content || '', dateStr)
       mimeType = "text/html"
       ext = "html"
     } else if (formatType === 'json') {
@@ -580,6 +687,23 @@ export function ScoutRadarPage() {
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
+  }
+
+  const handlePrintHtml = () => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.focus()
+      iframeRef.current.contentWindow.print()
+    } else {
+      window.print()
+    }
+  }
+
+  const handleOpenHtmlInNewTab = () => {
+    if (!selectedBriefing) return
+    const htmlCode = selectedBriefing.html || generateClientHtml(selectedBriefing.title, selectedBriefing.content || '', selectedBriefing.date || 'Bugün')
+    const blob = new Blob([htmlCode], { type: "text/html;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    window.open(url, "_blank")
   }
 
   const handleAskNotebookLM = async (customPrompt?: string) => {
@@ -634,15 +758,39 @@ export function ScoutRadarPage() {
 
   // Active section data helpers
   const rawSections = selectedBriefing?.parsed?.raw_sections || {}
+  const sectionList = selectedBriefing?.parsed?.section_list || []
   const telemetryRows = selectedBriefing?.parsed?.telemetry_rows || []
-  const githubProjects = selectedBriefing?.parsed?.github_projects || []
   const checklistItems = selectedBriefing?.parsed?.checklist_items || []
   const metrics = selectedBriefing?.parsed?.metrics || {
-    total_workers: 5,
+    total_workers: telemetryRows.length || 5,
+    successful_workers: telemetryRows.length || 5,
+    quorum_str: `${telemetryRows.length || 5}/${telemetryRows.length || 5}`,
+    total_duration_sec: 90.71,
     token_saving_pct: 99,
+    completed_checks: 0,
+    total_checks: checklistItems.length,
     architecture_nodes: 4,
     reading_time_min: 8
   }
+
+  // Fuzzy-resolved sections for perspective views
+  const sectionSummary = findSection(rawSections, ['özet', 'summary', 'kritik'])
+  const sectionGithub = findSection(rawSections, ['github', 'mcp', 'proje', 'repo'])
+  const sectionFrontier = findSection(rawSections, ['frontier', 'lab', 'model', 'deepmind', 'anthropic', 'openai'])
+  const sectionCommunity = findSection(rawSections, ['topluluk', 'community', 'nabız', 'twitter', 'reddit', 'hacker'])
+  const sectionArchitecture = findSection(rawSections, ['mimari', 'architecture', 'ajan tasarımı', 'fsm', 'topoloji'])
+  const sectionChecklist = findSection(rawSections, ['aksiyon', 'checklist', 'yapılacak'])
+  const sectionTelemetry = findSection(rawSections, ['telemetri', 'benchmark', 'orkestrasyon', 'kota'])
+
+  // HTML content for iframe
+  const renderedHtml = React.useMemo(() => {
+    if (!selectedBriefing) return ""
+    return selectedBriefing.html || generateClientHtml(
+      selectedBriefing.title, 
+      selectedBriefing.content || selectedBriefing.description, 
+      selectedBriefing.date || 'Bugün'
+    )
+  }, [selectedBriefing])
 
   return (
     <div className={`flex-1 flex flex-col h-full bg-[#f8fafc] dark:bg-[#080b11] text-slate-900 dark:text-slate-100 overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
@@ -665,37 +813,39 @@ export function ScoutRadarPage() {
               </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Contabo VPS, Mac Rezidansiyel Kazıyıcı ve Google NotebookLM RAG ile 24/7 senkronize teknoloji gözlemevi.
+              Contabo VPS Çoklu-Ajan Orkestrasyonu, Mac Konut Kazıyıcı ve Google NotebookLM RAG ile 24/7 senkronize teknoloji gözlemevi.
             </p>
           </div>
         </div>
 
         {/* Aksiyon Araçları */}
         <div className="flex items-center gap-2">
-          {/* Yazı Boyutu Seçici */}
-          <div className="hidden sm:flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-xl p-0.5 border border-slate-200/60 dark:border-white/10 text-xs font-semibold">
-            <button
-              onClick={() => setFontSize('sm')}
-              className={`px-2 py-1 rounded-lg transition-all ${fontSize === 'sm' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
-              title="Küçük Yazı"
-            >
-              A-
-            </button>
-            <button
-              onClick={() => setFontSize('base')}
-              className={`px-2 py-1 rounded-lg transition-all ${fontSize === 'base' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
-              title="Standart Yazı"
-            >
-              A
-            </button>
-            <button
-              onClick={() => setFontSize('lg')}
-              className={`px-2 py-1 rounded-lg transition-all ${fontSize === 'lg' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
-              title="Büyük Yazı"
-            >
-              A+
-            </button>
-          </div>
+          {/* Yazı Boyutu Seçici (Magazin görünümü için) */}
+          {readerViewMode === 'magazine' && (
+            <div className="hidden sm:flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-xl p-0.5 border border-slate-200/60 dark:border-white/10 text-xs font-semibold">
+              <button
+                onClick={() => setFontSize('sm')}
+                className={`px-2 py-1 rounded-lg transition-all ${fontSize === 'sm' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
+                title="Küçük Yazı"
+              >
+                A-
+              </button>
+              <button
+                onClick={() => setFontSize('base')}
+                className={`px-2 py-1 rounded-lg transition-all ${fontSize === 'base' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
+                title="Standart Yazı"
+              >
+                A
+              </button>
+              <button
+                onClick={() => setFontSize('lg')}
+                className={`px-2 py-1 rounded-lg transition-all ${fontSize === 'lg' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
+                title="Büyük Yazı"
+              >
+                A+
+              </button>
+            </div>
+          )}
 
           {/* Raporu Kopyala */}
           <button
@@ -711,7 +861,7 @@ export function ScoutRadarPage() {
           <button
             onClick={() => handleDownload('html')}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/60 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/40 transition-all"
-            title="Kusursuz Formatlanmış HTML Raporu Olarak İndir"
+            title="Kusursuz Formatlanmış 2026 Cam HTML Raporu Olarak İndir"
           >
             <Download className="w-3.5 h-3.5" />
             <span className="hidden md:inline">HTML İndir</span>
@@ -761,21 +911,28 @@ export function ScoutRadarPage() {
       </div>
 
       {/* ------------------------------------------------------------- */}
-      {/* 2. BENTO BENCHMARK & TELEMETRİ VİTRİNİ */}
+      {/* 2. DİNAMİK BENTO BENCHMARK & TELEMETRİ VİTRİNİ */}
       {/* ------------------------------------------------------------- */}
       <div className="px-6 py-3 border-b border-slate-200/60 dark:border-white/5 bg-slate-50/70 dark:bg-[#0c101a]/60 grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
+        {/* KART 1: WORKER SWARM */}
         <div className="p-3 rounded-2xl bg-white/70 dark:bg-[#121623]/80 border border-slate-200/60 dark:border-white/5 shadow-sm flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
             <Cpu className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">5-Worker Swarm</div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+              {metrics.total_workers || 5}-Worker Swarm
+            </div>
             <div className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-1">
-              90.71s <span className="text-[10px] font-bold text-emerald-500">Quorum 5/5</span>
+              {metrics.total_duration_sec ? `${metrics.total_duration_sec}s` : '90.71s'} 
+              <span className="text-[10px] font-bold text-emerald-500">
+                Quorum {metrics.quorum_str || '5/5'}
+              </span>
             </div>
           </div>
         </div>
 
+        {/* KART 2: TOKEN TASARRUFU */}
         <div className="p-3 rounded-2xl bg-white/70 dark:bg-[#121623]/80 border border-slate-200/60 dark:border-white/5 shadow-sm flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
             <Zap className="w-4 h-4" />
@@ -783,11 +940,13 @@ export function ScoutRadarPage() {
           <div>
             <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Token Tasarrufu</div>
             <div className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-1">
-              %99 İndirim <span className="text-[10px] font-bold text-indigo-500">AST MCP</span>
+              %{metrics.token_saving_pct || 99} İndirim 
+              <span className="text-[10px] font-bold text-indigo-500">AST MCP</span>
             </div>
           </div>
         </div>
 
+        {/* KART 3: FRONTIER MODELLER */}
         <div className="p-3 rounded-2xl bg-white/70 dark:bg-[#121623]/80 border border-slate-200/60 dark:border-white/5 shadow-sm flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
             <Layers className="w-4 h-4" />
@@ -800,12 +959,15 @@ export function ScoutRadarPage() {
           </div>
         </div>
 
+        {/* KART 4: AKSİYON & BELLEK */}
         <div className="p-3 rounded-2xl bg-white/70 dark:bg-[#121623]/80 border border-slate-200/60 dark:border-white/5 shadow-sm flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
             <Shield className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Hafıza Hiyerarşisi</div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+              {metrics.total_checks ? `${metrics.completed_checks}/${metrics.total_checks} Aksiyon Tamam` : 'Hafıza Hiyerarşisi'}
+            </div>
             <div className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-1">
               Karpathy 4-Tier <span className="text-[10px] font-bold text-amber-500">LangGraph</span>
             </div>
@@ -832,7 +994,7 @@ export function ScoutRadarPage() {
               />
             </div>
 
-            {/* Kategori Hapları */}
+            {/* Kategori Filtre Hapları */}
             <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[11px] font-semibold scrollbar-none">
               {[
                 { id: 'all', label: 'Tümü' },
@@ -917,49 +1079,141 @@ export function ScoutRadarPage() {
         <div className="flex-1 flex flex-col overflow-hidden bg-[#fbfcfd] dark:bg-[#090c13]">
           {selectedBriefing ? (
             <div className="flex-1 flex flex-col overflow-hidden">
-              {/* Perspektif & Sekme Seçici Bar */}
-              <div className="px-4 md:px-6 py-2 border-b border-slate-200/80 dark:border-white/10 bg-white/70 dark:bg-[#0e1320]/70 backdrop-blur-md flex items-center justify-between gap-3 shrink-0">
-                <div className="flex items-center gap-1.5 text-xs font-semibold overflow-x-auto py-1 scrollbar-none flex-1 min-w-0">
-                  {[
-                    { id: 'all', label: '📑 Tam Rapor', desc: 'Bütün Bölümler' },
-                    { id: 'summary', label: '⚡ 60s Özeti', desc: 'Yönetici Özeti' },
-                    { id: 'github', label: '🚀 GitHub & MCP', desc: 'SOTA Projeler' },
-                    { id: 'frontier', label: '🔬 Frontier AI', desc: 'Modeller & Lablar' },
-                    { id: 'architecture', label: '🏗️ Mimari & FSM', desc: 'Şemalar & CQRS' },
-                    { id: 'checklist', label: '🎯 Aksiyonlar', desc: 'Yapılacaklar' },
-                    { id: 'telemetry', label: '📊 Telemetri', desc: 'Worker Süreleri' },
-                    { id: 'raw', label: '📄 Ham / HTML', desc: 'Kaynak Kodu' }
-                  ].map(tab => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id as TabMode)}
-                      className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0 ${
-                        activeTab === tab.id
-                          ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/20'
-                          : 'bg-slate-100/80 hover:bg-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
-                      }`}
-                    >
-                      <span>{tab.label}</span>
-                    </button>
-                  ))}
+              {/* -------------------------------------------------- */}
+              {/* 4-MODLU GÖRÜNÜM SEÇİCİ KONTROL BARI */}
+              {/* -------------------------------------------------- */}
+              <div className="px-4 md:px-6 py-2.5 border-b border-slate-200/80 dark:border-white/10 bg-white/70 dark:bg-[#0e1320]/70 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 shrink-0">
+                {/* Ana Mod Seçici */}
+                <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 dark:bg-slate-900/90 rounded-2xl border border-slate-200/60 dark:border-white/5 text-xs font-semibold">
+                  <button
+                    onClick={() => setReaderViewMode('html')}
+                    className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                      readerViewMode === 'html'
+                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white'
+                    }`}
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>🌟 Cam HTML Önizleme</span>
+                  </button>
+
+                  <button
+                    onClick={() => setReaderViewMode('magazine')}
+                    className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                      readerViewMode === 'magazine'
+                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white'
+                    }`}
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>📑 İnteraktif Magazin</span>
+                  </button>
+
+                  <button
+                    onClick={() => setReaderViewMode('perspective')}
+                    className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                      readerViewMode === 'perspective'
+                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white'
+                    }`}
+                  >
+                    <Layout className="w-3.5 h-3.5" />
+                    <span>🎯 Bölüm Gezgini</span>
+                  </button>
+
+                  <button
+                    onClick={() => setReaderViewMode('raw')}
+                    className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                      readerViewMode === 'raw'
+                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white'
+                    }`}
+                  >
+                    <Terminal className="w-3.5 h-3.5" />
+                    <span>📄 Ham Kaynak</span>
+                  </button>
                 </div>
 
-                <div className="text-[11px] font-medium text-slate-400 hidden 2xl:flex items-center gap-2 shrink-0 pl-2">
-                  <BookOpen className="w-3.5 h-3.5" />
-                  <span>{selectedBriefing.parsed?.word_count || 2250} Kelime</span>
-                  <span>•</span>
-                  <span>{selectedBriefing.parsed?.reading_time_min || 8} Dakika Okuma</span>
+                {/* Sağ Araçlar */}
+                <div className="flex items-center gap-2">
+                  {readerViewMode === 'html' && (
+                    <div className="flex items-center gap-1 text-xs">
+                      {/* Zoom Kontrolleri */}
+                      <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-0.5 border border-slate-200 dark:border-white/10">
+                        <button
+                          onClick={() => setHtmlZoom(prev => Math.max(75, prev - 10))}
+                          className="p-1 rounded-lg hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
+                          title="Uzaklaştır"
+                        >
+                          <ZoomOut className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="px-1.5 text-[11px] font-mono text-slate-500 font-bold">{htmlZoom}%</span>
+                        <button
+                          onClick={() => setHtmlZoom(prev => Math.min(130, prev + 10))}
+                          className="p-1 rounded-lg hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
+                          title="Yakınlaştır"
+                        >
+                          <ZoomIn className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      <button
+                        onClick={handlePrintHtml}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
+                        title="Yazdır veya PDF Olarak Kaydet"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                        <span className="hidden lg:inline">Yazdır / PDF</span>
+                      </button>
+
+                      <button
+                        onClick={handleOpenHtmlInNewTab}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
+                        title="Ayrı Sekmede Aç"
+                      >
+                        <Share2 className="w-3.5 h-3.5" />
+                        <span className="hidden lg:inline">Ayrı Sekme</span>
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="text-[11px] font-medium text-slate-400 hidden 2xl:flex items-center gap-2 shrink-0 pl-2">
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>{selectedBriefing.parsed?.word_count || 2250} Kelime</span>
+                    <span>•</span>
+                    <span>{selectedBriefing.parsed?.reading_time_min || 8} Dakika Okuma</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Sekme İçerik Alanı */}
-              <div className="flex-1 overflow-y-auto p-4 md:p-8">
-                <div className="max-w-5xl mx-auto space-y-6">
+              {/* -------------------------------------------------- */}
+              {/* MOD 1: KUSURSUZ CAM HTML RAPOR ÖNİZLEME (IFRAME) */}
+              {/* -------------------------------------------------- */}
+              {readerViewMode === 'html' && (
+                <div className="flex-1 overflow-hidden p-4 md:p-6 flex flex-col">
+                  <div className="flex-1 rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-2xl overflow-hidden bg-[#0b0d13] relative flex flex-col">
+                    <iframe
+                      ref={iframeRef}
+                      title="AI Intelligence HTML Report"
+                      srcDoc={renderedHtml}
+                      className="w-full flex-1 border-none"
+                      style={{
+                        transform: `scale(${htmlZoom / 100})`,
+                        transformOrigin: 'top center',
+                        height: `${100 * (100 / htmlZoom)}%`,
+                        width: '100%'
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
 
-                  {/* -------------------------------------------------- */}
-                  {/* SEKME 1: TÜM RAPOR (FULL MAGAZINE OBSERVATORY) */}
-                  {/* -------------------------------------------------- */}
-                  {activeTab === 'all' && (
+              {/* -------------------------------------------------- */}
+              {/* MOD 2: İNTERAKTİF MAGAZİN GÖRÜNÜMÜ */}
+              {/* -------------------------------------------------- */}
+              {readerViewMode === 'magazine' && (
+                <div className="flex-1 overflow-y-auto p-4 md:p-8">
+                  <div className="max-w-5xl mx-auto space-y-6">
                     <div className="bg-white dark:bg-[#111522] rounded-3xl p-6 md:p-10 border border-slate-200/80 dark:border-white/10 shadow-xl space-y-6">
                       <div className="border-b border-slate-200 dark:border-white/10 pb-6 flex flex-wrap items-center justify-between gap-4">
                         <div>
@@ -985,7 +1239,7 @@ export function ScoutRadarPage() {
                             className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
                           >
                             <Download className="w-3.5 h-3.5" />
-                            İndir
+                            HTML İndir
                           </button>
                         </div>
                       </div>
@@ -994,198 +1248,259 @@ export function ScoutRadarPage() {
                       <RichMarkdownViewer
                         content={selectedBriefing.content || selectedBriefing.description}
                         fontSize={fontSize}
+                        checklistStates={checklistStates}
+                        onToggleChecklist={handleToggleChecklist}
                       />
                     </div>
-                  )}
+                  </div>
+                </div>
+              )}
 
-                  {/* -------------------------------------------------- */}
-                  {/* SEKME 2: 60 SANİYELİK YÖNETİCİ ÖZETİ */}
-                  {/* -------------------------------------------------- */}
-                  {activeTab === 'summary' && (
-                    <div className="space-y-4">
-                      <div className="p-6 rounded-3xl bg-gradient-to-br from-indigo-900/40 via-[#121623] to-[#0c0f18] border border-indigo-500/30 shadow-xl">
-                        <div className="flex items-center gap-2 text-indigo-400 font-bold text-sm mb-2">
-                          <Zap className="w-4 h-4" />
-                          60 Saniyelik Stratejik Yönetici Özeti
+              {/* -------------------------------------------------- */}
+              {/* MOD 3: BÖLÜM GEZGİNİ (PERSPEKTİF & DİNAMİK SEKMELER) */}
+              {/* -------------------------------------------------- */}
+              {readerViewMode === 'perspective' && (
+                <div className="flex-1 flex flex-col overflow-hidden">
+                  {/* Sekme Seçici Bar */}
+                  <div className="px-4 md:px-6 py-2 border-b border-slate-200/80 dark:border-white/10 bg-white/70 dark:bg-[#0e1320]/70 backdrop-blur-md flex items-center gap-1.5 overflow-x-auto scrollbar-none shrink-0">
+                    {[
+                      { id: 'summary', label: '⚡ 60s Özeti' },
+                      { id: 'github', label: '🚀 GitHub & MCP' },
+                      { id: 'frontier', label: '🔬 Frontier AI' },
+                      { id: 'community', label: '🐦 Topluluk Nabzı' },
+                      { id: 'architecture', label: '🏗️ Mimari & FSM' },
+                      { id: 'checklist', label: '🎯 Aksiyonlar' },
+                      { id: 'telemetry', label: '📊 Telemetri' }
+                    ].map(tab => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setPerspectiveTab(tab.id)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 shrink-0 ${
+                          perspectiveTab === tab.id
+                            ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/20'
+                            : 'bg-slate-100/80 hover:bg-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+
+                    {/* Ek dinamik sekmeler varsa */}
+                    {sectionList.filter(s => 
+                      !['özet', 'summary', 'github', 'mcp', 'frontier', 'topluluk', 'mimari', 'aksiyon', 'checklist', 'telemetri']
+                      .some(kw => s.title.toLowerCase().includes(kw))
+                    ).map((s, sIdx) => (
+                      <button
+                        key={`dyn-${sIdx}`}
+                        onClick={() => setPerspectiveTab(`dyn-${sIdx}`)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 shrink-0 ${
+                          perspectiveTab === `dyn-${sIdx}`
+                            ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/20'
+                            : 'bg-slate-100/80 hover:bg-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        {s.title.slice(0, 20)}...
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Sekme İçeriği */}
+                  <div className="flex-1 overflow-y-auto p-4 md:p-8">
+                    <div className="max-w-5xl mx-auto space-y-6">
+                      {/* ÖZET */}
+                      {perspectiveTab === 'summary' && (
+                        <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-br from-indigo-900/40 via-[#121623] to-[#0c0f18] border border-indigo-500/30 shadow-xl">
+                          <div className="flex items-center gap-2 text-indigo-400 font-bold text-sm mb-2">
+                            <Zap className="w-4 h-4" />
+                            60 Saniyelik Stratejik Yönetici Özeti
+                          </div>
+                          <h3 className="text-xl font-black text-white mb-4">
+                            {sectionSummary ? sectionSummary.title : "Günün Kritik Teknolojik Kırılma Noktaları"}
+                          </h3>
+                          <RichMarkdownViewer
+                            content={sectionSummary ? sectionSummary.content : selectedBriefing.description}
+                            fontSize={fontSize}
+                          />
                         </div>
-                        <h3 className="text-xl font-black text-white mb-4">
-                          Günün 3 Kritik Teknolojik Kırılma Noktası
-                        </h3>
-                        <div className="prose dark:prose-invert max-w-none text-slate-200">
-                          {rawSections["⚡ 60 Saniyelik Yönetici Özeti (Günün 3 Kritik Olayı)"] ? (
-                            <RichMarkdownViewer
-                              content={rawSections["⚡ 60 Saniyelik Yönetici Özeti (Günün 3 Kritik Olayı)"]}
-                              fontSize={fontSize}
-                            />
-                          ) : (
-                            <p className="text-slate-400">{selectedBriefing.description}</p>
-                          )}
+                      )}
+
+                      {/* GITHUB & MCP */}
+                      {perspectiveTab === 'github' && (
+                        <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#111522] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
+                          <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                            <Code2 className="w-5 h-5 text-indigo-500" />
+                            {sectionGithub ? sectionGithub.title : "Radarımıza Giren En Sıcak GitHub & MCP Projeleri"}
+                          </h3>
+                          <RichMarkdownViewer
+                            content={sectionGithub ? sectionGithub.content : "GitHub ve MCP proje detayları bu raporda bulunamadı."}
+                            fontSize={fontSize}
+                          />
                         </div>
-                      </div>
-                    </div>
-                  )}
+                      )}
 
-                  {/* -------------------------------------------------- */}
-                  {/* SEKME 3: GITHUB & SOTA MCP PROJELERİ */}
-                  {/* -------------------------------------------------- */}
-                  {activeTab === 'github' && (
-                    <div className="space-y-4">
-                      <div className="p-6 rounded-3xl bg-white dark:bg-[#111522] border border-slate-200/80 dark:border-white/10 shadow-sm">
-                        <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 mb-2">
-                          <Code2 className="w-5 h-5 text-indigo-500" />
-                          Radarımıza Giren En Sıcak GitHub & MCP Projeleri
-                        </h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">
-                          Milisaniye altı AST traversalı, embodied tooling ve sıfır şişkinlik (zero-bloat) mimarileri.
-                        </p>
-
-                        {rawSections["🚀 Radarımıza Giren En Sıcak GitHub & MCP Projeleri (Teknik Detaylar ve Linkler)"] ? (
+                      {/* FRONTIER AI */}
+                      {perspectiveTab === 'frontier' && (
+                        <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#111522] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
+                          <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                            <Cpu className="w-5 h-5 text-purple-500" />
+                            {sectionFrontier ? sectionFrontier.title : "Frontier AI Laboratuvar Bültenleri"}
+                          </h3>
                           <RichMarkdownViewer
-                            content={rawSections["🚀 Radarımıza Giren En Sıcak GitHub & MCP Projeleri (Teknik Detaylar ve Linkler)"]}
+                            content={sectionFrontier ? sectionFrontier.content : "Frontier AI laboratuvar verisi bu raporda bulunamadı."}
                             fontSize={fontSize}
                           />
-                        ) : (
-                          <p className="text-slate-400 text-xs">Bu bölüm için detay bulunamadı.</p>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                        </div>
+                      )}
 
-                  {/* -------------------------------------------------- */}
-                  {/* SEKME 4: FRONTIER LABS & MODEL ARAŞTIRMALARI */}
-                  {/* -------------------------------------------------- */}
-                  {activeTab === 'frontier' && (
-                    <div className="space-y-4">
-                      <div className="p-6 rounded-3xl bg-white dark:bg-[#111522] border border-slate-200/80 dark:border-white/10 shadow-sm">
-                        <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 mb-2">
-                          <Cpu className="w-5 h-5 text-purple-500" />
-                          Frontier AI Bültenleri (DeepMind, Anthropic, OpenAI)
-                        </h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">
-                          Test-time compute, native omni-modalite ve provider pinning dinamikleri.
-                        </p>
-
-                        {rawSections["🔬 Frontier AI & Araştırma Bültenleri (DeepMind, Anthropic, OpenAI)"] ? (
+                      {/* TOPLULUK NABZI */}
+                      {perspectiveTab === 'community' && (
+                        <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#111522] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
+                          <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                            <Activity className="w-5 h-5 text-sky-500" />
+                            {sectionCommunity ? sectionCommunity.title : "Topluluk Nabzı (Twitter/X, Reddit & HackerNews)"}
+                          </h3>
                           <RichMarkdownViewer
-                            content={rawSections["🔬 Frontier AI & Araştırma Bültenleri (DeepMind, Anthropic, OpenAI)"]}
+                            content={sectionCommunity ? sectionCommunity.content : "Topluluk nabzı verisi bu raporda bulunamadı."}
                             fontSize={fontSize}
                           />
-                        ) : (
-                          <p className="text-slate-400 text-xs">Frontier laboratuvar verisi bulunamadı.</p>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                        </div>
+                      )}
 
-                  {/* -------------------------------------------------- */}
-                  {/* SEKME 5: ÜRETİM MİMARİSİ & TOPOLOJİ */}
-                  {/* -------------------------------------------------- */}
-                  {activeTab === 'architecture' && (
-                    <div className="space-y-4">
-                      <div className="p-6 rounded-3xl bg-white dark:bg-[#111522] border border-slate-200/80 dark:border-white/10 shadow-sm">
-                        <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 mb-2">
-                          <Layers className="w-5 h-5 text-sky-500" />
-                          Üretim Mimarisi ve Dayanıklı Ajan Tasarımı
-                        </h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">
-                          LangGraph PostgreSQL State Checkpoints, CQRS+SSE Event Bus ve vLLM/LiteLLM hibrit çıkarsama.
-                        </p>
-
-                        {rawSections["🏗️ Üretim Mimarisi ve Ajan Tasarımı İçin Kritik Dersler"] ? (
+                      {/* MİMARİ & FSM */}
+                      {perspectiveTab === 'architecture' && (
+                        <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#111522] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
+                          <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                            <Layers className="w-5 h-5 text-indigo-500" />
+                            {sectionArchitecture ? sectionArchitecture.title : "Üretim Mimarisi ve Ajan Tasarımı"}
+                          </h3>
                           <RichMarkdownViewer
-                            content={rawSections["🏗️ Üretim Mimarisi ve Ajan Tasarımı İçin Kritik Dersler"]}
+                            content={sectionArchitecture ? sectionArchitecture.content : "Mimari analiz bu raporda bulunamadı."}
                             fontSize={fontSize}
                           />
-                        ) : (
-                          <p className="text-slate-400 text-xs">Mimari analizi bulunamadı.</p>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                        </div>
+                      )}
 
-                  {/* -------------------------------------------------- */}
-                  {/* SEKME 6: SOMUT AKSİYON LİSTESİ */}
-                  {/* -------------------------------------------------- */}
-                  {activeTab === 'checklist' && (
-                    <div className="p-6 rounded-3xl bg-white dark:bg-[#111522] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div>
+                      {/* AKSİYONLAR */}
+                      {perspectiveTab === 'checklist' && (
+                        <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#111522] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
                           <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
                             <CheckSquare className="w-5 h-5 text-emerald-500" />
-                            Maestro 360 Somut Aksiyon Kontrol Listesi
+                            {sectionChecklist ? sectionChecklist.title : "Maestro 360 Somut Aksiyon Kontrol Listesi"}
                           </h3>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                            Sistem kararlılığı, token ekonomisi ve güvenlik için kademeli aksiyon planı.
-                          </p>
+                          <RichMarkdownViewer
+                            content={sectionChecklist ? sectionChecklist.content : "Kontrol listesi bu raporda bulunamadı."}
+                            fontSize={fontSize}
+                            checklistStates={checklistStates}
+                            onToggleChecklist={handleToggleChecklist}
+                          />
                         </div>
-                      </div>
-
-                      {rawSections["🎯 Maestro 360 İçin Bugünkü Somut Aksiyon Listesi (Checklist)"] ? (
-                        <RichMarkdownViewer
-                          content={rawSections["🎯 Maestro 360 İçin Bugünkü Somut Aksiyon Listesi (Checklist)"]}
-                          fontSize={fontSize}
-                        />
-                      ) : (
-                        <p className="text-slate-400 text-xs">Kontrol listesi bulunamadı.</p>
                       )}
-                    </div>
-                  )}
 
-                  {/* -------------------------------------------------- */}
-                  {/* SEKME 7: TELEMETRİ & BENCHMARK */}
-                  {/* -------------------------------------------------- */}
-                  {activeTab === 'telemetry' && (
-                    <div className="p-6 rounded-3xl bg-white dark:bg-[#111522] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
-                      <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                        <Activity className="w-5 h-5 text-indigo-500" />
-                        Çoklu-Ajan Orkestrasyon & Dinamik Kota Rotasyon Telemetrisi
-                      </h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Contabo VPS üzerinde yürütülen paralel Depth-1 worker süreleri ve Google hesabı rotasyon telemetrisi.
-                      </p>
-
-                      {rawSections["📊 Çoklu-Ajan Orkestrasyon & Kota Rotasyon Telemetrisi"] ? (
-                        <RichMarkdownViewer
-                          content={rawSections["📊 Çoklu-Ajan Orkestrasyon & Kota Rotasyon Telemetrisi"]}
-                          fontSize={fontSize}
-                        />
-                      ) : (
-                        <p className="text-slate-400 text-xs">Telemetri verisi bulunamadı.</p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* -------------------------------------------------- */}
-                  {/* SEKME 8: HAM MARKDOWN / HTML ÖNİZLEME */}
-                  {/* -------------------------------------------------- */}
-                  {activeTab === 'raw' && (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                          <FileCode className="w-4 h-4 text-indigo-500" />
-                          Kaynak Kodu & Ham İçerik
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={handleCopyReport}
-                            className="flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-lg bg-indigo-600 text-white"
-                          >
-                            <Copy className="w-3.5 h-3.5" />
-                            {isCopied ? 'Kopyalandı' : 'Tümünü Kopyala'}
-                          </button>
+                      {/* TELEMETRİ */}
+                      {perspectiveTab === 'telemetry' && (
+                        <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#111522] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
+                          <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                            <Activity className="w-5 h-5 text-indigo-500" />
+                            {sectionTelemetry ? sectionTelemetry.title : "Çoklu-Ajan Orkestrasyon & Kota Rotasyon Telemetrisi"}
+                          </h3>
+                          <RichMarkdownViewer
+                            content={sectionTelemetry ? sectionTelemetry.content : "Telemetri tablosu bu raporda bulunamadı."}
+                            fontSize={fontSize}
+                          />
                         </div>
-                      </div>
+                      )}
 
-                      <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-950 p-4 overflow-x-auto shadow-inner">
-                        <pre className="font-mono text-xs text-emerald-400 whitespace-pre-wrap leading-relaxed">
-                          {selectedBriefing.content || selectedBriefing.description}
-                        </pre>
-                      </div>
+                      {/* DİNAMİK BÖLÜM EŞLEŞMESİ */}
+                      {perspectiveTab.startsWith('dyn-') && (() => {
+                        const idx = parseInt(perspectiveTab.replace('dyn-', ''))
+                        const dynSec = sectionList[idx]
+                        if (!dynSec) return <p className="text-slate-400">Bölüm bulunamadı.</p>
+                        return (
+                          <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#111522] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
+                            <h3 className="text-lg font-black text-slate-900 dark:text-white">
+                              {dynSec.title}
+                            </h3>
+                            <RichMarkdownViewer
+                              content={dynSec.body}
+                              fontSize={fontSize}
+                            />
+                          </div>
+                        )
+                      })()}
                     </div>
-                  )}
-
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* -------------------------------------------------- */}
+              {/* MOD 4: HAM KAYNAK (MARKDOWN / JSON / HTML SOURCE) */}
+              {/* -------------------------------------------------- */}
+              {readerViewMode === 'raw' && (
+                <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    {/* Alt Sekmeler */}
+                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-semibold">
+                      <button
+                        onClick={() => setRawSubTab('markdown')}
+                        className={`px-3 py-1 rounded-lg transition-all ${
+                          rawSubTab === 'markdown' 
+                            ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' 
+                            : 'text-slate-600 dark:text-slate-400'
+                        }`}
+                      >
+                        Markdown (.md)
+                      </button>
+                      <button
+                        onClick={() => setRawSubTab('html_source')}
+                        className={`px-3 py-1 rounded-lg transition-all ${
+                          rawSubTab === 'html_source' 
+                            ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' 
+                            : 'text-slate-600 dark:text-slate-400'
+                        }`}
+                      >
+                        HTML Kaynak Kodu
+                      </button>
+                      <button
+                        onClick={() => setRawSubTab('json')}
+                        className={`px-3 py-1 rounded-lg transition-all ${
+                          rawSubTab === 'json' 
+                            ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm' 
+                            : 'text-slate-600 dark:text-slate-400'
+                        }`}
+                      >
+                        Yapısal JSON
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          const textToCopy = rawSubTab === 'markdown' 
+                            ? (selectedBriefing.content || selectedBriefing.description)
+                            : rawSubTab === 'html_source'
+                            ? renderedHtml
+                            : JSON.stringify(selectedBriefing, null, 2)
+                          navigator.clipboard.writeText(textToCopy)
+                          setIsCopied(true)
+                          setTimeout(() => setIsCopied(false), 2000)
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-indigo-600 text-white shadow-sm transition-all"
+                      >
+                        {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{isCopied ? 'Kopyalandı' : 'Kopyala'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="rounded-3xl border border-slate-200 dark:border-white/10 bg-slate-950 p-5 overflow-x-auto shadow-2xl">
+                    <pre className="font-mono text-xs text-emerald-400 whitespace-pre-wrap leading-relaxed">
+                      {rawSubTab === 'markdown' && (selectedBriefing.content || selectedBriefing.description)}
+                      {rawSubTab === 'html_source' && renderedHtml}
+                      {rawSubTab === 'json' && JSON.stringify(selectedBriefing, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-slate-400 p-8 text-center">
@@ -1194,7 +1509,7 @@ export function ScoutRadarPage() {
                 İstihbarat Gözlemevi Hazır
               </h3>
               <p className="text-xs text-slate-500 max-w-sm">
-                Sol panelden dilediğiniz bir tarihli raporu seçerek zengin bölümleri, mimari şemaları ve telemetriyi inceleyebilirsiniz.
+                Sol panelden dilediğiniz bir tarihli raporu seçerek zengin bölümleri, HTML önizlemesini ve telemetriyi inceleyebilirsiniz.
               </p>
             </div>
           )}
