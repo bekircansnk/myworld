@@ -492,7 +492,9 @@ export function TopNavbar() {
           <div className="relative" ref={notifRef}>
             <button
               onClick={() => { setShowNotifPanel(!showNotifPanel); setShowUserPanel(false); }}
-              className="w-9 h-9 md:w-10 md:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative"
+              aria-label="Bildirimler"
+              title="Bildirimler"
+              className="w-9 h-9 md:w-10 md:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             >
               <Bell className="w-4 h-4 text-brand-gray dark:text-gray-400" />
               {unreadCount > 0 && (
@@ -632,7 +634,9 @@ export function TopNavbar() {
           {mounted && (
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="w-9 h-9 md:w-10 md:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              aria-label={theme === "dark" ? "Açık temaya geç" : "Koyu temaya geç"}
+              title={theme === "dark" ? "Açık temaya geç" : "Koyu temaya geç"}
+              className="w-9 h-9 md:w-10 md:h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             >
               {theme === "dark" ? <Sun className="w-4 h-4 text-brand-yellow" /> : <Moon className="w-4 h-4 text-brand-dark" />}
             </button>
@@ -642,7 +646,9 @@ export function TopNavbar() {
           <div className="relative" ref={userRef}>
             <button
               onClick={() => { setShowUserPanel(!showUserPanel); setShowNotifPanel(false); }}
-              className={`relative w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors overflow-hidden border-2 ${showUserPanel ? 'border-brand-yellow' : 'border-transparent bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+              aria-label="Kullanıcı Menüsü"
+              title="Kullanıcı Menüsü"
+              className={`relative w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors overflow-hidden border-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${showUserPanel ? 'border-brand-yellow' : 'border-transparent bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
             >
               {user?.avatar_url ? (
                 <img src={user.avatar_url.startsWith('http') ? user.avatar_url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${user.avatar_url}`} alt="Avatar" className="w-full h-full object-cover" />
