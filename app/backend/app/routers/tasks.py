@@ -68,16 +68,26 @@ async def reorder_tasks(
 ):
     effective_project_id = getattr(request.state, "project_id", None)
     
+    # ⚡ Bolt Optimization: Fix N+1 query issue during task reordering
+    # Replaced iterative database selects inside the loop with a single bulk fetch using `.in_()`
+    # Reduces O(N) database queries to O(1) query for reordering, improving latency
+    item_ids = [item.id for item in reorder_data.items]
+    if not item_ids:
+        return {"status": "ok", "message": "No tasks to reorder"}
+
+    if current_user.role == "super_admin":
+        query = select(Task).where(Task.id.in_(item_ids))
+    elif effective_project_id:
+        query = select(Task).where(Task.id.in_(item_ids), Task.project_id == effective_project_id)
+    else:
+        query = select(Task).where(Task.id.in_(item_ids), Task.user_id == current_user.id)
+
+    result = await db.execute(query)
+    tasks = result.scalars().all()
+    tasks_by_id = {t.id: t for t in tasks}
+
     for item in reorder_data.items:
-        if current_user.role == "super_admin":
-            query = select(Task).where(Task.id == item.id)
-        elif effective_project_id:
-            query = select(Task).where(Task.id == item.id, Task.project_id == effective_project_id)
-        else:
-            query = select(Task).where(Task.id == item.id, Task.user_id == current_user.id)
-            
-        result = await db.execute(query)
-        task = result.scalars().first()
+        task = tasks_by_id.get(item.id)
         if task:
             task.sort_order = item.sort_order
             
