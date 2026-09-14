@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import dynamic from "next/dynamic"
 import { useTaskStore } from "@/stores/taskStore"
 import { useProjectStore } from "@/stores/projectStore"
 import { useWebSocketStore } from "@/stores/webSocketStore"
@@ -12,19 +13,20 @@ import { NoteDetailPanel } from "@/components/notes/NoteDetailPanel"
 import { DashboardWidgets } from "@/components/dashboard/DashboardWidgets"
 import { NotesList } from "@/components/notes/NotesList"
 import { MorningScreen } from "@/components/dashboard/MorningScreen"
-import { CalendarPage } from "@/components/calendar/CalendarPage"
-import { AIChatDashboard } from "@/components/ai-chat/AIChatDashboard"
 import { TopNavbar } from "@/components/layout/TopNavbar"
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav"
 import { useAuthStore, canViewCompany, canEditCompany, canAccessAdminPanel } from "@/store/authStore"
 import { LoginOverlay } from "@/components/auth/LoginOverlay"
-import { AdsLayout } from "@/components/ads-panel/AdsLayout"
-import { PhotoTrackingLayout } from "@/components/photo-tracking/PhotoTrackingLayout"
 import { OfflineBanner } from "@/components/ui/OfflineBanner"
-import { AdminPanel } from "@/components/admin/AdminPanel"
-import { LiveTranslatePage } from "@/components/live-translate"
-import { ScoutRadarPage } from "@/components/scout/ScoutRadarPage"
 import { CommandPaletteModal } from "@/components/command-palette/CommandPaletteModal"
+
+const CalendarPage = dynamic(() => import("@/components/calendar/CalendarPage").then(mod => mod.CalendarPage))
+const AIChatDashboard = dynamic(() => import("@/components/ai-chat/AIChatDashboard").then(mod => mod.AIChatDashboard))
+const AdsLayout = dynamic(() => import("@/components/ads-panel/AdsLayout").then(mod => mod.AdsLayout))
+const PhotoTrackingLayout = dynamic(() => import("@/components/photo-tracking/PhotoTrackingLayout").then(mod => mod.PhotoTrackingLayout))
+const AdminPanel = dynamic(() => import("@/components/admin/AdminPanel").then(mod => mod.AdminPanel))
+const LiveTranslatePage = dynamic(() => import("@/components/live-translate").then(mod => mod.LiveTranslatePage))
+const ScoutRadarPage = dynamic(() => import("@/components/scout/ScoutRadarPage").then(mod => mod.ScoutRadarPage))
 
 export function MainViewShell() {
   const { user, isAuthenticated, isLoading: authLoading, checkAuth, _hasHydrated: authHydrated } = useAuthStore()

@@ -1,0 +1,3 @@
+## 2024-05-19 - Use next/dynamic for heavy page components
+**Learning:** In Next.js, importing heavy page components (like ScoutRadarPage, LiveTranslatePage, AdminPanel, PhotoTrackingLayout, etc) directly in a top-level component (like MainViewShell) can significantly increase the initial bundle size, as all these components will be included in the initial JS bundle downloaded by the client.
+**Action:** Use `next/dynamic` to dynamically import heavy page components in top-level files where they are conditionally rendered. This allows Next.js to code-split these components and only load their JavaScript when they are actually rendered on screen.
