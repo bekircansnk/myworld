@@ -1,0 +1,4 @@
+## 2024-09-14 - Fix Path Traversal in File Uploads
+**Vulnerability:** Found a Path Traversal vulnerability in `app/backend/app/routers/ads/reports.py` where `file.filename` is directly appended to the upload directory path via `os.path.join()` without prior sanitization. This allows malicious file names (e.g., `../../../etc/passwd`) to write files outside of the intended directory.
+**Learning:** Python's `os.path.join()` and simple string concatenations do not protect against path traversal characters in user-provided file names. The memory mentions "always sanitize `file.filename` using `os.path.basename()` before appending it to a file path string via `os.path.join()` to prevent Path Traversal (CWE-22) vulnerabilities." This directly applies here.
+**Prevention:** Always use `os.path.basename()` on any user-provided filename before using it in a file path.
