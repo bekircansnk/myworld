@@ -30,6 +30,7 @@ export function Sidebar() {
     <div className={`hidden lg:flex transition-all duration-300 ${isExpanded ? 'w-72' : 'w-20'} glass-sidebar flex-col shadow-2xl z-10 relative`}>
       {/* İçe/Dışa Kapatma Butonu */}
       <button 
+        aria-label={isExpanded ? "Kenar çubuğunu daralt" : "Kenar çubuğunu genişlet"}
         onClick={() => setIsExpanded(!isExpanded)}
         className="absolute -right-3 top-8 bg-card border border-border shadow-sm rounded-full p-1 z-50 hover:bg-muted transition-colors"
       >
@@ -142,6 +143,7 @@ export function Sidebar() {
                   </button>
                   {isExpanded && (
                      <button 
+                       aria-label={`${proj.name} ayarları`}
                        onClick={(e) => {
                          e.stopPropagation()
                          setProjectToEdit(proj)
@@ -174,6 +176,7 @@ export function Sidebar() {
             <Button
               variant="ghost"
               size="sm"
+              aria-label="Açık tema"
               onClick={() => setTheme('light')}
               className={`flex-1 rounded-full h-8 flex items-center justify-center gap-2 transition-all ${mounted && theme === 'light' ? 'bg-card shadow-md text-amber-500 font-bold scale-100' : 'text-slate-400 hover:text-slate-600 scale-95 opacity-70'}`}
             >
@@ -183,6 +186,7 @@ export function Sidebar() {
             <Button
               variant="ghost"
               size="sm"
+              aria-label="Koyu tema"
               onClick={() => setTheme('dark')}
               className={`flex-1 rounded-full h-8 flex items-center justify-center gap-2 transition-all ${mounted && theme === 'dark' ? 'bg-card shadow-md text-indigo-400 font-bold scale-100 ring-1 ring-border' : 'text-slate-400 hover:text-slate-300 scale-95 opacity-70'}`}
             >
@@ -194,6 +198,7 @@ export function Sidebar() {
           <Button
             variant="ghost"
             size="icon"
+            aria-label="Temayı değiştir"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             className="rounded-full w-10 h-10 hover:bg-muted"
           >
