@@ -5,6 +5,8 @@
 
 ---
 
+- Kritik Guvenlik: Herhangi bir kimlik dogrulamasi gerektirmeden kullanici sifrelerini degistirmeye olanak taniyan eski ve guvensiz `/reset-password` API rotasi kaldirildi. Front-end tarafindan zaten guvenli olan `/reset-password-with-token` kullanilmaktaydi.
+
 ## 19.07.2026 — Başlangıç
 
 ### 🏗️ Jules Otonom Altyapı Kurulumu
