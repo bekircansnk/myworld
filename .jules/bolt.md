@@ -1,0 +1,3 @@
+## 2024-09-15 - Prevent N+1 queries in task reordering loop
+**Learning:** Found an N+1 query issue in `reorder_tasks` inside `app/backend/app/routers/tasks.py`. The original implementation looped over incoming task order updates, executing a separate `db.execute(select(Task).where(Task.id == item.id))` inside the loop for every item.
+**Action:** Instead of querying the database one-by-one inside the loop, we fetched all relevant objects once using `.in_(task_ids)`. Then, we created an in-memory dictionary map (`order_map = {item.id: item.sort_order for item in reorder_data.items}`) to correlate the fetched database models with their new sort values, avoiding repeated queries. Always use bulk fetch and dictionary caching/mapping for batch updates over collections.
